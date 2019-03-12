@@ -35,6 +35,7 @@ import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Consumer;
+import com.google.android.libraries.feed.common.locale.LocaleUtils;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.testing.FakeBasicLoggingApi;
 import com.google.android.libraries.feed.common.testing.RequiredConsumer;
@@ -89,6 +90,7 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 import org.robolectric.util.ReflectionHelpers;
 
@@ -771,9 +773,8 @@ public class FeedRequestManagerTest {
   }
 
   @Test
-  @Config(sdk = VERSION_CODES.LOLLIPOP)
+  @Config(qualifiers = "en-rGB", sdk = VERSION_CODES.LOLLIPOP)
   public void testClientInfo_postLollipop() throws Exception {
-    context.getResources().getConfiguration().locale = Locale.UK;
     ReflectionHelpers.setStaticField(Build.VERSION.class, "SDK_INT", VERSION_CODES.LOLLIPOP);
     ReflectionHelpers.setStaticField(Build.VERSION.class, "RELEASE", "7.1.2b4.1");
     ReflectionHelpers.setStaticField(Build.class, "SUPPORTED_ABIS", new String[] {"arm64-v8a"});
@@ -815,7 +816,7 @@ public class FeedRequestManagerTest {
                                     .setBuildType(BuildType.RELEASE)
                                     .setApiVersion(VERSION_CODES.LOLLIPOP)
                                     .build())
-                            .setLocale(Locale.UK.toLanguageTag())
+                            .setLocale(LocaleUtils.getLanguageTag(RuntimeEnvironment.application))
                             .setAppType(AppType.GSA)
                             .setAppVersion(
                                 Version.newBuilder()
@@ -851,7 +852,7 @@ public class FeedRequestManagerTest {
     assertThat(httpRequest.getUri().getQueryParameter(RequestHelper.MOTHERSHIP_PARAM_PAYLOAD))
         .isNotNull();
     assertThat(httpRequest.getUri().getQueryParameter(RequestHelper.LOCALE_PARAM))
-        .isEqualTo("en_US");
+        .isEqualTo(LocaleUtils.getLanguageTag(RuntimeEnvironment.application));
   }
 
   private static HttpResponse createHttpResponse(int responseCode, Response response)

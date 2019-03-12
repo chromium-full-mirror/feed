@@ -30,6 +30,7 @@ public final class RequestHelper {
   private static final String MOTHERSHIP_VALUE_BINARY = "bin";
 
   private RequestHelper() {}
+
   /**
    * Returns the first length-prefixed value from {@code input}. The first bytes of input are
    * assumed to be a varint32 encoding the length of the rest of the message. If input contains more

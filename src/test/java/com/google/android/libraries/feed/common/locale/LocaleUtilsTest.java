@@ -21,6 +21,7 @@ import java.util.Locale;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 /** Tests of the {@link LocaleUtils} class. */
@@ -28,14 +29,46 @@ import org.robolectric.annotation.Config;
 public class LocaleUtilsTest {
 
   @Test
+  @Config(qualifiers = "fr-rCA", sdk = VERSION_CODES.N)
+  public void getLocale_byContext_postN() {
+    assertThat(LocaleUtils.getLocale(RuntimeEnvironment.application))
+        .isEqualTo(Locale.CANADA_FRENCH);
+  }
+
+  @Test
+  @Config(qualifiers = "fr-rCA", sdk = VERSION_CODES.LOLLIPOP)
+  public void getLoca_byContext_preN() {
+    assertThat(LocaleUtils.getLocale(RuntimeEnvironment.application))
+        .isEqualTo(Locale.CANADA_FRENCH);
+  }
+
+  @Test
+  @Config(qualifiers = "fr-rCA", sdk = VERSION_CODES.LOLLIPOP)
+  public void getLanguageTag_byContext_postLollipop() {
+    assertThat(LocaleUtils.getLanguageTag(RuntimeEnvironment.application)).isEqualTo("fr-CA");
+  }
+
+  @Test
+  @Config(qualifiers = "fr-rCA", sdk = VERSION_CODES.KITKAT)
+  public void getLanguageTag_byContext_preLollipop() {
+    assertThat(LocaleUtils.getLanguageTag(RuntimeEnvironment.application)).isEqualTo("fr-CA");
+  }
+
+  @Test
   @Config(sdk = VERSION_CODES.LOLLIPOP)
-  public void getLanguageTag_postLollipop() {
+  public void getLanguageTag_byLocale_postLollipop() {
     assertThat(LocaleUtils.getLanguageTag(Locale.CANADA_FRENCH)).isEqualTo("fr-CA");
   }
 
   @Test
   @Config(sdk = VERSION_CODES.KITKAT)
-  public void getLanguageTag_preLollipop() {
+  public void getLanguageTag_byLocale_preLollipop() {
     assertThat(LocaleUtils.getLanguageTag(Locale.CANADA_FRENCH)).isEqualTo("fr-CA");
+  }
+
+  @Test
+  @Config(sdk = VERSION_CODES.KITKAT)
+  public void getLanguageTag_byLocale_preLollipop_badLanguage() {
+    assertThat(LocaleUtils.getLanguageTag(new Locale("", "CA"))).isEqualTo("und-CA");
   }
 }

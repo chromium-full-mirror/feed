@@ -69,7 +69,6 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 /** Default implementation of RequestManager. */
@@ -173,7 +172,7 @@ public final class FeedRequestManager implements RequestManager {
   }
 
   private RequestBuilder newDefaultRequest(@RequestReason int requestReason) {
-    return new RequestBuilder(getLocale(), applicationInfo, configuration, requestReason);
+    return new RequestBuilder(context, applicationInfo, configuration, requestReason);
   }
 
   private static FeedQuery.RequestReason getWireRequestReason(@RequestReason int requestReason) {
@@ -220,7 +219,10 @@ public final class FeedRequestManager implements RequestManager {
 
     HttpRequest httpRequest =
         RequestHelper.buildHttpRequest(
-            httpMethod, requestBuilder.build().toByteArray(), endpoint, getLocale().toString());
+            httpMethod,
+            requestBuilder.build().toByteArray(),
+            endpoint,
+            LocaleUtils.getLanguageTag(context));
 
     Logger.i(TAG, "Making Request: %s", httpRequest.getUri().getPath());
     mainThreadRunner.execute(
@@ -251,12 +253,6 @@ public final class FeedRequestManager implements RequestManager {
           }
           handleResponseBytes(input.getResponseBody(), consumer);
         });
-  }
-
-  private Locale getLocale() {
-    return Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
-        ? context.getResources().getConfiguration().getLocales().get(0)
-        : context.getResources().getConfiguration().locale;
   }
 
   private void handleResponseBytes(
@@ -296,18 +292,18 @@ public final class FeedRequestManager implements RequestManager {
 
     private ByteString token;
     private List<DismissActionWithSemanticProperties> dismissActionsWithSemanticProperties;
-    private final Locale locale;
+    private final Context context;
     private final ApplicationInfo applicationInfo;
     private final Configuration configuration;
     private final FeedQuery.RequestReason requestReason;
     @RequestReason private final int clientLoggingRequestReason;
 
     RequestBuilder(
-        Locale locale,
+        Context context,
         ApplicationInfo applicationInfo,
         Configuration configuration,
         @RequestReason int requestReason) {
-      this.locale = locale;
+      this.context = context;
       this.applicationInfo = applicationInfo;
       this.configuration = configuration;
       this.clientLoggingRequestReason = requestReason;
@@ -437,7 +433,7 @@ public final class FeedRequestManager implements RequestManager {
       ClientInfo.Builder clientInfoBuilder = ClientInfo.newBuilder();
       clientInfoBuilder.setPlatformType(PlatformType.ANDROID);
       clientInfoBuilder.setPlatformVersion(getPlatformVersion());
-      clientInfoBuilder.setLocale(LocaleUtils.getLanguageTag(locale));
+      clientInfoBuilder.setLocale(LocaleUtils.getLanguageTag(context));
       clientInfoBuilder.setAppType(Utils.convertAppType(applicationInfo.getAppType()));
       clientInfoBuilder.setAppVersion(getAppVersion());
       return clientInfoBuilder.build();

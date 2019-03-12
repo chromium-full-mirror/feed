@@ -5,5 +5,7 @@ licenses(["notice"])  # Apache 2
 android_library(
     name = "locale",
     srcs = glob(["*.java"]),
-    deps = [],
+    deps = [
+        "@maven//:com_android_support_support_annotations",
+    ],
 )
