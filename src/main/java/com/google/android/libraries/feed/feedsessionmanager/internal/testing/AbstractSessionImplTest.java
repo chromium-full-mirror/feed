@@ -38,9 +38,9 @@ import org.mockito.Mock;
 /** Abstract class implementing many of the core SessionImpl tests. */
 public abstract class AbstractSessionImplTest {
   private static final StreamSession HEAD =
-      StreamSession.newBuilder().setStreamToken("$HEAD").build();
+      StreamSession.newBuilder().setSessionId("$HEAD").build();
   protected static final StreamSession TEST_SESSION =
-      StreamSession.newBuilder().setStreamToken("TEST$1").build();
+      StreamSession.newBuilder().setSessionId("TEST$1").build();
 
   @Mock protected Store store;
   @Mock protected ModelProvider modelProvider;

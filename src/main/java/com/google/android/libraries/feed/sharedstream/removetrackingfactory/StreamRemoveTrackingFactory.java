@@ -42,7 +42,7 @@ public class StreamRemoveTrackingFactory implements RemoveTrackingFactory<Conten
     }
 
     // Only notify host on the StreamScope that requested the dismiss.
-    if (!requestingSession.getStreamToken().equals(modelProvider.getSessionToken())) {
+    if (!requestingSession.getSessionId().equals(modelProvider.getSessionId())) {
       return null;
     }
 

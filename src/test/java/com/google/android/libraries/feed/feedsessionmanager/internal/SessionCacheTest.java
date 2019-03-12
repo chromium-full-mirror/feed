@@ -105,9 +105,9 @@ public class SessionCacheTest {
     SessionCache sessionCache = getSessionCache();
     sessionCache.initialize();
     Session session = populateSession(1, 2);
-    sessionCache.put(session.getStreamSession().getStreamToken(), session);
+    sessionCache.put(session.getStreamSession().getSessionId(), session);
 
-    Session ret = sessionCache.get(session.getStreamSession().getStreamToken());
+    Session ret = sessionCache.get(session.getStreamSession().getSessionId());
     assertThat(ret).isEqualTo(session);
   }
 
@@ -116,13 +116,13 @@ public class SessionCacheTest {
     SessionCache sessionCache = getSessionCache();
     sessionCache.initialize();
     Session session = populateSession(1, 2);
-    sessionCache.put(session.getStreamSession().getStreamToken(), session);
+    sessionCache.put(session.getStreamSession().getSessionId(), session);
 
-    Session ret = sessionCache.get(session.getStreamSession().getStreamToken());
+    Session ret = sessionCache.get(session.getStreamSession().getSessionId());
     assertThat(ret).isEqualTo(session);
 
     session = populateSession(2, 2);
-    sessionCache.put(session.getStreamSession().getStreamToken(), session);
+    sessionCache.put(session.getStreamSession().getSessionId(), session);
 
     StreamSessions sessions = sessionCache.getPersistedSessions();
     assertThat(sessions).isNotNull();
@@ -135,14 +135,14 @@ public class SessionCacheTest {
     SessionCache sessionCache = getSessionCache();
     sessionCache.initialize();
     Session session = populateSession(1, 2);
-    sessionCache.put(session.getStreamSession().getStreamToken(), session);
+    sessionCache.put(session.getStreamSession().getSessionId(), session);
 
     StreamSessions sessions = sessionCache.getPersistedSessions();
     assertThat(sessions).isNotNull();
     List<StreamSession> streamSessionList = sessions.getStreamSessionsList();
     assertThat(streamSessionList).hasSize(2);
 
-    String token = session.getStreamSession().getStreamToken();
+    String token = session.getStreamSession().getSessionId();
     assertThat(sessionCache.remove(token)).isEqualTo(session);
     assertThat(sessionCache.get(token)).isNull();
 
@@ -157,7 +157,7 @@ public class SessionCacheTest {
     SessionCache sessionCache = getSessionCache();
     sessionCache.initialize();
     Session s1 = populateSession(1, 2);
-    String s1Token = s1.getStreamSession().getStreamToken();
+    String s1Token = s1.getStreamSession().getSessionId();
     sessionCache.put(s1Token, s1);
 
     List<Session> sessions = sessionCache.getSessions();
@@ -177,14 +177,14 @@ public class SessionCacheTest {
     SessionCache sessionCache = getSessionCache();
     sessionCache.initialize();
     Session s1 = populateSession(1, 2);
-    sessionCache.put(s1.getStreamSession().getStreamToken(), s1);
+    sessionCache.put(s1.getStreamSession().getSessionId(), s1);
     Session s2 = populateSession(2, 2);
-    sessionCache.put(s2.getStreamSession().getStreamToken(), s2);
+    sessionCache.put(s2.getStreamSession().getSessionId(), s2);
 
     List<Session> sessions = sessionCache.getSessions();
     assertThat(sessions).hasSize(3);
-    assertThat(sessions).contains(sessionCache.get(s1.getStreamSession().getStreamToken()));
-    assertThat(sessions).contains(sessionCache.get(s2.getStreamSession().getStreamToken()));
+    assertThat(sessions).contains(sessionCache.get(s1.getStreamSession().getSessionId()));
+    assertThat(sessions).contains(sessionCache.get(s2.getStreamSession().getSessionId()));
   }
 
   @Test
@@ -206,7 +206,7 @@ public class SessionCacheTest {
     int sessionCount = 2;
     for (int i = 0; i < sessionCount; i++) {
       Session session = populateSession(i, 2);
-      sessionCache.put(session.getStreamSession().getStreamToken(), session);
+      sessionCache.put(session.getStreamSession().getSessionId(), session);
     }
     List<Session> sessions = sessionCache.getSessions();
     assertThat(sessions).hasSize(sessionCount + 1);
@@ -223,7 +223,7 @@ public class SessionCacheTest {
 
     int featureCnt = 3;
     Session session = populateSession(1, featureCnt);
-    sessionCache.put(session.getStreamSession().getStreamToken(), session);
+    sessionCache.put(session.getStreamSession().getSessionId(), session);
 
     Set<String> accessibleContent = sessionCache.accessibleContentSupplier.get();
     // Add one for the root feature
@@ -233,10 +233,10 @@ public class SessionCacheTest {
   @Test
   public void testIsSessionAlive() {
     StreamSession session1 =
-        StreamSession.newBuilder().setStreamToken("stream:1").setLastAccessed(0).build();
+        StreamSession.newBuilder().setSessionId("stream:1").setLastAccessed(0).build();
     StreamSession session2 =
         StreamSession.newBuilder()
-            .setStreamToken("stream:2")
+            .setSessionId("stream:2")
             .setLastAccessed(DEFAULT_LIFETIME_MS - 1)
             .build();
     SessionCache sessionCache = getSessionCache();
@@ -263,8 +263,8 @@ public class SessionCacheTest {
   @Test
   public void testCleanupJournals() {
     List<StreamSession> storedSessions = new ArrayList<>();
-    StreamSession session1 = StreamSession.newBuilder().setStreamToken("stream:1").build();
-    StreamSession session2 = StreamSession.newBuilder().setStreamToken("stream:2").build();
+    StreamSession session1 = StreamSession.newBuilder().setSessionId("stream:1").build();
+    StreamSession session2 = StreamSession.newBuilder().setSessionId("stream:2").build();
     storedSessions.add(session1);
     storedSessions.add(session2);
 
@@ -276,7 +276,7 @@ public class SessionCacheTest {
     sessionCache.setSessionsForTest(s2);
     sessionCache.cleanupSessionJournals();
     verify(storeSpy).removeSession(session1);
-    assertThat(sessionCache.getSessionsMapForTest().get(session2.getStreamToken())).isEqualTo(s2);
+    assertThat(sessionCache.getSessionsMapForTest().get(session2.getSessionId())).isEqualTo(s2);
   }
 
   @Test
@@ -284,11 +284,11 @@ public class SessionCacheTest {
     List<PayloadWithId> persistedSessions = new ArrayList<>();
     StreamSessions.Builder streamSessionsBuilder = StreamSessions.newBuilder();
     StreamSession s1 =
-        StreamSession.newBuilder().setStreamToken("stream:1").setLastAccessed(0).build();
+        StreamSession.newBuilder().setSessionId("stream:1").setLastAccessed(0).build();
     streamSessionsBuilder.addStreamSessions(s1);
     StreamSession s2 =
         StreamSession.newBuilder()
-            .setStreamToken("stream:2")
+            .setSessionId("stream:2")
             .setLastAccessed(DEFAULT_LIFETIME_MS - 1)
             .build();
     streamSessionsBuilder.addStreamSessions(s2);
@@ -304,13 +304,13 @@ public class SessionCacheTest {
 
     Map<String, Session> sessionMap = sessionCache.getSessionsMapForTest();
     // Sessions will include $HEAD
-    HeadSessionImpl head = (HeadSessionImpl) sessionMap.get(Store.HEAD.getStreamToken());
+    HeadSessionImpl head = (HeadSessionImpl) sessionMap.get(Store.HEAD.getSessionId());
     assertThat(head).isNotNull();
     sessionCache.initializePersistedSessions();
     sessionMap = sessionCache.getSessionsMapForTest();
     assertThat(sessionMap).hasSize(2);
-    assertThat(sessionMap.get(s2.getStreamToken()).getStreamSession()).isEqualTo(s2);
-    assertThat(sessionMap.get(Store.HEAD.getStreamToken())).isNotNull();
+    assertThat(sessionMap.get(s2.getSessionId()).getStreamSession()).isEqualTo(s2);
+    assertThat(sessionMap.get(Store.HEAD.getSessionId())).isNotNull();
   }
 
   @Test
@@ -326,8 +326,8 @@ public class SessionCacheTest {
     assertThat(streamSessionList).hasSize(1);
 
     // add additional sessions
-    StreamSession session1 = StreamSession.newBuilder().setStreamToken("stream:1").build();
-    StreamSession session2 = StreamSession.newBuilder().setStreamToken("stream:2").build();
+    StreamSession session1 = StreamSession.newBuilder().setSessionId("stream:1").build();
+    StreamSession session2 = StreamSession.newBuilder().setSessionId("stream:2").build();
     Session s1 = mock(Session.class);
     when(s1.getStreamSession()).thenReturn(session1);
     Session s2 = mock(Session.class);
@@ -382,7 +382,7 @@ public class SessionCacheTest {
 
   private Session populateSession(int id, int featureCnt) {
     InitializableSession session = sessionFactory.getSession();
-    StreamSession streamSession = StreamSession.newBuilder().setStreamToken("stream:" + id).build();
+    StreamSession streamSession = StreamSession.newBuilder().setSessionId("stream:" + id).build();
     String rootId = idGenerators.createRootContentId(1);
     List<StreamStructure> head = new ArrayList<>();
     head.add(

@@ -42,7 +42,7 @@ public class PagingState {
       ContentIdGenerators idGenerator) {
     ByteString token = ByteString.copyFrom(Integer.toString(tokenId), Charset.defaultCharset());
     initialResponse = getInitialResponse(initialCards, tokenId, token);
-    streamToken = getStreamToken(token, tokenId, idGenerator);
+    streamToken = getSessionId(token, tokenId, idGenerator);
     pageResponse = getPageResponse(pageCards);
   }
 
@@ -66,7 +66,7 @@ public class PagingState {
     return pageResponseBuilder.build();
   }
 
-  private static StreamToken getStreamToken(
+  private static StreamToken getSessionId(
       ByteString token, int id, ContentIdGenerators idGenerator) {
     ContentId tokenId =
         ContentId.newBuilder().setContentDomain("token").setId(id).setTable("feature").build();

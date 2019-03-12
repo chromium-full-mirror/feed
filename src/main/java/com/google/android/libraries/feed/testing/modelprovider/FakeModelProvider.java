@@ -40,7 +40,7 @@ public class FakeModelProvider implements ModelProvider {
   private final Set<ModelProviderObserver> observers = new HashSet<>();
   private ModelFeature rootFeature;
   private boolean wasRefreshTriggered;
-  /*@Nullable*/ private String sessionToken = null;
+  /*@Nullable*/ private String sessionId = null;
   @RequestReason private int lastRequestReason = RequestReason.UNKNOWN;
   /*@Nullable*/ private ModelFeature immediateSessionStartModel;
   /*@Nullable*/ private UiContext triggerRefreshUiContext;
@@ -103,8 +103,8 @@ public class FakeModelProvider implements ModelProvider {
 
   @Override
   /*@Nullable*/
-  public String getSessionToken() {
-    return sessionToken;
+  public String getSessionId() {
+    return sessionId;
   }
 
   @Override
@@ -164,8 +164,8 @@ public class FakeModelProvider implements ModelProvider {
     return observers;
   }
 
-  public void setSessionToken(String sessionToken) {
-    this.sessionToken = sessionToken;
+  public void setSessionId(String sessionId) {
+    this.sessionId = sessionId;
   }
 
   @RequestReason

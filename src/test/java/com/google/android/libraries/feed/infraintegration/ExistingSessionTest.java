@@ -87,16 +87,16 @@ public class ExistingSessionTest {
     ModelCursor initCursor = initRoot.getCursor();
     assertThat(initCursor).isNotNull();
 
-    String sessionToken = modelProvider.getSessionToken();
-    assertThat(sessionToken).isNotEmpty();
+    String sessionId = modelProvider.getSessionId();
+    assertThat(sessionId).isNotEmpty();
 
-    ModelProvider modelProvider2 = modelProviderFactory.create(sessionToken);
+    ModelProvider modelProvider2 = modelProviderFactory.create(sessionId);
     assertThat(modelProvider2).isNotNull();
     ModelFeature root2 = modelProvider2.getRootFeature();
     assertThat(root2).isNotNull();
     ModelCursor cursor2 = root2.getCursor();
     assertThat(cursor2).isNotNull();
-    assertThat(modelProvider2.getSessionToken()).isEqualTo(sessionToken);
+    assertThat(modelProvider2.getSessionId()).isEqualTo(sessionId);
     modelValidator.assertCursorContents(cursor2, cards);
 
     // Creating the new session will invalidate the previous ModelProvider and Cursor
@@ -129,8 +129,8 @@ public class ExistingSessionTest {
     ModelCursor initCursor = initRoot.getCursor();
     assertThat(initCursor).isNotNull();
 
-    String sessionToken = modelProvider.getSessionToken();
-    assertThat(sessionToken).isNotEmpty();
+    String sessionId = modelProvider.getSessionId();
+    assertThat(sessionId).isNotEmpty();
 
     // Create a second model provider using an unknown session token, this should return null
     ModelProvider modelProvider2 = modelProviderFactory.create("unknown-session");
@@ -173,15 +173,15 @@ public class ExistingSessionTest {
     ModelProvider modelProvider = modelProviderFactory.createNew(null);
     assertThat(modelProvider).isNotNull();
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
-    String sessionToken = modelProvider.getSessionToken();
-    assertThat(sessionToken).isNotEmpty();
+    String sessionId = modelProvider.getSessionId();
+    assertThat(sessionId).isNotEmpty();
 
     modelProvider.invalidate();
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.INVALIDATED);
 
     // Attempt to connect with the session token we just invalidated.  This will result in a
     // INVALIDATED ModelProvider.
-    ModelProvider modelProvider2 = modelProviderFactory.create(sessionToken);
+    ModelProvider modelProvider2 = modelProviderFactory.create(sessionId);
     assertThat(modelProvider2).isNotNull();
     assertThat(modelProvider2.getCurrentState()).isEqualTo(State.INVALIDATED);
   }
@@ -208,14 +208,14 @@ public class ExistingSessionTest {
     ModelProvider modelProvider = modelProviderFactory.createNew(null);
     assertThat(modelProvider).isNotNull();
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
-    String sessionToken = modelProvider.getSessionToken();
-    assertThat(sessionToken).isNotEmpty();
+    String sessionId = modelProvider.getSessionId();
+    assertThat(sessionId).isNotEmpty();
 
     modelProvider.detachModelProvider();
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.INVALIDATED);
 
     // Attempt to connect with the session token we just detached.  This will work as expected.
-    ModelProvider modelProvider2 = modelProviderFactory.create(sessionToken);
+    ModelProvider modelProvider2 = modelProviderFactory.create(sessionId);
     assertThat(modelProvider2).isNotNull();
     assertThat(modelProvider2.getCurrentState()).isEqualTo(State.READY);
   }

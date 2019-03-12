@@ -157,7 +157,7 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
     threadUtils.checkNotMainThread();
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
     List<StreamStructure> streamStructures;
-    Result<List<byte[]>> operationsResult = journalStorageDirect.read(session.getStreamToken());
+    Result<List<byte[]>> operationsResult = journalStorageDirect.read(session.getSessionId());
     if (!operationsResult.isSuccessful()) {
       Logger.e(TAG, "Error fetching stream structures for stream session %s", session);
       tracker.stop("getStreamStructures failed", "session", session);
@@ -195,7 +195,7 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
     List<String> result = namesResult.getValue();
     sessions = new ArrayList<>(result.size());
     for (String name : result) {
-      if (HEAD.getStreamToken().equals(name)) {
+      if (HEAD.getSessionId().equals(name)) {
         // Don't add $HEAD to the sessions list
         continue;
       }
@@ -203,7 +203,7 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
         // Don't add Dismiss Actions journal to sessions list
         continue;
       }
-      sessions.add(StreamSession.newBuilder().setStreamToken(name).build());
+      sessions.add(StreamSession.newBuilder().setSessionId(name).build());
     }
     tracker.stop("", "getAllSessions", "items", sessions.size());
     return Result.success(sessions);
@@ -337,10 +337,10 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
     StreamSession streamSession = storeHelper.getNewStreamSession();
     journalStorageDirect.commit(
-        new JournalMutation.Builder(HEAD.getStreamToken())
-            .copy(streamSession.getStreamToken())
+        new JournalMutation.Builder(HEAD.getSessionId())
+            .copy(streamSession.getSessionId())
             .build());
-    tracker.stop("createNewSession", streamSession.getStreamToken());
+    tracker.stop("createNewSession", streamSession.getSessionId());
     return Result.success(streamSession);
   }
 
@@ -353,12 +353,12 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
   public void removeSession(StreamSession session) {
     threadUtils.checkNotMainThread();
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
-    if (session.getStreamToken().equals(HEAD.getStreamToken())) {
+    if (session.getSessionId().equals(HEAD.getSessionId())) {
       throw new IllegalStateException("Unable to delete the $HEAD session");
     }
     journalStorageDirect.commit(
-        new JournalMutation.Builder(session.getStreamToken()).delete().build());
-    tracker.stop("removeSession", session.getStreamToken());
+        new JournalMutation.Builder(session.getSessionId()).delete().build());
+    tracker.stop("removeSession", session.getSessionId());
   }
 
   @Override
@@ -366,7 +366,7 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
     threadUtils.checkNotMainThread();
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
     journalStorageDirect.commit(
-        new JournalMutation.Builder(HEAD.getStreamToken()).delete().append(new byte[0]).build());
+        new JournalMutation.Builder(HEAD.getSessionId()).delete().append(new byte[0]).build());
     tracker.stop("", "clearHead");
   }
 
@@ -507,7 +507,7 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
       StreamSession streamSession, List<StreamStructure> streamStructures) {
     threadUtils.checkNotMainThread();
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
-    JournalMutation.Builder mutation = new JournalMutation.Builder(streamSession.getStreamToken());
+    JournalMutation.Builder mutation = new JournalMutation.Builder(streamSession.getSessionId());
     if (streamStructures.isEmpty()) {
       // allow an empty journal to be created
       mutation.append(new byte[0]);
@@ -522,7 +522,7 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
         TAG,
         "commitSessionMutation - Success %s, Update Session %s, stream structures %s",
         result,
-        streamSession.getStreamToken(),
+        streamSession.getSessionId(),
         streamStructures.size());
     return result;
   }

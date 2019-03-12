@@ -132,7 +132,7 @@ public interface ModelProvider {
 
   /** A String which represents the session bound to the ModelProvider. */
   /*@Nullable*/
-  String getSessionToken();
+  String getSessionId();
 
   /**
    * Returns a List of ModelChild for the root. These children may not be bound. This is not

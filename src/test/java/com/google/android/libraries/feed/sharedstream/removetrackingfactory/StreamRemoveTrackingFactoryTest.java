@@ -41,7 +41,7 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class StreamRemoveTrackingFactoryTest {
 
-  private static final String SESSION_TOKEN = "sessionToken";
+  private static final String SESSION_ID = "sessionId";
   private static final String URL1 = "url1";
   private static final String URL2 = "url2";
 
@@ -54,7 +54,7 @@ public class StreamRemoveTrackingFactoryTest {
   @Before
   public void setup() {
     initMocks(this);
-    when(modelProvider.getSessionToken()).thenReturn(SESSION_TOKEN);
+    when(modelProvider.getSessionId()).thenReturn(SESSION_ID);
     when(knownContentApi.getKnownContentHostNotifier()).thenReturn(knownContentListener);
     streamRemoveTrackingFactory = new StreamRemoveTrackingFactory(modelProvider, knownContentApi);
   }
@@ -70,7 +70,7 @@ public class StreamRemoveTrackingFactoryTest {
             streamRemoveTrackingFactory.create(
                 new MutationContext.Builder()
                     .setRequestingSession(
-                        StreamSession.newBuilder().setStreamToken("otherToken").build())
+                        StreamSession.newBuilder().setSessionId("otherToken").build())
                     .build()))
         .isNull();
   }
@@ -134,7 +134,7 @@ public class StreamRemoveTrackingFactoryTest {
 
   private MutationContext createMutationContext(boolean isUserInitiated) {
     return new MutationContext.Builder()
-        .setRequestingSession(StreamSession.newBuilder().setStreamToken(SESSION_TOKEN).build())
+        .setRequestingSession(StreamSession.newBuilder().setSessionId(SESSION_ID).build())
         .setUserInitiated(isUserInitiated)
         .build();
   }

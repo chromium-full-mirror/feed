@@ -40,7 +40,7 @@ import java.util.Set;
  */
 public interface Store {
   /** The StreamSession representing $HEAD */
-  StreamSession HEAD = StreamSession.newBuilder().setStreamToken("$HEAD").build();
+  StreamSession HEAD = StreamSession.newBuilder().setSessionId("$HEAD").build();
 
   /**
    * Returns an {@code List} of the {@link PayloadWithId}s for the ContentId Strings passed in

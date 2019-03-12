@@ -122,12 +122,12 @@ public class BasicStreamTest {
   private static final long LOGGING_IMMEDIATE_CONTENT_THRESHOLD_MS = 1000;
   private static final int ADAPTER_HEADER_COUNT = 5;
 
-  private static final String SESSION_TOKEN = "session-token";
+  private static final String SESSION_ID = "session-id";
   private static final ScrollState SCROLL_STATE =
       ScrollState.newBuilder().setOffset(10).setPosition(10).build();
   private static final StreamSavedInstanceState SAVED_INSTANCE_STATE =
       StreamSavedInstanceState.newBuilder()
-          .setSessionToken(SESSION_TOKEN)
+          .setSessionId(SESSION_ID)
           .setScrollState(SCROLL_STATE)
           .build();
   private static final Configuration CONFIGURATION =
@@ -185,7 +185,7 @@ public class BasicStreamTest {
     when(modelProviderFactory.createNew(any(ViewDepthProvider.class)))
         .thenReturn(initialModelProvider, modelProvider);
 
-    when(initialModelProvider.getSessionToken()).thenReturn(SESSION_TOKEN);
+    when(initialModelProvider.getSessionId()).thenReturn(SESSION_ID);
 
     when(scrollRestorer.getScrollStateForScrollRestore(ADAPTER_HEADER_COUNT))
         .thenReturn(SCROLL_STATE);
@@ -494,21 +494,21 @@ public class BasicStreamTest {
     StreamSavedInstanceState savedInstanceState =
         StreamSavedInstanceState.parseFrom(
             decodeSavedInstanceStateString(basicStream.getSavedInstanceStateString()));
-    assertThat(savedInstanceState.hasSessionToken()).isFalse();
+    assertThat(savedInstanceState.hasSessionId()).isFalse();
     assertThat(savedInstanceState.getScrollState()).isEqualTo(SCROLL_STATE);
   }
 
   @Test
   public void testGetSavedInstanceStateString_afterOnShow_beforeSessionStart()
       throws InvalidProtocolBufferException {
-    when(initialModelProvider.getSessionToken()).thenReturn(null);
+    when(initialModelProvider.getSessionId()).thenReturn(null);
 
     basicStream.onShow();
 
     StreamSavedInstanceState savedInstanceState =
         StreamSavedInstanceState.parseFrom(
             decodeSavedInstanceStateString(basicStream.getSavedInstanceStateString()));
-    assertThat(savedInstanceState.hasSessionToken()).isFalse();
+    assertThat(savedInstanceState.hasSessionId()).isFalse();
     assertThat(savedInstanceState.getScrollState()).isEqualTo(SCROLL_STATE);
   }
 
@@ -520,7 +520,7 @@ public class BasicStreamTest {
     StreamSavedInstanceState savedInstanceState =
         StreamSavedInstanceState.parseFrom(
             decodeSavedInstanceStateString(basicStream.getSavedInstanceStateString()));
-    assertThat(savedInstanceState.getSessionToken()).isEqualTo(SESSION_TOKEN);
+    assertThat(savedInstanceState.getSessionId()).isEqualTo(SESSION_ID);
     assertThat(savedInstanceState.getScrollState()).isEqualTo(SCROLL_STATE);
   }
 
@@ -545,7 +545,7 @@ public class BasicStreamTest {
     basicStream.onHide();
     basicStream.onDestroy();
 
-    when(modelProviderFactory.create(SESSION_TOKEN)).thenReturn(restoredModelProvider);
+    when(modelProviderFactory.create(SESSION_ID)).thenReturn(restoredModelProvider);
 
     basicStream = createBasicStream(new LinearLayoutManagerWithFakePositioning(context));
     basicStream.onCreate(bundle);
@@ -564,7 +564,7 @@ public class BasicStreamTest {
     basicStream.onHide();
     basicStream.onDestroy();
 
-    when(modelProviderFactory.create(SESSION_TOKEN)).thenReturn(restoredModelProvider);
+    when(modelProviderFactory.create(SESSION_ID)).thenReturn(restoredModelProvider);
 
     basicStream = createBasicStream(new LinearLayoutManagerWithFakePositioning(context));
     basicStream.onCreate(savedInstanceState);
@@ -583,7 +583,7 @@ public class BasicStreamTest {
     basicStream.onHide();
     basicStream.onDestroy();
 
-    when(modelProviderFactory.create(SESSION_TOKEN)).thenReturn(restoredModelProvider);
+    when(modelProviderFactory.create(SESSION_ID)).thenReturn(restoredModelProvider);
 
     reset(streamDriver);
     basicStream = createBasicStream(new LinearLayoutManagerWithFakePositioning(context));
@@ -669,7 +669,7 @@ public class BasicStreamTest {
     basicStream.onHide();
     basicStream.onDestroy();
 
-    when(modelProviderFactory.create(SESSION_TOKEN)).thenReturn(restoredModelProvider);
+    when(modelProviderFactory.create(SESSION_ID)).thenReturn(restoredModelProvider);
 
     basicStream = createBasicStream(new LinearLayoutManagerWithFakePositioning(context));
     basicStream.onCreate(bundle);
@@ -688,7 +688,7 @@ public class BasicStreamTest {
     basicStream.onHide();
     basicStream.onDestroy();
 
-    when(modelProviderFactory.create(SESSION_TOKEN)).thenReturn(restoredModelProvider);
+    when(modelProviderFactory.create(SESSION_ID)).thenReturn(restoredModelProvider);
 
     basicStream = createBasicStream(new LinearLayoutManagerWithFakePositioning(context));
     basicStream.onCreate(bundle);

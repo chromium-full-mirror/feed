@@ -35,7 +35,7 @@ public class MutationContextTest {
     ByteString tokenBytes = ByteString.copyFrom("token", Charset.defaultCharset());
     StreamToken token = StreamToken.newBuilder().setNextPageToken(tokenBytes).build();
     builder.setContinuationToken(token);
-    StreamSession streamSession = StreamSession.newBuilder().setStreamToken("session:1").build();
+    StreamSession streamSession = StreamSession.newBuilder().setSessionId("session:1").build();
     builder.setRequestingSession(streamSession);
     MutationContext mutationContext = builder.build();
     assertThat(mutationContext).isNotNull();

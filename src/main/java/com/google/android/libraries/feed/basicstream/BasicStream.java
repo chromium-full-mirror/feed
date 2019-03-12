@@ -145,7 +145,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
   /*@MonotonicNonNull*/ private ModelProvider modelProvider;
   /*@MonotonicNonNull*/ private StreamDriver streamDriver;
 
-  /*@Nullable*/ private String savedSessionToken;
+  /*@Nullable*/ private String savedSessionId;
   // TODO: instead of using a nullable field, pipe UiContext through the creation of
   // ModelProviders to onSessionStart().
   private UiRefreshReason uiRefreshReason = UiRefreshReason.getDefaultInstance();
@@ -261,8 +261,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
       StreamSavedInstanceState streamSavedInstanceState =
           StreamSavedInstanceState.parseFrom(Base64.decode(savedInstanceState, Base64.DEFAULT));
 
-      if (streamSavedInstanceState.hasSessionToken()) {
-        savedSessionToken = streamSavedInstanceState.getSessionToken();
+      if (streamSavedInstanceState.hasSessionId()) {
+        savedSessionId = streamSavedInstanceState.getSessionId();
       }
 
       scrollRestorer =
@@ -332,8 +332,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
   @Override
   public String getSavedInstanceStateString() {
     StreamSavedInstanceState.Builder builder = StreamSavedInstanceState.newBuilder();
-    if (modelProvider != null && modelProvider.getSessionToken() != null) {
-      builder.setSessionToken(checkNotNull(modelProvider.getSessionToken()));
+    if (modelProvider != null && modelProvider.getSessionId() != null) {
+      builder.setSessionId(checkNotNull(modelProvider.getSessionId()));
     }
 
     ScrollState scrollState =
@@ -701,11 +701,11 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
 
       // For nullness checker
       ModelProvider localModelProvider = null;
-      String localSavedSessionToken = savedSessionToken;
-      if (localSavedSessionToken != null) {
+      String localSavedSessionId = savedSessionId;
+      if (localSavedSessionId != null) {
         isRestoring = true;
-        Logger.d(TAG, "Attempting to restoring session token: %s.", localSavedSessionToken);
-        localModelProvider = modelProviderFactory.create(localSavedSessionToken);
+        Logger.d(TAG, "Attempting to restoring session token: %s.", localSavedSessionId);
+        localModelProvider = modelProviderFactory.create(localSavedSessionId);
       }
 
       if (localModelProvider == null) {

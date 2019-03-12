@@ -89,7 +89,7 @@ public class FeedActionManagerImpl implements ActionManager {
     // Update sessions
     StreamSession.Builder streamSessionBuilder = StreamSession.newBuilder();
     if (sessionToken != null) {
-      streamSessionBuilder.setStreamToken(sessionToken);
+      streamSessionBuilder.setSessionId(sessionToken);
     }
     sessionManager
         .getUpdateConsumer(

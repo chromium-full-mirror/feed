@@ -136,7 +136,7 @@ public class MultiSessionPagingTest {
 
     // Refresh the Stream with the S2 initial response
     StreamSession streamSession =
-        StreamSession.newBuilder().setStreamToken(mp2.getSessionToken()).build();
+        StreamSession.newBuilder().setSessionId(mp2.getSessionId()).build();
     requestManager.queueResponse(s2State.initialResponse);
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,

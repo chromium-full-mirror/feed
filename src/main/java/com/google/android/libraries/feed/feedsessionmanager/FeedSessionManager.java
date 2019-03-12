@@ -349,7 +349,7 @@ public final class FeedSessionManager
       StreamSession recordedSession =
           streamSession.toBuilder().setLastAccessed(clock.currentTimeMillis()).build();
       session.setStreamSession(recordedSession);
-      sessionCache.put(session.getStreamSession().getStreamToken(), session);
+      sessionCache.put(session.getStreamSession().getSessionId(), session);
       synchronized (lock) {
         sessionsUnderConstruction.remove(session);
       }
@@ -383,7 +383,7 @@ public final class FeedSessionManager
     cachedBindings = contentCache.size() > 0;
     session.populateModelProvider(
         recordedSession, streamStructuresResult.getValue(), cachedBindings, legacyHeadContent);
-    sessionCache.put(session.getStreamSession().getStreamToken(), session);
+    sessionCache.put(session.getStreamSession().getSessionId(), session);
     synchronized (lock) {
       sessionsUnderConstruction.remove(session);
     }
@@ -391,7 +391,7 @@ public final class FeedSessionManager
     Logger.i(
         TAG,
         "Populate new session: %s, creation time %s",
-        session.getStreamSession().getStreamToken(),
+        session.getStreamSession().getSessionId(),
         StringFormattingUtils.formatLogDate(session.getStreamSession().getLastAccessed()));
     timeTracker.stop("task", "Create/Populate New Session");
   }
@@ -464,13 +464,13 @@ public final class FeedSessionManager
           if (streamStructuresResult.isSuccessful()) {
             session.populateModelProvider(
                 streamSession, streamStructuresResult.getValue(), false, false);
-            sessionCache.put(session.getStreamSession().getStreamToken(), session);
+            sessionCache.put(session.getStreamSession().getSessionId(), session);
             existingSessionCount++;
           } else {
             Logger.e(
                 TAG,
                 "unable to get stream structure for existing session %s",
-                session.getStreamSession().getStreamToken());
+                session.getStreamSession().getSessionId());
             switchToEphemeralMode("unable to get stream structure for existing session");
           }
         });
@@ -508,7 +508,7 @@ public final class FeedSessionManager
     Logger.i(
         TAG,
         "HandleToken on stream %s, token %s",
-        streamSession.getStreamToken(),
+        streamSession.getSessionId(),
         streamToken.getContentId());
     threadUtils.checkMainThread();
 
@@ -560,7 +560,7 @@ public final class FeedSessionManager
     requestManager.triggerRefresh(
         requestReason, getCommitter("triggerRefresh", MutationContext.EMPTY_CONTEXT));
     if (streamSession != null) {
-      String streamToken = streamSession.getStreamToken();
+      String streamToken = streamSession.getSessionId();
       Session session = sessionCache.get(streamToken);
       if (session != null) {
         ModelProvider modelProvider = session.getModelProvider();
@@ -753,7 +753,7 @@ public final class FeedSessionManager
   private void invalidateSession(
       ModelProvider modelProvider, Session session, UiContext uiContext) {
     threadUtils.checkNotMainThread();
-    Logger.i(TAG, "Invalidate session %s", session.getStreamSession().getStreamToken());
+    Logger.i(TAG, "Invalidate session %s", session.getStreamSession().getSessionId());
     modelProvider.invalidate(uiContext);
   }
 

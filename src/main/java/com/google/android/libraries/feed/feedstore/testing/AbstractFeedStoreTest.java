@@ -219,7 +219,7 @@ public abstract class AbstractFeedStoreTest {
     assertThat(sessionsResult.isSuccessful()).isTrue();
     sessions = sessionsResult.getValue();
     assertThat(sessions).hasSize(1);
-    assertThat(sessions.get(0).getStreamToken()).isEqualTo(session.getStreamToken());
+    assertThat(sessions.get(0).getSessionId()).isEqualTo(session.getSessionId());
 
     sessionResult = store.createNewSession();
     assertThat(sessionResult.isSuccessful()).isTrue();
@@ -287,7 +287,7 @@ public abstract class AbstractFeedStoreTest {
     RunnableSubject.assertThatRunnable(
             () -> {
               Store store = getStore(mainThreadRunner);
-              store.removeSession(StreamSession.newBuilder().setStreamToken("$HEAD").build());
+              store.removeSession(StreamSession.newBuilder().setSessionId("$HEAD").build());
             })
         .throwsAnExceptionOfType(IllegalStateException.class);
   }

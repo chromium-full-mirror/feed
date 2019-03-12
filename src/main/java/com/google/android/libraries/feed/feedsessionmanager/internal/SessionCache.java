@@ -197,7 +197,7 @@ public final class SessionCache implements Dumpable {
     // create the head session from the data in the Store
     ElapsedTimeTracker headTimeTracker = timingUtils.getElapsedTimeTracker(TAG);
     synchronized (lock) {
-      sessions.put(head.getStreamSession().getStreamToken(), head);
+      sessions.put(head.getStreamSession().getSessionId(), head);
     }
     Result<List<StreamStructure>> results = store.getStreamStructures(head.getStreamSession());
     if (!results.isSuccessful()) {
@@ -226,7 +226,7 @@ public final class SessionCache implements Dumpable {
     synchronized (lock) {
       sessions.clear();
       head.reset();
-      sessions.put(head.getStreamSession().getStreamToken(), head);
+      sessions.put(head.getStreamSession().getSessionId(), head);
       initialized = true;
     }
   }
@@ -249,16 +249,16 @@ public final class SessionCache implements Dumpable {
         Logger.i(
             TAG,
             "Found expired session %s, created %s",
-            session.getStreamToken(),
+            session.getSessionId(),
             StringFormattingUtils.formatLogDate(session.getLastAccessed()));
         cleanupSessions = true;
         synchronized (lock) {
-          sessions.remove(session.getStreamToken());
+          sessions.remove(session.getSessionId());
         }
         continue;
       }
       HeadSessionImpl headSession = Validators.checkNotNull(head);
-      if (session.getStreamToken().equals(headSession.getStreamSession().getStreamToken())) {
+      if (session.getSessionId().equals(headSession.getStreamSession().getSessionId())) {
         // update the information stored for the $HEAD record we created previously
         Logger.i(
             TAG,
@@ -269,20 +269,20 @@ public final class SessionCache implements Dumpable {
       }
       InitializableSession unboundSession;
       synchronized (lock) {
-        if (sessions.containsKey(session.getStreamToken())) {
+        if (sessions.containsKey(session.getSessionId())) {
           // Don't replace sessions already found in sessions
           continue;
         }
         // Unbound sessions are sessions that are able to be created through restore
         unboundSession = sessionFactory.getSession();
         unboundSession.setStreamSession(session);
-        sessions.put(session.getStreamToken(), unboundSession);
+        sessions.put(session.getSessionId(), unboundSession);
       }
 
       // Task which populates the newly created unbound session.
       Runnable createUnboundSession =
           () -> {
-            Logger.i(TAG, "Task: createUnboundSession %s", session.getStreamToken());
+            Logger.i(TAG, "Task: createUnboundSession %s", session.getSessionId());
             ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
             Result<List<StreamStructure>> streamStructuresResult =
                 store.getStreamStructures(session);
@@ -374,7 +374,7 @@ public final class SessionCache implements Dumpable {
     if (storedSessionsResult.isSuccessful()) {
       synchronized (lock) {
         for (StreamSession session : storedSessionsResult.getValue()) {
-          if (!sessions.containsKey(session.getStreamToken())) {
+          if (!sessions.containsKey(session.getSessionId())) {
             store.removeSession(session);
             expiredSessionsCleared++;
           }
@@ -395,8 +395,8 @@ public final class SessionCache implements Dumpable {
   @VisibleForTesting
   boolean isSessionAlive(StreamSession streamSession) {
     // Today HEAD will does not time out
-    return (Store.HEAD.getStreamToken().equals(streamSession.getStreamToken()))
-        || ((streamSession.getLastAccessed() + lifetimeMs) > clock.currentTimeMillis());
+    return Store.HEAD.getSessionId().equals(streamSession.getSessionId())
+        || (streamSession.getLastAccessed() + lifetimeMs) > clock.currentTimeMillis();
   }
 
   @Override
@@ -423,7 +423,7 @@ public final class SessionCache implements Dumpable {
 
   void setSessionsForTest(Session... testSessions) {
     for (Session session : testSessions) {
-      put(session.getStreamSession().getStreamToken(), session);
+      put(session.getStreamSession().getSessionId(), session);
     }
   }
 }

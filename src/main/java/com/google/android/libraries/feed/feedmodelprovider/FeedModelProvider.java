@@ -278,12 +278,12 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
 
   @Override
   /*@Nullable*/
-  public String getSessionToken() {
+  public String getSessionId() {
     if (streamSession == null) {
       Logger.w(TAG, "streamSession is null, this should have been set during population");
       return null;
     }
-    return streamSession.getStreamToken();
+    return streamSession.getSessionId();
   }
 
   @Override
@@ -313,10 +313,10 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
       Logger.e(TAG, "unable to detach FeedModelProvider");
       return;
     }
-    String sessionToken = getSessionToken();
-    if (sessionToken != null) {
-      Logger.i(TAG, "Detach the current ModelProvider: session %s", sessionToken);
-      sessionManager.detachSession(sessionToken);
+    String sessionId = getSessionId();
+    if (sessionId != null) {
+      Logger.i(TAG, "Detach the current ModelProvider: session %s", sessionId);
+      sessionManager.detachSession(sessionId);
     }
   }
 
@@ -331,10 +331,10 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
       Logger.e(TAG, "unable to invalidate FeedModelProvider");
       return;
     }
-    String sessionToken = getSessionToken();
-    if (sessionToken != null) {
-      Logger.i(TAG, "Invalidating the current ModelProvider: session %s", sessionToken);
-      sessionManager.invalidatedSession(sessionToken);
+    String sessionId = getSessionId();
+    if (sessionId != null) {
+      Logger.i(TAG, "Invalidating the current ModelProvider: session %s", sessionId);
+      sessionManager.invalidatedSession(sessionId);
     }
 
     // Always run the observers on the UI Thread
@@ -357,7 +357,7 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
       Logger.i(
           TAG,
           "Moving %s to INVALIDATED",
-          (streamSession != null) ? streamSession.getStreamToken() : "No streamSession");
+          (streamSession != null) ? streamSession.getSessionId() : "No streamSession");
       currentState = State.INVALIDATED;
       for (WeakReference<ModelCursorImpl> cursorRef : cursors) {
         ModelCursorImpl cursor = cursorRef.get();
@@ -738,7 +738,7 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
                         TAG,
                         "Moving %s to INVALIDATED",
                         (streamSession != null)
-                            ? streamSession.getStreamToken()
+                            ? streamSession.getSessionId()
                             : "No streamSession");
                     currentState = State.INVALIDATED;
                     mainThreadRunner.execute(
@@ -1075,7 +1075,7 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
       Logger.i(
           TAG,
           "Moving %s to READY",
-          (streamSession != null) ? streamSession.getStreamToken() : "No streamSession");
+          (streamSession != null) ? streamSession.getSessionId() : "No streamSession");
       synchronized (lock) {
         currentState = State.READY;
       }

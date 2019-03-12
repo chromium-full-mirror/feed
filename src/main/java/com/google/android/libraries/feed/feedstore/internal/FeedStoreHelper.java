@@ -24,6 +24,6 @@ public final class FeedStoreHelper {
   /** Get a new, unique stream session */
   StreamSession getNewStreamSession() {
     String sessionName = SESSION_NAME_PREFIX + UUID.randomUUID();
-    return StreamSession.newBuilder().setStreamToken(sessionName).build();
+    return StreamSession.newBuilder().setSessionId(sessionName).build();
   }
 }

@@ -14,11 +14,11 @@
 
 syntax = "proto2";
 
-import "src/main/proto/com/google/android/libraries/feed/sharedstream/proto/scroll_state.proto";
-
 package com.google.android.libraries.feed.basicstream.internal;
 
 option optimize_for=LITE_RUNTIME;
+
+import "src/main/proto/com/google/android/libraries/feed/sharedstream/proto/scroll_state.proto";
 
 option java_package = "com.google.android.libraries.feed.basicstream.internal";
 option java_outer_classname = "StreamSavedInstanceStateProto";
@@ -26,7 +26,7 @@ option cc_enable_arenas = true;
 
 // Object representing the state of the Stream.
 message StreamSavedInstanceState {
-  optional string session_token = 1;
+  optional string session_id = 1;
   optional com.google.android.libraries.feed.sharedstream.proto.ScrollState
       scroll_state = 2;
 }

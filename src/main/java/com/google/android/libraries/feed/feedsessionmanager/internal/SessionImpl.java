@@ -137,7 +137,7 @@ public class SessionImpl implements InitializableSession, Dumpable {
       modelMutation.setStreamSession(streamSession);
       modelMutation.commit();
     }
-    timeTracker.stop("populateSession", streamSession.getStreamToken(), "operations", head.size());
+    timeTracker.stop("populateSession", streamSession.getSessionId(), "operations", head.size());
   }
 
   @Override
@@ -153,10 +153,10 @@ public class SessionImpl implements InitializableSession, Dumpable {
           Logger.i(
               TAG,
               "Invalidating Model Provider for session %s due to a clear head",
-              ss.getStreamToken());
+              ss.getSessionId());
         }
       } else {
-        Logger.i(TAG, "Session %s not updated due to clearHead", ss.getStreamToken());
+        Logger.i(TAG, "Session %s not updated due to clearHead", ss.getSessionId());
       }
       return;
     }
@@ -171,7 +171,7 @@ public class SessionImpl implements InitializableSession, Dumpable {
         && mutationContext.getContinuationToken() != null) {
       StreamSession requestingSession = mutationContext.getRequestingSession();
       return requestingSession != null
-          && ss.getStreamToken().equals(requestingSession.getStreamToken());
+          && ss.getSessionId().equals(requestingSession.getSessionId());
     }
     return false;
   }
@@ -193,7 +193,7 @@ public class SessionImpl implements InitializableSession, Dumpable {
         // Make sure that mutationSourceToken is a token in this session, if not, we don't update
         // the session.
         timeTracker.stop(
-            "updateSessionIgnored", streamSession.getStreamToken(), "Token Not Found", contentId);
+            "updateSessionIgnored", streamSession.getSessionId(), "Token Not Found", contentId);
         Logger.i(TAG, "Token %s not found in session, ignoring update", contentId);
         return;
       } else if (limitPagingUpdates) {
@@ -203,7 +203,7 @@ public class SessionImpl implements InitializableSession, Dumpable {
           Logger.i(TAG, "Request Session was not set, ignoring update");
           return;
         }
-        if (!streamSession.getStreamToken().equals(mutationSession.getStreamToken())) {
+        if (!streamSession.getSessionId().equals(mutationSession.getSessionId())) {
           Logger.i(TAG, "Limiting Updates, paging request made on another session");
           return;
         }
@@ -264,7 +264,7 @@ public class SessionImpl implements InitializableSession, Dumpable {
     }
     timeTracker.stop(
         "updateSession",
-        streamSession.getStreamToken(),
+        streamSession.getSessionId(),
         "features",
         addFeatureCnt,
         "updates",
@@ -289,7 +289,7 @@ public class SessionImpl implements InitializableSession, Dumpable {
   @Override
   public void dump(Dumper dumper) {
     dumper.title(TAG);
-    dumper.forKey("sessionName").value(streamSession.getStreamToken());
+    dumper.forKey("sessionName").value(streamSession.getSessionId());
     dumper
         .forKey("")
         .value((modelProvider == null) ? "sessionIsUnbound" : "sessionIsBound")

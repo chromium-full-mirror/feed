@@ -194,7 +194,7 @@ message StreamSessions {
 // from an existing session.
 message StreamSession {
   // Unique identifier for the session.
-  optional string stream_token = 1;
+  optional string session_id = 1;
 
   // This is the ms of the last time the session was accessed, used to manage
   // the lifetime of a session.

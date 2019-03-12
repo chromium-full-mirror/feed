@@ -123,7 +123,7 @@ public class ClearAllTest {
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
     ModelProvider modelProvider = modelProviderFactory.createNew(null);
     modelValidator.assertCursorContents(modelProvider, cards);
-    String modelToken = modelProvider.getSessionToken();
+    String modelToken = modelProvider.getSessionId();
     appLifecycleListener.onClearAll();
 
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.INVALIDATED);

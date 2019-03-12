@@ -117,7 +117,7 @@ public class FeedActionManagerImplTest {
     verify(localActionMutation).commit();
 
     verify(sessionManager).getUpdateConsumer(mutationContextCaptor.capture());
-    assertThat(mutationContextCaptor.getValue().getRequestingSession().getStreamToken())
+    assertThat(mutationContextCaptor.getValue().getRequestingSession().getSessionId())
         .isEqualTo(SESSION_TOKEN);
 
     verify(streamDataOperationsConsumer).accept(streamDataOperationsCaptor.capture());
@@ -153,7 +153,7 @@ public class FeedActionManagerImplTest {
     actionManager.dismiss(Collections.singletonList(dataOperation), SESSION_TOKEN);
 
     verify(sessionManager).getUpdateConsumer(mutationContextCaptor.capture());
-    assertThat(mutationContextCaptor.getValue().getRequestingSession().getStreamToken())
+    assertThat(mutationContextCaptor.getValue().getRequestingSession().getSessionId())
         .isEqualTo(SESSION_TOKEN);
 
     verify(streamDataOperationsConsumer).accept(streamDataOperationsCaptor.capture());

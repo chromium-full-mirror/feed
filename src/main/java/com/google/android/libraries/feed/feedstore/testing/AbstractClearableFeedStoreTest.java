@@ -46,9 +46,9 @@ public abstract class AbstractClearableFeedStoreTest extends AbstractFeedStoreTe
   protected static final String SESSION_TOKEN = "SESSION";
   protected static final String SESSION_TOKEN_2 = "SESSION_2";
   protected static final StreamSession STREAM_SESSION =
-      StreamSession.newBuilder().setStreamToken(SESSION_TOKEN).build();
+      StreamSession.newBuilder().setSessionId(SESSION_TOKEN).build();
   protected static final StreamSession STREAM_SESSION_2 =
-      StreamSession.newBuilder().setStreamToken(SESSION_TOKEN_2).build();
+      StreamSession.newBuilder().setSessionId(SESSION_TOKEN_2).build();
   protected static final StreamPayload STREAM_PAYLOAD =
       StreamPayload.newBuilder()
           .setStreamFeature(StreamFeature.newBuilder().setContentId(CONTENT_ID))

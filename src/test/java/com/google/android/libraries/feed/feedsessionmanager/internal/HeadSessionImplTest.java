@@ -39,7 +39,7 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class HeadSessionImplTest {
   private static final StreamSession HEAD =
-      StreamSession.newBuilder().setStreamToken("$HEAD").build();
+      StreamSession.newBuilder().setSessionId("$HEAD").build();
 
   @Mock private Store store;
 

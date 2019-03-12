@@ -111,11 +111,11 @@ public class DetachSessionTest {
     modelValidator.assertCursorContentsWithToken(sessionTwo, PAGE_1);
 
     // Detach sessionOne
-    String sessionToken = sessionOne.getSessionToken();
+    String sessionId = sessionOne.getSessionId();
     sessionOne.detachModelProvider();
 
     // recreate sessionOne as existingSession
-    ModelProvider existingSession = modelProviderFactory.create(sessionToken);
+    ModelProvider existingSession = modelProviderFactory.create(sessionId);
     modelValidator.assertCursorContentsWithToken(existingSession, PAGE_1);
 
     // page the sessionTwo
@@ -160,7 +160,7 @@ public class DetachSessionTest {
     modelValidator.assertCursorContentsWithToken(sessionTwo, PAGE_1);
 
     // Detach sessionOne
-    String sessionToken = sessionOne.getSessionToken();
+    String sessionId = sessionOne.getSessionId();
     sessionOne.detachModelProvider();
 
     // page the sessionTwo
@@ -168,7 +168,7 @@ public class DetachSessionTest {
     sessionTwo.handleToken(tokenChild.getModelToken());
 
     // recreate sessionOne as existingSession
-    ModelProvider existingSession = modelProviderFactory.create(sessionToken);
+    ModelProvider existingSession = modelProviderFactory.create(sessionId);
 
     // verify that existingSession and sessionTwo match
     modelValidator.assertCursorContents(

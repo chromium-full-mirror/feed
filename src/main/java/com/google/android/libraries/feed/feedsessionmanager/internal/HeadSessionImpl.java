@@ -91,7 +91,7 @@ public class HeadSessionImpl implements Session, Dumpable {
         // Make sure that mutationSourceToken is a token in this session, if not, we don't update
         // the session.
         timeTracker.stop(
-            "updateSessionIgnored", streamSession.getStreamToken(), "Token Not Found", contentId);
+            "updateSessionIgnored", streamSession.getSessionId(), "Token Not Found", contentId);
         Logger.i(TAG, "Token %s not found in session, ignoring update", contentId);
         return;
       }
@@ -135,7 +135,7 @@ public class HeadSessionImpl implements Session, Dumpable {
     if (success) {
       timeTracker.stop(
           "updateSession",
-          streamSession.getStreamToken(),
+          streamSession.getSessionId(),
           "cleared",
           cleared,
           "features",
@@ -143,7 +143,7 @@ public class HeadSessionImpl implements Session, Dumpable {
           "updates",
           updateCnt);
     } else {
-      timeTracker.stop("updateSessionFailure", streamSession.getStreamToken());
+      timeTracker.stop("updateSessionFailure", streamSession.getSessionId());
       storeMutationFailures++;
       Logger.e(TAG, "$HEAD session mutation failed");
       store.switchToEphemeralMode();
@@ -183,7 +183,7 @@ public class HeadSessionImpl implements Session, Dumpable {
   @Override
   public void dump(Dumper dumper) {
     dumper.title(TAG);
-    dumper.forKey("sessionName").value(streamSession.getStreamToken());
+    dumper.forKey("sessionName").value(streamSession.getSessionId());
     dumper.forKey("accessTime").value(new Date(streamSession.getLastAccessed())).compactPrevious();
     dumper.forKey("contentInSession").value(contentInSession.size());
     dumper.forKey("updateCount").value(updateCount).compactPrevious();

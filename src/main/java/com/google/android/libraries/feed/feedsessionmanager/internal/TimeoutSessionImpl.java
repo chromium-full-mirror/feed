@@ -66,7 +66,7 @@ public final class TimeoutSessionImpl extends SessionImpl {
     Logger.i(
         TAG,
         "TimeoutSession.updateSession, streamSession %s, clearHead %s, legacyHeadContent %s",
-        ss.getStreamToken(),
+        ss.getSessionId(),
         clearHead,
         legacyHeadContent);
     if (clearHead) {
@@ -81,11 +81,11 @@ public final class TimeoutSessionImpl extends SessionImpl {
             Logger.i(
                 TAG,
                 "Invalidating Model Provider for session %s due to a clear head",
-                ss.getStreamToken());
+                ss.getSessionId());
           }
         } else {
           // Without having legacy HEAD content, don't update the session,
-          Logger.i(TAG, "Session %s not updated due to clearHead", ss.getStreamToken());
+          Logger.i(TAG, "Session %s not updated due to clearHead", ss.getSessionId());
         }
         return;
       }

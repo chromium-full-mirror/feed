@@ -192,13 +192,13 @@ public final class SessionManagerMutation implements Dumpable {
       }
       // Invalidate if the ModelProvider doesn't yet have a session or if it matches the session
       // which initiated the request clearing $HEAD.
-      String sessionToken = modelProvider.getSessionToken();
-      return (sessionToken == null || sessionToken.equals(streamSession.getStreamToken()));
+      String sessionId = modelProvider.getSessionId();
+      return (sessionId == null || sessionId.equals(streamSession.getSessionId()));
     }
 
     private void invalidateSession(ModelProvider modelProvider, Session session) {
       threadUtils.checkNotMainThread();
-      Logger.i(TAG, "Invalidate session %s", session.getStreamSession().getStreamToken());
+      Logger.i(TAG, "Invalidate session %s", session.getStreamSession().getSessionId());
       modelProvider.invalidate();
     }
   }
@@ -237,9 +237,9 @@ public final class SessionManagerMutation implements Dumpable {
         errorCount++;
         Session session = null;
         StreamSession streamSession = mutationContext.getRequestingSession();
-        String sessionToken = (streamSession != null) ? streamSession.getStreamToken() : null;
-        if (sessionToken != null) {
-          session = sessionCache.get(sessionToken);
+        String sessionId = (streamSession != null) ? streamSession.getSessionId() : null;
+        if (sessionId != null) {
+          session = sessionCache.get(sessionId);
         }
         if (mutationContext.getContinuationToken() != null) {
           StreamToken streamToken = mutationContext.getContinuationToken();
@@ -390,7 +390,7 @@ public final class SessionManagerMutation implements Dumpable {
         if (modelProvider != null && modelProvider.getCurrentState() == State.INVALIDATED) {
           Logger.w(TAG, "Removing an invalidate session");
           // Remove all invalidated sessions
-          sessionCache.remove(session.getStreamSession().getStreamToken());
+          sessionCache.remove(session.getStreamSession().getSessionId());
           continue;
         }
         if (session == head) {
@@ -411,7 +411,7 @@ public final class SessionManagerMutation implements Dumpable {
             knownContentListener.onNewContentReceived(/* isNewRefresh */ false, updateTime);
           }
         }
-        Logger.i(TAG, "Update Session %s", session.getStreamSession().getStreamToken());
+        Logger.i(TAG, "Update Session %s", session.getStreamSession().getSessionId());
         session.updateSession(clearedHead, streamStructures, mutationContext);
       }
       timeTracker.stop("", "sessionUpdate", "sessions", updates.size());

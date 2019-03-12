@@ -403,7 +403,7 @@ public class SyntheticTokensTest {
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
     ModelProvider modelProvider = modelProviderFactory.createNew(null);
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
-    String sessionToken = modelProvider.getSessionToken();
+    String sessionId = modelProvider.getSessionId();
 
     ModelFeature root = modelProvider.getRootFeature();
     assertThat(root).isNotNull();
@@ -421,7 +421,7 @@ public class SyntheticTokensTest {
     assertThat(tokenFeature.getModelToken().isSynthetic()).isTrue();
 
     // now restore the session and see what we have
-    modelProvider = modelProviderFactory.create(sessionToken);
+    modelProvider = modelProviderFactory.create(sessionId);
     root = modelProvider.getRootFeature();
     assertThat(root).isNotNull();
     cursor = root.getCursor();
@@ -485,7 +485,7 @@ public class SyntheticTokensTest {
 
     // Prep for sending modifications to the model provider
     StreamSession session =
-        StreamSession.newBuilder().setStreamToken(modelProvider.getSessionToken()).build();
+        StreamSession.newBuilder().setSessionId(modelProvider.getSessionId()).build();
     MutationContext context = new MutationContext.Builder().setRequestingSession(session).build();
 
     // Remove the single item under the root to create the empty state.

@@ -209,7 +209,7 @@ public class FeedSessionManagerTest {
     assertThat(sharedStateCache).hasSize(sharedStates.size());
 
     Map<String, Session> sessions = sessionManager.getSessionsMapForTest();
-    Session head = sessions.get(HEAD.getStreamToken());
+    Session head = sessions.get(HEAD.getSessionId());
     assertThat(head).isInstanceOf(HeadSessionImpl.class);
     String itemKey = idGenerators.createFeatureContentId(0);
     Set<String> content = ((HeadSessionImpl) head).getContentInSessionForTest();
@@ -337,7 +337,7 @@ public class FeedSessionManagerTest {
     // Verify the failed session is correct
     Map<String, Session> sessions = sessionManager.getSessionsMapForTest();
     assertThat(sessions).hasSize(2);
-    Session session = sessions.get(modelProvider.getSessionToken());
+    Session session = sessions.get(modelProvider.getSessionId());
     assertThat(session).isNotNull();
   }
 
@@ -378,7 +378,7 @@ public class FeedSessionManagerTest {
 
   @Test
   public void testForceRefresh() {
-    StreamSession streamSession = StreamSession.newBuilder().setStreamToken("session:1").build();
+    StreamSession streamSession = StreamSession.newBuilder().setSessionId("session:1").build();
     FeedSessionManager sessionManager = getInitializedSessionManager();
     sessionManager.triggerRefresh(
         streamSession, RequestReason.UNKNOWN, UiContext.getDefaultInstance());
@@ -393,7 +393,7 @@ public class FeedSessionManagerTest {
 
   @Test
   public void testForceRefresh_scheduledRefresh() {
-    StreamSession streamSession = StreamSession.newBuilder().setStreamToken("session:1").build();
+    StreamSession streamSession = StreamSession.newBuilder().setSessionId("session:1").build();
     FeedSessionManager sessionManager = getInitializedSessionManager();
     sessionManager.triggerRefresh(
         streamSession, RequestReason.HOST_REQUESTED, UiContext.getDefaultInstance());
@@ -602,7 +602,7 @@ public class FeedSessionManagerTest {
     assertThat(sharedStates).hasSize(1);
     Map<String, Session> sessions = sessionManager.getSessionsMapForTest();
     assertThat(sessions).hasSize(1);
-    Session session = sessions.get(Store.HEAD.getStreamToken());
+    Session session = sessions.get(Store.HEAD.getSessionId());
     assertThat(session).isNotNull();
     Set<String> contentInSession = session.getContentInSession();
     assertThat(contentInSession).hasSize(featureCount + 1);
@@ -613,7 +613,7 @@ public class FeedSessionManagerTest {
     assertThat(sharedStates).hasSize(0);
     sessions = sessionManager.getSessionsMapForTest();
     assertThat(sessions).hasSize(1);
-    session = sessions.get(Store.HEAD.getStreamToken());
+    session = sessions.get(Store.HEAD.getSessionId());
     assertThat(session).isNotNull();
     contentInSession = session.getContentInSession();
     assertThat(contentInSession).hasSize(0);
