@@ -1,4 +1,3 @@
-load("@gmaven_rules//:defs.bzl", "gmaven_artifact")
 load("//src/main/java/com/google/android/libraries/feed/buildtools/testing:android_local_test.bzl", "DEFAULT_ANDROID_LOCAL_TEST_MANIFEST")
 
 licenses(["notice"])  # Apache 2
@@ -255,12 +254,12 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/piet/host",
         "//src/main/java/com/google/android/libraries/feed/piet/ui",
         "//src/main/proto/search/now/ui/piet:piet_java_proto_lite",
-        "@com_google_protobuf_javalite//:protobuf_java_lite",
-        "@robolectric//bazel:robolectric",
-        gmaven_artifact("com.android.support:support_compat:aar:28.0.0"),
         "@com_google_code_findbugs_jsr305//jar",
+        "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@com_google_truth_truth//jar",
+        "@maven//:com_android_support_support_compat",
         "@org_mockito_mockito_all//jar",
+        "@robolectric//bazel:robolectric",
     ],
 )
 

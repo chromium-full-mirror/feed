@@ -1,4 +1,3 @@
-load("@gmaven_rules//:defs.bzl", "gmaven_artifact")
 load("//src/main/java/com/google/android/libraries/feed/buildtools/testing:android_local_test.bzl", "DEFAULT_ANDROID_LOCAL_TEST_MANIFEST")
 
 licenses(["notice"])  # Apache 2

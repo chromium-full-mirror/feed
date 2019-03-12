@@ -5,16 +5,34 @@ android_sdk_repository(
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 # Google Maven Repository
-GMAVEN_TAG = "20181212-2"
+GMAVEN_RULES_JVM_EXTERNAL_TAG = "1.0"
+GMAVEN_RULES_JVM_EXTERNAL_SHA = "48e0f1aab74fabba98feb8825459ef08dcc75618d381dff63ec9d4dd9860deaa"
+
+# Current version of Android support library which Android code depends on
+ANDROID_SUPPORT_LIBRARY_VERSION = "28.0.0"
 
 http_archive(
-    name = "gmaven_rules",
-    strip_prefix = "gmaven_rules-%s" % GMAVEN_TAG,
-    url = "https://github.com/bazelbuild/gmaven_rules/archive/%s.tar.gz" % GMAVEN_TAG,
+    name = "rules_jvm_external",
+    strip_prefix = "rules_jvm_external-%s" % GMAVEN_RULES_JVM_EXTERNAL_TAG,
+    sha256 = GMAVEN_RULES_JVM_EXTERNAL_SHA,
+    url = "https://github.com/bazelbuild/rules_jvm_external/archive/%s.zip" % GMAVEN_RULES_JVM_EXTERNAL_TAG,
 )
 
-load("@gmaven_rules//:gmaven.bzl", "gmaven_rules")
-gmaven_rules()
+load("@rules_jvm_external//:defs.bzl", "maven_install")
+
+maven_install(
+    artifacts = [
+        "androidx.test:monitor:1.1.1",
+        "com.android.support:interpolator:" + ANDROID_SUPPORT_LIBRARY_VERSION,
+        "com.android.support:recyclerview-v7:" + ANDROID_SUPPORT_LIBRARY_VERSION,
+        "com.android.support:support-annotations:" + ANDROID_SUPPORT_LIBRARY_VERSION,
+        "com.android.support:support-compat:" + ANDROID_SUPPORT_LIBRARY_VERSION,
+        "com.android.support:support-core-ui:" + ANDROID_SUPPORT_LIBRARY_VERSION,
+    ],
+    repositories = [
+        "https://maven.google.com",
+    ],
+)
 
 http_archive(
     name = "com_google_protobuf",
