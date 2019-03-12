@@ -57,7 +57,7 @@ class PietManagerImpl implements PietManager {
       Context context) {
     AdapterParameters parameters = getAdapterParameters(context, cardViewProducer);
 
-    return new FrameAdapter(context, parameters, actionHandler, eventLogger, debugBehavior);
+    return new FrameAdapterImpl(context, parameters, actionHandler, eventLogger, debugBehavior);
   }
 
   /**

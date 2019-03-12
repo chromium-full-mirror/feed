@@ -964,8 +964,8 @@ public class GridRowAdapterTest {
                                                 Element.newBuilder().setGridRow(gridRow))))))
             .build();
     EventLogger mockEventLogger = mock(EventLogger.class);
-    FrameAdapter frameAdapter =
-        new FrameAdapter(
+    FrameAdapterImpl frameAdapter =
+        new FrameAdapterImpl(
             context, adapterParameters, actionHandler, mockEventLogger, DebugBehavior.SILENT);
     frameAdapter.bindModel(frame, 0, null, Collections.emptyList());
     LinearLayout gridRowView =

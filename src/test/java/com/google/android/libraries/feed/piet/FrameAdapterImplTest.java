@@ -87,9 +87,9 @@ import org.mockito.Mock;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 
-/** Tests of the {@link FrameAdapter}. */
+/** Tests of the {@link FrameAdapterImpl}. */
 @RunWith(RobolectricTestRunner.class)
-public class FrameAdapterTest {
+public class FrameAdapterImplTest {
   private static final Content DEFAULT_CONTENT =
       Content.newBuilder()
           .setElement(
@@ -121,7 +121,7 @@ public class FrameAdapterTest {
   private List<PietSharedState> pietSharedStates;
   private AdapterParameters adapterParameters;
 
-  private FrameAdapter frameAdapter;
+  private FrameAdapterImpl frameAdapter;
 
   @Before
   public void setUp() throws Exception {
@@ -161,7 +161,8 @@ public class FrameAdapterTest {
 
     pietSharedStates = new ArrayList<>();
     frameAdapter =
-        new FrameAdapter(context, adapterParameters, actionHandler, eventLogger, debugBehavior) {
+        new FrameAdapterImpl(
+            context, adapterParameters, actionHandler, eventLogger, debugBehavior) {
           @Override
           FrameContext createFrameContext(
               Frame frame, int frameWidthPx, List<PietSharedState> pietSharedStates, View view) {
@@ -284,7 +285,7 @@ public class FrameAdapterTest {
             new FrameLayout(context));
 
     frameAdapter =
-        new FrameAdapter(context, adapterParameters, actionHandler, eventLogger, debugBehavior);
+        new FrameAdapterImpl(context, adapterParameters, actionHandler, eventLogger, debugBehavior);
 
     Content content =
         Content.newBuilder().setElement(Element.newBuilder().setElementList(defaultList)).build();
@@ -362,7 +363,7 @@ public class FrameAdapterTest {
     pietSharedStates.add(pietSharedState);
 
     frameAdapter =
-        new FrameAdapter(context, adapterParameters, actionHandler, eventLogger, debugBehavior);
+        new FrameAdapterImpl(context, adapterParameters, actionHandler, eventLogger, debugBehavior);
 
     ImageElement defaultImage =
         ImageElement.newBuilder().setImage(Image.getDefaultInstance()).build();
@@ -557,8 +558,8 @@ public class FrameAdapterTest {
 
     AdapterParameters parameters =
         new AdapterParameters(context, Suppliers.of(null), hostProviders, new FakeClock());
-    FrameAdapter frameAdapter =
-        new FrameAdapter(context, parameters, actionHandler, eventLogger, debugBehavior);
+    FrameAdapterImpl frameAdapter =
+        new FrameAdapterImpl(context, parameters, actionHandler, eventLogger, debugBehavior);
 
     frameAdapter.bindModel(frame, FRAME_WIDTH, null, pietSharedStates);
 

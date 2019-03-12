@@ -87,8 +87,10 @@ public class PietManagerImplTest {
   @Test
   public void testCreatePietFrameAdapter() {
     Supplier<ViewGroup> cardViewSupplier = Suppliers.of(viewGroup1);
-    FrameAdapter frameAdapter =
-        pietManager.createPietFrameAdapter(cardViewSupplier, actionHandler, eventLogger, context);
+    FrameAdapterImpl frameAdapter =
+        (FrameAdapterImpl)
+            pietManager.createPietFrameAdapter(
+                cardViewSupplier, actionHandler, eventLogger, context);
     assertThat(frameAdapter.getParameters().parentViewSupplier).isSameAs(cardViewSupplier);
   }
 
@@ -124,9 +126,10 @@ public class PietManagerImplTest {
     assertThat(parameters.clock).isInstanceOf(SystemClockImpl.class);
     // There's no good way to test the HostBindingProvider.
 
-    FrameAdapter frameAdapter =
-        manager.createPietFrameAdapter(
-            Suppliers.of(viewGroup1), actionHandler, eventLogger, context);
+    FrameAdapterImpl frameAdapter =
+        (FrameAdapterImpl)
+            manager.createPietFrameAdapter(
+                Suppliers.of(viewGroup1), actionHandler, eventLogger, context);
     FrameContext frameContext =
         frameAdapter.createFrameContext(
             Frame.getDefaultInstance(), 0, Collections.emptyList(), viewGroup2);
@@ -182,9 +185,10 @@ public class PietManagerImplTest {
     assertThat(parameters.hostProviders.getHostBindingProvider()).isSameAs(hostBindingProvider);
     assertThat(parameters.clock).isSameAs(clock);
 
-    FrameAdapter frameAdapter =
-        manager.createPietFrameAdapter(
-            Suppliers.of(viewGroup1), actionHandler, eventLogger, context);
+    FrameAdapterImpl frameAdapter =
+        (FrameAdapterImpl)
+            manager.createPietFrameAdapter(
+                Suppliers.of(viewGroup1), actionHandler, eventLogger, context);
     FrameContext frameContext =
         frameAdapter.createFrameContext(
             Frame.getDefaultInstance(), 0, Collections.emptyList(), viewGroup2);

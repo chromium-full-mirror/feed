@@ -169,10 +169,10 @@ android_local_test(
 )
 
 android_local_test(
-    name = "FrameAdapterTest",
+    name = "FrameAdapterImplTest",
     size = "small",
     timeout = "moderate",
-    srcs = ["FrameAdapterTest.java"],
+    srcs = ["FrameAdapterImplTest.java"],
     aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
