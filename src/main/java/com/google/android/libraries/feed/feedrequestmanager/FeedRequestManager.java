@@ -15,9 +15,7 @@
 package com.google.android.libraries.feed.feedrequestmanager;
 
 import android.content.Context;
-import android.net.Uri;
 import android.os.Build;
-import android.util.Base64;
 import com.google.android.libraries.feed.api.actionmanager.ActionReader;
 import com.google.android.libraries.feed.api.common.DismissActionWithSemanticProperties;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
@@ -46,20 +44,16 @@ import com.google.android.libraries.feed.host.network.HttpRequest.HttpMethod;
 import com.google.android.libraries.feed.host.network.NetworkClient;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.protobuf.ByteString;
-import com.google.protobuf.CodedInputStream;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
-import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
 import com.google.search.now.wire.feed.ActionTypeProto;
 import com.google.search.now.wire.feed.CapabilityProto.Capability;
 import com.google.search.now.wire.feed.ClientInfoProto.ClientInfo;
 import com.google.search.now.wire.feed.ClientInfoProto.ClientInfo.PlatformType;
-import com.google.search.now.wire.feed.ConsistencyTokenProto.ConsistencyToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.FeedActionQueryDataProto.Action;
 import com.google.search.now.wire.feed.FeedActionQueryDataProto.FeedActionQueryData;
 import com.google.search.now.wire.feed.FeedActionQueryDataProto.FeedActionQueryDataItem;
-import com.google.search.now.wire.feed.FeedActionResponseProto.FeedActionResponse;
 import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery;
 import com.google.search.now.wire.feed.FeedRequestProto.FeedRequest;
 import com.google.search.now.wire.feed.FeedRequestProto.FeedRequest.Builder;
@@ -73,21 +67,14 @@ import com.google.search.now.wire.feed.VersionProto.Version.BuildType;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 
 /** Default implementation of RequestManager. */
 public final class FeedRequestManager implements RequestManager {
   private static final String TAG = "FeedRequestManager";
-
-  public static final String MOTHERSHIP_PARAM_PAYLOAD = "reqpld";
-  public static final String LOCALE_PARAM = "hl";
-  private static final String MOTHERSHIP_PARAM_FORMAT = "fmt";
-  private static final String MOTHERSHIP_VALUE_BINARY = "bin";
 
   private final Configuration configuration;
   private final NetworkClient networkClient;
@@ -139,20 +126,16 @@ public final class FeedRequestManager implements RequestManager {
   @Override
   public void loadMore(
       StreamToken streamToken, Consumer<Result<List<StreamDataOperation>>> consumer) {
-    threadUtils.checkMainThread();
-    taskQueue.execute(
-        "requestManagerLoadMore",
-        TaskType.IMMEDIATE, // always run requests as soon as possible
-        () -> {
-          Logger.i(TAG, "Task: FeedRequestManager LoadMore");
-          ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
-          RequestBuilder request =
-              newDefaultRequest(RequestReason.MANUAL_CONTINUATION)
-                  .setPageToken(streamToken.getNextPageToken());
-          executeRequest(request, consumer);
-          timeTracker.stop(
-              "task", "FeedRequestManager LoadMore", "token", streamToken.getNextPageToken());
-        });
+    threadUtils.checkNotMainThread();
+
+    Logger.i(TAG, "Task: FeedRequestManager LoadMore");
+    ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
+    RequestBuilder request =
+        newDefaultRequest(RequestReason.MANUAL_CONTINUATION)
+            .setPageToken(streamToken.getNextPageToken());
+    executeRequest(request, consumer);
+    timeTracker.stop(
+        "task", "FeedRequestManager LoadMore", "token", streamToken.getNextPageToken());
   }
 
   @Override
@@ -189,19 +172,6 @@ public final class FeedRequestManager implements RequestManager {
     this.defaultTriggerRefreshConsumerSupplier = consumerSupplier;
   }
 
-  @Override
-  public void triggerUploadActions(
-      Set<StreamUploadableAction> actions,
-      ConsistencyToken token,
-      Consumer<Result<ConsistencyToken>> consumer) {
-    UploadableActionsRequestBuilder requestBuilder =
-        new UploadableActionsRequestBuilder(actionReader, protocolAdapter);
-    // TODO: batch if necessary
-    requestBuilder.setConsistencyToken(token).setActions(actions);
-
-    executeUploadActionRequest(requestBuilder, consumer);
-  }
-
   private RequestBuilder newDefaultRequest(@RequestReason int requestReason) {
     return new RequestBuilder(getLocale(), applicationInfo, configuration, requestReason);
   }
@@ -231,57 +201,6 @@ public final class FeedRequestManager implements RequestManager {
     }
   }
 
-  private void executeUploadActionRequest(
-      UploadableActionsRequestBuilder requestBuilder, Consumer<Result<ConsistencyToken>> consumer) {
-    threadUtils.checkNotMainThread();
-
-    String endpoint = configuration.getValueOrDefault(ConfigKey.FEED_ACTION_SERVER_ENDPOINT, "");
-    @HttpMethod
-    String httpMethod =
-        configuration.getValueOrDefault(ConfigKey.FEED_ACTION_SERVER_METHOD, HttpMethod.POST);
-    boolean isPostMethod = HttpMethod.POST.equals(httpMethod);
-    Uri.Builder uriBuilder = Uri.parse(endpoint).buildUpon();
-    if (!isPostMethod) {
-      uriBuilder.appendQueryParameter(
-          MOTHERSHIP_PARAM_PAYLOAD,
-          Base64.encodeToString(
-              requestBuilder.build().toByteArray(), Base64.URL_SAFE | Base64.NO_WRAP));
-      uriBuilder.appendQueryParameter(MOTHERSHIP_PARAM_FORMAT, MOTHERSHIP_VALUE_BINARY);
-    }
-
-    uriBuilder.appendQueryParameter(LOCALE_PARAM, getLocale().toString());
-
-    HttpRequest httpRequest =
-        new HttpRequest(
-            uriBuilder.build(),
-            httpMethod,
-            Collections.emptyList(),
-            isPostMethod ? requestBuilder.build().toByteArray() : new byte[] {});
-    Logger.i(TAG, "Making Request: %s", httpRequest.getUri().getPath());
-    networkClient.send(
-        httpRequest,
-        input -> {
-          Logger.i(
-              TAG,
-              "Request: %s completed with response code: %s",
-              httpRequest.getUri().getPath(),
-              input.getResponseCode());
-          if (input.getResponseCode() != 200) {
-            String errorBody = null;
-            try {
-              errorBody = new String(input.getResponseBody(), "UTF-8");
-            } catch (UnsupportedEncodingException e) {
-              Logger.e(TAG, "Error handling http error logging", e);
-            }
-            Logger.e(TAG, "errorCode: %d", input.getResponseCode());
-            Logger.e(TAG, "errorResponse: %s", errorBody);
-            consumer.accept(Result.failure());
-            return;
-          }
-          handleUploadableActionResponseBytes(input.getResponseBody(), consumer);
-        });
-  }
-
   private void executeRequest(
       RequestBuilder requestBuilder, Consumer<Result<List<StreamDataOperation>>> consumer) {
     threadUtils.checkNotMainThread();
@@ -298,24 +217,11 @@ public final class FeedRequestManager implements RequestManager {
     @HttpMethod
     String httpMethod =
         configuration.getValueOrDefault(ConfigKey.FEED_SERVER_METHOD, HttpMethod.GET);
-    boolean isPostMethod = HttpMethod.POST.equals(httpMethod);
-    Uri.Builder uriBuilder = Uri.parse(endpoint).buildUpon();
-    if (!isPostMethod) {
-      uriBuilder.appendQueryParameter(
-          MOTHERSHIP_PARAM_PAYLOAD,
-          Base64.encodeToString(
-              requestBuilder.build().toByteArray(), Base64.URL_SAFE | Base64.NO_WRAP));
-
-      uriBuilder.appendQueryParameter(MOTHERSHIP_PARAM_FORMAT, MOTHERSHIP_VALUE_BINARY);
-    }
-    uriBuilder.appendQueryParameter(LOCALE_PARAM, getLocale().toString());
 
     HttpRequest httpRequest =
-        new HttpRequest(
-            uriBuilder.build(),
-            httpMethod,
-            Collections.emptyList(),
-            isPostMethod ? requestBuilder.build().toByteArray() : new byte[] {});
+        RequestHelper.buildHttpRequest(
+            httpMethod, requestBuilder.build().toByteArray(), endpoint, getLocale().toString());
+
     Logger.i(TAG, "Making Request: %s", httpRequest.getUri().getPath());
     mainThreadRunner.execute(
         "Making request.",
@@ -365,7 +271,9 @@ public final class FeedRequestManager implements RequestManager {
           try {
             response =
                 Response.parseFrom(
-                    isLengthPrefixed ? getLengthPrefixedValue(responseBytes) : responseBytes,
+                    isLengthPrefixed
+                        ? RequestHelper.getLengthPrefixedValue(responseBytes)
+                        : responseBytes,
                     extensionRegistry.getExtensionRegistry());
           } catch (IOException e) {
             Logger.e(TAG, e, "Response parse failed");
@@ -382,56 +290,6 @@ public final class FeedRequestManager implements RequestManager {
           mainThreadRunner.execute(
               "FeedRequestManager consumer", () -> consumer.accept(contextResult));
         });
-  }
-
-  private void handleUploadableActionResponseBytes(
-      final byte[] responseBytes, final Consumer<Result<ConsistencyToken>> consumer) {
-    taskQueue.execute(
-        "handleUploadableActionResponseBytes",
-        TaskType.IMMEDIATE,
-        () -> {
-          Response response;
-          boolean isLengthPrefixed =
-              configuration.getValueOrDefault(
-                  ConfigKey.FEED_ACTION_SERVER_RESPONSE_LENGTH_PREFIXED, true);
-          try {
-            response =
-                Response.parseFrom(
-                    isLengthPrefixed ? getLengthPrefixedValue(responseBytes) : responseBytes,
-                    extensionRegistry.getExtensionRegistry());
-          } catch (IOException e) {
-            Logger.e(TAG, e, "Response parse failed");
-            consumer.accept(Result.failure());
-            return;
-          }
-          FeedActionResponse feedActionResponse =
-              response.getExtension(FeedActionResponse.feedActionResponse);
-          final Result<ConsistencyToken> contextResult;
-          if (feedActionResponse.hasConsistencyToken()) {
-            contextResult = Result.success(feedActionResponse.getConsistencyToken());
-          } else {
-            contextResult = Result.failure();
-          }
-          mainThreadRunner.execute(
-              "FeedRequestManager consumer", () -> consumer.accept(contextResult));
-        });
-  }
-
-  /**
-   * Returns the first length-prefixed value from {@code input}. The first bytes of input are
-   * assumed to be a varint32 encoding the length of the rest of the message. If input contains more
-   * than one message, only the first message is returned.i w
-   *
-   * @throws IOException if input cannot be parsed
-   */
-  private byte[] getLengthPrefixedValue(byte[] input) throws IOException {
-    CodedInputStream codedInputStream = CodedInputStream.newInstance(input);
-    if (codedInputStream.isAtEnd()) {
-      throw new IOException("Empty length-prefixed response");
-    } else {
-      int length = codedInputStream.readRawVarint32();
-      return codedInputStream.readRawBytes(length);
-    }
   }
 
   private static final class RequestBuilder {

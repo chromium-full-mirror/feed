@@ -30,6 +30,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelMutation;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.ViewDepthProvider;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
+import com.google.android.libraries.feed.api.requestmanager.ActionUploadRequestManager;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.api.store.Store;
@@ -127,10 +128,12 @@ public final class FeedSessionManager
   private final TimingUtils timingUtils;
   private final ProtocolAdapter protocolAdapter;
   private final RequestManager requestManager;
+  private final ActionUploadRequestManager actionUploadRequestManager;
   private final SchedulerApi schedulerApi;
   private final TaskQueue taskQueue;
   private final Clock clock;
   private final long sessionPopulationTimeoutMs;
+  private final boolean uploadingActionsEnabled;
 
   @VisibleForTesting final Set<SessionMutationTracker> outstandingMutations = new HashSet<>();
 
@@ -152,6 +155,7 @@ public final class FeedSessionManager
       ThreadUtils threadUtils,
       ProtocolAdapter protocolAdapter,
       RequestManager requestManager,
+      ActionUploadRequestManager actionUploadRequestManager,
       SchedulerApi schedulerApi,
       Configuration configuration,
       Clock clock,
@@ -167,9 +171,11 @@ public final class FeedSessionManager
     this.threadUtils = threadUtils;
     this.protocolAdapter = protocolAdapter;
     this.requestManager = requestManager;
+    this.actionUploadRequestManager = actionUploadRequestManager;
     this.schedulerApi = schedulerApi;
     this.clock = clock;
-
+    uploadingActionsEnabled =
+        configuration.getValueOrDefault(ConfigKey.UNDOABLE_ACTIONS_ENABLED, false);
     sessionPopulationTimeoutMs =
         configuration.getValueOrDefault(ConfigKey.TIMEOUT_TIMEOUT_MS, TIMEOUT_TIMEOUT_MS);
     lifecycleListenerObservable.registerObserver(this);
@@ -514,7 +520,14 @@ public final class FeedSessionManager
             .setContinuationToken(streamToken)
             .setRequestingSession(streamSession)
             .build();
-    requestManager.loadMore(streamToken, getCommitter("handleToken", mutationContext));
+    taskQueue.execute(
+        "triggerLoadMore(FeedSessionManager)",
+        TaskType.BACKGROUND,
+        () -> {
+          // TODO:consume the consistency token before making the load more call.
+          fetchActionsAndUpload(getConsistencyToken(), getConsistencyTokenConsumer());
+          requestManager.loadMore(streamToken, getCommitter("handleToken", mutationContext));
+        });
   }
 
   @Override
@@ -542,6 +555,8 @@ public final class FeedSessionManager
       @RequestReason int requestReason,
       UiContext uiContext) {
     threadUtils.checkNotMainThread();
+    // TODO: consume the consistency token before making the refresh call.
+    fetchActionsAndUpload(getConsistencyToken(), getConsistencyTokenConsumer());
     requestManager.triggerRefresh(
         requestReason, getCommitter("triggerRefresh", MutationContext.EMPTY_CONTEXT));
     if (streamSession != null) {
@@ -559,6 +574,18 @@ public final class FeedSessionManager
       }
     } else {
       Logger.i(TAG, "triggerRefreshTask no StreamSession provided");
+    }
+  }
+
+  private void fetchActionsAndUpload(
+      ConsistencyToken token, Consumer<Result<ConsistencyToken>> consumer) {
+    // fail fast if we're not actually recording these actions.
+    if (!uploadingActionsEnabled) {
+      consumer.accept(Result.success(token));
+    }
+    Result<Set<StreamUploadableAction>> actionsResult = store.getAllUploadableActions();
+    if (actionsResult.isSuccessful()) {
+      actionUploadRequestManager.triggerUploadActions(actionsResult.getValue(), token, consumer);
     }
   }
 
@@ -771,12 +798,16 @@ public final class FeedSessionManager
   public void triggerUploadActions(Set<StreamUploadableAction> actions) {
     threadUtils.checkNotMainThread();
 
-    requestManager.triggerUploadActions(
+    actionUploadRequestManager.triggerUploadActions(
         actions, getConsistencyToken(), getConsistencyTokenConsumer());
   }
 
   @VisibleForTesting
   ConsistencyToken getConsistencyToken() {
+    // don't bother with reading consistencytoken if we're not uploading actions.
+    if (!uploadingActionsEnabled) {
+      return ConsistencyToken.getDefaultInstance();
+    }
     Result<List<PayloadWithId>> contentResult =
         store.getPayloads(Collections.singletonList(SessionCache.CONSISTENCY_TOKEN_CONTENT_ID));
     if (contentResult.isSuccessful()) {

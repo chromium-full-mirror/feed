@@ -16,6 +16,7 @@ package com.google.android.libraries.feed.feedsessionmanager;
 
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
+import com.google.android.libraries.feed.api.requestmanager.ActionUploadRequestManager;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
@@ -46,6 +47,7 @@ public final class FeedSessionManagerFactory {
   private final ThreadUtils threadUtils;
   private final ProtocolAdapter protocolAdapter;
   private final RequestManager requestManager;
+  private final ActionUploadRequestManager actionUploadRequestManager;
   private final SchedulerApi schedulerApi;
   private final Configuration configuration;
   private final Clock clock;
@@ -58,6 +60,7 @@ public final class FeedSessionManagerFactory {
       ThreadUtils threadUtils,
       ProtocolAdapter protocolAdapter,
       RequestManager requestManager,
+      ActionUploadRequestManager actionUploadRequestManager,
       SchedulerApi schedulerApi,
       Configuration configuration,
       Clock clock,
@@ -68,6 +71,7 @@ public final class FeedSessionManagerFactory {
     this.threadUtils = threadUtils;
     this.protocolAdapter = protocolAdapter;
     this.requestManager = requestManager;
+    this.actionUploadRequestManager = actionUploadRequestManager;
     this.schedulerApi = schedulerApi;
     this.configuration = configuration;
     this.clock = clock;
@@ -106,6 +110,7 @@ public final class FeedSessionManagerFactory {
         threadUtils,
         protocolAdapter,
         requestManager,
+        actionUploadRequestManager,
         schedulerApi,
         configuration,
         clock,

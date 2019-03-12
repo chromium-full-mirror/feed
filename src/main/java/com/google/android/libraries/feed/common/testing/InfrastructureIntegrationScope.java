@@ -87,6 +87,7 @@ public class InfrastructureIntegrationScope {
   private final FeedProtocolAdapter feedProtocolAdapter;
   private final FeedModelProviderFactory modelProviderFactory;
   private final FakeRequestManager fakeRequestManager;
+  private final FakeActionUploadRequestManager fakeActionUploadRequestManager;
   private final FeedAppLifecycleListener appLifecycleListener;
   private final TaskQueue taskQueue;
   private final FeedStore store;
@@ -122,6 +123,7 @@ public class InfrastructureIntegrationScope {
             mainThreadRunner);
     feedProtocolAdapter = new FeedProtocolAdapter(timingUtils);
     fakeRequestManager = new FakeRequestManager(feedProtocolAdapter, requestDelayMs);
+    fakeActionUploadRequestManager = new FakeActionUploadRequestManager(requestDelayMs);
     feedSessionManager =
         new FeedSessionManagerFactory(
                 taskQueue,
@@ -130,6 +132,7 @@ public class InfrastructureIntegrationScope {
                 threadUtils,
                 feedProtocolAdapter,
                 fakeRequestManager,
+                fakeActionUploadRequestManager,
                 schedulerApi,
                 configuration,
                 clock,

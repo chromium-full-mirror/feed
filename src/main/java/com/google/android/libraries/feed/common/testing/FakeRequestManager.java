@@ -22,13 +22,10 @@ import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
-import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
-import com.google.search.now.wire.feed.ConsistencyTokenProto.ConsistencyToken;
 import com.google.search.now.wire.feed.ResponseProto.Response;
 import java.util.ArrayDeque;
 import java.util.List;
 import java.util.Queue;
-import java.util.Set;
 
 /**
  * Fake implementation of a {@link RequestManager}. This acts a Queue of responses which will be
@@ -106,11 +103,4 @@ public class FakeRequestManager implements RequestManager {
     this.defaultTriggerRefreshConsumerSupplier = consumerSupplier;
   }
 
-  @Override
-  public void triggerUploadActions(
-      Set<StreamUploadableAction> actions,
-      ConsistencyToken token,
-      Consumer<Result<ConsistencyToken>> consumer) {
-    consumer.accept(Result.success(ConsistencyToken.getDefaultInstance()));
-  }
 }

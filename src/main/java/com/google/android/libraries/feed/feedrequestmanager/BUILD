@@ -23,6 +23,7 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/host/logging",
         "//src/main/java/com/google/android/libraries/feed/host/network",
         "//src/main/java/com/google/android/libraries/feed/host/scheduler",
+        "//src/main/java/com/google/android/libraries/feed/host/storage",
         "//src/main/proto/com/google/android/libraries/feed/api/proto:client_feed_java_proto_lite",
         "//src/main/proto/search/now/ui/action:feed_action_java_proto_lite",
         "//src/main/proto/search/now/wire/feed:feed_java_proto_lite",

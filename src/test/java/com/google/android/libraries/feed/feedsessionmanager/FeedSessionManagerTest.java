@@ -18,6 +18,7 @@ import static com.google.android.libraries.feed.api.store.Store.HEAD;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.anySetOf;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -37,6 +38,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelMutation;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
+import com.google.android.libraries.feed.api.requestmanager.ActionUploadRequestManager;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.store.ActionPropertiesMutation;
 import com.google.android.libraries.feed.api.store.ContentMutation;
@@ -59,6 +61,7 @@ import com.google.android.libraries.feed.feedsessionmanager.internal.Session;
 import com.google.android.libraries.feed.feedstore.FeedStore;
 import com.google.android.libraries.feed.feedstore.testing.DelegatingStore;
 import com.google.android.libraries.feed.host.config.Configuration;
+import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
@@ -120,18 +123,20 @@ public class FeedSessionManagerTest {
   @Mock private ThreadUtils threadUtils;
   @Mock private ProtocolAdapter protocolAdapter;
   @Mock private RequestManager requestManager;
+  @Mock private ActionUploadRequestManager actionUploadRequestManager;
   @Mock private SchedulerApi schedulerApi;
   @Mock private ModelProvider modelProvider;
   @Mock private ModelMutation modelMutation;
   @Mock private Store store;
   @Mock private Clock clock;
-
+  @Captor private ArgumentCaptor<Consumer<Result<ConsistencyToken>>> tokenCapture;
   @Captor private ArgumentCaptor<Consumer<Result<List<StreamDataOperation>>>> resultCapture;
 
   private final ContentIdGenerators contentIdGenerators = new ContentIdGenerators();
   private final TimingUtils timingUtils = new TimingUtils();
   private final FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(ArrayList::new);
-  private final Configuration configuration = new Configuration.Builder().build();
+  private final Configuration configuration =
+      new Configuration.Builder().put(ConfigKey.UNDOABLE_ACTIONS_ENABLED, true).build();
 
   @Before
   public void setUp() {
@@ -146,6 +151,7 @@ public class FeedSessionManagerTest {
         .thenReturn(Result.success(new ArrayList<>()));
     when(store.getPayloads(any())).thenReturn(Result.success(new ArrayList<>()));
     when(store.getAllSessions()).thenReturn(Result.success(new ArrayList<>()));
+    when(store.getAllUploadableActions()).thenReturn(Result.success(new HashSet<>()));
     when(schedulerApi.shouldSessionRequestData(any(SessionManagerState.class)))
         .thenReturn(RequestBehavior.NO_REQUEST_WITH_CONTENT);
     taskQueue =
@@ -189,6 +195,7 @@ public class FeedSessionManagerTest {
                 threadUtils,
                 protocolAdapter,
                 requestManager,
+                actionUploadRequestManager,
                 schedulerApi,
                 configuration,
                 clock,
@@ -220,6 +227,7 @@ public class FeedSessionManagerTest {
                 threadUtils,
                 protocolAdapter,
                 requestManager,
+                actionUploadRequestManager,
                 schedulerApi,
                 configuration,
                 clock,
@@ -361,6 +369,11 @@ public class FeedSessionManagerTest {
     StreamSession streamSession = StreamSession.getDefaultInstance();
     sessionManager.handleToken(streamSession, streamToken);
     verify(requestManager).loadMore(eq(streamToken), resultCapture.capture());
+    verify(actionUploadRequestManager)
+        .triggerUploadActions(
+            anySetOf(StreamUploadableAction.class),
+            any(ConsistencyToken.class),
+            tokenCapture.capture());
   }
 
   @Test
@@ -370,6 +383,12 @@ public class FeedSessionManagerTest {
     sessionManager.triggerRefresh(
         streamSession, RequestReason.UNKNOWN, UiContext.getDefaultInstance());
     verify(requestManager).triggerRefresh(eq(RequestReason.UNKNOWN), resultCapture.capture());
+
+    verify(actionUploadRequestManager)
+        .triggerUploadActions(
+            anySetOf(StreamUploadableAction.class),
+            any(ConsistencyToken.class),
+            tokenCapture.capture());
   }
 
   @Test
@@ -380,6 +399,12 @@ public class FeedSessionManagerTest {
         streamSession, RequestReason.HOST_REQUESTED, UiContext.getDefaultInstance());
     verify(requestManager)
         .triggerRefresh(eq(RequestReason.HOST_REQUESTED), resultCapture.capture());
+
+    verify(actionUploadRequestManager)
+        .triggerUploadActions(
+            anySetOf(StreamUploadableAction.class),
+            any(ConsistencyToken.class),
+            tokenCapture.capture());
   }
 
   @Test
@@ -471,6 +496,7 @@ public class FeedSessionManagerTest {
                 threadUtils,
                 protocolAdapter,
                 requestManager,
+                actionUploadRequestManager,
                 schedulerApi,
                 configuration,
                 clock,
@@ -527,6 +553,7 @@ public class FeedSessionManagerTest {
                 threadUtils,
                 protocolAdapter,
                 requestManager,
+                actionUploadRequestManager,
                 schedulerApi,
                 configuration,
                 clock,
@@ -647,7 +674,8 @@ public class FeedSessionManagerTest {
         ConsistencyToken.newBuilder().setToken(ByteString.copyFrom(new byte[] {0x1, 0xf})).build();
     sessionManager.getConsistencyTokenConsumer().accept(Result.success(token));
     sessionManager.triggerUploadActions(actionSet);
-    verify(requestManager).triggerUploadActions(eq(actionSet), eq(token), any(Consumer.class));
+    verify(actionUploadRequestManager)
+        .triggerUploadActions(eq(actionSet), eq(token), tokenCapture.capture());
   }
 
   @Test
@@ -725,6 +753,7 @@ public class FeedSessionManagerTest {
                 threadUtils,
                 protocolAdapter,
                 requestManager,
+                actionUploadRequestManager,
                 schedulerApi,
                 configuration,
                 clock,
@@ -757,6 +786,7 @@ public class FeedSessionManagerTest {
             threadUtils,
             protocolAdapter,
             requestManager,
+            actionUploadRequestManager,
             schedulerApi,
             configuration,
             clock,

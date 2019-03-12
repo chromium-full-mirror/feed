@@ -22,7 +22,7 @@ import android.provider.Settings.Global;
 import android.util.Base64;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.logging.Logger;
-import com.google.android.libraries.feed.feedrequestmanager.FeedRequestManager;
+import com.google.android.libraries.feed.feedrequestmanager.RequestHelper;
 import com.google.android.libraries.feed.host.network.HttpRequest;
 import com.google.android.libraries.feed.host.network.HttpRequest.HttpMethod;
 import com.google.android.libraries.feed.host.network.HttpResponse;
@@ -109,11 +109,10 @@ public final class MockServerNetworkClient implements NetworkClient {
   private Request getRequest(HttpRequest httpRequest) throws IOException {
     byte[] rawRequest = new byte[0];
     if (httpRequest.getMethod().equals(HttpMethod.GET)) {
-      if (httpRequest.getUri().getQueryParameter(FeedRequestManager.MOTHERSHIP_PARAM_PAYLOAD)
-          != null) {
+      if (httpRequest.getUri().getQueryParameter(RequestHelper.MOTHERSHIP_PARAM_PAYLOAD) != null) {
         rawRequest =
             Base64.decode(
-                httpRequest.getUri().getQueryParameter(FeedRequestManager.MOTHERSHIP_PARAM_PAYLOAD),
+                httpRequest.getUri().getQueryParameter(RequestHelper.MOTHERSHIP_PARAM_PAYLOAD),
                 Base64.URL_SAFE);
       }
     } else {

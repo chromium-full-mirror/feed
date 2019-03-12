@@ -22,6 +22,7 @@ import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.knowncontent.KnownContentApi;
 import com.google.android.libraries.feed.api.lifecycle.AppLifecycleListener;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
+import com.google.android.libraries.feed.api.requestmanager.ActionUploadRequestManager;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.api.store.Store;
@@ -41,6 +42,7 @@ import com.google.android.libraries.feed.feedactionreader.FeedActionReader;
 import com.google.android.libraries.feed.feedapplifecyclelistener.FeedAppLifecycleListener;
 import com.google.android.libraries.feed.feedknowncontent.FeedKnownContentApi;
 import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter;
+import com.google.android.libraries.feed.feedrequestmanager.FeedActionUploadRequestManager;
 import com.google.android.libraries.feed.feedrequestmanager.FeedRequestManager;
 import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManagerFactory;
 import com.google.android.libraries.feed.feedstore.ContentStorageDirectImpl;
@@ -86,6 +88,7 @@ public final class FeedProcessScope implements Dumpable {
   private final NetworkClient networkClient;
   private final ProtocolAdapter protocolAdapter;
   private final RequestManager requestManager;
+  private final ActionUploadRequestManager actionUploadRequestManager;
   private final SessionManager sessionManager;
   private final Store store;
   private final TimingUtils timingUtils;
@@ -147,6 +150,7 @@ public final class FeedProcessScope implements Dumpable {
       NetworkClient networkClient,
       ProtocolAdapter protocolAdapter,
       RequestManager requestManager,
+      ActionUploadRequestManager actionUploadRequestManager,
       SessionManager sessionManager,
       Store store,
       TimingUtils timingUtils,
@@ -166,6 +170,7 @@ public final class FeedProcessScope implements Dumpable {
     this.networkClient = networkClient;
     this.protocolAdapter = protocolAdapter;
     this.requestManager = requestManager;
+    this.actionUploadRequestManager = actionUploadRequestManager;
     this.sessionManager = sessionManager;
     this.store = store;
     this.timingUtils = timingUtils;
@@ -221,6 +226,10 @@ public final class FeedProcessScope implements Dumpable {
     return requestManager;
   }
 
+  public ActionUploadRequestManager getActionUploadRequestManager() {
+    return actionUploadRequestManager;
+  }
+
   public SessionManager getSessionManager() {
     return sessionManager;
   }
@@ -273,6 +282,7 @@ public final class FeedProcessScope implements Dumpable {
 
     // Optional fields - if they are not provided, we will use default implementations.
     /*@MonotonicNonNull*/ private RequestManager requestManager = null;
+    /*@MonotonicNonNull*/ private ActionUploadRequestManager actionUploadRequestManager = null;
     /*@MonotonicNonNull*/ private SessionManager sessionManager = null;
     /*@MonotonicNonNull*/ private ProtocolAdapter protocolAdapter = null;
     /*@MonotonicNonNull*/ private ProtoExtensionProvider protoExtensionProvider = null;
@@ -316,6 +326,12 @@ public final class FeedProcessScope implements Dumpable {
 
     public Builder setRequestManager(RequestManager requestManager) {
       this.requestManager = requestManager;
+      return this;
+    }
+
+    public Builder setActionUploadRequestManager(
+        ActionUploadRequestManager actionUploadRequestManager) {
+      this.actionUploadRequestManager = actionUploadRequestManager;
       return this;
     }
 
@@ -480,6 +496,20 @@ public final class FeedProcessScope implements Dumpable {
                 getOrCreateMainThreadRunner(),
                 basicLoggingApi);
       }
+      if (actionUploadRequestManager == null) {
+        actionUploadRequestManager =
+            new FeedActionUploadRequestManager(
+                configuration,
+                networkClient,
+                protocolAdapter,
+                extensionRegistry,
+                taskQueue,
+                threadUtils,
+                actionReader,
+                store,
+                clock,
+                getOrCreateMainThreadRunner());
+      }
       if (sessionManager == null) {
         FeedSessionManagerFactory fsmFactory =
             new FeedSessionManagerFactory(
@@ -489,6 +519,7 @@ public final class FeedProcessScope implements Dumpable {
                 threadUtils,
                 protocolAdapter,
                 requestManager,
+                actionUploadRequestManager,
                 schedulerApi,
                 configuration,
                 clock,
@@ -513,6 +544,7 @@ public final class FeedProcessScope implements Dumpable {
           networkClient,
           Validators.checkNotNull(protocolAdapter),
           Validators.checkNotNull(requestManager),
+          Validators.checkNotNull(actionUploadRequestManager),
           Validators.checkNotNull(sessionManager),
           store,
           timingUtils,

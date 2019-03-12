@@ -28,7 +28,6 @@ import android.os.Build;
 import android.os.Build.VERSION_CODES;
 import android.util.Base64;
 import com.google.android.libraries.feed.api.actionmanager.ActionReader;
-import com.google.android.libraries.feed.api.common.ActionPropertiesWithId;
 import com.google.android.libraries.feed.api.common.DismissActionWithSemanticProperties;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
@@ -56,22 +55,17 @@ import com.google.protobuf.CodedOutputStream;
 import com.google.protobuf.ExtensionRegistryLite;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
-import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
-import com.google.search.now.wire.feed.ActionRequestProto.ActionRequest;
 import com.google.search.now.wire.feed.ActionTypeProto.ActionType;
 import com.google.search.now.wire.feed.CapabilityProto.Capability;
 import com.google.search.now.wire.feed.ClientInfoProto.ClientInfo;
 import com.google.search.now.wire.feed.ClientInfoProto.ClientInfo.AppType;
 import com.google.search.now.wire.feed.ClientInfoProto.ClientInfo.PlatformType;
-import com.google.search.now.wire.feed.ConsistencyTokenProto.ConsistencyToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.FeedActionQueryDataProto.Action;
 import com.google.search.now.wire.feed.FeedActionQueryDataProto.FeedActionQueryData;
 import com.google.search.now.wire.feed.FeedActionQueryDataProto.FeedActionQueryDataItem;
 import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery;
 import com.google.search.now.wire.feed.FeedRequestProto.FeedRequest;
-import com.google.search.now.wire.feed.OpaqueActionDataForTestProto.OpaqueActionDataForTest;
-import com.google.search.now.wire.feed.OpaqueActionDataProto.OpaqueActionData;
 import com.google.search.now.wire.feed.RequestProto.Request;
 import com.google.search.now.wire.feed.RequestProto.Request.RequestVersion;
 import com.google.search.now.wire.feed.ResponseProto.Response;
@@ -85,7 +79,6 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import org.junit.Before;
@@ -249,104 +242,6 @@ public class FeedRequestManagerTest {
                     .build())
             .build();
     assertThat(request).isEqualTo(expectedRequest);
-
-    Response response = Response.getDefaultInstance();
-    responseConsumerCaptor.getValue().accept(createHttpResponse(/* responseCode= */ 200, response));
-
-    assertThat(consumer.isCalled()).isTrue();
-  }
-
-  @Test
-  public void testTriggerUploadActions_getMethod() throws Exception {
-    Configuration configuration =
-        new Configuration.Builder()
-            .put(ConfigKey.FEED_ACTION_SERVER_METHOD, HttpMethod.GET)
-            .build();
-    requestManager =
-        new FeedRequestManager(
-            configuration,
-            networkClient,
-            protocolAdapter,
-            new FeedExtensionRegistry(ArrayList::new),
-            scheduler,
-            getTaskQueue(),
-            timingUtils,
-            threadUtils,
-            actionReader,
-            context,
-            applicationInfo,
-            fakeMainThreadRunner,
-            basicLoggingApi);
-    String contentId = "contentId";
-    HashSet<StreamUploadableAction> actionSet = new HashSet<>();
-    actionSet.add(StreamUploadableAction.newBuilder().setFeatureContentId(contentId).build());
-    RequiredConsumer<Result<ConsistencyToken>> consumer = new RequiredConsumer<>(input -> {});
-    OpaqueActionData data =
-        OpaqueActionData.newBuilder()
-            .setExtension(
-                OpaqueActionDataForTest.opaqueActionDataForTestExtension,
-                OpaqueActionDataForTest.newBuilder().setId(contentId).build())
-            .build();
-    when(actionReader.getActionProperties(Collections.singletonList(contentId)))
-        .thenReturn(
-            Result.success(Collections.singletonList(new ActionPropertiesWithId(contentId, data))));
-    when(protocolAdapter.getWireContentId(contentId))
-        .thenReturn(Result.success(ContentId.getDefaultInstance()));
-    requestManager.triggerUploadActions(actionSet, ConsistencyToken.getDefaultInstance(), consumer);
-
-    verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
-
-    HttpRequest httpRequest = requestCaptor.getValue();
-    assertHttpRequestFormattedCorrectly(httpRequest);
-
-    ActionRequest request = getActionRequestFromHttpRequest(httpRequest);
-    UploadableActionsRequestBuilder builder =
-        new UploadableActionsRequestBuilder(actionReader, protocolAdapter);
-    ActionRequest expectedRequest =
-        builder
-            .setConsistencyToken(ConsistencyToken.getDefaultInstance())
-            .setActions(actionSet)
-            .build();
-    assertThat(request.toByteArray()).isEqualTo(expectedRequest.toByteArray());
-
-    Response response = Response.getDefaultInstance();
-    responseConsumerCaptor.getValue().accept(createHttpResponse(/* responseCode= */ 200, response));
-
-    assertThat(consumer.isCalled()).isTrue();
-  }
-
-  @Test
-  public void testTriggerUploadActions_defaultMethod() throws Exception {
-    String contentId = "contentId";
-    HashSet<StreamUploadableAction> actionSet = new HashSet<>();
-    actionSet.add(StreamUploadableAction.newBuilder().setFeatureContentId(contentId).build());
-    RequiredConsumer<Result<ConsistencyToken>> consumer = new RequiredConsumer<>(input -> {});
-    OpaqueActionData data =
-        OpaqueActionData.newBuilder()
-            .setExtension(
-                OpaqueActionDataForTest.opaqueActionDataForTestExtension,
-                OpaqueActionDataForTest.newBuilder().setId(contentId).build())
-            .build();
-    when(actionReader.getActionProperties(Collections.singletonList(contentId)))
-        .thenReturn(
-            Result.success(Collections.singletonList(new ActionPropertiesWithId(contentId, data))));
-    when(protocolAdapter.getWireContentId(contentId))
-        .thenReturn(Result.success(ContentId.getDefaultInstance()));
-    requestManager.triggerUploadActions(actionSet, ConsistencyToken.getDefaultInstance(), consumer);
-
-    verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
-
-    HttpRequest httpRequest = requestCaptor.getValue();
-
-    ActionRequest request = getActionRequestFromHttpRequestBody(httpRequest);
-    UploadableActionsRequestBuilder builder =
-        new UploadableActionsRequestBuilder(actionReader, protocolAdapter);
-    ActionRequest expectedRequest =
-        builder
-            .setConsistencyToken(ConsistencyToken.getDefaultInstance())
-            .setActions(actionSet)
-            .build();
-    assertThat(request.toByteArray()).isEqualTo(expectedRequest.toByteArray());
 
     Response response = Response.getDefaultInstance();
     responseConsumerCaptor.getValue().accept(createHttpResponse(/* responseCode= */ 200, response));
@@ -953,9 +848,9 @@ public class FeedRequestManagerTest {
     assertThat(httpRequest.getBody()).hasLength(0);
     assertThat(httpRequest.getMethod()).isEqualTo(HttpMethod.GET);
     assertThat(httpRequest.getUri().getQueryParameter("fmt")).isEqualTo("bin");
-    assertThat(httpRequest.getUri().getQueryParameter(FeedRequestManager.MOTHERSHIP_PARAM_PAYLOAD))
+    assertThat(httpRequest.getUri().getQueryParameter(RequestHelper.MOTHERSHIP_PARAM_PAYLOAD))
         .isNotNull();
-    assertThat(httpRequest.getUri().getQueryParameter(FeedRequestManager.LOCALE_PARAM))
+    assertThat(httpRequest.getUri().getQueryParameter(RequestHelper.LOCALE_PARAM))
         .isEqualTo("en_US");
   }
 
@@ -987,22 +882,9 @@ public class FeedRequestManagerTest {
   private Request getRequestFromHttpRequest(HttpRequest httpRequest) throws Exception {
     return Request.parseFrom(
         Base64.decode(
-            httpRequest.getUri().getQueryParameter(FeedRequestManager.MOTHERSHIP_PARAM_PAYLOAD),
+            httpRequest.getUri().getQueryParameter(RequestHelper.MOTHERSHIP_PARAM_PAYLOAD),
             Base64.URL_SAFE),
         registry);
-  }
-
-  private ActionRequest getActionRequestFromHttpRequest(HttpRequest httpRequest) throws Exception {
-    return ActionRequest.parseFrom(
-        Base64.decode(
-            httpRequest.getUri().getQueryParameter(FeedRequestManager.MOTHERSHIP_PARAM_PAYLOAD),
-            Base64.URL_SAFE),
-        registry);
-  }
-
-  private ActionRequest getActionRequestFromHttpRequestBody(HttpRequest httpRequest)
-      throws Exception {
-    return ActionRequest.parseFrom(httpRequest.getBody(), registry);
   }
 
   private static FeedRequest.Builder getTestFeedRequestBuilder() {
