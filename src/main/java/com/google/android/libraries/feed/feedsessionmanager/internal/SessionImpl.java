@@ -134,7 +134,7 @@ public class SessionImpl implements InitializableSession, Dumpable {
       Logger.e(TAG, "unsupported StreamDataOperation: %s", streamStructure.getOperation());
     }
     if (modelMutation != null) {
-      modelMutation.setStreamSession(streamSession);
+      modelMutation.setSessionId(streamSession.getSessionId());
       modelMutation.commit();
     }
     timeTracker.stop("populateSession", streamSession.getSessionId(), "operations", head.size());

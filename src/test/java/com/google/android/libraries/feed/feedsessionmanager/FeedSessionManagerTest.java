@@ -112,6 +112,7 @@ public class FeedSessionManagerTest {
           .setId(1)
           .setTable("piet-shared-state")
           .build();
+  private static final String SESSION_ID = "session:1";
 
   private final ContentIdGenerators idGenerators = new ContentIdGenerators();
   private final String rootContentId = idGenerators.createRootContentId(0);
@@ -366,8 +367,7 @@ public class FeedSessionManagerTest {
     StreamToken streamToken =
         StreamToken.newBuilder().setNextPageToken(bytes).setParentId(rootContentId).build();
     FeedSessionManager sessionManager = getInitializedSessionManager();
-    StreamSession streamSession = StreamSession.getDefaultInstance();
-    sessionManager.handleToken(streamSession, streamToken);
+    sessionManager.handleToken(SESSION_ID, streamToken);
     verify(requestManager).loadMore(eq(streamToken), resultCapture.capture());
     verify(actionUploadRequestManager)
         .triggerUploadActions(
@@ -378,10 +378,9 @@ public class FeedSessionManagerTest {
 
   @Test
   public void testForceRefresh() {
-    StreamSession streamSession = StreamSession.newBuilder().setSessionId("session:1").build();
     FeedSessionManager sessionManager = getInitializedSessionManager();
     sessionManager.triggerRefresh(
-        streamSession, RequestReason.UNKNOWN, UiContext.getDefaultInstance());
+        SESSION_ID, RequestReason.UNKNOWN, UiContext.getDefaultInstance());
     verify(requestManager).triggerRefresh(eq(RequestReason.UNKNOWN), resultCapture.capture());
 
     verify(actionUploadRequestManager)
@@ -393,10 +392,9 @@ public class FeedSessionManagerTest {
 
   @Test
   public void testForceRefresh_scheduledRefresh() {
-    StreamSession streamSession = StreamSession.newBuilder().setSessionId("session:1").build();
     FeedSessionManager sessionManager = getInitializedSessionManager();
     sessionManager.triggerRefresh(
-        streamSession, RequestReason.HOST_REQUESTED, UiContext.getDefaultInstance());
+        SESSION_ID, RequestReason.HOST_REQUESTED, UiContext.getDefaultInstance());
     verify(requestManager)
         .triggerRefresh(eq(RequestReason.HOST_REQUESTED), resultCapture.capture());
 

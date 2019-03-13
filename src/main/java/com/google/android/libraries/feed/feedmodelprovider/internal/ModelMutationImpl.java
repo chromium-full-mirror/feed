@@ -18,7 +18,6 @@ import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.modelprovider.ModelMutation;
 import com.google.android.libraries.feed.common.functional.Committer;
-import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +32,7 @@ public final class ModelMutationImpl implements ModelMutation {
     public final List<StreamStructure> structureChanges = new ArrayList<>();
     public final List<StreamStructure> updateChanges = new ArrayList<>();
     /*@Nullable*/ public MutationContext mutationContext;
-    /*@Nullable*/ public StreamSession streamSession;
+    /*@Nullable*/ public String sessionId;
     public boolean cachedBindings;
   }
 
@@ -69,8 +68,8 @@ public final class ModelMutationImpl implements ModelMutation {
   }
 
   @Override
-  public ModelMutation setStreamSession(StreamSession streamSession) {
-    change.streamSession = streamSession;
+  public ModelMutation setSessionId(String sessionId) {
+    change.sessionId = sessionId;
     return this;
   }
 

@@ -59,7 +59,6 @@ import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.protobuf.ByteString;
-import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
@@ -137,7 +136,7 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
   private final int pageSize;
   private final int minPageSize;
 
-  /*@Nullable*/ @VisibleForTesting StreamSession streamSession;
+  /*@Nullable*/ @VisibleForTesting String sessionId;
 
   @GuardedBy("lock")
   private boolean delayedTriggerRefresh = false;
@@ -234,8 +233,8 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
         return;
       }
     }
-    StreamSession streamSession = Validators.checkNotNull(this.streamSession);
-    sessionManager.handleToken(streamSession, modelToken.getStreamToken());
+    String sessionId = Validators.checkNotNull(this.sessionId);
+    sessionManager.handleToken(sessionId, modelToken.getStreamToken());
   }
 
   @Override
@@ -246,14 +245,14 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
   @Override
   public void triggerRefresh(@RequestReason int requestReason, UiContext uiContext) {
     threadUtils.checkMainThread();
-    if (streamSession == null) {
+    if (sessionId == null) {
       synchronized (lock) {
         delayedTriggerRefresh = true;
         this.requestReason = requestReason;
       }
       return;
     }
-    sessionManager.triggerRefresh(streamSession, requestReason, uiContext);
+    sessionManager.triggerRefresh(sessionId, requestReason, uiContext);
   }
 
   @Override
@@ -279,11 +278,10 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
   @Override
   /*@Nullable*/
   public String getSessionId() {
-    if (streamSession == null) {
-      Logger.w(TAG, "streamSession is null, this should have been set during population");
-      return null;
+    if (sessionId == null) {
+      Logger.w(TAG, "sessionId is null, this should have been set during population");
     }
-    return streamSession.getSessionId();
+    return sessionId;
   }
 
   @Override
@@ -354,10 +352,7 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
         Logger.i(TAG, "Invalidated an already invalid ModelProvider");
         return false;
       }
-      Logger.i(
-          TAG,
-          "Moving %s to INVALIDATED",
-          (streamSession != null) ? streamSession.getSessionId() : "No streamSession");
+      Logger.i(TAG, "Moving %s to INVALIDATED", sessionId != null ? sessionId : "No sessionId");
       currentState = State.INVALIDATED;
       for (WeakReference<ModelCursorImpl> cursorRef : cursors) {
         ModelCursorImpl cursor = cursorRef.get();
@@ -559,8 +554,8 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
           ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
           commitCount++;
 
-          if (change.streamSession != null) {
-            streamSession = change.streamSession;
+          if (change.sessionId != null) {
+            sessionId = change.sessionId;
             synchronized (lock) {
               if (delayedTriggerRefresh) {
                 delayedTriggerRefresh = false;
@@ -737,9 +732,7 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
                     Logger.i(
                         TAG,
                         "Moving %s to INVALIDATED",
-                        (streamSession != null)
-                            ? streamSession.getSessionId()
-                            : "No streamSession");
+                        sessionId != null ? sessionId : "No sessionId");
                     currentState = State.INVALIDATED;
                     mainThreadRunner.execute(
                         TAG + " multipleRootInvalidation",
@@ -1072,10 +1065,7 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
   final class InitializeModel extends MutationHandler {
     @Override
     public void postMutation() {
-      Logger.i(
-          TAG,
-          "Moving %s to READY",
-          (streamSession != null) ? streamSession.getSessionId() : "No streamSession");
+      Logger.i(TAG, "Moving %s to READY", sessionId != null ? sessionId : "No sessionId");
       synchronized (lock) {
         currentState = State.READY;
       }

@@ -212,7 +212,7 @@ public abstract class AbstractSessionImplTest {
     }
 
     @Override
-    public ModelMutation setStreamSession(StreamSession streamSession) {
+    public ModelMutation setSessionId(String sessionId) {
       return this;
     }
 

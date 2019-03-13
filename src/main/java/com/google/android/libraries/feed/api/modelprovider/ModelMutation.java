@@ -15,7 +15,6 @@
 package com.google.android.libraries.feed.api.modelprovider;
 
 import com.google.android.libraries.feed.api.common.MutationContext;
-import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 
@@ -39,8 +38,8 @@ public interface ModelMutation {
    */
   ModelMutation setMutationContext(MutationContext mutationContext);
 
-  /** Set the StreamSession of the session backing this ModelProvider. */
-  ModelMutation setStreamSession(StreamSession streamSession);
+  /** Set the session id of the session backing this ModelProvider. */
+  ModelMutation setSessionId(String sessionId);
 
   /** Indicates that the SessionManager has cached the payload bindings. */
   ModelMutation hasCachedBindings(boolean cachedBindings);

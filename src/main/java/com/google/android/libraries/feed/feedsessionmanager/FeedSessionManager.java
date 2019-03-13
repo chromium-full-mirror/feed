@@ -354,9 +354,9 @@ public final class FeedSessionManager
         sessionsUnderConstruction.remove(session);
       }
 
-      // Set the streamSession on the ModelProvider.
+      // Set the session id on the ModelProvider.
       ModelMutation mutation = modelProvider.edit();
-      mutation.setStreamSession(streamSession);
+      mutation.setSessionId(streamSession.getSessionId());
       mutation.commit();
       timeTracker.stop("task", "Create/Populate New Session", "Failure", "noCardsError");
       return;
@@ -504,12 +504,8 @@ public final class FeedSessionManager
   }
 
   @Override
-  public void handleToken(StreamSession streamSession, StreamToken streamToken) {
-    Logger.i(
-        TAG,
-        "HandleToken on stream %s, token %s",
-        streamSession.getSessionId(),
-        streamToken.getContentId());
+  public void handleToken(String sessionId, StreamToken streamToken) {
+    Logger.i(TAG, "HandleToken on stream %s, token %s", sessionId, streamToken.getContentId());
     threadUtils.checkMainThread();
 
     // At the moment, this doesn't try to prevent multiple requests with the same Token.
@@ -518,7 +514,7 @@ public final class FeedSessionManager
     MutationContext mutationContext =
         new MutationContext.Builder()
             .setContinuationToken(streamToken)
-            .setRequestingSessionId(streamSession.getSessionId())
+            .setRequestingSessionId(sessionId)
             .build();
     taskQueue.execute(
         "triggerLoadMore(FeedSessionManager)",
@@ -531,15 +527,13 @@ public final class FeedSessionManager
   }
 
   @Override
-  public void triggerRefresh(/*@Nullable*/ StreamSession streamSession) {
-    triggerRefresh(streamSession, RequestReason.HOST_REQUESTED, UiContext.getDefaultInstance());
+  public void triggerRefresh(/*@Nullable*/ String sessionId) {
+    triggerRefresh(sessionId, RequestReason.HOST_REQUESTED, UiContext.getDefaultInstance());
   }
 
   @Override
   public void triggerRefresh(
-      /*@Nullable*/ StreamSession streamSession,
-      @RequestReason int requestReason,
-      UiContext uiContext) {
+      /*@Nullable*/ String sessionId, @RequestReason int requestReason, UiContext uiContext) {
     if (!initialized.get()) {
       Logger.i(TAG, "Lazy initialization triggered, triggerRefresh");
       initialize();
@@ -547,30 +541,27 @@ public final class FeedSessionManager
     taskQueue.execute(
         "triggerRefresh(FeedSessionManager)",
         TaskType.HEAD_INVALIDATE, // invalidate because we are requesting a refresh
-        () -> triggerRefreshTask(streamSession, requestReason, uiContext));
+        () -> triggerRefreshTask(sessionId, requestReason, uiContext));
   }
 
   private void triggerRefreshTask(
-      /*@Nullable*/ StreamSession streamSession,
-      @RequestReason int requestReason,
-      UiContext uiContext) {
+      /*@Nullable*/ String sessionId, @RequestReason int requestReason, UiContext uiContext) {
     threadUtils.checkNotMainThread();
     // TODO: consume the consistency token before making the refresh call.
     fetchActionsAndUpload(getConsistencyToken(), getConsistencyTokenConsumer());
     requestManager.triggerRefresh(
         requestReason, getCommitter("triggerRefresh", MutationContext.EMPTY_CONTEXT));
-    if (streamSession != null) {
-      String streamToken = streamSession.getSessionId();
-      Session session = sessionCache.get(streamToken);
+    if (sessionId != null) {
+      Session session = sessionCache.get(sessionId);
       if (session != null) {
         ModelProvider modelProvider = session.getModelProvider();
         if (modelProvider != null) {
           invalidateSession(modelProvider, session, uiContext);
         } else {
-          Logger.w(TAG, "Session didn't have a ModelProvider %s", streamToken);
+          Logger.w(TAG, "Session didn't have a ModelProvider %s", sessionId);
         }
       } else {
-        Logger.w(TAG, "TriggerRefresh didn't find session %s", streamToken);
+        Logger.w(TAG, "TriggerRefresh didn't find session %s", sessionId);
       }
     } else {
       Logger.i(TAG, "triggerRefreshTask no StreamSession provided");

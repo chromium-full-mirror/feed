@@ -27,7 +27,6 @@ import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
-import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
@@ -74,20 +73,20 @@ public interface SessionManager extends Resettable {
    * Method which causes a request to be created for the next page of content based upon the
    * continuation token. This could be called from multiple Model Providers.
    */
-  void handleToken(StreamSession session, StreamToken streamToken);
-  
+  void handleToken(String sessionId, StreamToken streamToken);
+
   /** Method which causes a refresh */
-  void triggerRefresh(/*@Nullable*/ StreamSession streamSession);
+  void triggerRefresh(/*@Nullable*/ String sessionId);
 
   /**
    * Method which causes a refresh
    *
-   * @param streamSession The session associated with the request.
+   * @param sessionId The session id associated with the request.
    * @param requestReason The reason for triggering a refresh.
    * @param uiContext The UI only context for the refresh.
    */
   void triggerRefresh(
-      /*@Nullable*/ StreamSession streamSession, @RequestReason int requestReason, UiContext uiContext);
+      /*@Nullable*/ String sessionId, @RequestReason int requestReason, UiContext uiContext);
 
   /**
    * Returns a List of {@link StreamPayload} for each of the keys. This operation may perform disk

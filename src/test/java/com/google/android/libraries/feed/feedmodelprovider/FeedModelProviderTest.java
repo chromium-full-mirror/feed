@@ -60,7 +60,6 @@ import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
-import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
@@ -82,6 +81,7 @@ import org.robolectric.RobolectricTestRunner;
 /** Tests of the {@link FeedModelProvider}. */
 @RunWith(RobolectricTestRunner.class)
 public class FeedModelProviderTest {
+  private static final String SESSION_ID = "session";
 
   private final ContentIdGenerators idGenerators = new ContentIdGenerators();
   private final String rootContentId = idGenerators.createRootContentId(0);
@@ -307,33 +307,30 @@ public class FeedModelProviderTest {
     when(modelToken.getStreamToken()).thenReturn(streamToken);
 
     FeedModelProvider modelProvider = createFeedModelProviderWithConfig();
-    StreamSession mockSession = StreamSession.getDefaultInstance();
-    modelProvider.streamSession = mockSession;
+    modelProvider.sessionId = SESSION_ID;
     modelProvider.handleToken(modelToken);
-    verify(sessionManager).handleToken(mockSession, streamToken);
+    verify(sessionManager).handleToken(SESSION_ID, streamToken);
   }
 
   @Test
   public void testForceRefresh() {
     FeedModelProvider modelProvider = createFeedModelProviderWithConfig();
-    StreamSession mockSession = StreamSession.getDefaultInstance();
-    modelProvider.streamSession = mockSession;
+    modelProvider.sessionId = SESSION_ID;
     modelProvider.triggerRefresh(RequestReason.OPEN_WITH_CONTENT);
     assertThat(modelProvider.getDelayedTriggerRefreshForTest()).isFalse();
     verify(sessionManager)
         .triggerRefresh(
-            mockSession, RequestReason.OPEN_WITH_CONTENT, UiContext.getDefaultInstance());
+            SESSION_ID, RequestReason.OPEN_WITH_CONTENT, UiContext.getDefaultInstance());
   }
 
   @Test
   public void testForceRefresh_differentReason() {
     FeedModelProvider modelProvider = createFeedModelProviderWithConfig();
-    StreamSession mockSession = StreamSession.getDefaultInstance();
-    modelProvider.streamSession = mockSession;
+    modelProvider.sessionId = SESSION_ID;
     modelProvider.triggerRefresh(RequestReason.HOST_REQUESTED);
     assertThat(modelProvider.getDelayedTriggerRefreshForTest()).isFalse();
     verify(sessionManager)
-        .triggerRefresh(mockSession, RequestReason.HOST_REQUESTED, UiContext.getDefaultInstance());
+        .triggerRefresh(SESSION_ID, RequestReason.HOST_REQUESTED, UiContext.getDefaultInstance());
   }
 
   @Test
