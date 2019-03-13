@@ -227,7 +227,7 @@ message Template {
   optional Stylesheets stylesheets = 11;
 
   // Styles applied to all child views of this Template.
-  optional StyleIdsStack child_default_style_ids = 4;
+  optional StyleIdsStack child_default_style_ids = 4 [deprecated = true];
 
   // Content defined by this Template.
   optional Element element = 6;
