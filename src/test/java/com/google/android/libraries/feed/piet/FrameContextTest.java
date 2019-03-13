@@ -249,40 +249,6 @@ public class FrameContextTest {
         .isEqualTo(defaultStyleProvider);
     assertThat(frameContextWithBindings.makeStyleFor(SAMPLE_STYLE_IDS).getColor())
         .isEqualTo(defaultStyleProvider.getColor());
-
-    // A local template stylesheet should override the previous styles.
-    // Look up a style from a template's local stylesheet, and check the default style.
-    int templateStyleColor = 343434;
-    int templateDefaultColor = 434343;
-    Template templateWithStyles =
-        Template.newBuilder()
-            .setStylesheets(
-                Stylesheets.newBuilder()
-                    .addStylesheets(
-                        Stylesheet.newBuilder()
-                            .addStyles(
-                                Style.newBuilder()
-                                    .setStyleId("templateStyle")
-                                    .setColor(templateStyleColor))
-                            .addStyles(
-                                Style.newBuilder()
-                                    .setStyleId("templateDefault")
-                                    .setColor(templateDefaultColor))))
-            .setChildDefaultStyleIds(StyleIdsStack.newBuilder().addStyleIds("templateDefault"))
-            .build();
-    FrameContext frameContextWithTemplate =
-        frameContext.createTemplateContext(templateWithStyles, BindingContext.getDefaultInstance());
-    assertThat(
-            frameContextWithTemplate
-                .makeStyleFor(StyleIdsStack.newBuilder().addStyleIds("templateStyle").build())
-                .getColor())
-        .isEqualTo(templateStyleColor);
-    assertThat(frameContextWithTemplate.makeStyleFor(StyleIdsStack.getDefaultInstance()).getColor())
-        .isEqualTo(templateDefaultColor);
-
-    // Can't look up the SAMPLE_STYLE_ID anymore, so we return the default.
-    assertThat(frameContextWithTemplate.makeStyleFor(SAMPLE_STYLE_IDS).getColor())
-        .isEqualTo(templateDefaultColor);
   }
 
   @Test
@@ -345,41 +311,6 @@ public class FrameContextTest {
         .isEqualTo((int) LayoutUtils.dpToPx(width, context));
     styleRef = StyleIdsStack.newBuilder().addStyleIds(templateStyleId).build();
     assertThat(templateContext.makeStyleFor(styleRef).getColor()).isEqualTo(templateStyleColor);
-  }
-
-  /** Bind a template with a child default style that is defined by the Template. */
-  @Test
-  public void testCreateTemplateContext_boundStyle() {
-    frameContext = defaultFrameContext();
-
-    String childStyleId = "childStyle";
-    Style childStyle = Style.newBuilder().setStyleId(childStyleId).setMaxLines(123).build();
-
-    String boundStyleId = "boundStyle";
-    BoundStyle boundStyle = BoundStyle.newBuilder().setColor(456).build();
-    StyleBindingRef boundStyleRef = StyleBindingRef.newBuilder().setBindingId(boundStyleId).build();
-    BindingValue boundStyleBindingValue =
-        BindingValue.newBuilder().setBindingId(boundStyleId).setBoundStyle(boundStyle).build();
-    BindingContext bindingContext =
-        BindingContext.newBuilder().addBindingValues(boundStyleBindingValue).build();
-
-    Template template =
-        Template.newBuilder()
-            .setTemplateId("badtemplate")
-            .setStylesheets(
-                Stylesheets.newBuilder()
-                    .addStylesheets(Stylesheet.newBuilder().addStyles(childStyle))
-                    .build())
-            .setChildDefaultStyleIds(
-                StyleIdsStack.newBuilder().addStyleIds(childStyleId).setStyleBinding(boundStyleRef))
-            .build();
-
-    assertThatRunnable(() -> frameContext.createTemplateContext(template, bindingContext))
-        .throwsAnExceptionOfType(RuntimeException.class)
-        .that()
-        .hasMessageThat()
-        .contains(
-            "Style bindings not supported for template default style (template: badtemplate)");
   }
 
   @Test
@@ -1333,7 +1264,6 @@ public class FrameContextTest {
         DEFAULT_FRAME,
         defaultStylesheet,
         bindingValueMap,
-        BASE_STYLE,
         pietSharedStates,
         pietStylesHelper,
         DebugBehavior.VERBOSE,
@@ -1351,7 +1281,6 @@ public class FrameContextTest {
         DEFAULT_FRAME,
         defaultStylesheet,
         bindingValueMap,
-        BASE_STYLE,
         pietSharedStates,
         pietStylesHelper,
         DebugBehavior.VERBOSE,

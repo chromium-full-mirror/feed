@@ -21,7 +21,6 @@ import static com.google.search.now.ui.piet.ErrorsProto.ErrorCode.ERR_DUPLICATE_
 import static com.google.search.now.ui.piet.ErrorsProto.ErrorCode.ERR_MISSING_BINDING_VALUE;
 import static com.google.search.now.ui.piet.ErrorsProto.ErrorCode.ERR_MISSING_STYLESHEET;
 import static com.google.search.now.ui.piet.ErrorsProto.ErrorCode.ERR_MISSING_TEMPLATE;
-import static com.google.search.now.ui.piet.ErrorsProto.ErrorCode.ERR_UNSUPPORTED_FEATURE;
 
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
@@ -112,7 +111,6 @@ class FrameContext {
         frame,
         stylesheet,
         new ThrowingEmptyMap(),
-        Style.getDefaultInstance(),
         pietSharedStates,
         pietStylesHelper,
         debugBehavior,
@@ -137,7 +135,6 @@ class FrameContext {
       Frame frame,
       Map<String, Style> stylesheet,
       Map<String, BindingValue> bindingValues,
-      Style baseStyle,
       List<PietSharedState> pietSharedStates,
       PietStylesHelper pietStylesHelper,
       DebugBehavior debugBehavior,
@@ -149,7 +146,7 @@ class FrameContext {
     currentFrame = frame;
     this.stylesheet = stylesheet;
     this.bindingValues = bindingValues;
-    this.baseStyle = baseStyle;
+    this.baseStyle = Style.getDefaultInstance();
     this.stylesHelper = pietStylesHelper;
     this.pietSharedStates = pietSharedStates;
     this.debugBehavior = debugBehavior;
@@ -276,34 +273,10 @@ class FrameContext {
       }
     }
 
-    Style templateBaseStyle;
-    if (template.hasChildDefaultStyleIds()) {
-      StyleIdsStack childDefaultStyleIds = template.getChildDefaultStyleIds();
-      if (template.getChildDefaultStyleIds().hasStyleBinding()) {
-        Logger.wtf(
-            TAG,
-            reportMessage(
-                MessageType.ERROR,
-                ERR_UNSUPPORTED_FEATURE,
-                String.format(
-                    "Style bindings not supported for template default style (template: %s)",
-                    template.getTemplateId())));
-        childDefaultStyleIds = childDefaultStyleIds.toBuilder().clearStyleBinding().build();
-      }
-      templateBaseStyle =
-          PietStylesHelper.mergeStyleIdsStack(
-              childDefaultStyleIds,
-              localStylesheet,
-              null // Null because the new FrameContext has not been set up yet
-              );
-    } else {
-      templateBaseStyle = Style.getDefaultInstance();
-    }
     return new FrameContext(
         currentFrame,
         localStylesheet,
         bindingValues,
-        templateBaseStyle,
         pietSharedStates,
         stylesHelper,
         debugBehavior,
