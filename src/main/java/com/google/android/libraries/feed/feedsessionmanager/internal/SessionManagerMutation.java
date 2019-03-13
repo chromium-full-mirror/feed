@@ -43,7 +43,6 @@ import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.search.now.feed.client.StreamDataProto;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
-import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
@@ -149,7 +148,7 @@ public final class SessionManagerMutation implements Dumpable {
   class HeadMutationCommitter {
     /** This runs as a task on the executor thread and also as part of a SessionMutation commit. */
     @VisibleForTesting
-    void resetHead(/*@Nullable*/ StreamSession streamSession) {
+    void resetHead(/*@Nullable*/ String mutationSessionId) {
       threadUtils.checkNotMainThread();
       ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
       Collection<Session> currentSessions = sessionCache.getSessions();
@@ -161,7 +160,7 @@ public final class SessionManagerMutation implements Dumpable {
         ModelProvider modelProvider = session.getModelProvider();
         if (modelProvider != null
             && session.invalidateOnResetHead()
-            && shouldInvalidateSession(streamSession, modelProvider)) {
+            && shouldInvalidateSession(mutationSessionId, modelProvider)) {
           invalidateSession(modelProvider, session);
         }
       }
@@ -181,19 +180,19 @@ public final class SessionManagerMutation implements Dumpable {
      */
     @VisibleForTesting
     boolean shouldInvalidateSession(
-        /*@Nullable*/ StreamSession streamSession, ModelProvider modelProvider) {
+        /*@Nullable*/ String mutationSessionId, ModelProvider modelProvider) {
       // if the model provider isn't READY, don't invalidate the session
       if (modelProvider.getCurrentState() != State.READY) {
         return false;
       }
       // Clear was done outside of any session.
-      if (streamSession == null) {
+      if (mutationSessionId == null) {
         return true;
       }
       // Invalidate if the ModelProvider doesn't yet have a session or if it matches the session
       // which initiated the request clearing $HEAD.
       String sessionId = modelProvider.getSessionId();
-      return (sessionId == null || sessionId.equals(streamSession.getSessionId()));
+      return sessionId == null || sessionId.equals(mutationSessionId);
     }
 
     private void invalidateSession(ModelProvider modelProvider, Session session) {
@@ -236,8 +235,7 @@ public final class SessionManagerMutation implements Dumpable {
       if (!updateResults.isSuccessful()) {
         errorCount++;
         Session session = null;
-        StreamSession streamSession = mutationContext.getRequestingSession();
-        String sessionId = (streamSession != null) ? streamSession.getSessionId() : null;
+        String sessionId = mutationContext.getRequestingSessionId();
         if (sessionId != null) {
           session = sessionCache.get(sessionId);
         }
@@ -309,7 +307,7 @@ public final class SessionManagerMutation implements Dumpable {
         Operation operation = dataOperation.getStreamStructure().getOperation();
         if (operation == Operation.CLEAR_ALL) {
           streamStructures.add(dataOperation.getStreamStructure());
-          resetHead((mutationContext != null) ? mutationContext.getRequestingSession() : null);
+          resetHead(mutationContext.getRequestingSessionId());
           continue;
         }
 

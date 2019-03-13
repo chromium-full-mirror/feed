@@ -46,7 +46,6 @@ import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
-import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import java.util.Arrays;
 import java.util.List;
@@ -484,9 +483,8 @@ public class SyntheticTokensTest {
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
 
     // Prep for sending modifications to the model provider
-    StreamSession session =
-        StreamSession.newBuilder().setSessionId(modelProvider.getSessionId()).build();
-    MutationContext context = new MutationContext.Builder().setRequestingSession(session).build();
+    MutationContext context =
+        new MutationContext.Builder().setRequestingSessionId(modelProvider.getSessionId()).build();
 
     // Remove the single item under the root to create the empty state.
     responseBuilder = new WireProtocolResponseBuilder().removeFeature(cards[0], ROOT_CONTENT_ID);

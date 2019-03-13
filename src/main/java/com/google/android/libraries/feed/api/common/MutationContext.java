@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.api.common;
 
-import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.feed.client.StreamDataProto.UiContext;
 
@@ -24,7 +23,7 @@ import com.google.search.now.feed.client.StreamDataProto.UiContext;
  */
 public final class MutationContext {
   /*@Nullable*/ private final StreamToken continuationToken;
-  /*@Nullable*/ private final StreamSession requestingSession;
+  /*@Nullable*/ private final String requestingSessionId;
   private final boolean userInitiated;
 
   /** Static used to represent an empty Mutation Context */
@@ -35,11 +34,11 @@ public final class MutationContext {
 
   private MutationContext(
       /*@Nullable*/ StreamToken continuationToken,
-      /*@Nullable*/ StreamSession requestingSession,
+      /*@Nullable*/ String requestingSessionId,
       UiContext uiContext,
       boolean userInitiated) {
     this.continuationToken = continuationToken;
-    this.requestingSession = requestingSession;
+    this.requestingSessionId = requestingSessionId;
     this.userInitiated = userInitiated;
     this.uiContext = uiContext;
   }
@@ -52,8 +51,8 @@ public final class MutationContext {
 
   /** Returns the session which made the request. */
   /*@Nullable*/
-  public StreamSession getRequestingSession() {
-    return requestingSession;
+  public String getRequestingSessionId() {
+    return requestingSessionId;
   }
 
   /**
@@ -72,7 +71,7 @@ public final class MutationContext {
   /** Builder for creating a {@link com.google.android.libraries.feed.api.common.MutationContext */
   public static final class Builder {
     /*@MonotonicNonNull*/ private StreamToken continuationToken;
-    /*@MonotonicNonNull*/ private StreamSession requestingSession;
+    /*@MonotonicNonNull*/ private String requestingSessionId;
     private UiContext uiContext = UiContext.getDefaultInstance();
     private boolean userInitiated = false;
 
@@ -83,8 +82,8 @@ public final class MutationContext {
       return this;
     }
 
-    public Builder setRequestingSession(StreamSession requestingSession) {
-      this.requestingSession = requestingSession;
+    public Builder setRequestingSessionId(String requestingSessionId) {
+      this.requestingSessionId = requestingSessionId;
       return this;
     }
 
@@ -99,7 +98,7 @@ public final class MutationContext {
     }
 
     public MutationContext build() {
-      return new MutationContext(continuationToken, requestingSession, uiContext, userInitiated);
+      return new MutationContext(continuationToken, requestingSessionId, uiContext, userInitiated);
     }
   }
 }

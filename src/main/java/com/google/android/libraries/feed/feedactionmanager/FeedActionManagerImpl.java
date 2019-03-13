@@ -25,7 +25,6 @@ import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
-import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
 import java.util.List;
 import java.util.Set;
@@ -83,20 +82,16 @@ public class FeedActionManagerImpl implements ActionManager {
   }
 
   private void executeStreamDataOperations(
-      List<StreamDataOperation> streamDataOperations, /*@Nullable*/ String sessionToken) {
+      List<StreamDataOperation> streamDataOperations, /*@Nullable*/ String sessionId) {
     threadUtils.checkMainThread();
 
-    // Update sessions
-    StreamSession.Builder streamSessionBuilder = StreamSession.newBuilder();
-    if (sessionToken != null) {
-      streamSessionBuilder.setSessionId(sessionToken);
+    MutationContext.Builder mutationContextBuilder =
+        new MutationContext.Builder().setUserInitiated(true);
+    if (sessionId != null) {
+      mutationContextBuilder.setRequestingSessionId(sessionId);
     }
     sessionManager
-        .getUpdateConsumer(
-            new MutationContext.Builder()
-                .setUserInitiated(true)
-                .setRequestingSession(streamSessionBuilder.build())
-                .build())
+        .getUpdateConsumer(mutationContextBuilder.build())
         .accept(Result.success(streamDataOperations));
   }
 }

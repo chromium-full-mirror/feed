@@ -16,9 +16,7 @@ package com.google.android.libraries.feed.api.common;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.google.android.libraries.feed.api.common.MutationContext.Builder;
 import com.google.protobuf.ByteString;
-import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import java.nio.charset.Charset;
 import org.junit.Test;
@@ -31,22 +29,23 @@ public class MutationContextTest {
 
   @Test
   public void testBuilder() {
-    MutationContext.Builder builder = new Builder();
     ByteString tokenBytes = ByteString.copyFrom("token", Charset.defaultCharset());
     StreamToken token = StreamToken.newBuilder().setNextPageToken(tokenBytes).build();
-    builder.setContinuationToken(token);
-    StreamSession streamSession = StreamSession.newBuilder().setSessionId("session:1").build();
-    builder.setRequestingSession(streamSession);
-    MutationContext mutationContext = builder.build();
+    String sessionId = "session:1";
+    MutationContext mutationContext =
+        new MutationContext.Builder()
+            .setContinuationToken(token)
+            .setRequestingSessionId(sessionId)
+            .build();
     assertThat(mutationContext).isNotNull();
     assertThat(mutationContext.getContinuationToken()).isEqualTo(token);
-    assertThat(mutationContext.getRequestingSession()).isEqualTo(streamSession);
+    assertThat(mutationContext.getRequestingSessionId()).isEqualTo(sessionId);
     assertThat(mutationContext.isUserInitiated()).isFalse();
   }
 
   @Test
   public void testUserInitiated_true() {
-    MutationContext mutationContext = new Builder().setUserInitiated(true).build();
+    MutationContext mutationContext = new MutationContext.Builder().setUserInitiated(true).build();
     assertThat(mutationContext.isUserInitiated()).isTrue();
   }
 }

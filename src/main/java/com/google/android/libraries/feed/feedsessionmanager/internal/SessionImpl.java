@@ -169,9 +169,7 @@ public class SessionImpl implements InitializableSession, Dumpable {
     if (modelProvider != null
         && mutationContext != null
         && mutationContext.getContinuationToken() != null) {
-      StreamSession requestingSession = mutationContext.getRequestingSession();
-      return requestingSession != null
-          && ss.getSessionId().equals(requestingSession.getSessionId());
+      return ss.getSessionId().equals(mutationContext.getRequestingSessionId());
     }
     return false;
   }
@@ -197,13 +195,13 @@ public class SessionImpl implements InitializableSession, Dumpable {
         Logger.i(TAG, "Token %s not found in session, ignoring update", contentId);
         return;
       } else if (limitPagingUpdates) {
-        StreamSession mutationSession =
-            Validators.checkNotNull(mutationContext).getRequestingSession();
-        if (mutationSession == null) {
+        String mutationSessionId =
+            Validators.checkNotNull(mutationContext).getRequestingSessionId();
+        if (mutationSessionId == null) {
           Logger.i(TAG, "Request Session was not set, ignoring update");
           return;
         }
-        if (!streamSession.getSessionId().equals(mutationSession.getSessionId())) {
+        if (!streamSession.getSessionId().equals(mutationSessionId)) {
           Logger.i(TAG, "Limiting Updates, paging request made on another session");
           return;
         }

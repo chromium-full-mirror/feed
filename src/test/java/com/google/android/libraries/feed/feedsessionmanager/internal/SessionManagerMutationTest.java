@@ -139,13 +139,13 @@ public class SessionManagerMutationTest {
 
   @Test
   public void testResultError() {
-    String streamToken = "session:1";
-    Session session = getSession(streamToken);
+    String sessionId = "session:1";
+    Session session = getSession(sessionId);
 
     MutationContext mutationContext =
         new MutationContext.Builder()
             .setContinuationToken(StreamToken.getDefaultInstance())
-            .setRequestingSession(session.getStreamSession())
+            .setRequestingSessionId(sessionId)
             .build();
     MutationCommitter mutationCommitter = getMutationCommitter(mutationContext);
     mutationCommitter.accept(Result.failure());
@@ -168,12 +168,11 @@ public class SessionManagerMutationTest {
     dataOperations.add(
         getStreamDataOperation(
             StreamStructure.newBuilder().setOperation(Operation.CLEAR_ALL).build(), null));
-    String streamToken = "session:1";
-    Session session = getSession(streamToken);
+    String sessionId = "session:1";
 
     MutationCommitter mutationCommitter =
         getMutationCommitter(
-            new MutationContext.Builder().setRequestingSession(session.getStreamSession()).build());
+            new MutationContext.Builder().setRequestingSessionId(sessionId).build());
     mutationCommitter.accept(Result.success(dataOperations));
     assertThat(mutationCommitter.clearedHead).isTrue();
     verify(schedulerApi).onReceiveNewContent(5L);
@@ -330,8 +329,7 @@ public class SessionManagerMutationTest {
     MutationCommitter mutationCommitter = getMutationCommitter(EMPTY_CONTEXT);
     ModelProvider modelProvider = mock(ModelProvider.class);
     when(modelProvider.getCurrentState()).thenReturn(State.READY);
-    StreamSession streamSession = StreamSession.newBuilder().setSessionId("session:2").build();
-    assertThat(mutationCommitter.shouldInvalidateSession(streamSession, modelProvider)).isTrue();
+    assertThat(mutationCommitter.shouldInvalidateSession("session:2", modelProvider)).isTrue();
   }
 
   @Test
@@ -341,8 +339,7 @@ public class SessionManagerMutationTest {
     ModelProvider modelProvider = mock(ModelProvider.class);
     when(modelProvider.getCurrentState()).thenReturn(State.READY);
     when(modelProvider.getSessionId()).thenReturn(sessionId);
-    StreamSession streamSession = StreamSession.newBuilder().setSessionId("session:2").build();
-    assertThat(mutationCommitter.shouldInvalidateSession(streamSession, modelProvider)).isFalse();
+    assertThat(mutationCommitter.shouldInvalidateSession("session:2", modelProvider)).isFalse();
   }
 
   @Test
@@ -352,8 +349,7 @@ public class SessionManagerMutationTest {
     ModelProvider modelProvider = mock(ModelProvider.class);
     when(modelProvider.getCurrentState()).thenReturn(State.READY);
     when(modelProvider.getSessionId()).thenReturn(sessionId);
-    StreamSession streamSession = StreamSession.newBuilder().setSessionId(sessionId).build();
-    assertThat(mutationCommitter.shouldInvalidateSession(streamSession, modelProvider)).isTrue();
+    assertThat(mutationCommitter.shouldInvalidateSession(sessionId, modelProvider)).isTrue();
   }
 
   private MutationCommitter getMutationCommitter(MutationContext mutationContext) {

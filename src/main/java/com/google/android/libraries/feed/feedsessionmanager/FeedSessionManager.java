@@ -518,7 +518,7 @@ public final class FeedSessionManager
     MutationContext mutationContext =
         new MutationContext.Builder()
             .setContinuationToken(streamToken)
-            .setRequestingSession(streamSession)
+            .setRequestingSessionId(streamSession.getSessionId())
             .build();
     taskQueue.execute(
         "triggerLoadMore(FeedSessionManager)",

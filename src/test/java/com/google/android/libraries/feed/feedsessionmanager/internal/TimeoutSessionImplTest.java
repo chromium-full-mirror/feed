@@ -98,7 +98,7 @@ public class TimeoutSessionImplTest extends AbstractSessionImplTest {
         true,
         streamStructures,
         new MutationContext.Builder()
-            .setRequestingSession(TEST_SESSION)
+            .setRequestingSessionId(TEST_SESSION.getSessionId())
             .setContinuationToken(StreamToken.newBuilder().setContentId("token").build())
             .build());
     verify(modelProvider).invalidate(UiContext.getDefaultInstance());

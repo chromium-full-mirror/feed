@@ -35,7 +35,6 @@ import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuil
 import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
-import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import java.nio.charset.Charset;
 import org.junit.Before;
@@ -135,13 +134,11 @@ public class MultiSessionPagingTest {
     modelValidator.assertCursorContentsWithToken(mp2, s1Cards);
 
     // Refresh the Stream with the S2 initial response
-    StreamSession streamSession =
-        StreamSession.newBuilder().setSessionId(mp2.getSessionId()).build();
     requestManager.queueResponse(s2State.initialResponse);
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(
-            new MutationContext.Builder().setRequestingSession(streamSession).build()));
+            new MutationContext.Builder().setRequestingSessionId(mp2.getSessionId()).build()));
     assertThat(mp1.getCurrentState()).isEqualTo(State.READY);
     assertThat(mp2.getCurrentState()).isEqualTo(State.INVALIDATED);
 

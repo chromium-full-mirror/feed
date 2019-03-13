@@ -90,7 +90,7 @@ public class SessionImplTest extends AbstractSessionImplTest {
         streamStructures,
         new MutationContext.Builder()
             .setContinuationToken(StreamToken.newBuilder().setContentId("token").build())
-            .setRequestingSession(TEST_SESSION)
+            .setRequestingSessionId(TEST_SESSION.getSessionId())
             .build());
 
     verify(modelProvider).invalidate();

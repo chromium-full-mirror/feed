@@ -26,7 +26,6 @@ import com.google.android.libraries.feed.api.knowncontent.KnownContentApi.KnownC
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.RemoveTracking;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
-import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.ui.stream.StreamStructureProto.Content;
 import com.google.search.now.ui.stream.StreamStructureProto.RepresentationData;
 import java.util.List;
@@ -68,10 +67,7 @@ public class StreamRemoveTrackingFactoryTest {
   public void testCreate_otherSessionToken() {
     assertThat(
             streamRemoveTrackingFactory.create(
-                new MutationContext.Builder()
-                    .setRequestingSession(
-                        StreamSession.newBuilder().setSessionId("otherToken").build())
-                    .build()))
+                new MutationContext.Builder().setRequestingSessionId("otherToken").build()))
         .isNull();
   }
 
@@ -134,7 +130,7 @@ public class StreamRemoveTrackingFactoryTest {
 
   private MutationContext createMutationContext(boolean isUserInitiated) {
     return new MutationContext.Builder()
-        .setRequestingSession(StreamSession.newBuilder().setSessionId(SESSION_ID).build())
+        .setRequestingSessionId(SESSION_ID)
         .setUserInitiated(isUserInitiated)
         .build();
   }

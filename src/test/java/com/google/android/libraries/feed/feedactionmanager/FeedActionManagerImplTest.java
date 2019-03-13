@@ -54,7 +54,7 @@ import org.robolectric.RobolectricTestRunner;
 public class FeedActionManagerImplTest {
 
   private static final String CONTENT_ID_STRING = "contentIdString";
-  private static final String SESSION_TOKEN = "session";
+  private static final String SESSION_ID = "session";
 
   @Mock private SessionManager sessionManager;
   @Mock private Store store;
@@ -108,7 +108,7 @@ public class FeedActionManagerImplTest {
     actionManager.dismissLocal(
         Collections.singletonList(CONTENT_ID_STRING),
         Collections.singletonList(dataOperation),
-        SESSION_TOKEN);
+        SESSION_ID);
 
     verify(localActionMutation).add(actionTypeCaptor.capture(), contentIdStringCaptor.capture());
     assertThat(actionTypeCaptor.getValue()).isEqualTo(ActionType.DISMISS);
@@ -117,8 +117,7 @@ public class FeedActionManagerImplTest {
     verify(localActionMutation).commit();
 
     verify(sessionManager).getUpdateConsumer(mutationContextCaptor.capture());
-    assertThat(mutationContextCaptor.getValue().getRequestingSession().getSessionId())
-        .isEqualTo(SESSION_TOKEN);
+    assertThat(mutationContextCaptor.getValue().getRequestingSessionId()).isEqualTo(SESSION_ID);
 
     verify(streamDataOperationsConsumer).accept(streamDataOperationsCaptor.capture());
     Result<List<StreamDataOperation>> result = streamDataOperationsCaptor.getValue();
@@ -150,11 +149,10 @@ public class FeedActionManagerImplTest {
     setUpDismissMocks();
     StreamDataOperation dataOperation = buildBasicDismissOperation();
 
-    actionManager.dismiss(Collections.singletonList(dataOperation), SESSION_TOKEN);
+    actionManager.dismiss(Collections.singletonList(dataOperation), SESSION_ID);
 
     verify(sessionManager).getUpdateConsumer(mutationContextCaptor.capture());
-    assertThat(mutationContextCaptor.getValue().getRequestingSession().getSessionId())
-        .isEqualTo(SESSION_TOKEN);
+    assertThat(mutationContextCaptor.getValue().getRequestingSessionId()).isEqualTo(SESSION_ID);
 
     verify(streamDataOperationsConsumer).accept(streamDataOperationsCaptor.capture());
     Result<List<StreamDataOperation>> result = streamDataOperationsCaptor.getValue();

@@ -20,7 +20,6 @@ import com.google.android.libraries.feed.api.knowncontent.KnownContentApi;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.RemoveTrackingFactory;
 import com.google.android.libraries.feed.api.modelprovider.RemoveTracking;
-import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 
 /** {@link RemoveTrackingFactory} to notify host of removed content. */
 public class StreamRemoveTrackingFactory implements RemoveTrackingFactory<ContentRemoval> {
@@ -36,13 +35,13 @@ public class StreamRemoveTrackingFactory implements RemoveTrackingFactory<Conten
   /*@Nullable*/
   @Override
   public RemoveTracking<ContentRemoval> create(MutationContext mutationContext) {
-    StreamSession requestingSession = mutationContext.getRequestingSession();
-    if (requestingSession == null) {
+    String requestingSessionId = mutationContext.getRequestingSessionId();
+    if (requestingSessionId == null) {
       return null;
     }
 
     // Only notify host on the StreamScope that requested the dismiss.
-    if (!requestingSession.getSessionId().equals(modelProvider.getSessionId())) {
+    if (!requestingSessionId.equals(modelProvider.getSessionId())) {
       return null;
     }
 
