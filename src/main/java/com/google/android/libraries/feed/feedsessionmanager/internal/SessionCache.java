@@ -115,34 +115,34 @@ public final class SessionCache implements Dumpable {
   }
 
   /**
-   * Return a {@link Session} for the sessionToken, or {@code null} if the sessionCache doesn't
-   * contain the Session.
+   * Return a {@link Session} for the sessionId, or {@code null} if the sessionCache doesn't contain
+   * the Session.
    */
   /*@Nullable*/
-  public Session get(String sessionToken) {
+  public Session get(String sessionId) {
     getCount++;
     synchronized (lock) {
-      return sessions.get(sessionToken);
+      return sessions.get(sessionId);
     }
   }
 
   /** Add a {@link Session} to the SessionCache. */
-  public void put(String sessionToken, Session session) {
+  public void put(String sessionId, Session session) {
     threadUtils.checkNotMainThread();
     putCount++;
     synchronized (lock) {
-      sessions.put(sessionToken, session);
+      sessions.put(sessionId, session);
     }
     updatePersistedSessions();
   }
 
-  public void detachModelProvider(String sessionToken) {
+  public void detachModelProvider(String sessionId) {
     threadUtils.checkNotMainThread();
     InitializableSession initializableSession;
     synchronized (lock) {
-      Session session = sessions.get(sessionToken);
+      Session session = sessions.get(sessionId);
       if (!(session instanceof InitializableSession)) {
-        Logger.w(TAG, "Unable to detach session %s", sessionToken);
+        Logger.w(TAG, "Unable to detach session %s", sessionId);
         return;
       } else {
         initializableSession = (InitializableSession) session;
@@ -158,12 +158,12 @@ public final class SessionCache implements Dumpable {
    * it wasn't defined.
    */
   /*@Nullable*/
-  public Session remove(String sessionToken) {
+  public Session remove(String sessionId) {
     threadUtils.checkNotMainThread();
     removeCount++;
     Session session;
     synchronized (lock) {
-      session = sessions.remove(sessionToken);
+      session = sessions.remove(sessionId);
     }
     updatePersistedSessions();
     return session;

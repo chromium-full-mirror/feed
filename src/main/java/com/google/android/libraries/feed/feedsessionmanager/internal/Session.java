@@ -39,9 +39,6 @@ public interface Session {
   /*@Nullable*/
   ModelProvider getModelProvider();
 
-  /** Cause the access time to be updated. */
-  void updateAccessTime(long time);
-
   /** Returns an unmodifiable set of the StreamContentIds used by the session. */
   Set<String> getContentInSession();
 }

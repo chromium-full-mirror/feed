@@ -436,7 +436,7 @@ public final class FeedSessionManager
   }
 
   @Override
-  public void getExistingSession(String sessionToken, ModelProvider modelProvider) {
+  public void getExistingSession(String sessionId, ModelProvider modelProvider) {
     threadUtils.checkMainThread();
     if (!initialized.get()) {
       Logger.i(TAG, "Lazy initialization triggered, getExistingSession");
@@ -452,7 +452,7 @@ public final class FeedSessionManager
         TaskType.USER_FACING,
         () -> {
           threadUtils.checkNotMainThread();
-          Session existingSession = sessionCache.get(sessionToken);
+          Session existingSession = sessionCache.get(sessionId);
           if (existingSession == null) {
             modelProvider.invalidate();
             return;
@@ -483,24 +483,22 @@ public final class FeedSessionManager
   }
 
   @Override
-  public void invalidatedSession(String sessionToken) {
+  public void invalidatedSession(String sessionId) {
     if (threadUtils.isMainThread()) {
       taskQueue.execute(
-          "invalidatedSession", TaskType.USER_FACING, () -> sessionCache.remove(sessionToken));
+          "invalidatedSession", TaskType.USER_FACING, () -> sessionCache.remove(sessionId));
     } else {
-      sessionCache.remove(sessionToken);
+      sessionCache.remove(sessionId);
     }
   }
 
   @Override
-  public void detachSession(String sessionToken) {
+  public void detachSession(String sessionId) {
     if (threadUtils.isMainThread()) {
       taskQueue.execute(
-          "detachSession",
-          TaskType.USER_FACING,
-          () -> sessionCache.detachModelProvider(sessionToken));
+          "detachSession", TaskType.USER_FACING, () -> sessionCache.detachModelProvider(sessionId));
     } else {
-      sessionCache.detachModelProvider(sessionToken);
+      sessionCache.detachModelProvider(sessionId);
     }
   }
 

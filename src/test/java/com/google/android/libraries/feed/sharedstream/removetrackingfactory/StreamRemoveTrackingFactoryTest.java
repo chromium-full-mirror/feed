@@ -64,10 +64,10 @@ public class StreamRemoveTrackingFactoryTest {
   }
 
   @Test
-  public void testCreate_otherSessionToken() {
+  public void testCreate_otherSessionId() {
     assertThat(
             streamRemoveTrackingFactory.create(
-                new MutationContext.Builder().setRequestingSessionId("otherToken").build()))
+                new MutationContext.Builder().setRequestingSessionId("otherId").build()))
         .isNull();
   }
 

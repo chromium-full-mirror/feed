@@ -30,12 +30,12 @@ public interface ActionManager {
    *     to the server in subsequent requests.
    * @param streamDataOperations Any stream data operations that should be applied to the session
    *     (e.g. removing a cluster when the content is removed)
-   * @param sessionToken The current session token
+   * @param sessionId The current session id
    */
   void dismissLocal(
       List<String> contentIds,
       List<StreamDataOperation> streamDataOperations,
-      /*@Nullable*/ String sessionToken);
+      /*@Nullable*/ String sessionId);
 
   /**
    * Executes the provided stream data operations on the session.
@@ -43,11 +43,9 @@ public interface ActionManager {
    * @param contentId The id for the content that triggered this action.
    * @param streamDataOperations Any stream data operations that should be applied to the session
    *     (e.g. removing a cluster when the content is removed)
-   * @param sessionToken The current session token
+   * @param sessionId The current session id
    */
-  void dismiss(
-      List<StreamDataOperation> streamDataOperations,
-      /*@Nullable*/ String sessionToken);
+  void dismiss(List<StreamDataOperation> streamDataOperations, /*@Nullable*/ String sessionId);
 
   /**
    * Issues a request to record a set of actions, with the consumer being called back with the

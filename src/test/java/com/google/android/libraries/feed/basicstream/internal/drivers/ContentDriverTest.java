@@ -211,7 +211,7 @@ public class ContentDriverTest {
               ActionManager actionManager,
               BasicLoggingApi basicLoggingApi,
               ContentLoggingData contentLoggingData,
-              String sessionToken,
+              String sessionId,
               ContextMenuManager contextMenuManager,
               ClusterPendingDismissHelper clusterPendingDismissHelper,
               ViewElementActionHandler handler,

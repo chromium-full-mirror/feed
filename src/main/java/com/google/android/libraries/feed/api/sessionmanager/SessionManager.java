@@ -55,13 +55,13 @@ public interface SessionManager extends Resettable {
    * Create a new Session attached to the ModelProvider for an existing sessionId. This will
    * invalidate any existing ModelProvider instances attached to the session.
    */
-  void getExistingSession(String sessionToken, ModelProvider modelProvider);
+  void getExistingSession(String sessionId, ModelProvider modelProvider);
 
   /** This is called by the ModelProvider when it is invalidated. */
-  void invalidatedSession(String sessionToken);
+  void invalidatedSession(String sessionId);
 
   /** This is called by the ModelProvider to detach the ModelProvider for the session. */
-  void detachSession(String sessionToken);
+  void detachSession(String sessionId);
 
   /**
    * This method will invalidate head. All {@link #getNewSession(ModelProvider, ViewDepthProvider)}

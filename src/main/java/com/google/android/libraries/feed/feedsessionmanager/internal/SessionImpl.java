@@ -147,7 +147,7 @@ public class SessionImpl implements InitializableSession, Dumpable {
       /*@Nullable*/ MutationContext mutationContext) {
     StreamSession ss = Validators.checkNotNull(streamSession);
     if (clearHead) {
-      if (shouldInvalidateModuleProvider(mutationContext, ss)) {
+      if (shouldInvalidateModelProvider(mutationContext, ss)) {
         if (modelProvider != null) {
           modelProvider.invalidate();
           Logger.i(
@@ -164,7 +164,7 @@ public class SessionImpl implements InitializableSession, Dumpable {
     updateSessionInternal(streamStructures, mutationContext);
   }
 
-  protected boolean shouldInvalidateModuleProvider(
+  protected boolean shouldInvalidateModelProvider(
       /*@Nullable*/ MutationContext mutationContext, StreamSession ss) {
     if (modelProvider != null
         && mutationContext != null
@@ -272,11 +272,6 @@ public class SessionImpl implements InitializableSession, Dumpable {
   @Override
   public StreamSession getStreamSession() {
     return Validators.checkNotNull(streamSession);
-  }
-
-  @Override
-  public void updateAccessTime(long time) {
-    streamSession = streamSession.toBuilder().setLastAccessed(time).build();
   }
 
   @Override

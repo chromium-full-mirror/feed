@@ -54,11 +54,11 @@ public final class FeedModelProviderFactory implements ModelProviderFactory {
   }
 
   @Override
-  public ModelProvider create(String sessionToken) {
+  public ModelProvider create(String sessionId) {
     FeedModelProvider modelProvider =
         new FeedModelProvider(
             sessionManager, threadUtils, timingUtils, taskQueue, mainThreadRunner, null, config);
-    sessionManager.getExistingSession(sessionToken, modelProvider);
+    sessionManager.getExistingSession(sessionId, modelProvider);
     return modelProvider;
   }
 

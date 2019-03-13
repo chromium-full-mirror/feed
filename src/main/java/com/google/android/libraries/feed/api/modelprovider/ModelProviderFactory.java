@@ -24,7 +24,7 @@ public interface ModelProviderFactory {
    * Returns a new instance of a {@link ModelProvider} from an existing session. This session may
    * become INVALIDATED if the session was garbage collected by the Session Manager.
    */
-  ModelProvider create(String sessionToken);
+  ModelProvider create(String sessionId);
 
   /** Returns a new instance of a {@link ModelProvider} from $HEAD. */
   ModelProvider createNew(/*@Nullable*/ ViewDepthProvider viewDepthProvider);

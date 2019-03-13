@@ -49,8 +49,8 @@ public class FeedActionManagerImpl implements ActionManager {
   public void dismissLocal(
       List<String> contentIds,
       List<StreamDataOperation> streamDataOperations,
-      /*@Nullable*/ String sessionToken) {
-    executeStreamDataOperations(streamDataOperations, sessionToken);
+      /*@Nullable*/ String sessionId) {
+    executeStreamDataOperations(streamDataOperations, sessionId);
     // Store the dismissLocal actions
     taskQueue.execute(
         "feedActionManagerDismiss",
@@ -65,10 +65,8 @@ public class FeedActionManagerImpl implements ActionManager {
   }
 
   @Override
-  public void dismiss(
-      List<StreamDataOperation> streamDataOperations,
-      /*@Nullable*/ String sessionToken) {
-    executeStreamDataOperations(streamDataOperations, sessionToken);
+  public void dismiss(List<StreamDataOperation> streamDataOperations, /*@Nullable*/ String sessionId) {
+    executeStreamDataOperations(streamDataOperations, sessionId);
   }
 
   @Override

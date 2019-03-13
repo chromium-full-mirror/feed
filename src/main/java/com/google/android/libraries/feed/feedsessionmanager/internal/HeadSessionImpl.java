@@ -155,7 +155,7 @@ public class HeadSessionImpl implements Session, Dumpable {
     return streamSession;
   }
 
-  @Override
+  /** Cause the access time to be updated. */
   public void updateAccessTime(long time) {
     streamSession = streamSession.toBuilder().setLastAccessed(time).build();
   }

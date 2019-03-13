@@ -101,7 +101,7 @@ public class FeedActionManagerImplTest {
   }
 
   @Test
-  public void dismissLocal_sessionTokenSet() throws Exception {
+  public void dismissLocal_sessionIdSet() throws Exception {
     setUpDismissMocks();
     StreamDataOperation dataOperation = buildBasicDismissOperation();
 
@@ -145,7 +145,7 @@ public class FeedActionManagerImplTest {
   }
 
   @Test
-  public void dismiss_sessionTokenSet() throws Exception {
+  public void dismiss_sessionIdSet() throws Exception {
     setUpDismissMocks();
     StreamDataOperation dataOperation = buildBasicDismissOperation();
 

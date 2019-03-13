@@ -58,7 +58,7 @@ public class StreamActionApiImpl implements StreamActionApi {
   private final String contentId;
   private final TooltipApi tooltipApi;
 
-  /*@Nullable*/ private final String sessionToken;
+  /*@Nullable*/ private final String sessionId;
 
   public StreamActionApiImpl(
       ActionApi actionApi,
@@ -67,7 +67,7 @@ public class StreamActionApiImpl implements StreamActionApi {
       BasicLoggingApi basicLoggingApi,
       ContentLoggingData contentLoggingData,
       ContextMenuManager contextMenuManager,
-      /*@Nullable*/ String sessionToken,
+      /*@Nullable*/ String sessionId,
       ClusterPendingDismissHelper clusterPendingDismissHelper,
       ViewElementActionHandler viewElementActionHandler,
       String contentId,
@@ -78,7 +78,7 @@ public class StreamActionApiImpl implements StreamActionApi {
     this.basicLoggingApi = basicLoggingApi;
     this.contentLoggingData = contentLoggingData;
     this.contextMenuManager = contextMenuManager;
-    this.sessionToken = sessionToken;
+    this.sessionId = sessionId;
     this.clusterPendingDismissHelper = clusterPendingDismissHelper;
     this.viewElementActionHandler = viewElementActionHandler;
     this.contentId = contentId;
@@ -230,11 +230,11 @@ public class StreamActionApiImpl implements StreamActionApi {
   }
 
   private void dismiss(List<StreamDataOperation> dataOperations) {
-    actionManager.dismiss(dataOperations, sessionToken);
+    actionManager.dismiss(dataOperations, sessionId);
   }
 
   private void dismissLocal(String contentId, List<StreamDataOperation> dataOperations) {
-    actionManager.dismissLocal(Collections.singletonList(contentId), dataOperations, sessionToken);
+    actionManager.dismissLocal(Collections.singletonList(contentId), dataOperations, sessionId);
   }
 
   private void dismissWithSnackbar(

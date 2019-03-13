@@ -71,7 +71,7 @@ public final class TimeoutSessionImpl extends SessionImpl {
         legacyHeadContent);
     if (clearHead) {
       if (!legacyHeadContent) {
-        if (shouldInvalidateModuleProvider(mutationContext, ss)) {
+        if (shouldInvalidateModelProvider(mutationContext, ss)) {
           if (modelProvider != null) {
             if (mutationContext == null) {
               modelProvider.invalidate(UiContext.getDefaultInstance());
