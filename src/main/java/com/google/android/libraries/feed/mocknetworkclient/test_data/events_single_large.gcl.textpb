@@ -125,6 +125,7 @@ initial_response {
                   }
                   width: 32
                   height: 32
+                  scale_type: CENTER_INSIDE
                 }
                 styles {
                   style_id: "Roboto"
@@ -200,7 +201,6 @@ initial_response {
                               sources {
                                 url: "https://i.imgur.com/FFq3sJ7.png"
                               }
-                              scale_type: CENTER_INSIDE
                             }
                           }
                           style_references {

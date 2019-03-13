@@ -112,12 +112,10 @@ initial_response {
               height: 18
             }
           }
-          child_default_style_ids {
-            style_ids: "story"
-          }
           element {
             grid_row {
               style_references {
+                style_ids: "story"
                 style_ids: "row-style"
               }
               cells {
@@ -128,6 +126,7 @@ initial_response {
                   element {
                     image_element {
                       style_references {
+                        style_ids: "story"
                         style_ids: "image"
                         style_ids: "cell-style"
                       }
@@ -139,6 +138,7 @@ initial_response {
                       element {
                         image_element {
                           style_references {
+                            style_ids: "story"
                             style_ids: "style-badge-icon"
                           }
                           image {
@@ -174,6 +174,7 @@ initial_response {
                         element {
                           text_element {
                             style_references {
+                              style_ids: "story"
                               style_ids: "title"
                             }
                             parameterized_text_binding {
@@ -186,6 +187,7 @@ initial_response {
                         element {
                           grid_row {
                             style_references {
+                              style_ids: "story"
                               style_ids: "source-row"
                             }
                             cells {
@@ -196,6 +198,7 @@ initial_response {
                                 element {
                                   image_element {
                                     style_references {
+                                      style_ids: "story"
                                       style_ids: "source-icon"
                                     }
                                     image_binding {
@@ -210,6 +213,7 @@ initial_response {
                                 element {
                                   text_element {
                                     style_references {
+                                      style_ids: "story"
                                       style_ids: "source"
                                     }
                                     parameterized_text_binding {

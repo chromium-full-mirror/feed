@@ -103,12 +103,10 @@ initial_response {
               }
             }
           }
-          child_default_style_ids {
-            style_ids: "story"
-          }
           element {
             grid_row {
               style_references {
+                style_ids: "story"
                 style_ids: "row-style"
               }
               cells {
@@ -119,6 +117,7 @@ initial_response {
                   element {
                     image_element {
                       style_references {
+                        style_ids: "story"
                         style_ids: "image"
                         style_ids: "cell-style"
                       }
@@ -127,6 +126,7 @@ initial_response {
                       }
                     }
                     style_references {
+                      style_ids: "story"
                       style_ids: "cell-style"
                     }
                   }
@@ -146,6 +146,7 @@ initial_response {
                         element {
                           text_element {
                             style_references {
+                              style_ids: "story"
                               style_ids: "title"
                             }
                             parameterized_text_binding {
@@ -158,6 +159,7 @@ initial_response {
                         element {
                           grid_row {
                             style_references {
+                              style_ids: "story"
                               style_ids: "source-row"
                             }
                             cells {
@@ -168,6 +170,7 @@ initial_response {
                                 element {
                                   image_element {
                                     style_references {
+                                      style_ids: "story"
                                       style_ids: "source-icon"
                                     }
                                     image_binding {
@@ -182,6 +185,7 @@ initial_response {
                                 element {
                                   text_element {
                                     style_references {
+                                      style_ids: "story"
                                       style_ids: "source"
                                     }
                                     parameterized_text_binding {
@@ -459,6 +463,77 @@ initial_response {
                                                 content_domain: "content.f"
                                                 id: 20010
                                                 table: "feature"
+                                              }
+                                              data_operations {
+                                                operation: REMOVE
+                                                metadata {
+                                                  content_id {
+                                                    content_domain: "cluster.f"
+                                                    id: 3001
+                                                    table: "feature"
+                                                  }
+                                                }
+                                                feature {
+                                                  parent_id {
+                                                    content_domain: "root"
+                                                    id: 0
+                                                    table: "FEATURE"
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                    context_menu_data {
+                                      label: "Dismiss with snackbar"
+                                      feed_action_payload {
+                                        [search.now.ui.action.FeedAction.feed_action_extension] {
+                                          metadata {
+                                            type: DISMISS
+                                            dismiss_data {
+                                              content_id {
+                                                content_domain: "content.f"
+                                                id: 20010
+                                                table: "feature"
+                                              }
+                                              data_operations {
+                                                operation: REMOVE
+                                                metadata {
+                                                  content_id {
+                                                    content_domain: "cluster.f"
+                                                    id: 3001
+                                                    table: "feature"
+                                                  }
+                                                }
+                                                feature {
+                                                  parent_id {
+                                                    content_domain: "root"
+                                                    id: 0
+                                                    table: "FEATURE"
+                                                  }
+                                                }
+                                              }
+                                              undo_action {
+                                                confirmation_label: "Server sent string"
+                                                undo_label: "Undo string"
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                    context_menu_data {
+                                      label: "Not interested in Topic"
+                                      feed_action_payload {
+                                        [search.now.ui.action.FeedAction.feed_action_extension] {
+                                          metadata {
+                                            type: NOT_INTERESTED_IN_TOPIC
+                                            not_interested_in_data {
+                                              undo_action {
+                                                confirmation_label: "You will not see this topic anymore"
+                                                undo_label: "Undo"
                                               }
                                               data_operations {
                                                 operation: REMOVE
@@ -782,6 +857,77 @@ initial_response {
                                       }
                                     }
                                     context_menu_data {
+                                      label: "Dismiss with snackbar"
+                                      feed_action_payload {
+                                        [search.now.ui.action.FeedAction.feed_action_extension] {
+                                          metadata {
+                                            type: DISMISS
+                                            dismiss_data {
+                                              content_id {
+                                                content_domain: "content.f"
+                                                id: 20020
+                                                table: "feature"
+                                              }
+                                              data_operations {
+                                                operation: REMOVE
+                                                metadata {
+                                                  content_id {
+                                                    content_domain: "cluster.f"
+                                                    id: 3002
+                                                    table: "feature"
+                                                  }
+                                                }
+                                                feature {
+                                                  parent_id {
+                                                    content_domain: "root"
+                                                    id: 0
+                                                    table: "FEATURE"
+                                                  }
+                                                }
+                                              }
+                                              undo_action {
+                                                confirmation_label: "Server sent string"
+                                                undo_label: "Undo string"
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                    context_menu_data {
+                                      label: "Not interested in Topic"
+                                      feed_action_payload {
+                                        [search.now.ui.action.FeedAction.feed_action_extension] {
+                                          metadata {
+                                            type: NOT_INTERESTED_IN_TOPIC
+                                            not_interested_in_data {
+                                              undo_action {
+                                                confirmation_label: "You will not see this topic anymore"
+                                                undo_label: "Undo"
+                                              }
+                                              data_operations {
+                                                operation: REMOVE
+                                                metadata {
+                                                  content_id {
+                                                    content_domain: "cluster.f"
+                                                    id: 3002
+                                                    table: "feature"
+                                                  }
+                                                }
+                                                feature {
+                                                  parent_id {
+                                                    content_domain: "root"
+                                                    id: 0
+                                                    table: "FEATURE"
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                    context_menu_data {
                                       label: "Download link"
                                       feed_action_payload {
                                         [search.now.ui.action.FeedAction.feed_action_extension] {
@@ -1057,6 +1203,77 @@ initial_response {
                                                 content_domain: "content.f"
                                                 id: 20030
                                                 table: "feature"
+                                              }
+                                              data_operations {
+                                                operation: REMOVE
+                                                metadata {
+                                                  content_id {
+                                                    content_domain: "cluster.f"
+                                                    id: 3003
+                                                    table: "feature"
+                                                  }
+                                                }
+                                                feature {
+                                                  parent_id {
+                                                    content_domain: "root"
+                                                    id: 0
+                                                    table: "FEATURE"
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                    context_menu_data {
+                                      label: "Dismiss with snackbar"
+                                      feed_action_payload {
+                                        [search.now.ui.action.FeedAction.feed_action_extension] {
+                                          metadata {
+                                            type: DISMISS
+                                            dismiss_data {
+                                              content_id {
+                                                content_domain: "content.f"
+                                                id: 20030
+                                                table: "feature"
+                                              }
+                                              data_operations {
+                                                operation: REMOVE
+                                                metadata {
+                                                  content_id {
+                                                    content_domain: "cluster.f"
+                                                    id: 3003
+                                                    table: "feature"
+                                                  }
+                                                }
+                                                feature {
+                                                  parent_id {
+                                                    content_domain: "root"
+                                                    id: 0
+                                                    table: "FEATURE"
+                                                  }
+                                                }
+                                              }
+                                              undo_action {
+                                                confirmation_label: "Server sent string"
+                                                undo_label: "Undo string"
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                    context_menu_data {
+                                      label: "Not interested in Topic"
+                                      feed_action_payload {
+                                        [search.now.ui.action.FeedAction.feed_action_extension] {
+                                          metadata {
+                                            type: NOT_INTERESTED_IN_TOPIC
+                                            not_interested_in_data {
+                                              undo_action {
+                                                confirmation_label: "You will not see this topic anymore"
+                                                undo_label: "Undo"
                                               }
                                               data_operations {
                                                 operation: REMOVE
@@ -1380,6 +1597,77 @@ initial_response {
                                       }
                                     }
                                     context_menu_data {
+                                      label: "Dismiss with snackbar"
+                                      feed_action_payload {
+                                        [search.now.ui.action.FeedAction.feed_action_extension] {
+                                          metadata {
+                                            type: DISMISS
+                                            dismiss_data {
+                                              content_id {
+                                                content_domain: "content.f"
+                                                id: 20040
+                                                table: "feature"
+                                              }
+                                              data_operations {
+                                                operation: REMOVE
+                                                metadata {
+                                                  content_id {
+                                                    content_domain: "cluster.f"
+                                                    id: 3004
+                                                    table: "feature"
+                                                  }
+                                                }
+                                                feature {
+                                                  parent_id {
+                                                    content_domain: "root"
+                                                    id: 0
+                                                    table: "FEATURE"
+                                                  }
+                                                }
+                                              }
+                                              undo_action {
+                                                confirmation_label: "Server sent string"
+                                                undo_label: "Undo string"
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                    context_menu_data {
+                                      label: "Not interested in Topic"
+                                      feed_action_payload {
+                                        [search.now.ui.action.FeedAction.feed_action_extension] {
+                                          metadata {
+                                            type: NOT_INTERESTED_IN_TOPIC
+                                            not_interested_in_data {
+                                              undo_action {
+                                                confirmation_label: "You will not see this topic anymore"
+                                                undo_label: "Undo"
+                                              }
+                                              data_operations {
+                                                operation: REMOVE
+                                                metadata {
+                                                  content_id {
+                                                    content_domain: "cluster.f"
+                                                    id: 3004
+                                                    table: "feature"
+                                                  }
+                                                }
+                                                feature {
+                                                  parent_id {
+                                                    content_domain: "root"
+                                                    id: 0
+                                                    table: "FEATURE"
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                    context_menu_data {
                                       label: "Download link"
                                       feed_action_payload {
                                         [search.now.ui.action.FeedAction.feed_action_extension] {
@@ -1655,6 +1943,77 @@ initial_response {
                                                 content_domain: "content.f"
                                                 id: 20050
                                                 table: "feature"
+                                              }
+                                              data_operations {
+                                                operation: REMOVE
+                                                metadata {
+                                                  content_id {
+                                                    content_domain: "cluster.f"
+                                                    id: 3005
+                                                    table: "feature"
+                                                  }
+                                                }
+                                                feature {
+                                                  parent_id {
+                                                    content_domain: "root"
+                                                    id: 0
+                                                    table: "FEATURE"
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                    context_menu_data {
+                                      label: "Dismiss with snackbar"
+                                      feed_action_payload {
+                                        [search.now.ui.action.FeedAction.feed_action_extension] {
+                                          metadata {
+                                            type: DISMISS
+                                            dismiss_data {
+                                              content_id {
+                                                content_domain: "content.f"
+                                                id: 20050
+                                                table: "feature"
+                                              }
+                                              data_operations {
+                                                operation: REMOVE
+                                                metadata {
+                                                  content_id {
+                                                    content_domain: "cluster.f"
+                                                    id: 3005
+                                                    table: "feature"
+                                                  }
+                                                }
+                                                feature {
+                                                  parent_id {
+                                                    content_domain: "root"
+                                                    id: 0
+                                                    table: "FEATURE"
+                                                  }
+                                                }
+                                              }
+                                              undo_action {
+                                                confirmation_label: "Server sent string"
+                                                undo_label: "Undo string"
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                    context_menu_data {
+                                      label: "Not interested in Topic"
+                                      feed_action_payload {
+                                        [search.now.ui.action.FeedAction.feed_action_extension] {
+                                          metadata {
+                                            type: NOT_INTERESTED_IN_TOPIC
+                                            not_interested_in_data {
+                                              undo_action {
+                                                confirmation_label: "You will not see this topic anymore"
+                                                undo_label: "Undo"
                                               }
                                               data_operations {
                                                 operation: REMOVE
@@ -1978,6 +2337,77 @@ initial_response {
                                       }
                                     }
                                     context_menu_data {
+                                      label: "Dismiss with snackbar"
+                                      feed_action_payload {
+                                        [search.now.ui.action.FeedAction.feed_action_extension] {
+                                          metadata {
+                                            type: DISMISS
+                                            dismiss_data {
+                                              content_id {
+                                                content_domain: "content.f"
+                                                id: 20060
+                                                table: "feature"
+                                              }
+                                              data_operations {
+                                                operation: REMOVE
+                                                metadata {
+                                                  content_id {
+                                                    content_domain: "cluster.f"
+                                                    id: 3006
+                                                    table: "feature"
+                                                  }
+                                                }
+                                                feature {
+                                                  parent_id {
+                                                    content_domain: "root"
+                                                    id: 0
+                                                    table: "FEATURE"
+                                                  }
+                                                }
+                                              }
+                                              undo_action {
+                                                confirmation_label: "Server sent string"
+                                                undo_label: "Undo string"
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                    context_menu_data {
+                                      label: "Not interested in Topic"
+                                      feed_action_payload {
+                                        [search.now.ui.action.FeedAction.feed_action_extension] {
+                                          metadata {
+                                            type: NOT_INTERESTED_IN_TOPIC
+                                            not_interested_in_data {
+                                              undo_action {
+                                                confirmation_label: "You will not see this topic anymore"
+                                                undo_label: "Undo"
+                                              }
+                                              data_operations {
+                                                operation: REMOVE
+                                                metadata {
+                                                  content_id {
+                                                    content_domain: "cluster.f"
+                                                    id: 3006
+                                                    table: "feature"
+                                                  }
+                                                }
+                                                feature {
+                                                  parent_id {
+                                                    content_domain: "root"
+                                                    id: 0
+                                                    table: "FEATURE"
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                    context_menu_data {
                                       label: "Download link"
                                       feed_action_payload {
                                         [search.now.ui.action.FeedAction.feed_action_extension] {
@@ -2277,6 +2707,77 @@ initial_response {
                                       }
                                     }
                                     context_menu_data {
+                                      label: "Dismiss with snackbar"
+                                      feed_action_payload {
+                                        [search.now.ui.action.FeedAction.feed_action_extension] {
+                                          metadata {
+                                            type: DISMISS
+                                            dismiss_data {
+                                              content_id {
+                                                content_domain: "content.f"
+                                                id: 20070
+                                                table: "feature"
+                                              }
+                                              data_operations {
+                                                operation: REMOVE
+                                                metadata {
+                                                  content_id {
+                                                    content_domain: "cluster.f"
+                                                    id: 3007
+                                                    table: "feature"
+                                                  }
+                                                }
+                                                feature {
+                                                  parent_id {
+                                                    content_domain: "root"
+                                                    id: 0
+                                                    table: "FEATURE"
+                                                  }
+                                                }
+                                              }
+                                              undo_action {
+                                                confirmation_label: "Server sent string"
+                                                undo_label: "Undo string"
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                    context_menu_data {
+                                      label: "Not interested in Topic"
+                                      feed_action_payload {
+                                        [search.now.ui.action.FeedAction.feed_action_extension] {
+                                          metadata {
+                                            type: NOT_INTERESTED_IN_TOPIC
+                                            not_interested_in_data {
+                                              undo_action {
+                                                confirmation_label: "You will not see this topic anymore"
+                                                undo_label: "Undo"
+                                              }
+                                              data_operations {
+                                                operation: REMOVE
+                                                metadata {
+                                                  content_id {
+                                                    content_domain: "cluster.f"
+                                                    id: 3007
+                                                    table: "feature"
+                                                  }
+                                                }
+                                                feature {
+                                                  parent_id {
+                                                    content_domain: "root"
+                                                    id: 0
+                                                    table: "FEATURE"
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                    context_menu_data {
                                       label: "Download link"
                                       feed_action_payload {
                                         [search.now.ui.action.FeedAction.feed_action_extension] {
@@ -2552,6 +3053,77 @@ initial_response {
                                                 content_domain: "content.f"
                                                 id: 20080
                                                 table: "feature"
+                                              }
+                                              data_operations {
+                                                operation: REMOVE
+                                                metadata {
+                                                  content_id {
+                                                    content_domain: "cluster.f"
+                                                    id: 3008
+                                                    table: "feature"
+                                                  }
+                                                }
+                                                feature {
+                                                  parent_id {
+                                                    content_domain: "root"
+                                                    id: 0
+                                                    table: "FEATURE"
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                    context_menu_data {
+                                      label: "Dismiss with snackbar"
+                                      feed_action_payload {
+                                        [search.now.ui.action.FeedAction.feed_action_extension] {
+                                          metadata {
+                                            type: DISMISS
+                                            dismiss_data {
+                                              content_id {
+                                                content_domain: "content.f"
+                                                id: 20080
+                                                table: "feature"
+                                              }
+                                              data_operations {
+                                                operation: REMOVE
+                                                metadata {
+                                                  content_id {
+                                                    content_domain: "cluster.f"
+                                                    id: 3008
+                                                    table: "feature"
+                                                  }
+                                                }
+                                                feature {
+                                                  parent_id {
+                                                    content_domain: "root"
+                                                    id: 0
+                                                    table: "FEATURE"
+                                                  }
+                                                }
+                                              }
+                                              undo_action {
+                                                confirmation_label: "Server sent string"
+                                                undo_label: "Undo string"
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                    context_menu_data {
+                                      label: "Not interested in Topic"
+                                      feed_action_payload {
+                                        [search.now.ui.action.FeedAction.feed_action_extension] {
+                                          metadata {
+                                            type: NOT_INTERESTED_IN_TOPIC
+                                            not_interested_in_data {
+                                              undo_action {
+                                                confirmation_label: "You will not see this topic anymore"
+                                                undo_label: "Undo"
                                               }
                                               data_operations {
                                                 operation: REMOVE

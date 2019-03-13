@@ -690,7 +690,6 @@ initial_response {
                         sources {
                           url: "https://lh6.googleusercontent.com/proxy/hfVClqoaxYaYXhrn9tHaabCl1TwqbHpv1U8ZVAo5xA5asq-nzMYYFLKutd3hWm7E5yG-ci8v9S5Wakoq1En9_90uyDUX-FqwsE29DPQaeCdCFDi7w07caNo3BnEgJlSQxO0DUmHh4jKq7rvVmTbBRQw1QgwtqjLAs2cDDSEevRkBW5BNjM3yCqXE9VVJsSCJqzImow=w144-h144-p"
                         }
-                        scale_type: CENTER_CROP
                       }
                     }
                     binding_values {
@@ -869,7 +868,6 @@ initial_response {
                         sources {
                           url: "https://lh3.googleusercontent.com/proxy/CyeQrfWvSkJ-4wjGmm1zVIP4XZKL4oAjywWcPh8lhrwtizOY4kGsDtVa3nk984qJB5q2-r7aInfG25UFjfwyu7QEraqepTlbsDdKX1yeenhh7EGeAR2Hp1QcbO24C7WyU8bLPx8o_2HA-opm6cqZ8f4ehEXCxMEbR79A44jcWpacTLfYERPGeVrljo2vAl2LyFMHrA=w266-h266-p"
                         }
-                        scale_type: CENTER_CROP
                       }
                     }
                     binding_values {
@@ -1046,7 +1044,6 @@ initial_response {
                         sources {
                           url: "https://lh4.googleusercontent.com/proxy/-OyfF2O8pW5jxk2U9oWORuEZeatrnUdmKQygsho3ssXn_Vbk38oJRUDG7gqA9PIPRqsvYq0tLB6Aq4xrRem2mRsR3k9X3MPvk--5S5RwBsyG1eZ6cPNqWh9CLC5Z19VRtTaxJePQjbMjPhfha_1iJkA5P0wA964w4-GkK4H-wyY156PpGFCzlaOOfmiXbaxsGSBYkw=w1092-h532-p"
                         }
-                        scale_type: CENTER_CROP
                       }
                     }
                     binding_values {
@@ -1225,7 +1222,6 @@ initial_response {
                         sources {
                           url: "http://www.gstatic.com/android/now/images/default/hdpi/context_day_at_work.png"
                         }
-                        scale_type: CENTER_CROP
                       }
                     }
                     binding_values {

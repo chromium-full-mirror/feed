@@ -114,9 +114,6 @@ initial_response {
               gravity_vertical: GRAVITY_BOTTOM
             }
           }
-          child_default_style_ids {
-            style_ids: "story"
-          }
           element {
             grid_row {
               cells {
@@ -131,6 +128,7 @@ initial_response {
                       }
                     }
                     style_references {
+                      style_ids: "story"
                       style_ids: "image"
                       style_ids: "cell-style"
                     }
@@ -145,6 +143,7 @@ initial_response {
                         }
                         gravity_horizontal: GRAVITY_END
                         style_references {
+                          style_ids: "story"
                           style_ids: "style-badge-icon"
                         }
                         gravity_vertical: GRAVITY_BOTTOM
@@ -174,6 +173,7 @@ initial_response {
                             }
                           }
                           style_references {
+                            style_ids: "story"
                             style_ids: "title"
                           }
                         }
@@ -193,6 +193,7 @@ initial_response {
                                     }
                                   }
                                   style_references {
+                                    style_ids: "story"
                                     style_ids: "source-icon"
                                   }
                                 }
@@ -207,6 +208,7 @@ initial_response {
                                     }
                                   }
                                   style_references {
+                                    style_ids: "story"
                                     style_ids: "source"
                                   }
                                 }
@@ -214,6 +216,7 @@ initial_response {
                             }
                           }
                           style_references {
+                            style_ids: "story"
                             style_ids: "source-row"
                           }
                         }
@@ -230,6 +233,7 @@ initial_response {
               binding_id: "actions-binding"
             }
             style_references {
+              style_ids: "story"
               style_ids: "row-style"
             }
           }
