@@ -199,7 +199,8 @@ public final class SessionCache implements Dumpable {
     synchronized (lock) {
       sessions.put(head.getStreamSession().getSessionId(), head);
     }
-    Result<List<StreamStructure>> results = store.getStreamStructures(head.getStreamSession());
+    Result<List<StreamStructure>> results =
+        store.getStreamStructures(head.getStreamSession().getSessionId());
     if (!results.isSuccessful()) {
       Logger.w(TAG, "unable to get head stream structures");
       return false;
@@ -285,7 +286,7 @@ public final class SessionCache implements Dumpable {
             Logger.i(TAG, "Task: createUnboundSession %s", session.getSessionId());
             ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
             Result<List<StreamStructure>> streamStructuresResult =
-                store.getStreamStructures(session);
+                store.getStreamStructures(session.getSessionId());
             if (streamStructuresResult.isSuccessful()) {
               unboundSession.populateModelProvider(
                   session, streamStructuresResult.getValue(), false, false);
@@ -370,12 +371,12 @@ public final class SessionCache implements Dumpable {
     ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
     int sessionCleared = expiredSessionsCleared;
 
-    Result<List<StreamSession>> storedSessionsResult = store.getAllSessions();
+    Result<List<String>> storedSessionsResult = store.getAllSessions();
     if (storedSessionsResult.isSuccessful()) {
       synchronized (lock) {
-        for (StreamSession session : storedSessionsResult.getValue()) {
-          if (!sessions.containsKey(session.getSessionId())) {
-            store.removeSession(session);
+        for (String sessionId : storedSessionsResult.getValue()) {
+          if (!sessions.containsKey(sessionId)) {
+            store.removeSession(sessionId);
             expiredSessionsCleared++;
           }
         }
@@ -395,7 +396,7 @@ public final class SessionCache implements Dumpable {
   @VisibleForTesting
   boolean isSessionAlive(StreamSession streamSession) {
     // Today HEAD will does not time out
-    return Store.HEAD.getSessionId().equals(streamSession.getSessionId())
+    return Store.HEAD_SESSION_ID.equals(streamSession.getSessionId())
         || (streamSession.getLastAccessed() + lifetimeMs) > clock.currentTimeMillis();
   }
 

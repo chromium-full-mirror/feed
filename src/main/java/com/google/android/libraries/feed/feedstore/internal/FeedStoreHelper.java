@@ -16,14 +16,12 @@ package com.google.android.libraries.feed.feedstore.internal;
 
 import static com.google.android.libraries.feed.feedstore.internal.FeedStoreConstants.SESSION_NAME_PREFIX;
 
-import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import java.util.UUID;
 
 /** Helper class for shared FeedStore methods */
 public final class FeedStoreHelper {
-  /** Get a new, unique stream session */
-  StreamSession getNewStreamSession() {
-    String sessionName = SESSION_NAME_PREFIX + UUID.randomUUID();
-    return StreamSession.newBuilder().setSessionId(sessionName).build();
+  /** Get a new, unique stream session id. */
+  String getNewStreamSessionId() {
+    return SESSION_NAME_PREFIX + UUID.randomUUID();
   }
 }

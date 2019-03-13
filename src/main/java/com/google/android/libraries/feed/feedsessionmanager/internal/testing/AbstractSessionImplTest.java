@@ -37,8 +37,6 @@ import org.mockito.Mock;
 
 /** Abstract class implementing many of the core SessionImpl tests. */
 public abstract class AbstractSessionImplTest {
-  private static final StreamSession HEAD =
-      StreamSession.newBuilder().setSessionId("$HEAD").build();
   protected static final StreamSession TEST_SESSION =
       StreamSession.newBuilder().setSessionId("TEST$1").build();
 
@@ -54,9 +52,8 @@ public abstract class AbstractSessionImplTest {
 
   protected void setUp() {
     initMocks(this);
-    when(store.getHeadSession()).thenReturn(HEAD);
     fakeSessionMutation = new FakeSessionMutation();
-    when(store.editSession(TEST_SESSION)).thenReturn(fakeSessionMutation);
+    when(store.editSession(TEST_SESSION.getSessionId())).thenReturn(fakeSessionMutation);
     fakeModelMutator = new FakeModelMutation();
     when(modelProvider.edit()).thenReturn(fakeModelMutator);
   }

@@ -33,7 +33,6 @@ import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTrac
 import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamLocalAction;
-import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
@@ -89,8 +88,8 @@ public final class EphemeralFeedStore implements ClearableStore {
   }
 
   @Override
-  public Result<List<StreamStructure>> getStreamStructures(StreamSession session) {
-    List<StreamStructure> streamStructures = sessionsMap.get(session.getSessionId());
+  public Result<List<StreamStructure>> getStreamStructures(String sessionId) {
+    List<StreamStructure> streamStructures = sessionsMap.get(sessionId);
     if (streamStructures == null) {
       streamStructures = Collections.emptyList();
     }
@@ -98,12 +97,12 @@ public final class EphemeralFeedStore implements ClearableStore {
   }
 
   @Override
-  public Result<List<StreamSession>> getAllSessions() {
+  public Result<List<String>> getAllSessions() {
     Set<String> sessions = sessionsMap.keySet();
-    ArrayList<StreamSession> returnValues = new ArrayList<>();
-    for (String sessionToken : sessions) {
-      if (!HEAD.getSessionId().equals(sessionToken)) {
-        returnValues.add(StreamSession.newBuilder().setSessionId(sessionToken).build());
+    ArrayList<String> returnValues = new ArrayList<>();
+    for (String sessionId : sessions) {
+      if (!HEAD_SESSION_ID.equals(sessionId)) {
+        returnValues.add(sessionId);
       }
     }
     return Result.success(returnValues);
@@ -154,35 +153,29 @@ public final class EphemeralFeedStore implements ClearableStore {
   }
 
   @Override
-  public Result<StreamSession> createNewSession() {
+  public Result<String> createNewSession() {
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
-    StreamSession streamSession = storeHelper.getNewStreamSession();
-    Result<List<StreamStructure>> streamStructuresResult = getStreamStructures(HEAD);
-    sessionsMap.put(
-        streamSession.getSessionId(), new ArrayList<>(streamStructuresResult.getValue()));
-    tracker.stop("createNewSession", streamSession.getSessionId());
-    return Result.success(streamSession);
+    String sessionId = storeHelper.getNewStreamSessionId();
+    Result<List<StreamStructure>> streamStructuresResult = getStreamStructures(HEAD_SESSION_ID);
+    sessionsMap.put(sessionId, new ArrayList<>(streamStructuresResult.getValue()));
+    tracker.stop("createNewSession", sessionId);
+    return Result.success(sessionId);
   }
 
   @Override
-  public StreamSession getHeadSession() {
-    return HEAD;
-  }
-
-  @Override
-  public void removeSession(StreamSession session) {
-    if (session.getSessionId().equals(HEAD.getSessionId())) {
+  public void removeSession(String sessionId) {
+    if (sessionId.equals(HEAD_SESSION_ID)) {
       throw new IllegalStateException("Unable to delete the $HEAD session");
     }
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
-    sessionsMap.remove(session.getSessionId());
-    tracker.stop("removeSession", session.getSessionId());
+    sessionsMap.remove(sessionId);
+    tracker.stop("removeSession", sessionId);
   }
 
   @Override
   public void clearHead() {
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
-    sessionsMap.remove(HEAD.getSessionId());
+    sessionsMap.remove(HEAD_SESSION_ID);
     tracker.stop("", "clearHead");
   }
 
@@ -208,18 +201,17 @@ public final class EphemeralFeedStore implements ClearableStore {
   }
 
   @Override
-  public SessionMutation editSession(StreamSession streamSession) {
+  public SessionMutation editSession(String sessionId) {
     return new FeedSessionMutation(
-        feedSessionMutation -> commitSessionMutation(streamSession, feedSessionMutation));
+        feedSessionMutation -> commitSessionMutation(sessionId, feedSessionMutation));
   }
 
-  private Boolean commitSessionMutation(
-      StreamSession streamSession, List<StreamStructure> streamStructures) {
+  private Boolean commitSessionMutation(String sessionId, List<StreamStructure> streamStructures) {
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
-    List<StreamStructure> sessionStructures = sessionsMap.get(streamSession.getSessionId());
+    List<StreamStructure> sessionStructures = sessionsMap.get(sessionId);
     if (sessionStructures == null) {
       sessionStructures = new ArrayList<>();
-      sessionsMap.put(streamSession.getSessionId(), sessionStructures);
+      sessionsMap.put(sessionId, sessionStructures);
     }
     sessionStructures.addAll(streamStructures);
     tracker.stop("", "commitSessionMutation", "mutations", streamStructures.size());

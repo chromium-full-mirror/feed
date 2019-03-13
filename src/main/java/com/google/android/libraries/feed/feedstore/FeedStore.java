@@ -50,7 +50,6 @@ import com.google.android.libraries.feed.host.storage.ContentStorageDirect;
 import com.google.android.libraries.feed.host.storage.JournalStorageDirect;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamLocalAction;
-import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
@@ -129,12 +128,12 @@ public final class FeedStore extends FeedObservable<StoreListener>
   }
 
   @Override
-  public Result<List<StreamStructure>> getStreamStructures(StreamSession session) {
-    return delegate.getStreamStructures(session);
+  public Result<List<StreamStructure>> getStreamStructures(String sessionId) {
+    return delegate.getStreamStructures(sessionId);
   }
 
   @Override
-  public Result<List<StreamSession>> getAllSessions() {
+  public Result<List<String>> getAllSessions() {
     return delegate.getAllSessions();
   }
 
@@ -159,18 +158,13 @@ public final class FeedStore extends FeedObservable<StoreListener>
   }
 
   @Override
-  public Result<StreamSession> createNewSession() {
+  public Result<String> createNewSession() {
     return delegate.createNewSession();
   }
 
   @Override
-  public StreamSession getHeadSession() {
-    return delegate.getHeadSession();
-  }
-
-  @Override
-  public void removeSession(StreamSession session) {
-    delegate.removeSession(session);
+  public void removeSession(String sessionId) {
+    delegate.removeSession(sessionId);
   }
 
   @Override
@@ -184,8 +178,8 @@ public final class FeedStore extends FeedObservable<StoreListener>
   }
 
   @Override
-  public SessionMutation editSession(StreamSession streamSession) {
-    return delegate.editSession(streamSession);
+  public SessionMutation editSession(String sessionId) {
+    return delegate.editSession(sessionId);
   }
 
   @Override

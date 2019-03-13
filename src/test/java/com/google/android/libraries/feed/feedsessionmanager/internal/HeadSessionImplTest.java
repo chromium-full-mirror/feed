@@ -24,7 +24,6 @@ import com.google.android.libraries.feed.api.common.testing.InternalProtocolBuil
 import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.time.TimingUtils;
-import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import java.util.ArrayList;
@@ -38,9 +37,6 @@ import org.robolectric.RobolectricTestRunner;
 /** Tests of the {@link HeadSessionImpl} class. */
 @RunWith(RobolectricTestRunner.class)
 public class HeadSessionImplTest {
-  private static final StreamSession HEAD =
-      StreamSession.newBuilder().setSessionId("$HEAD").build();
-
   @Mock private Store store;
 
   private final ContentIdGenerators contentIdGenerators = new ContentIdGenerators();
@@ -51,14 +47,13 @@ public class HeadSessionImplTest {
   public void setUp() {
     initMocks(this);
     fakeSessionMutation = new FakeSessionMutation();
-    when(store.getHeadSession()).thenReturn(HEAD);
-    when(store.editSession(HEAD)).thenReturn(fakeSessionMutation);
+    when(store.editSession(Store.HEAD_SESSION_ID)).thenReturn(fakeSessionMutation);
   }
 
   @Test
   public void testMinimalSessionManager() {
     HeadSessionImpl headSession = new HeadSessionImpl(store, timingUtils);
-    assertThat(headSession.getStreamSession()).isEqualTo(store.getHeadSession());
+    assertThat(headSession.getStreamSession().getSessionId()).isEqualTo(Store.HEAD_SESSION_ID);
   }
 
   @Test

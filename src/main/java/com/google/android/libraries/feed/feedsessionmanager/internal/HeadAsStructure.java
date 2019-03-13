@@ -184,7 +184,7 @@ public final class HeadAsStructure {
   }
 
   private boolean buildTree() {
-    Result<List<StreamStructure>> headResult = store.getStreamStructures(Store.HEAD);
+    Result<List<StreamStructure>> headResult = store.getStreamStructures(Store.HEAD_SESSION_ID);
     if (!headResult.isSuccessful()) {
       Logger.e(TAG, "Unable to load $HEAD");
       return false;

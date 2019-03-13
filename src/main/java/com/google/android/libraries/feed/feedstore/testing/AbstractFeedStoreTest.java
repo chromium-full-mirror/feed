@@ -38,7 +38,6 @@ import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.feed.client.StreamDataProto.StreamLocalAction;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload.Builder;
-import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
@@ -97,7 +96,9 @@ public abstract class AbstractFeedStoreTest {
   @Test
   public void testMinimalStore() {
     Store store = getStore(mainThreadRunner);
-    assertThat(store.getHeadSession()).isNotNull();
+    Result<List<String>> result = store.getAllSessions();
+    assertThat(result.isSuccessful()).isTrue();
+    assertThat(result.getValue()).isEmpty();
   }
 
   @Test
@@ -108,21 +109,14 @@ public abstract class AbstractFeedStoreTest {
   }
 
   @Test
-  public void newStoreHasHeadSession() throws Exception {
-    Store store = getStore(mainThreadRunner);
-    StreamSession newSession = store.getHeadSession();
-    assertThat(newSession).isNotNull();
-  }
-
-  @Test
   public void addStructureOperationToSession() throws Exception {
     Store store = getStore(mainThreadRunner);
-    StreamSession headSession = store.getHeadSession();
-    SessionMutation mutation = store.editSession(headSession);
+    SessionMutation mutation = store.editSession(Store.HEAD_SESSION_ID);
     mutation.add(STREAM_DATA_OPERATION.getStreamStructure());
     mutation.commit();
 
-    Result<List<StreamStructure>> streamStructuresResult = store.getStreamStructures(headSession);
+    Result<List<StreamStructure>> streamStructuresResult =
+        store.getStreamStructures(Store.HEAD_SESSION_ID);
 
     assertThat(streamStructuresResult.isSuccessful()).isTrue();
     List<StreamStructure> streamStructures = streamStructuresResult.getValue();
@@ -143,16 +137,15 @@ public abstract class AbstractFeedStoreTest {
   @Test
   public void createNewSession() throws Exception {
     Store store = getStore(mainThreadRunner);
-    StreamSession headSession = store.getHeadSession();
-    SessionMutation mutation = store.editSession(headSession);
+    SessionMutation mutation = store.editSession(Store.HEAD_SESSION_ID);
     mutation.add(STREAM_STRUCTURE);
     mutation.commit();
 
-    Result<StreamSession> sessionResult = store.createNewSession();
+    Result<String> sessionResult = store.createNewSession();
     assertThat(sessionResult.isSuccessful()).isTrue();
-    StreamSession session = sessionResult.getValue();
+    String sessionId = sessionResult.getValue();
 
-    Result<List<StreamStructure>> streamStructuresResult = store.getStreamStructures(session);
+    Result<List<StreamStructure>> streamStructuresResult = store.getStreamStructures(sessionId);
 
     assertThat(streamStructuresResult.isSuccessful()).isTrue();
     List<StreamStructure> streamStructures = streamStructuresResult.getValue();
@@ -164,18 +157,17 @@ public abstract class AbstractFeedStoreTest {
   @Test
   public void removeSession() throws Exception {
     Store store = getStore(mainThreadRunner);
-    StreamSession headSession = store.getHeadSession();
-    SessionMutation mutation = store.editSession(headSession);
+    SessionMutation mutation = store.editSession(Store.HEAD_SESSION_ID);
     mutation.add(STREAM_STRUCTURE);
     mutation.commit();
 
-    Result<StreamSession> sessionResult = store.createNewSession();
+    Result<String> sessionResult = store.createNewSession();
     assertThat(sessionResult.isSuccessful()).isTrue();
-    StreamSession session = sessionResult.getValue();
+    String sessionId = sessionResult.getValue();
 
-    store.removeSession(session);
+    store.removeSession(sessionId);
 
-    Result<List<StreamStructure>> streamStructuresResult = store.getStreamStructures(session);
+    Result<List<StreamStructure>> streamStructuresResult = store.getStreamStructures(sessionId);
 
     assertThat(streamStructuresResult.isSuccessful()).isTrue();
     assertThat(streamStructuresResult.getValue()).isEmpty();
@@ -184,15 +176,14 @@ public abstract class AbstractFeedStoreTest {
   @Test
   public void clearHead() throws Exception {
     Store store = getStore(mainThreadRunner);
-    StreamSession headSession = store.getHeadSession();
-    SessionMutation mutation = store.editSession(headSession);
+    SessionMutation mutation = store.editSession(Store.HEAD_SESSION_ID);
     mutation.add(STREAM_STRUCTURE);
     mutation.commit();
 
     store.clearHead();
 
     Result<List<StreamStructure>> streamStructuresResult =
-        store.getStreamStructures(store.getHeadSession());
+        store.getStreamStructures(Store.HEAD_SESSION_ID);
 
     assertThat(streamStructuresResult.isSuccessful()).isTrue();
     assertThat(streamStructuresResult.getValue()).isEmpty();
@@ -201,25 +192,24 @@ public abstract class AbstractFeedStoreTest {
   @Test
   public void getSessions() throws Exception {
     Store store = getStore(mainThreadRunner);
-    StreamSession headSession = store.getHeadSession();
-    SessionMutation mutation = store.editSession(headSession);
+    SessionMutation mutation = store.editSession(Store.HEAD_SESSION_ID);
     mutation.add(STREAM_STRUCTURE);
     mutation.commit();
 
-    Result<List<StreamSession>> sessionsResult = store.getAllSessions();
+    Result<List<String>> sessionsResult = store.getAllSessions();
     assertThat(sessionsResult.isSuccessful()).isTrue();
-    List<StreamSession> sessions = sessionsResult.getValue();
+    List<String> sessions = sessionsResult.getValue();
     assertThat(sessions).isEmpty();
 
-    Result<StreamSession> sessionResult = store.createNewSession();
+    Result<String> sessionResult = store.createNewSession();
     assertThat(sessionResult.isSuccessful()).isTrue();
-    StreamSession session = sessionResult.getValue();
+    String sessionId = sessionResult.getValue();
 
     sessionsResult = store.getAllSessions();
     assertThat(sessionsResult.isSuccessful()).isTrue();
     sessions = sessionsResult.getValue();
     assertThat(sessions).hasSize(1);
-    assertThat(sessions.get(0).getSessionId()).isEqualTo(session.getSessionId());
+    assertThat(sessions.get(0)).isEqualTo(sessionId);
 
     sessionResult = store.createNewSession();
     assertThat(sessionResult.isSuccessful()).isTrue();
@@ -287,7 +277,7 @@ public abstract class AbstractFeedStoreTest {
     RunnableSubject.assertThatRunnable(
             () -> {
               Store store = getStore(mainThreadRunner);
-              store.removeSession(StreamSession.newBuilder().setSessionId("$HEAD").build());
+              store.removeSession(Store.HEAD_SESSION_ID);
             })
         .throwsAnExceptionOfType(IllegalStateException.class);
   }
@@ -404,9 +394,9 @@ public abstract class AbstractFeedStoreTest {
     when(clock.currentTimeMillis()).thenReturn(START_TIME_MILLIS);
     Store store = getStore(mainThreadRunner);
     store.editLocalActions().add(ActionType.DISMISS, OPERATION_CONTENT_ID).commit();
-    Result<List<StreamSession>> allSessionsResult = store.getAllSessions();
+    Result<List<String>> allSessionsResult = store.getAllSessions();
     assertThat(allSessionsResult.isSuccessful()).isTrue();
-    List<StreamSession> allSessions = allSessionsResult.getValue();
+    List<String> allSessions = allSessionsResult.getValue();
     assertThat(allSessions).isEmpty();
   }
 

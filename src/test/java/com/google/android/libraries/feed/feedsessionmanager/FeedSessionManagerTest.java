@@ -14,11 +14,12 @@
 
 package com.google.android.libraries.feed.feedsessionmanager;
 
-import static com.google.android.libraries.feed.api.store.Store.HEAD;
+import static com.google.android.libraries.feed.api.store.Store.HEAD_SESSION_ID;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anySetOf;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -74,7 +75,6 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
-import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
@@ -144,12 +144,10 @@ public class FeedSessionManagerTest {
     initMocks(this);
     mainThreadRunner = new MainThreadRunner();
     appLifecycleListener = new FeedAppLifecycleListener(threadUtils);
-    when(store.getHeadSession()).thenReturn(HEAD);
     when(modelProvider.edit()).thenReturn(modelMutation);
     when(store.triggerContentGc(anyObject(), anyObject())).thenReturn(() -> {});
     when(store.getSharedStates()).thenReturn(Result.success(new ArrayList<>()));
-    when(store.getStreamStructures(any(StreamSession.class)))
-        .thenReturn(Result.success(new ArrayList<>()));
+    when(store.getStreamStructures(anyString())).thenReturn(Result.success(new ArrayList<>()));
     when(store.getPayloads(any())).thenReturn(Result.success(new ArrayList<>()));
     when(store.getAllSessions()).thenReturn(Result.success(new ArrayList<>()));
     when(store.getAllUploadableActions()).thenReturn(Result.success(new HashSet<>()));
@@ -183,9 +181,8 @@ public class FeedSessionManagerTest {
     streamStructures.add(operation);
     com.google.android.libraries.feed.api.store.SessionMutation sessionMutation =
         mock(com.google.android.libraries.feed.api.store.SessionMutation.class);
-    when(store.getStreamStructures(any(StreamSession.class)))
-        .thenReturn(Result.success(streamStructures));
-    when(store.editSession(HEAD)).thenReturn(sessionMutation);
+    when(store.getStreamStructures(anyString())).thenReturn(Result.success(streamStructures));
+    when(store.editSession(HEAD_SESSION_ID)).thenReturn(sessionMutation);
     when(sessionMutation.commit()).thenReturn(true);
 
     FeedSessionManager sessionManager =
@@ -210,7 +207,7 @@ public class FeedSessionManagerTest {
     assertThat(sharedStateCache).hasSize(sharedStates.size());
 
     Map<String, Session> sessions = sessionManager.getSessionsMapForTest();
-    Session head = sessions.get(HEAD.getSessionId());
+    Session head = sessions.get(HEAD_SESSION_ID);
     assertThat(head).isInstanceOf(HeadSessionImpl.class);
     String itemKey = idGenerators.createFeatureContentId(0);
     Set<String> content = ((HeadSessionImpl) head).getContentInSessionForTest();
@@ -475,7 +472,7 @@ public class FeedSessionManagerTest {
   public void testEdit_actionProperties() {
     com.google.android.libraries.feed.api.store.SessionMutation session =
         mock(com.google.android.libraries.feed.api.store.SessionMutation.class);
-    when(store.editSession(any(StreamSession.class))).thenReturn(session);
+    when(store.editSession(anyString())).thenReturn(session);
     ContentMutation content = mock(ContentMutation.class);
     when(content.commit()).thenReturn(CommitResult.SUCCESS);
     when(store.editContent()).thenReturn(content);
@@ -532,7 +529,7 @@ public class FeedSessionManagerTest {
   public void testEdit_semanticProperties() {
     com.google.android.libraries.feed.api.store.SessionMutation session =
         mock(com.google.android.libraries.feed.api.store.SessionMutation.class);
-    when(store.editSession(any(StreamSession.class))).thenReturn(session);
+    when(store.editSession(anyString())).thenReturn(session);
     ContentMutation content = mock(ContentMutation.class);
     when(content.commit()).thenReturn(CommitResult.SUCCESS);
     when(store.editContent()).thenReturn(content);
@@ -600,7 +597,7 @@ public class FeedSessionManagerTest {
     assertThat(sharedStates).hasSize(1);
     Map<String, Session> sessions = sessionManager.getSessionsMapForTest();
     assertThat(sessions).hasSize(1);
-    Session session = sessions.get(Store.HEAD.getSessionId());
+    Session session = sessions.get(HEAD_SESSION_ID);
     assertThat(session).isNotNull();
     Set<String> contentInSession = session.getContentInSession();
     assertThat(contentInSession).hasSize(featureCount + 1);
@@ -611,7 +608,7 @@ public class FeedSessionManagerTest {
     assertThat(sharedStates).hasSize(0);
     sessions = sessionManager.getSessionsMapForTest();
     assertThat(sessions).hasSize(1);
-    session = sessions.get(Store.HEAD.getSessionId());
+    session = sessions.get(HEAD_SESSION_ID);
     assertThat(session).isNotNull();
     contentInSession = session.getContentInSession();
     assertThat(contentInSession).hasSize(0);
@@ -629,9 +626,8 @@ public class FeedSessionManagerTest {
   @Test
   public void testErrors_initializationStreamStructureError() {
     Store store = mock(Store.class);
-    when(store.getHeadSession()).thenReturn(HEAD);
     when(store.getSharedStates()).thenReturn(Result.success(new ArrayList<>()));
-    when(store.getStreamStructures(any(StreamSession.class))).thenReturn(Result.failure());
+    when(store.getStreamStructures(anyString())).thenReturn(Result.failure());
     FeedSessionManager spySessionManager = getUninitializedSessionManager(store);
     spySessionManager.initialize();
     verify(store).switchToEphemeralMode();
@@ -654,7 +650,7 @@ public class FeedSessionManagerTest {
     Store spyFeedStore = getSpyFeedStore();
     doReturn(Result.failure())
         .when(spyFeedStore)
-        .getStreamStructures(AdditionalMatchers.not(eq(Store.HEAD)));
+        .getStreamStructures(AdditionalMatchers.not(eq(HEAD_SESSION_ID)));
     FeedSessionManager sessionManager = getUninitializedSessionManager(spyFeedStore);
     sessionManager.initialize();
     populateSession(sessionManager, 5, 1, true, null);

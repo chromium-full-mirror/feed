@@ -43,7 +43,6 @@ import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamLocalAction;
-import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
@@ -153,15 +152,15 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
 
     boolean commitResult =
         store
-            .editSession(STREAM_SESSION)
+            .editSession(SESSION_ID)
             .add(StreamStructure.newBuilder().setContentId(CONTENT_ID).build())
             .commit();
     assertThat(commitResult).isTrue();
 
-    Result<List<StreamSession>> sessionsResult = store.getAllSessions();
+    Result<List<String>> sessionsResult = store.getAllSessions();
     assertThat(sessionsResult.isSuccessful()).isTrue();
     assertThat(sessionsResult.getValue()).hasSize(1);
-    assertThat(sessionsResult.getValue().get(0)).isEqualTo(STREAM_SESSION);
+    assertThat(sessionsResult.getValue().get(0)).isEqualTo(SESSION_ID);
 
     doAnswer(ans -> CommitResult.FAILURE)
         .when(journalStorageSpy)
@@ -267,18 +266,18 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
     // Journal
     boolean boolCommitResult =
         store
-            .editSession(STREAM_SESSION)
+            .editSession(SESSION_ID)
             .add(StreamStructure.newBuilder().setContentId(CONTENT_ID).build())
             .commit();
     assertThat(boolCommitResult).isTrue();
     boolCommitResult =
         store
-            .editSession(STREAM_SESSION_2)
+            .editSession(SESSION_ID_2)
             .add(StreamStructure.newBuilder().setContentId(CONTENT_ID_2).build())
             .commit();
     assertThat(boolCommitResult).isTrue();
 
-    Result<List<StreamSession>> sessionsResult = store.getAllSessions();
+    Result<List<String>> sessionsResult = store.getAllSessions();
     assertThat(sessionsResult.isSuccessful()).isTrue();
     assertThat(sessionsResult.getValue()).hasSize(2);
 

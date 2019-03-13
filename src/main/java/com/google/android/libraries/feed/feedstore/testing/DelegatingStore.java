@@ -28,7 +28,6 @@ import com.google.android.libraries.feed.api.store.UploadableActionMutation;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.search.now.feed.client.StreamDataProto.StreamLocalAction;
-import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
@@ -54,12 +53,12 @@ public class DelegatingStore implements Store {
   }
 
   @Override
-  public Result<List<StreamStructure>> getStreamStructures(StreamSession session) {
-    return store.getStreamStructures(session);
+  public Result<List<StreamStructure>> getStreamStructures(String sessionId) {
+    return store.getStreamStructures(sessionId);
   }
 
   @Override
-  public Result<List<StreamSession>> getAllSessions() {
+  public Result<List<String>> getAllSessions() {
     return store.getAllSessions();
   }
 
@@ -84,18 +83,13 @@ public class DelegatingStore implements Store {
   }
 
   @Override
-  public Result<StreamSession> createNewSession() {
+  public Result<String> createNewSession() {
     return store.createNewSession();
   }
 
   @Override
-  public StreamSession getHeadSession() {
-    return store.getHeadSession();
-  }
-
-  @Override
-  public void removeSession(StreamSession session) {
-    store.removeSession(session);
+  public void removeSession(String sessionId) {
+    store.removeSession(sessionId);
   }
 
   @Override
@@ -109,8 +103,8 @@ public class DelegatingStore implements Store {
   }
 
   @Override
-  public SessionMutation editSession(StreamSession streamSession) {
-    return store.editSession(streamSession);
+  public SessionMutation editSession(String sessionId) {
+    return store.editSession(sessionId);
   }
 
   @Override

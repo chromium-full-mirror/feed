@@ -67,7 +67,7 @@ public class HeadAsStructureTest {
       String contentId = idGenerators.createFeatureContentId(i);
       protocolBuilder.addFeature(contentId, rootContentId);
     }
-    when(store.getStreamStructures(Store.HEAD))
+    when(store.getStreamStructures(Store.HEAD_SESSION_ID))
         .thenReturn(Result.success(protocolBuilder.buildAsStreamStructure()));
     when(store.getPayloads(any()))
         .thenReturn(Result.success(protocolBuilder.buildAsPayloadWithId()));
@@ -95,7 +95,7 @@ public class HeadAsStructureTest {
     }
     String contentId = idGenerators.createFeatureContentId(2);
     protocolBuilder.removeFeature(contentId, rootContentId);
-    when(store.getStreamStructures(Store.HEAD))
+    when(store.getStreamStructures(Store.HEAD_SESSION_ID))
         .thenReturn(Result.success(protocolBuilder.buildAsStreamStructure()));
     when(store.getPayloads(any()))
         .thenReturn(Result.success(protocolBuilder.buildAsPayloadWithId()));
@@ -118,7 +118,7 @@ public class HeadAsStructureTest {
       String contentId = idGenerators.createFeatureContentId(i);
       protocolBuilder.addFeature(contentId, rootContentId);
     }
-    when(store.getStreamStructures(Store.HEAD))
+    when(store.getStreamStructures(Store.HEAD_SESSION_ID))
         .thenReturn(Result.success(protocolBuilder.buildAsStreamStructure()));
     when(store.getPayloads(any()))
         .thenReturn(Result.success(protocolBuilder.buildAsPayloadWithId()));
@@ -136,7 +136,7 @@ public class HeadAsStructureTest {
       String contentId = idGenerators.createFeatureContentId(i);
       protocolBuilder.addFeature(contentId, rootContentId);
     }
-    when(store.getStreamStructures(Store.HEAD)).thenReturn(Result.failure());
+    when(store.getStreamStructures(Store.HEAD_SESSION_ID)).thenReturn(Result.failure());
     when(store.getPayloads(any()))
         .thenReturn(Result.success(protocolBuilder.buildAsPayloadWithId()));
 
@@ -152,7 +152,7 @@ public class HeadAsStructureTest {
       String contentId = idGenerators.createFeatureContentId(i);
       protocolBuilder.addFeature(contentId, rootContentId);
     }
-    when(store.getStreamStructures(Store.HEAD))
+    when(store.getStreamStructures(Store.HEAD_SESSION_ID))
         .thenReturn(Result.success(protocolBuilder.buildAsStreamStructure()));
     when(store.getPayloads(any())).thenReturn(Result.failure());
 
@@ -168,7 +168,7 @@ public class HeadAsStructureTest {
       String contentId = idGenerators.createFeatureContentId(i);
       protocolBuilder.addFeature(contentId, rootContentId);
     }
-    when(store.getStreamStructures(Store.HEAD))
+    when(store.getStreamStructures(Store.HEAD_SESSION_ID))
         .thenReturn(Result.success(protocolBuilder.buildAsStreamStructure()));
     when(store.getPayloads(any()))
         .thenReturn(Result.success(protocolBuilder.buildAsPayloadWithId()));
@@ -198,7 +198,7 @@ public class HeadAsStructureTest {
       String contentId = idGenerators.createFeatureContentId(i);
       protocolBuilder.addFeature(contentId, rootContentId);
     }
-    when(store.getStreamStructures(Store.HEAD))
+    when(store.getStreamStructures(Store.HEAD_SESSION_ID))
         .thenReturn(Result.success(protocolBuilder.buildAsStreamStructure()));
     when(store.getPayloads(any()))
         .thenReturn(Result.success(protocolBuilder.buildAsPayloadWithId()));
@@ -225,7 +225,7 @@ public class HeadAsStructureTest {
     }
     String contentId = idGenerators.createFeatureContentId(2);
     protocolBuilder.removeFeature(contentId, rootContentId);
-    when(store.getStreamStructures(Store.HEAD))
+    when(store.getStreamStructures(Store.HEAD_SESSION_ID))
         .thenReturn(Result.success(protocolBuilder.buildAsStreamStructure()));
     when(store.getPayloads(any()))
         .thenReturn(Result.success(protocolBuilder.buildAsPayloadWithId()));

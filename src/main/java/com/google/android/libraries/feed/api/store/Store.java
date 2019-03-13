@@ -21,7 +21,6 @@ import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamLocalAction;
-import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
@@ -33,14 +32,15 @@ import java.util.Set;
  * into a an underlying store. The store is divided into content and structure portions. Content is
  * retrieved using String representing the {@code ContentId}. The structure is defined through a set
  * of {@link StreamDataOperation} which define the structure of the stream. $HEAD defines the full
- * set of {@code StreamDataOperation}s defining the full stream. A {@link StreamSession} represents
- * an instance of the stream defined by a possible subset of $HEAD.
+ * set of {@code StreamDataOperation}s defining the full stream. A {@link
+ * com.google.search.now.feed.client.StreamDataProto.StreamSession} represents an instance of the
+ * stream defined by a possible subset of $HEAD.
  *
  * <p>This object should not be used on the UI thread, as it may block on slow IO operations.
  */
 public interface Store {
-  /** The StreamSession representing $HEAD */
-  StreamSession HEAD = StreamSession.newBuilder().setSessionId("$HEAD").build();
+  /** The session id representing $HEAD */
+  final String HEAD_SESSION_ID = "$HEAD";
 
   /**
    * Returns an {@code List} of the {@link PayloadWithId}s for the ContentId Strings passed in
@@ -55,10 +55,10 @@ public interface Store {
    * Returns a list of all {@link StreamStructure}s for the session. The Stream Structure does not
    * contain the content. This represents the full structure of the stream for a particular session.
    */
-  Result<List<StreamStructure>> getStreamStructures(StreamSession session);
+  Result<List<StreamStructure>> getStreamStructures(String sessionId);
 
-  /** Returns a list of all the sessions, excluding the $HEAD session. */
-  Result<List<StreamSession>> getAllSessions();
+  /** Returns a list of all the session ids, excluding the $HEAD session. */
+  Result<List<String>> getAllSessions();
 
   /** Gets all semantic properties objects associated with a given list of contentIds */
   Result<List<SemanticPropertiesWithId>> getSemanticProperties(List<String> contentIds);
@@ -76,16 +76,13 @@ public interface Store {
   Result<List<StreamLocalAction>> getAllDismissLocalActions();
 
   /**
-   * Create a new session. The session is defined by all the {@link StreamDataOperation}s which are
-   * currently stored in $HEAD.
+   * Create a new session and return the id. The session is defined by all the {@link
+   * StreamDataOperation}s which are currently stored in $HEAD.
    */
-  Result<StreamSession> createNewSession();
-
-  /** Returns the {@link StreamSession} for $HEAD. */
-  StreamSession getHeadSession();
+  Result<String> createNewSession();
 
   /** Remove a specific session. It is illegal to attempt to remove $HEAD. */
-  void removeSession(StreamSession session);
+  void removeSession(String sessionId);
 
   /**
    * Clears out all data operations defining $HEAD. Only $HEAD supports reset, all other session may
@@ -98,7 +95,7 @@ public interface Store {
   ContentMutation editContent();
 
   /** Returns a session mutation applied to a Session. */
-  SessionMutation editSession(StreamSession streamSession);
+  SessionMutation editSession(String sessionId);
 
   /** Returns a semantic properties mutation used to modify the properties in the store */
   SemanticPropertiesMutation editSemanticProperties();

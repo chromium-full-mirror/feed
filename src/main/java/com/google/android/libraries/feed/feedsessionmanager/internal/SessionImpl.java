@@ -218,7 +218,7 @@ public class SessionImpl implements InitializableSession, Dumpable {
 
     int updateCnt = 0;
     int addFeatureCnt = 0;
-    SessionMutation sessionMutation = store.editSession(streamSession);
+    SessionMutation sessionMutation = store.editSession(streamSession.getSessionId());
     for (StreamStructure streamStructure : streamStructures) {
       String contentKey = streamStructure.getContentId();
       if (streamStructure.getOperation() == Operation.UPDATE_OR_APPEND) {

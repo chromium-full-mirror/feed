@@ -191,7 +191,7 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
         .commit();
     store.editLocalActions().add(ActionType.DISMISS, CONTENT_ID).commit();
     store.editContent().add(CONTENT_ID, PAYLOAD).commit();
-    store.editSession(Store.HEAD).add(STREAM_STRUCTURE).commit();
+    store.editSession(Store.HEAD_SESSION_ID).add(STREAM_STRUCTURE).commit();
 
     store.onLifecycleEvent(LifecycleEvent.ENTER_BACKGROUND);
 

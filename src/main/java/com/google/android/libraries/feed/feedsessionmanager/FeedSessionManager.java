@@ -336,7 +336,7 @@ public final class FeedSessionManager
       }
       Logger.w(TAG, "populateSessionTask - noCardsError %s", modelProvider);
 
-      Result<StreamSession> streamSessionResult = store.createNewSession();
+      Result<String> streamSessionResult = store.createNewSession();
       if (!streamSessionResult.isSuccessful()) {
         switchToEphemeralMode("Unable to create a new session during noCardsError failure");
         timeTracker.stop("task", "Create/Populate New Session", "Failure", "noCardsError");
@@ -345,9 +345,12 @@ public final class FeedSessionManager
 
       // properly track the session so that it's empty.
       modelProvider.raiseError(Validators.checkNotNull(noCardsError));
-      StreamSession streamSession = streamSessionResult.getValue();
+      String sessionId = streamSessionResult.getValue();
       StreamSession recordedSession =
-          streamSession.toBuilder().setLastAccessed(clock.currentTimeMillis()).build();
+          StreamSession.newBuilder()
+              .setSessionId(sessionId)
+              .setLastAccessed(clock.currentTimeMillis())
+              .build();
       session.setStreamSession(recordedSession);
       sessionCache.put(session.getStreamSession().getSessionId(), session);
       synchronized (lock) {
@@ -356,23 +359,26 @@ public final class FeedSessionManager
 
       // Set the session id on the ModelProvider.
       ModelMutation mutation = modelProvider.edit();
-      mutation.setSessionId(streamSession.getSessionId());
+      mutation.setSessionId(sessionId);
       mutation.commit();
       timeTracker.stop("task", "Create/Populate New Session", "Failure", "noCardsError");
       return;
     }
 
-    Result<StreamSession> streamSessionResult = store.createNewSession();
+    Result<String> streamSessionResult = store.createNewSession();
     if (!streamSessionResult.isSuccessful()) {
       switchToEphemeralMode("Unable to create a new session, createNewSession failed");
       timeTracker.stop("task", "Create/Populate New Session", "Failure", "createNewSession");
       return;
     }
-    StreamSession streamSession = streamSessionResult.getValue();
+    String sessionId = streamSessionResult.getValue();
     StreamSession recordedSession =
-        streamSession.toBuilder().setLastAccessed(clock.currentTimeMillis()).build();
+        StreamSession.newBuilder()
+            .setSessionId(sessionId)
+            .setLastAccessed(clock.currentTimeMillis())
+            .build();
 
-    Result<List<StreamStructure>> streamStructuresResult = store.getStreamStructures(streamSession);
+    Result<List<StreamStructure>> streamStructuresResult = store.getStreamStructures(sessionId);
     if (!streamStructuresResult.isSuccessful()) {
       switchToEphemeralMode("Unable to create a new session, getStreamStructures failed");
       timeTracker.stop("task", "Create/Populate New Session", "Failure", "getStreamStructures");
@@ -460,7 +466,7 @@ public final class FeedSessionManager
           StreamSession streamSession = existingSession.getStreamSession();
 
           Result<List<StreamStructure>> streamStructuresResult =
-              store.getStreamStructures(streamSession);
+              store.getStreamStructures(streamSession.getSessionId());
           if (streamStructuresResult.isSuccessful()) {
             session.populateModelProvider(
                 streamSession, streamStructuresResult.getValue(), false, false);

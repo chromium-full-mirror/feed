@@ -53,7 +53,6 @@ import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.search.now.feed.client.StreamDataProto.StreamLocalAction;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
-import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
@@ -153,14 +152,14 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
   }
 
   @Override
-  public Result<List<StreamStructure>> getStreamStructures(StreamSession session) {
+  public Result<List<StreamStructure>> getStreamStructures(String sessionId) {
     threadUtils.checkNotMainThread();
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
     List<StreamStructure> streamStructures;
-    Result<List<byte[]>> operationsResult = journalStorageDirect.read(session.getSessionId());
+    Result<List<byte[]>> operationsResult = journalStorageDirect.read(sessionId);
     if (!operationsResult.isSuccessful()) {
-      Logger.e(TAG, "Error fetching stream structures for stream session %s", session);
-      tracker.stop("getStreamStructures failed", "session", session);
+      Logger.e(TAG, "Error fetching stream structures for session %s", sessionId);
+      tracker.stop("getStreamStructures failed", "session", sessionId);
       return Result.failure();
     }
     List<byte[]> results = operationsResult.getValue();
@@ -180,10 +179,10 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
   }
 
   @Override
-  public Result<List<StreamSession>> getAllSessions() {
+  public Result<List<String>> getAllSessions() {
     threadUtils.checkNotMainThread();
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
-    List<StreamSession> sessions;
+    List<String> sessions;
 
     Result<List<String>> namesResult = journalStorageDirect.getAllJournals();
     if (!namesResult.isSuccessful()) {
@@ -195,7 +194,7 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
     List<String> result = namesResult.getValue();
     sessions = new ArrayList<>(result.size());
     for (String name : result) {
-      if (HEAD.getSessionId().equals(name)) {
+      if (HEAD_SESSION_ID.equals(name)) {
         // Don't add $HEAD to the sessions list
         continue;
       }
@@ -203,7 +202,7 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
         // Don't add Dismiss Actions journal to sessions list
         continue;
       }
-      sessions.add(StreamSession.newBuilder().setSessionId(name).build());
+      sessions.add(name);
     }
     tracker.stop("", "getAllSessions", "items", sessions.size());
     return Result.success(sessions);
@@ -331,34 +330,26 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
   }
 
   @Override
-  public Result<StreamSession> createNewSession() {
+  public Result<String> createNewSession() {
     threadUtils.checkNotMainThread();
 
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
-    StreamSession streamSession = storeHelper.getNewStreamSession();
+    String sessionId = storeHelper.getNewStreamSessionId();
     journalStorageDirect.commit(
-        new JournalMutation.Builder(HEAD.getSessionId())
-            .copy(streamSession.getSessionId())
-            .build());
-    tracker.stop("createNewSession", streamSession.getSessionId());
-    return Result.success(streamSession);
+        new JournalMutation.Builder(HEAD_SESSION_ID).copy(sessionId).build());
+    tracker.stop("createNewSession", sessionId);
+    return Result.success(sessionId);
   }
 
   @Override
-  public StreamSession getHeadSession() {
-    return HEAD;
-  }
-
-  @Override
-  public void removeSession(StreamSession session) {
+  public void removeSession(String sessionId) {
     threadUtils.checkNotMainThread();
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
-    if (session.getSessionId().equals(HEAD.getSessionId())) {
+    if (sessionId.equals(HEAD_SESSION_ID)) {
       throw new IllegalStateException("Unable to delete the $HEAD session");
     }
-    journalStorageDirect.commit(
-        new JournalMutation.Builder(session.getSessionId()).delete().build());
-    tracker.stop("removeSession", session.getSessionId());
+    journalStorageDirect.commit(new JournalMutation.Builder(sessionId).delete().build());
+    tracker.stop("removeSession", sessionId);
   }
 
   @Override
@@ -366,7 +357,7 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
     threadUtils.checkNotMainThread();
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
     journalStorageDirect.commit(
-        new JournalMutation.Builder(HEAD.getSessionId()).delete().append(new byte[0]).build());
+        new JournalMutation.Builder(HEAD_SESSION_ID).delete().append(new byte[0]).build());
     tracker.stop("", "clearHead");
   }
 
@@ -377,10 +368,10 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
   }
 
   @Override
-  public SessionMutation editSession(StreamSession streamSession) {
+  public SessionMutation editSession(String sessionId) {
     threadUtils.checkNotMainThread();
     return new FeedSessionMutation(
-        feedSessionMutation -> commitSessionMutation(streamSession, feedSessionMutation));
+        feedSessionMutation -> commitSessionMutation(sessionId, feedSessionMutation));
   }
 
   @Override
@@ -503,11 +494,10 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
     return commitResult;
   }
 
-  private Boolean commitSessionMutation(
-      StreamSession streamSession, List<StreamStructure> streamStructures) {
+  private Boolean commitSessionMutation(String sessionId, List<StreamStructure> streamStructures) {
     threadUtils.checkNotMainThread();
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
-    JournalMutation.Builder mutation = new JournalMutation.Builder(streamSession.getSessionId());
+    JournalMutation.Builder mutation = new JournalMutation.Builder(sessionId);
     if (streamStructures.isEmpty()) {
       // allow an empty journal to be created
       mutation.append(new byte[0]);
@@ -522,7 +512,7 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
         TAG,
         "commitSessionMutation - Success %s, Update Session %s, stream structures %s",
         result,
-        streamSession.getSessionId(),
+        sessionId,
         streamStructures.size());
     return result;
   }

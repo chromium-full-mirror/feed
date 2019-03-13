@@ -52,7 +52,7 @@ public class HeadSessionImpl implements Session, Dumpable {
   private int storeMutationFailures = 0;
 
   HeadSessionImpl(Store store, TimingUtils timingUtils) {
-    this.streamSession = store.getHeadSession();
+    this.streamSession = StreamSession.newBuilder().setSessionId(Store.HEAD_SESSION_ID).build();
     this.store = store;
     this.timingUtils = timingUtils;
   }
@@ -100,7 +100,7 @@ public class HeadSessionImpl implements Session, Dumpable {
     int updateCnt = 0;
     int addFeatureCnt = 0;
     boolean cleared = false;
-    SessionMutation sessionMutation = store.editSession(streamSession);
+    SessionMutation sessionMutation = store.editSession(streamSession.getSessionId());
     for (StreamStructure streamStructure : streamStructures) {
       if (streamStructure.getOperation() == Operation.UPDATE_OR_APPEND) {
         String contentKey = streamStructure.getContentId();

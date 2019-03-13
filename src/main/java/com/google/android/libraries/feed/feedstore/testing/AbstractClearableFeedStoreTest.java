@@ -28,7 +28,6 @@ import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.feed.client.StreamDataProto.StreamLocalAction;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
-import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.wire.feed.OpaqueActionDataForTestProto.OpaqueActionDataForTest;
@@ -43,12 +42,8 @@ public abstract class AbstractClearableFeedStoreTest extends AbstractFeedStoreTe
 
   protected static final String CONTENT_ID = "CONTENT_ID";
   protected static final String CONTENT_ID_2 = "CONTENT_ID_2";
-  protected static final String SESSION_TOKEN = "SESSION";
-  protected static final String SESSION_TOKEN_2 = "SESSION_2";
-  protected static final StreamSession STREAM_SESSION =
-      StreamSession.newBuilder().setSessionId(SESSION_TOKEN).build();
-  protected static final StreamSession STREAM_SESSION_2 =
-      StreamSession.newBuilder().setSessionId(SESSION_TOKEN_2).build();
+  protected static final String SESSION_ID = "SESSION";
+  protected static final String SESSION_ID_2 = "SESSION_2";
   protected static final StreamPayload STREAM_PAYLOAD =
       StreamPayload.newBuilder()
           .setStreamFeature(StreamFeature.newBuilder().setContentId(CONTENT_ID))
@@ -146,18 +141,18 @@ public abstract class AbstractClearableFeedStoreTest extends AbstractFeedStoreTe
     // Journal
     boolean boolCommitResult =
         store
-            .editSession(STREAM_SESSION)
+            .editSession(SESSION_ID)
             .add(StreamStructure.newBuilder().setContentId(CONTENT_ID).build())
             .commit();
     assertThat(boolCommitResult).isTrue();
     boolCommitResult =
         store
-            .editSession(STREAM_SESSION_2)
+            .editSession(SESSION_ID_2)
             .add(StreamStructure.newBuilder().setContentId(CONTENT_ID_2).build())
             .commit();
     assertThat(boolCommitResult).isTrue();
 
-    Result<List<StreamSession>> sessionsResult = store.getAllSessions();
+    Result<List<String>> sessionsResult = store.getAllSessions();
     assertThat(sessionsResult.isSuccessful()).isTrue();
     assertThat(sessionsResult.getValue()).hasSize(2);
 

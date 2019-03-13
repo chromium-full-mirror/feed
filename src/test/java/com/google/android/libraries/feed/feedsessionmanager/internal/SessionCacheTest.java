@@ -262,21 +262,22 @@ public class SessionCacheTest {
 
   @Test
   public void testCleanupJournals() {
-    List<StreamSession> storedSessions = new ArrayList<>();
-    StreamSession session1 = StreamSession.newBuilder().setSessionId("stream:1").build();
-    StreamSession session2 = StreamSession.newBuilder().setSessionId("stream:2").build();
-    storedSessions.add(session1);
-    storedSessions.add(session2);
+    List<String> storedSessions = new ArrayList<>();
+    String sessionId1 = "stream:1";
+    String sessionId2 = "stream:2";
+    storedSessions.add(sessionId1);
+    storedSessions.add(sessionId2);
 
     SessionCache sessionCache = getSessionCache();
     doReturn(Result.success(storedSessions)).when(storeSpy).getAllSessions();
 
     Session s2 = mock(Session.class);
-    when(s2.getStreamSession()).thenReturn(session2);
+    when(s2.getStreamSession())
+        .thenReturn(StreamSession.newBuilder().setSessionId(sessionId2).build());
     sessionCache.setSessionsForTest(s2);
     sessionCache.cleanupSessionJournals();
-    verify(storeSpy).removeSession(session1);
-    assertThat(sessionCache.getSessionsMapForTest().get(session2.getSessionId())).isEqualTo(s2);
+    verify(storeSpy).removeSession(sessionId1);
+    assertThat(sessionCache.getSessionsMapForTest().get(sessionId2)).isEqualTo(s2);
   }
 
   @Test
@@ -304,13 +305,13 @@ public class SessionCacheTest {
 
     Map<String, Session> sessionMap = sessionCache.getSessionsMapForTest();
     // Sessions will include $HEAD
-    HeadSessionImpl head = (HeadSessionImpl) sessionMap.get(Store.HEAD.getSessionId());
+    HeadSessionImpl head = (HeadSessionImpl) sessionMap.get(Store.HEAD_SESSION_ID);
     assertThat(head).isNotNull();
     sessionCache.initializePersistedSessions();
     sessionMap = sessionCache.getSessionsMapForTest();
     assertThat(sessionMap).hasSize(2);
     assertThat(sessionMap.get(s2.getSessionId()).getStreamSession()).isEqualTo(s2);
-    assertThat(sessionMap.get(Store.HEAD.getSessionId())).isNotNull();
+    assertThat(sessionMap.get(Store.HEAD_SESSION_ID)).isNotNull();
   }
 
   @Test
@@ -404,8 +405,7 @@ public class SessionCacheTest {
   }
 
   private void populateHead() {
-    StreamSession head = storeSpy.getHeadSession();
-    SessionMutation sessionMutation = storeSpy.editSession(head);
+    SessionMutation sessionMutation = storeSpy.editSession(Store.HEAD_SESSION_ID);
     String rootId = idGenerators.createRootContentId(1);
     sessionMutation.add(
         StreamStructure.newBuilder()
