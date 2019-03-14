@@ -305,10 +305,11 @@ public class StreamDriver
     List<LeafFeatureDriver> leafFeatureDrivers = new ArrayList<>();
     List<FeatureDriver> removes = new ArrayList<>();
     for (FeatureDriver featureDriver : featureDrivers) {
-      LeafFeatureDriver childContentModel = featureDriver.getLeafFeatureDriver();
-      if (childContentModel != null) {
-        leafFeatureDrivers.add(childContentModel);
+      LeafFeatureDriver leafFeatureDriver = featureDriver.getLeafFeatureDriver();
+      if (leafFeatureDriver != null) {
+        leafFeatureDrivers.add(leafFeatureDriver);
       } else {
+        basicLoggingApi.onInternalError(InternalFeedError.FAILED_TO_CREATE_LEAF);
         removes.add(featureDriver);
       }
     }

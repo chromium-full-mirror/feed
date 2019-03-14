@@ -68,6 +68,9 @@ public @interface InternalFeedError {
   /** Represents a failure to load shared states for Piet content. */
   int NULL_SHARED_STATES = 9;
 
+  /** Represents a failure to create a leaf child. */
+  int FAILED_TO_CREATE_LEAF = 10;
+
   /** The next value that should be used when adding additional values to the IntDef. */
-  int NEXT_VALUE = 10;
+  int NEXT_VALUE = 11;
 }

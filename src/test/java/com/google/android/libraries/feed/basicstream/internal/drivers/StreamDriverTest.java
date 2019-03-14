@@ -208,6 +208,7 @@ public class StreamDriverTest {
 
     assertThat(leafFeatureDrivers).hasSize(1);
     assertThat(leafFeatureDrivers.get(0)).isEqualTo(getLeafFeatureDriverFromCard(1));
+    verify(basicLoggingApi).onInternalError(InternalFeedError.FAILED_TO_CREATE_LEAF);
   }
 
   @Test
