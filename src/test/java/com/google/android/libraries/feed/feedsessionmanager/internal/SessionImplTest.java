@@ -61,7 +61,8 @@ public class SessionImplTest extends AbstractSessionImplTest {
   @Test
   public void testClearHead() {
     SessionImpl session = getSessionImpl();
-    session.populateModelProvider(TEST_SESSION, new ArrayList<>(), false, false);
+    session.setSessionId(TEST_SESSION_ID);
+    session.populateModelProvider(new ArrayList<>(), false, false);
     int featureCnt = 3;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder().addClearOperation();
     addFeatures(protocolBuilder, featureCnt, 1);
@@ -79,8 +80,9 @@ public class SessionImplTest extends AbstractSessionImplTest {
   public void testClearHead_paginationRequest() {
     SessionImpl session = getSessionImpl();
     ViewDepthProvider mockDepthProvider = mock(ViewDepthProvider.class);
+    session.setSessionId(TEST_SESSION_ID);
     session.bindModelProvider(modelProvider, mockDepthProvider);
-    session.populateModelProvider(TEST_SESSION, new ArrayList<>(), false, false);
+    session.populateModelProvider(new ArrayList<>(), false, false);
     int featureCnt = 3;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder().addClearOperation();
     addFeatures(protocolBuilder, featureCnt, 1);
@@ -90,7 +92,7 @@ public class SessionImplTest extends AbstractSessionImplTest {
         streamStructures,
         new MutationContext.Builder()
             .setContinuationToken(StreamToken.newBuilder().setContentId("token").build())
-            .setRequestingSessionId(TEST_SESSION.getSessionId())
+            .setRequestingSessionId(TEST_SESSION_ID)
             .build());
 
     verify(modelProvider).invalidate();

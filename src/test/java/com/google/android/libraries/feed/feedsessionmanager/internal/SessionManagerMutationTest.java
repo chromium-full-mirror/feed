@@ -58,7 +58,6 @@ import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
-import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
@@ -380,11 +379,10 @@ public class SessionManagerMutationTest {
     return contentIds;
   }
 
-  private Session getSession(String token) {
+  private Session getSession(String sessionId) {
     Session session = mock(Session.class);
-    StreamSession streamSession = StreamSession.newBuilder().setSessionId(token).build();
-    when(session.getStreamSession()).thenReturn(streamSession);
-    sessionCache.put(token, session);
+    when(session.getSessionId()).thenReturn(sessionId);
+    sessionCache.putAndRetainMetadata(sessionId, session);
     return session;
   }
 

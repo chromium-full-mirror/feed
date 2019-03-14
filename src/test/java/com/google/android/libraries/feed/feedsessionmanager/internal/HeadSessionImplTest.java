@@ -53,7 +53,7 @@ public class HeadSessionImplTest {
   @Test
   public void testMinimalSessionManager() {
     HeadSessionImpl headSession = new HeadSessionImpl(store, timingUtils);
-    assertThat(headSession.getStreamSession().getSessionId()).isEqualTo(Store.HEAD_SESSION_ID);
+    assertThat(headSession.getSessionId()).isEqualTo(Store.HEAD_SESSION_ID);
   }
 
   @Test

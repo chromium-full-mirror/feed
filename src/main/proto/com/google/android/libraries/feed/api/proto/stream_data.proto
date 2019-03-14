@@ -187,18 +187,32 @@ message StreamCursor {
 // List of all the sessions.
 message StreamSessions {
   // Represents the current sessions
-  repeated StreamSession stream_sessions = 1;
+  repeated StreamSession stream_session = 1;
 }
 
-// Persistence for a Session.  This allows the UI to create a ModelProvider
+// Persistence for a Session. This allows the UI to create a ModelProvider
 // from an existing session.
 message StreamSession {
   // Unique identifier for the session.
   optional string session_id = 1;
 
-  // This is the ms of the last time the session was accessed, used to manage
-  // the lifetime of a session.
-  optional int64 last_accessed = 2;
+  // The milliseconds of either the time this session was created or the last
+  // time content was added to the HEAD session.
+  optional int64 legacy_time_millis = 2;
+
+  // Metadata for the session. If this field is absent then fallback to
+  // #legacy_time_millis.
+  optional SessionMetadata session_metadata = 3;
+}
+
+// Metadata that describes a session.
+message SessionMetadata {
+  // The time in milliseconds that the most recent content was added to this
+  // session.
+  optional int64 last_added_time_millis = 1;
+
+  // The time in milliseconds that this session was created.
+  optional int64 creation_time_millis = 2;
 }
 
 message StreamLocalAction {

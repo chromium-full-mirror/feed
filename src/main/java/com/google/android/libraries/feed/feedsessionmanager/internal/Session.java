@@ -16,7 +16,6 @@ package com.google.android.libraries.feed.feedsessionmanager.internal;
 
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
-import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import java.util.List;
 import java.util.Set;
@@ -33,7 +32,7 @@ public interface Session {
   boolean invalidateOnResetHead();
 
   /** The unique identifier created by the storage layer for the session. */
-  StreamSession getStreamSession();
+  String getSessionId();
 
   /** Returns a ModelProvider for a Session, if one is defined. */
   /*@Nullable*/

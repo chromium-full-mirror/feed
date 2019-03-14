@@ -25,7 +25,6 @@ import com.google.android.libraries.feed.common.Validators;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.TimingUtils;
-import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
 import com.google.search.now.feed.client.StreamDataProto.UiContext;
@@ -49,12 +48,11 @@ public final class TimeoutSessionImpl extends SessionImpl {
 
   @Override
   public void populateModelProvider(
-      StreamSession streamSession,
       List<StreamStructure> head,
       boolean cachedBindings,
       boolean legacyHeadContent) {
     Logger.i(TAG, "TimeoutSession.populateModelProvider, legacyHeadContent %s", legacyHeadContent);
-    super.populateModelProvider(streamSession, head, cachedBindings, legacyHeadContent);
+    super.populateModelProvider(head, cachedBindings, legacyHeadContent);
   }
 
   @Override
@@ -62,16 +60,16 @@ public final class TimeoutSessionImpl extends SessionImpl {
       boolean clearHead,
       List<StreamStructure> streamStructures,
       /*@Nullable*/ MutationContext mutationContext) {
-    StreamSession ss = Validators.checkNotNull(streamSession);
+    String localSessionId = Validators.checkNotNull(sessionId);
     Logger.i(
         TAG,
-        "TimeoutSession.updateSession, streamSession %s, clearHead %s, legacyHeadContent %s",
-        ss.getSessionId(),
+        "TimeoutSession.updateSession, sessionId %s, clearHead %s, legacyHeadContent %s",
+        localSessionId,
         clearHead,
         legacyHeadContent);
     if (clearHead) {
       if (!legacyHeadContent) {
-        if (shouldInvalidateModelProvider(mutationContext, ss)) {
+        if (shouldInvalidateModelProvider(mutationContext, localSessionId)) {
           if (modelProvider != null) {
             if (mutationContext == null) {
               modelProvider.invalidate(UiContext.getDefaultInstance());
@@ -81,11 +79,11 @@ public final class TimeoutSessionImpl extends SessionImpl {
             Logger.i(
                 TAG,
                 "Invalidating Model Provider for session %s due to a clear head",
-                ss.getSessionId());
+                localSessionId);
           }
         } else {
           // Without having legacy HEAD content, don't update the session,
-          Logger.i(TAG, "Session %s not updated due to clearHead", ss.getSessionId());
+          Logger.i(TAG, "Session %s not updated due to clearHead", localSessionId);
         }
         return;
       }

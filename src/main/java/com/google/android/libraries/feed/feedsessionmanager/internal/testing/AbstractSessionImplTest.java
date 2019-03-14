@@ -27,7 +27,6 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionImpl;
-import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import java.util.ArrayList;
@@ -37,8 +36,7 @@ import org.mockito.Mock;
 
 /** Abstract class implementing many of the core SessionImpl tests. */
 public abstract class AbstractSessionImplTest {
-  protected static final StreamSession TEST_SESSION =
-      StreamSession.newBuilder().setSessionId("TEST$1").build();
+  protected static final String TEST_SESSION_ID = "TEST$1";
 
   @Mock protected Store store;
   @Mock protected ModelProvider modelProvider;
@@ -53,7 +51,7 @@ public abstract class AbstractSessionImplTest {
   protected void setUp() {
     initMocks(this);
     fakeSessionMutation = new FakeSessionMutation();
-    when(store.editSession(TEST_SESSION.getSessionId())).thenReturn(fakeSessionMutation);
+    when(store.editSession(TEST_SESSION_ID)).thenReturn(fakeSessionMutation);
     fakeModelMutator = new FakeModelMutation();
     when(modelProvider.edit()).thenReturn(fakeModelMutator);
   }
@@ -70,7 +68,8 @@ public abstract class AbstractSessionImplTest {
 
     // 3 features
     assertThat(streamStructures).hasSize(featureCnt);
-    session.populateModelProvider(TEST_SESSION, streamStructures, false, false);
+    session.setSessionId(TEST_SESSION_ID);
+    session.populateModelProvider(streamStructures, false, false);
     assertThat(fakeModelMutator.addedChildren).hasSize(featureCnt);
     assertThat(fakeModelMutator.commitCalled).isTrue();
     assertThat(session.contentInSession).hasSize(featureCnt);
@@ -87,7 +86,8 @@ public abstract class AbstractSessionImplTest {
   @Test
   public void testUpdateSession_features() {
     SessionImpl session = getSessionImpl();
-    session.populateModelProvider(TEST_SESSION, new ArrayList<>(), false, false);
+    session.setSessionId(TEST_SESSION_ID);
+    session.populateModelProvider(new ArrayList<>(), false, false);
     int featureCnt = 3;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder().addClearOperation();
     addFeatures(protocolBuilder, featureCnt, 1);
@@ -105,7 +105,8 @@ public abstract class AbstractSessionImplTest {
   @Test
   public void testUpdateFromToken() {
     SessionImpl session = getSessionImpl();
-    session.populateModelProvider(TEST_SESSION, new ArrayList<>(), false, false);
+    session.setSessionId(TEST_SESSION_ID);
+    session.populateModelProvider(new ArrayList<>(), false, false);
     int featureCnt = 3;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder();
     addFeatures(protocolBuilder, featureCnt, 1);
@@ -123,7 +124,8 @@ public abstract class AbstractSessionImplTest {
   @Test
   public void testUpdateFromToken_notInSession() {
     SessionImpl session = getSessionImpl();
-    session.populateModelProvider(TEST_SESSION, new ArrayList<>(), false, false);
+    session.setSessionId(TEST_SESSION_ID);
+    session.populateModelProvider(new ArrayList<>(), false, false);
     int featureCnt = 3;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder();
     addFeatures(protocolBuilder, featureCnt, 1);
@@ -141,7 +143,8 @@ public abstract class AbstractSessionImplTest {
   @Test
   public void testStorageFailure() {
     SessionImpl session = getSessionImpl();
-    session.populateModelProvider(TEST_SESSION, new ArrayList<>(), false, false);
+    session.setSessionId(TEST_SESSION_ID);
+    session.populateModelProvider(new ArrayList<>(), false, false);
     int featureCnt = 3;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder();
     addFeatures(protocolBuilder, featureCnt, 1);
@@ -156,7 +159,8 @@ public abstract class AbstractSessionImplTest {
   @Test
   public void testRemove() {
     SessionImpl session = getSessionImpl();
-    session.populateModelProvider(TEST_SESSION, new ArrayList<>(), false, false);
+    session.setSessionId(TEST_SESSION_ID);
+    session.populateModelProvider(new ArrayList<>(), false, false);
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder();
     int featureCnt = 2;
     addFeatures(protocolBuilder, featureCnt, 1);

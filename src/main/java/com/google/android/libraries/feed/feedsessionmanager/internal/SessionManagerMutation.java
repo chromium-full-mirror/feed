@@ -197,7 +197,7 @@ public final class SessionManagerMutation implements Dumpable {
 
     private void invalidateSession(ModelProvider modelProvider, Session session) {
       threadUtils.checkNotMainThread();
-      Logger.i(TAG, "Invalidate session %s", session.getStreamSession().getSessionId());
+      Logger.i(TAG, "Invalidate session %s", session.getSessionId());
       modelProvider.invalidate();
     }
   }
@@ -388,14 +388,14 @@ public final class SessionManagerMutation implements Dumpable {
         if (modelProvider != null && modelProvider.getCurrentState() == State.INVALIDATED) {
           Logger.w(TAG, "Removing an invalidate session");
           // Remove all invalidated sessions
-          sessionCache.remove(session.getStreamSession().getSessionId());
+          sessionCache.remove(session.getSessionId());
           continue;
         }
         if (session == head) {
           long updateTime = clock.currentTimeMillis();
           if (clearedHead) {
             session.updateSession(clearedHead, streamStructures, mutationContext);
-            head.updateAccessTime(updateTime);
+            sessionCache.updateHeadLastAddedTimeMillis(updateTime);
             schedulerApi.onReceiveNewContent(updateTime);
             if (knownContentListener != null) {
               knownContentListener.onNewContentReceived(/* isNewRefresh */ true, updateTime);
@@ -409,7 +409,7 @@ public final class SessionManagerMutation implements Dumpable {
             knownContentListener.onNewContentReceived(/* isNewRefresh */ false, updateTime);
           }
         }
-        Logger.i(TAG, "Update Session %s", session.getStreamSession().getSessionId());
+        Logger.i(TAG, "Update Session %s", session.getSessionId());
         session.updateSession(clearedHead, streamStructures, mutationContext);
       }
       timeTracker.stop("", "sessionUpdate", "sessions", updates.size());

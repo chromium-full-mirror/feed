@@ -24,11 +24,9 @@ import com.google.android.libraries.feed.common.logging.Dumper;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTracker;
-import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -41,7 +39,6 @@ import java.util.Set;
 public class HeadSessionImpl implements Session, Dumpable {
   private static final String TAG = "HeadSessionImpl";
 
-  private StreamSession streamSession;
   private final Store store;
   private final TimingUtils timingUtils;
 
@@ -52,7 +49,6 @@ public class HeadSessionImpl implements Session, Dumpable {
   private int storeMutationFailures = 0;
 
   HeadSessionImpl(Store store, TimingUtils timingUtils) {
-    this.streamSession = StreamSession.newBuilder().setSessionId(Store.HEAD_SESSION_ID).build();
     this.store = store;
     this.timingUtils = timingUtils;
   }
@@ -90,8 +86,7 @@ public class HeadSessionImpl implements Session, Dumpable {
       if (mutationSourceToken.hasContentId() && !contentInSession.contains(contentId)) {
         // Make sure that mutationSourceToken is a token in this session, if not, we don't update
         // the session.
-        timeTracker.stop(
-            "updateSessionIgnored", streamSession.getSessionId(), "Token Not Found", contentId);
+        timeTracker.stop("updateSessionIgnored", getSessionId(), "Token Not Found", contentId);
         Logger.i(TAG, "Token %s not found in session, ignoring update", contentId);
         return;
       }
@@ -100,7 +95,7 @@ public class HeadSessionImpl implements Session, Dumpable {
     int updateCnt = 0;
     int addFeatureCnt = 0;
     boolean cleared = false;
-    SessionMutation sessionMutation = store.editSession(streamSession.getSessionId());
+    SessionMutation sessionMutation = store.editSession(getSessionId());
     for (StreamStructure streamStructure : streamStructures) {
       if (streamStructure.getOperation() == Operation.UPDATE_OR_APPEND) {
         String contentKey = streamStructure.getContentId();
@@ -135,7 +130,7 @@ public class HeadSessionImpl implements Session, Dumpable {
     if (success) {
       timeTracker.stop(
           "updateSession",
-          streamSession.getSessionId(),
+          getSessionId(),
           "cleared",
           cleared,
           "features",
@@ -143,7 +138,7 @@ public class HeadSessionImpl implements Session, Dumpable {
           "updates",
           updateCnt);
     } else {
-      timeTracker.stop("updateSessionFailure", streamSession.getSessionId());
+      timeTracker.stop("updateSessionFailure", getSessionId());
       storeMutationFailures++;
       Logger.e(TAG, "$HEAD session mutation failed");
       store.switchToEphemeralMode();
@@ -151,14 +146,14 @@ public class HeadSessionImpl implements Session, Dumpable {
   }
 
   @Override
-  public StreamSession getStreamSession() {
-    return streamSession;
+  public String getSessionId() {
+    return Store.HEAD_SESSION_ID;
   }
 
   /** Cause the access time to be updated. */
-  public void updateAccessTime(long time) {
+  /*public void updateAccessTime(long time) {
     streamSession = streamSession.toBuilder().setLastAccessed(time).build();
-  }
+  }*/
 
   @Override
   /*@Nullable*/
@@ -183,8 +178,7 @@ public class HeadSessionImpl implements Session, Dumpable {
   @Override
   public void dump(Dumper dumper) {
     dumper.title(TAG);
-    dumper.forKey("sessionName").value(streamSession.getSessionId());
-    dumper.forKey("accessTime").value(new Date(streamSession.getLastAccessed())).compactPrevious();
+    dumper.forKey("sessionName").value(getSessionId());
     dumper.forKey("contentInSession").value(contentInSession.size());
     dumper.forKey("updateCount").value(updateCount).compactPrevious();
     dumper.forKey("storeMutationFailures").value(storeMutationFailures).compactPrevious();

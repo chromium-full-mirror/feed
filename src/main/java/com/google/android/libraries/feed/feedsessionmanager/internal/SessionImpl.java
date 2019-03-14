@@ -30,11 +30,9 @@ import com.google.android.libraries.feed.common.logging.Dumper;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTracker;
-import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -55,7 +53,7 @@ public class SessionImpl implements InitializableSession, Dumpable {
   /*@Nullable*/ protected ViewDepthProvider viewDepthProvider;
   protected boolean legacyHeadContent = false;
 
-  protected StreamSession streamSession;
+  protected String sessionId;
 
   @VisibleForTesting public final Set<String> contentInSession = new HashSet<>();
 
@@ -83,8 +81,8 @@ public class SessionImpl implements InitializableSession, Dumpable {
   }
 
   @Override
-  public void setStreamSession(StreamSession streamSession) {
-    this.streamSession = streamSession;
+  public void setSessionId(String sessionId) {
+    this.sessionId = sessionId;
   }
 
   @Override
@@ -95,13 +93,11 @@ public class SessionImpl implements InitializableSession, Dumpable {
 
   @Override
   public void populateModelProvider(
-      StreamSession streamSession,
       List<StreamStructure> head,
       boolean cachedBindings,
       boolean legacyHeadContent) {
     Logger.i(TAG, "PopulateModelProvider %s items", head.size());
     this.legacyHeadContent = legacyHeadContent;
-    this.streamSession = streamSession;
     threadUtils.checkNotMainThread();
     ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
 
@@ -134,10 +130,10 @@ public class SessionImpl implements InitializableSession, Dumpable {
       Logger.e(TAG, "unsupported StreamDataOperation: %s", streamStructure.getOperation());
     }
     if (modelMutation != null) {
-      modelMutation.setSessionId(streamSession.getSessionId());
+      modelMutation.setSessionId(sessionId);
       modelMutation.commit();
     }
-    timeTracker.stop("populateSession", streamSession.getSessionId(), "operations", head.size());
+    timeTracker.stop("populateSession", sessionId, "operations", head.size());
   }
 
   @Override
@@ -145,18 +141,18 @@ public class SessionImpl implements InitializableSession, Dumpable {
       boolean clearHead,
       List<StreamStructure> streamStructures,
       /*@Nullable*/ MutationContext mutationContext) {
-    StreamSession ss = Validators.checkNotNull(streamSession);
+    String localSessionId = Validators.checkNotNull(sessionId);
     if (clearHead) {
-      if (shouldInvalidateModelProvider(mutationContext, ss)) {
+      if (shouldInvalidateModelProvider(mutationContext, localSessionId)) {
         if (modelProvider != null) {
           modelProvider.invalidate();
           Logger.i(
               TAG,
               "Invalidating Model Provider for session %s due to a clear head",
-              ss.getSessionId());
+              localSessionId);
         }
       } else {
-        Logger.i(TAG, "Session %s not updated due to clearHead", ss.getSessionId());
+        Logger.i(TAG, "Session %s not updated due to clearHead", localSessionId);
       }
       return;
     }
@@ -165,11 +161,11 @@ public class SessionImpl implements InitializableSession, Dumpable {
   }
 
   protected boolean shouldInvalidateModelProvider(
-      /*@Nullable*/ MutationContext mutationContext, StreamSession ss) {
+      /*@Nullable*/ MutationContext mutationContext, String sessionId) {
     if (modelProvider != null
         && mutationContext != null
         && mutationContext.getContinuationToken() != null) {
-      return ss.getSessionId().equals(mutationContext.getRequestingSessionId());
+      return sessionId.equals(mutationContext.getRequestingSessionId());
     }
     return false;
   }
@@ -190,8 +186,7 @@ public class SessionImpl implements InitializableSession, Dumpable {
       if (!contentInSession.contains(contentId)) {
         // Make sure that mutationSourceToken is a token in this session, if not, we don't update
         // the session.
-        timeTracker.stop(
-            "updateSessionIgnored", streamSession.getSessionId(), "Token Not Found", contentId);
+        timeTracker.stop("updateSessionIgnored", sessionId, "Token Not Found", contentId);
         Logger.i(TAG, "Token %s not found in session, ignoring update", contentId);
         return;
       } else if (limitPagingUpdates) {
@@ -201,7 +196,7 @@ public class SessionImpl implements InitializableSession, Dumpable {
           Logger.i(TAG, "Request Session was not set, ignoring update");
           return;
         }
-        if (!streamSession.getSessionId().equals(mutationSessionId)) {
+        if (!sessionId.equals(mutationSessionId)) {
           Logger.i(TAG, "Limiting Updates, paging request made on another session");
           return;
         }
@@ -218,7 +213,7 @@ public class SessionImpl implements InitializableSession, Dumpable {
 
     int updateCnt = 0;
     int addFeatureCnt = 0;
-    SessionMutation sessionMutation = store.editSession(streamSession.getSessionId());
+    SessionMutation sessionMutation = store.editSession(sessionId);
     for (StreamStructure streamStructure : streamStructures) {
       String contentKey = streamStructure.getContentId();
       if (streamStructure.getOperation() == Operation.UPDATE_OR_APPEND) {
@@ -260,18 +255,12 @@ public class SessionImpl implements InitializableSession, Dumpable {
     if (modelMutation != null) {
       modelMutation.commit();
     }
-    timeTracker.stop(
-        "updateSession",
-        streamSession.getSessionId(),
-        "features",
-        addFeatureCnt,
-        "updates",
-        updateCnt);
+    timeTracker.stop("updateSession", sessionId, "features", addFeatureCnt, "updates", updateCnt);
   }
 
   @Override
-  public StreamSession getStreamSession() {
-    return Validators.checkNotNull(streamSession);
+  public String getSessionId() {
+    return Validators.checkNotNull(sessionId);
   }
 
   @Override
@@ -282,12 +271,11 @@ public class SessionImpl implements InitializableSession, Dumpable {
   @Override
   public void dump(Dumper dumper) {
     dumper.title(TAG);
-    dumper.forKey("sessionName").value(streamSession.getSessionId());
+    dumper.forKey("sessionName").value(sessionId);
     dumper
         .forKey("")
         .value((modelProvider == null) ? "sessionIsUnbound" : "sessionIsBound")
         .compactPrevious();
-    dumper.forKey("accessTime").value(new Date(streamSession.getLastAccessed())).compactPrevious();
     dumper.forKey("contentInSession").value(contentInSession.size());
     dumper.forKey("updateCount").value(updateCount).compactPrevious();
     if (modelProvider instanceof Dumpable) {

@@ -64,7 +64,8 @@ public class TimeoutSessionImplTest extends AbstractSessionImplTest {
   @Test
   public void testClearHead() {
     SessionImpl session = getSessionImpl();
-    session.populateModelProvider(TEST_SESSION, new ArrayList<>(), false, true);
+    session.setSessionId(TEST_SESSION_ID);
+    session.populateModelProvider(new ArrayList<>(), false, true);
     int featureCnt = 3;
     int featureId = 5;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder().addClearOperation();
@@ -84,7 +85,8 @@ public class TimeoutSessionImplTest extends AbstractSessionImplTest {
   @Test
   public void testClearHead_onPaginationRequest() {
     SessionImpl session = getSessionImpl();
-    session.populateModelProvider(TEST_SESSION, new ArrayList<>(), false, true);
+    session.setSessionId(TEST_SESSION_ID);
+    session.populateModelProvider(new ArrayList<>(), false, true);
     int featureCnt = 3;
     int featureId = 5;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder().addClearOperation();
@@ -93,12 +95,12 @@ public class TimeoutSessionImplTest extends AbstractSessionImplTest {
 
     ViewDepthProvider mockDepthProvider = mock(ViewDepthProvider.class);
     session.bindModelProvider(modelProvider, mockDepthProvider);
-    session.populateModelProvider(TEST_SESSION, new ArrayList<>(), false, false);
+    session.populateModelProvider(new ArrayList<>(), false, false);
     session.updateSession(
         true,
         streamStructures,
         new MutationContext.Builder()
-            .setRequestingSessionId(TEST_SESSION.getSessionId())
+            .setRequestingSessionId(TEST_SESSION_ID)
             .setContinuationToken(StreamToken.newBuilder().setContentId("token").build())
             .build());
     verify(modelProvider).invalidate(UiContext.getDefaultInstance());
@@ -111,8 +113,9 @@ public class TimeoutSessionImplTest extends AbstractSessionImplTest {
     assertThat(session.viewDepthProvider).isNull();
 
     ViewDepthProvider mockDepthProvider = mock(ViewDepthProvider.class);
+    session.setSessionId(TEST_SESSION_ID);
     session.bindModelProvider(modelProvider, mockDepthProvider);
-    session.populateModelProvider(TEST_SESSION, new ArrayList<>(), false, true);
+    session.populateModelProvider(new ArrayList<>(), false, true);
     assertThat(session.legacyHeadContent).isTrue();
     assertThat(session.viewDepthProvider).isEqualTo(mockDepthProvider);
   }

@@ -26,7 +26,6 @@ import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.knowncontent.KnownContentApi.KnownContentListener;
 import com.google.android.libraries.feed.api.modelprovider.ModelError;
 import com.google.android.libraries.feed.api.modelprovider.ModelError.ErrorType;
-import com.google.android.libraries.feed.api.modelprovider.ModelMutation;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.ViewDepthProvider;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
@@ -68,7 +67,6 @@ import com.google.android.libraries.feed.host.scheduler.SchedulerApi.RequestBeha
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi.SessionManagerState;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
-import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
@@ -270,7 +268,7 @@ public final class FeedSessionManager
     SessionManagerState sessionManagerState =
         new SessionManagerState(
             !headSession.isHeadEmpty(),
-            headSession.getStreamSession().getLastAccessed(),
+            sessionCache.getHeadLastAddedTimeMillis(),
             taskQueue.isMakingRequest());
     @RequestBehavior int behavior = schedulerApi.shouldSessionRequestData(sessionManagerState);
 
@@ -346,21 +344,14 @@ public final class FeedSessionManager
       // properly track the session so that it's empty.
       modelProvider.raiseError(Validators.checkNotNull(noCardsError));
       String sessionId = streamSessionResult.getValue();
-      StreamSession recordedSession =
-          StreamSession.newBuilder()
-              .setSessionId(sessionId)
-              .setLastAccessed(clock.currentTimeMillis())
-              .build();
-      session.setStreamSession(recordedSession);
-      sessionCache.put(session.getStreamSession().getSessionId(), session);
+      session.setSessionId(sessionId);
+      sessionCache.put(sessionId, clock.currentTimeMillis(), session);
       synchronized (lock) {
         sessionsUnderConstruction.remove(session);
       }
 
       // Set the session id on the ModelProvider.
-      ModelMutation mutation = modelProvider.edit();
-      mutation.setSessionId(sessionId);
-      mutation.commit();
+      modelProvider.edit().setSessionId(sessionId).commit();
       timeTracker.stop("task", "Create/Populate New Session", "Failure", "noCardsError");
       return;
     }
@@ -372,12 +363,7 @@ public final class FeedSessionManager
       return;
     }
     String sessionId = streamSessionResult.getValue();
-    StreamSession recordedSession =
-        StreamSession.newBuilder()
-            .setSessionId(sessionId)
-            .setLastAccessed(clock.currentTimeMillis())
-            .build();
-
+    session.setSessionId(sessionId);
     Result<List<StreamStructure>> streamStructuresResult = store.getStreamStructures(sessionId);
     if (!streamStructuresResult.isSuccessful()) {
       switchToEphemeralMode("Unable to create a new session, getStreamStructures failed");
@@ -387,9 +373,10 @@ public final class FeedSessionManager
 
     boolean cachedBindings;
     cachedBindings = contentCache.size() > 0;
+    long creationTimeMillis = clock.currentTimeMillis();
     session.populateModelProvider(
-        recordedSession, streamStructuresResult.getValue(), cachedBindings, legacyHeadContent);
-    sessionCache.put(session.getStreamSession().getSessionId(), session);
+        streamStructuresResult.getValue(), cachedBindings, legacyHeadContent);
+    sessionCache.put(sessionId, creationTimeMillis, session);
     synchronized (lock) {
       sessionsUnderConstruction.remove(session);
     }
@@ -397,8 +384,8 @@ public final class FeedSessionManager
     Logger.i(
         TAG,
         "Populate new session: %s, creation time %s",
-        session.getStreamSession().getSessionId(),
-        StringFormattingUtils.formatLogDate(session.getStreamSession().getLastAccessed()));
+        session.getSessionId(),
+        StringFormattingUtils.formatLogDate(creationTimeMillis));
     timeTracker.stop("task", "Create/Populate New Session");
   }
 
@@ -463,20 +450,19 @@ public final class FeedSessionManager
               existingModelProvider.invalidate();
             }
           }
-          StreamSession streamSession = existingSession.getStreamSession();
 
           Result<List<StreamStructure>> streamStructuresResult =
-              store.getStreamStructures(streamSession.getSessionId());
+              store.getStreamStructures(sessionId);
           if (streamStructuresResult.isSuccessful()) {
-            session.populateModelProvider(
-                streamSession, streamStructuresResult.getValue(), false, false);
-            sessionCache.put(session.getStreamSession().getSessionId(), session);
+            session.setSessionId(sessionId);
+            session.populateModelProvider(streamStructuresResult.getValue(), false, false);
+            sessionCache.putAndRetainMetadata(sessionId, session);
             existingSessionCount++;
           } else {
             Logger.e(
                 TAG,
                 "unable to get stream structure for existing session %s",
-                session.getStreamSession().getSessionId());
+                session.getSessionId());
             switchToEphemeralMode("unable to get stream structure for existing session");
           }
         });
@@ -748,7 +734,7 @@ public final class FeedSessionManager
   private void invalidateSession(
       ModelProvider modelProvider, Session session, UiContext uiContext) {
     threadUtils.checkNotMainThread();
-    Logger.i(TAG, "Invalidate session %s", session.getStreamSession().getSessionId());
+    Logger.i(TAG, "Invalidate session %s", session.getSessionId());
     modelProvider.invalidate(uiContext);
   }
 
