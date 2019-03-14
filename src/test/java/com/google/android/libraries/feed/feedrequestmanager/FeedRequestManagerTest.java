@@ -217,6 +217,11 @@ public class FeedRequestManagerTest {
   }
 
   @Test
+  public void testTriggerRefresh_articleSnippetsAdded() throws Exception {
+    testCapabilityAdded(ConfigKey.SNIPPETS_ENABLED, Capability.ARTICLE_SNIPPETS);
+  }
+
+  @Test
   public void testTriggerRefresh_defaultConsumer() throws Exception {
     RequiredConsumer<Result<List<StreamDataOperation>>> consumer =
         new RequiredConsumer<>(input -> {});

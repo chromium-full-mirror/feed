@@ -62,6 +62,8 @@ public class Configuration {
     ConfigKey.LIMIT_PAGE_UPDATES,
     // Boolean which if true, will ask the server for the feed ui response.
     ConfigKey.FEED_UI_ENABLED,
+    // Boolean which if true, will ask the server for a snippet from the article.
+    ConfigKey.SNIPPETS_ENABLED,
     // Boolean which if true, will ask the server for not interested in actions and a durable
     // dismiss action.
     ConfigKey.UNDOABLE_ACTIONS_ENABLED,
@@ -113,6 +115,7 @@ public class Configuration {
     String FADE_IMAGE_THRESHOLD_MS = "fade_image_threshold_ms";
     String LIMIT_PAGE_UPDATES = "limit_page_updates";
     String FEED_UI_ENABLED = "feed_ui_enabled";
+    String SNIPPETS_ENABLED = "snippets_enabled";
     String UNDOABLE_ACTIONS_ENABLED = "undoable_actions_enabled";
     String MANAGE_INTERESTS_ENABLED = "manage_interests_enabled";
     String CARD_MENU_TOOLTIP_ELIGIBLE = "card_menu_tooltip_eligible";

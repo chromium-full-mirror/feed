@@ -360,6 +360,8 @@ public final class FeedRequestManager implements RequestManager {
       addCapabilityIfConfigEnabled(
           feedRequestBuilder, ConfigKey.CARD_MENU_TOOLTIP_ELIGIBLE, Capability.CARD_MENU_TOOLTIP);
       addCapabilityIfConfigEnabled(
+          feedRequestBuilder, ConfigKey.SNIPPETS_ENABLED, Capability.ARTICLE_SNIPPETS);
+      addCapabilityIfConfigEnabled(
           feedRequestBuilder,
           ConfigKey.USE_SECONDARY_PAGE_REQUEST,
           Capability.USE_SECONDARY_PAGE_REQUEST);
