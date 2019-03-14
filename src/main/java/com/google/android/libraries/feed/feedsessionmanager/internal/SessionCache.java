@@ -37,6 +37,7 @@ import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSessions;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -235,14 +236,7 @@ public final class SessionCache implements Dumpable {
   @VisibleForTesting
   void initializePersistedSessions() {
     threadUtils.checkNotMainThread();
-    StreamSessions persistedSessions = getPersistedSessions();
-    List<StreamSession> sessionList;
-    if (persistedSessions == null) {
-      Logger.w(TAG, "Persisted Sessions were not found, initializing without sessions");
-      sessionList = new ArrayList<>();
-    } else {
-      sessionList = persistedSessions.getStreamSessionsList();
-    }
+    List<StreamSession> sessionList = getPersistedSessions();
 
     boolean cleanupSessions = false;
     for (StreamSession session : sessionList) {
@@ -313,9 +307,8 @@ public final class SessionCache implements Dumpable {
         store.triggerContentGc(reservedContentIds, accessibleContentSupplier));
   }
 
-  /*@Nullable*/
   @VisibleForTesting
-  StreamSessions getPersistedSessions() {
+  List<StreamSession> getPersistedSessions() {
     List<String> sessionIds = new ArrayList<>();
     sessionIds.add(STREAM_SESSION_CONTENT_ID);
     Result<List<PayloadWithId>> sessionPayloadResult = store.getPayloads(sessionIds);
@@ -324,20 +317,20 @@ public final class SessionCache implements Dumpable {
       // be created, this is as if we deleted all existing sessions.  It should be safe to ignore
       // the error.
       Logger.e(TAG, "getPayloads failed to read the Persisted sessions");
-      return null;
+      return Collections.emptyList();
     }
 
     List<PayloadWithId> sessionPayload = sessionPayloadResult.getValue();
     if (sessionPayload.isEmpty()) {
       Logger.w(TAG, "Persisted Sessions were not found");
-      return null;
+      return Collections.emptyList();
     }
     StreamPayload payload = sessionPayload.get(0).payload;
     if (!payload.hasStreamSessions()) {
       Logger.e(TAG, "Persisted Sessions StreamSessions was not set");
-      return null;
+      return Collections.emptyList();
     }
-    return payload.getStreamSessions();
+    return payload.getStreamSessions().getStreamSessionsList();
   }
 
   @VisibleForTesting

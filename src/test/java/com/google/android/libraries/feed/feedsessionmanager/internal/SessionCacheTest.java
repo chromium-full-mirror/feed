@@ -124,9 +124,7 @@ public class SessionCacheTest {
     session = populateSession(2, 2);
     sessionCache.put(session.getStreamSession().getSessionId(), session);
 
-    StreamSessions sessions = sessionCache.getPersistedSessions();
-    assertThat(sessions).isNotNull();
-    List<StreamSession> streamSessionList = sessions.getStreamSessionsList();
+    List<StreamSession> streamSessionList = sessionCache.getPersistedSessions();
     assertThat(streamSessionList).hasSize(3);
   }
 
@@ -137,18 +135,14 @@ public class SessionCacheTest {
     Session session = populateSession(1, 2);
     sessionCache.put(session.getStreamSession().getSessionId(), session);
 
-    StreamSessions sessions = sessionCache.getPersistedSessions();
-    assertThat(sessions).isNotNull();
-    List<StreamSession> streamSessionList = sessions.getStreamSessionsList();
+    List<StreamSession> streamSessionList = sessionCache.getPersistedSessions();
     assertThat(streamSessionList).hasSize(2);
 
     String token = session.getStreamSession().getSessionId();
     assertThat(sessionCache.remove(token)).isEqualTo(session);
     assertThat(sessionCache.get(token)).isNull();
 
-    sessions = sessionCache.getPersistedSessions();
-    assertThat(sessions).isNotNull();
-    streamSessionList = sessions.getStreamSessionsList();
+    streamSessionList = sessionCache.getPersistedSessions();
     assertThat(streamSessionList).hasSize(1);
   }
 
@@ -249,15 +243,17 @@ public class SessionCacheTest {
   @Test
   public void testGetPersistedSessions() {
     List<PayloadWithId> persistedSessions = new ArrayList<>();
-    StreamSessions streamSessions = StreamSessions.getDefaultInstance();
+    StreamSession streamSession = StreamSession.getDefaultInstance();
+    StreamSessions streamSessions =
+        StreamSessions.newBuilder().addStreamSessions(streamSession).build();
     StreamPayload payload = StreamPayload.newBuilder().setStreamSessions(streamSessions).build();
     persistedSessions.add(new PayloadWithId(SessionCache.STREAM_SESSION_CONTENT_ID, payload));
 
     SessionCache sessionCache = getSessionCache();
     doReturn(Result.success(persistedSessions)).when(storeSpy).getPayloads(any());
 
-    StreamSessions sessions = sessionCache.getPersistedSessions();
-    assertThat(sessions).isEqualTo(streamSessions);
+    List<StreamSession> sessionList = sessionCache.getPersistedSessions();
+    assertThat(sessionList).containsExactly(streamSession);
   }
 
   @Test
@@ -321,9 +317,7 @@ public class SessionCacheTest {
 
     // persist HEAD into the store
     sessionCache.updatePersistedSessions();
-    StreamSessions streamSessions = sessionCache.getPersistedSessions();
-    assertThat(streamSessions).isNotNull();
-    List<StreamSession> streamSessionList = streamSessions.getStreamSessionsList();
+    List<StreamSession> streamSessionList = sessionCache.getPersistedSessions();
     assertThat(streamSessionList).hasSize(1);
 
     // add additional sessions
@@ -336,9 +330,7 @@ public class SessionCacheTest {
     sessionCache.setSessionsForTest(s1, s2);
 
     sessionCache.updatePersistedSessions();
-    streamSessions = sessionCache.getPersistedSessions();
-    assertThat(streamSessions).isNotNull();
-    streamSessionList = streamSessions.getStreamSessionsList();
+    streamSessionList = sessionCache.getPersistedSessions();
     assertThat(streamSessionList).hasSize(3);
     assertThat(streamSessionList).contains(session1);
     assertThat(streamSessionList).contains(session2);
@@ -351,7 +343,7 @@ public class SessionCacheTest {
     sessionCache.updatePersistedSessions();
 
     doReturn(Result.failure()).when(storeSpy).getPayloads(any());
-    assertThat(sessionCache.getPersistedSessions()).isNull();
+    assertThat(sessionCache.getPersistedSessions()).isEmpty();
   }
 
   private SessionCache getSessionCache() {
