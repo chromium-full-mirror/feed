@@ -34,6 +34,7 @@ import android.support.annotation.IntDef;
   InternalFeedError.CLUSTER_CHILD_NOT_CARD,
   InternalFeedError.CARD_CHILD_MISSING_FEATURE,
   InternalFeedError.NULL_SHARED_STATES,
+  InternalFeedError.FAILED_TO_CREATE_LEAF,
   InternalFeedError.NEXT_VALUE
 })
 public @interface InternalFeedError {
