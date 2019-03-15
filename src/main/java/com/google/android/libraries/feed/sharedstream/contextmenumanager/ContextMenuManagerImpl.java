@@ -18,6 +18,7 @@ import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 
 import android.content.Context;
 import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
 import android.view.View;
 import android.view.ViewParent;
 import android.view.WindowManager.LayoutParams;
@@ -191,14 +192,12 @@ public class ContextMenuManagerImpl implements ContextMenuManager {
     // Note: We are intentionally using contextPopupMenuStyle, which allows hosts to modify the
     // style of context menus. This should not be changed without speaking with host teams.
     PopupWindow popupWindow = new PopupWindow(context, null, android.R.attr.contextPopupMenuStyle);
-
+    Drawable background = popupWindow.getBackground();
     Rect backgroundPadding = new Rect();
-    popupWindow.getBackground().getPadding(backgroundPadding);
-
+    background.getPadding(backgroundPadding);
     popupWindow.setContentView(listView);
 
-    // Using measurements.getHeight() + backgroundPadding.height() results in a scroll bar, so we
-    // just wrap content here.
+    // We want the menu to wrap content.
     popupWindow.setHeight(LayoutParams.WRAP_CONTENT);
 
     // Material design specifies the width of a menu, so we set it specifically, instead of wrapping
@@ -216,11 +215,18 @@ public class ContextMenuManagerImpl implements ContextMenuManager {
     // anchor view. As the logic has been written assuming overlap anchor is false, we set it false.
     popupWindow.setOverlapAnchor(false);
 
-    return new PopupWindowWithDimensions(
-        popupWindow,
+    // Our positioning code uses this sizing to properly position the menus. The measurement we need
+    // here is from the top of the menu, to the bottom of where the shadow ends (and similarly for
+    // width). So we divide the width and height of the shadows by two to now include the shadows on
+    // both sides.
+    Size popupAndBackgroundSize =
         new Size(
-            measurements.getWidth() + backgroundPadding.width(),
-            measurements.getHeight() + backgroundPadding.height()));
+            measurements.getWidth()
+                + (backgroundPadding.width() + background.getMinimumWidth()) / 2,
+            measurements.getHeight()
+                + (backgroundPadding.height() + background.getMinimumHeight()) / 2);
+
+    return new PopupWindowWithDimensions(popupWindow, popupAndBackgroundSize);
   }
 
   private ListView createListView(ArrayAdapter<String> adapter, Context context) {
