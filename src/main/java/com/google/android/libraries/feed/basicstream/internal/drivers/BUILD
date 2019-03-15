@@ -5,6 +5,7 @@ licenses(["notice"])  # Apache 2
 android_library(
     name = "drivers",
     srcs = glob(["*.java"]),
+    manifest = "AndroidManifest.xml",
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/actionmanager",
         "//src/main/java/com/google/android/libraries/feed/api/actionparser",
@@ -26,13 +27,13 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/host/config",
         "//src/main/java/com/google/android/libraries/feed/host/logging",
         "//src/main/java/com/google/android/libraries/feed/host/stream",
-        "//src/main/java/com/google/android/libraries/feed/sharedstream:resources",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/constants",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/contextmenumanager",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/logging",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/offlinemonitor",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/pendingdismiss",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/removetrackingfactory",
+        "//src/main/java/com/google/android/libraries/feed/sharedstream/ui:resources",
         "//src/main/proto/com/google/android/libraries/feed/api/proto:client_feed_java_proto_lite",
         "//src/main/proto/com/google/android/libraries/feed/sharedstream/proto:ui_refresh_reason_java_proto_lite",
         "//src/main/proto/search/now/ui/action:feed_action_java_proto_lite",

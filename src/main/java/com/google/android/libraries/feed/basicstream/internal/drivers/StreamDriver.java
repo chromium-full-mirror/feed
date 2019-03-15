@@ -46,7 +46,6 @@ import com.google.android.libraries.feed.host.logging.ZeroStateShowReason;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
 import com.google.android.libraries.feed.host.stream.SnackbarCallbackApi;
 import com.google.android.libraries.feed.host.stream.TooltipApi;
-import com.google.android.libraries.feed.sharedstream.R;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
 import com.google.android.libraries.feed.sharedstream.pendingdismiss.PendingDismissCallback;
