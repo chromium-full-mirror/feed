@@ -26,6 +26,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.PopupWindow;
 import com.google.android.libraries.feed.common.logging.Logger;
+import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.sharedstream.publicapi.menumeasurer.MenuMeasurer;
 import com.google.android.libraries.feed.sharedstream.publicapi.menumeasurer.Size;
 import java.util.List;
@@ -97,14 +98,21 @@ public class ContextMenuManagerImpl implements ContextMenuManager {
     int yOffset =
         getYOffsetForContextMenu(anchorView, popupWindowWithDimensions.getDimensions().getHeight());
 
+    int xOffset = anchorView.getWidth() / FRACTION_FROM_EDGE;
+
+    // In RtL locals, we want to show the menu 1 / FRACTION_FROM_EDGE from the right of the anchor
+    // view. showAsDropDown in RtL aligns the right edge of the menu with the right edge of the
+    // anchor view, so we want to shift to the left.
+    if (LayoutUtils.isDefaultLocaleRtl()) {
+      xOffset *= -1;
+    }
+
     // Note: PopupWindow#showAsDropDown is bugged for android versions below N and should not be
     // used in that context. Instead, showAtLocation should be used, and the menu should be set at
     // an absolute location. However, to get enter animations to properly work, showAsDropDown needs
     // to be used so that Android knows whether the menu is opening above or below the anchor view.
     // This is possible as this class is only used for N+.
-    popupWindowWithDimensions
-        .getPopupWindow()
-        .showAsDropDown(anchorView, anchorView.getWidth() / FRACTION_FROM_EDGE, yOffset);
+    popupWindowWithDimensions.getPopupWindow().showAsDropDown(anchorView, xOffset, yOffset);
 
     // We want to prevent any more touch events from be used (if a user has yet to end their current
     // touch session). This prevents the possibility of scrolling after the context menu opens.
