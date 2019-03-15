@@ -109,14 +109,17 @@ public class ImageElementAdapterTest {
         .thenAnswer(invocation -> invocation.getArguments()[0]);
     when(hostProviders.getAssetProvider()).thenReturn(assetProvider);
     when(styleProvider.getPadding()).thenReturn(PADDING);
-    when(styleProvider.hasRoundedCorners(context)).thenReturn(true);
+    when(styleProvider.hasRoundedCorners()).thenReturn(true);
     when(styleProvider.getRoundedCorners()).thenReturn(CORNERS);
-    when(styleProvider.getRoundedCornerRadius(context)).thenReturn(CORNERS.getRadius());
     when(styleProvider.getScaleType()).thenReturn(ScaleType.FIT_CENTER);
     when(styleProvider.createWrapperView(context))
         .thenReturn(
             new RoundedCornerWrapperView(
-                context, CORNERS.getBitmask(), CORNERS.getRadius(), Suppliers.of(false)));
+                context,
+                CORNERS,
+                Suppliers.of(false),
+                /*radiusOverride= */ 0,
+                /* borders= */ null));
     setStyle(null, null);
 
     adapter = new ImageElementAdapterForTest(context, parameters);

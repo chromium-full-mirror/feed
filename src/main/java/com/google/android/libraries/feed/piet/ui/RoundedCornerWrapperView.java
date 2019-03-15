@@ -31,20 +31,25 @@ import android.view.ViewOutlineProvider;
 import android.view.ViewParent;
 import android.widget.FrameLayout;
 import com.google.android.libraries.feed.common.functional.Supplier;
-import com.google.android.libraries.feed.common.logging.Logger;
+import com.google.android.libraries.feed.common.ui.LayoutUtils;
+import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners.Corners;
+import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners.RadiusOptionsCase;
+import com.google.search.now.ui.piet.StylesProto.Borders;
 
 /** Wrapper for {@link View} instances in Piet that require rounded corners. */
 public class RoundedCornerWrapperView extends FrameLayout {
 
-  private static final String TAG = "RoundedCornerWrapper";
   private final Paint paint;
   private final Paint maskPaint;
-  private final int roundedCornerRadius;
+  private final int radiusOverride;
+  private final RoundedCorners roundedCorners;
   private final Supplier<Boolean> isRtLSupplier;
-  private final int bitmask;
+  private final Context context;
+  private final Borders borders;
 
   /*@Nullable*/ private RoundRectShape outlineShape = null;
+  private int roundedCornerRadius;
 
   // Masks for each of the corners of the view; null if that corner is not rounded.
   /*@Nullable*/ private Bitmap cornerTL = null;
@@ -54,23 +59,30 @@ public class RoundedCornerWrapperView extends FrameLayout {
 
   // Keep track of current mask configuration so we can use cached values if nothing has changed.
   private int lastRadius = -1;
+  private int lastWidth = 0;
+  private int lastHeight = 0;
   private boolean lastRtL;
 
   // Doesn't like the call to setOutlineProvider
   @SuppressWarnings("initialization")
   public RoundedCornerWrapperView(
-      Context context, int bitmask, int roundedCornerRadius, Supplier<Boolean> isRtLSupplier) {
+      Context context,
+      RoundedCorners roundedCorners,
+      Supplier<Boolean> isRtLSupplier,
+      int radiusOverride,
+      Borders borders) {
     super(context);
-    this.roundedCornerRadius = roundedCornerRadius;
     this.isRtLSupplier = isRtLSupplier;
+    this.roundedCorners = roundedCorners;
+    this.radiusOverride = radiusOverride;
+    this.context = context;
+    this.borders = borders;
     lastRtL = !isRtLSupplier.get(); // Flip this so we must update the layout on the first time.
 
     paint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
     maskPaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
     maskPaint.setXfermode(new PorterDuffXfermode(Mode.CLEAR));
-
-    this.bitmask = bitmask;
 
     if (hasRoundedCorners() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
       super.setOutlineProvider(
@@ -81,10 +93,10 @@ public class RoundedCornerWrapperView extends FrameLayout {
               if (localOutlineShape == null
                   || localOutlineShape.getHeight() != view.getHeight()
                   || localOutlineShape.getWidth() != view.getWidth()) {
-                int radius = makeRadius(view.getWidth(), view.getHeight(), roundedCornerRadius);
+                int radius = getRadius(view.getWidth(), view.getHeight());
                 float[] radii =
                     RoundedCornerViewHelper.createRoundedCornerMask(
-                        radius, bitmask, isRtLSupplier.get());
+                        radius, roundedCorners.getBitmask(), isRtLSupplier.get());
                 localOutlineShape = new RoundRectShape(radii, null, null);
                 localOutlineShape.resize(view.getWidth(), view.getHeight());
                 outlineShape = localOutlineShape;
@@ -94,19 +106,15 @@ public class RoundedCornerWrapperView extends FrameLayout {
           });
     }
 
-    // If the view never gets smaller in one dimension than radius * 2, this will be the only time
-    // we need to create the corner masks.
-    makeCornerMasks(roundedCornerRadius);
-
     setWillNotDraw(false);
   }
 
   /**
-   * Make masks for each corner, as applicable.
-   *
-   * <p>This will no-op if radius and isLtR are the same as the last call.
+   * Creates corner masks (which cover the parts of the corners that should not be shown) and
+   * borders, as necessary. Both must be created after the radius is known. However, if the size of
+   * the view and the LtR remain the same, it will only create the masks and borders once.
    */
-  void makeCornerMasks(int radius) {
+  private void setupCornerMasksAndBorders(int radius) {
     if (!hasRoundedCorners()) {
       return;
     }
@@ -115,6 +123,19 @@ public class RoundedCornerWrapperView extends FrameLayout {
       return;
     }
 
+    makeCornerMasks(radius, isRtL);
+    addBorders(radius);
+
+    lastRadius = radius;
+    lastRtL = isRtL;
+  }
+
+  /**
+   * Make masks for each corner, as applicable.
+   *
+   * <p>This will no-op if radius and isRtL are the same as the last call.
+   */
+  private void makeCornerMasks(int radius, boolean isRtL) {
     Canvas canvas = new Canvas();
 
     if ((shouldRoundCorner(Corners.TOP_START) && !isRtL)
@@ -127,7 +148,7 @@ public class RoundedCornerWrapperView extends FrameLayout {
 
     if ((shouldRoundCorner(Corners.TOP_END) && !isRtL)
         || (shouldRoundCorner(Corners.TOP_START) && isRtL)) {
-      cornerTR = Bitmap.createBitmap(roundedCornerRadius, roundedCornerRadius, Config.ALPHA_8);
+      cornerTR = Bitmap.createBitmap(radius, radius, Config.ALPHA_8);
       canvas.setBitmap(cornerTR);
       canvas.drawColor(Color.BLACK);
       canvas.drawCircle(0, radius, radius, maskPaint);
@@ -148,9 +169,29 @@ public class RoundedCornerWrapperView extends FrameLayout {
       canvas.drawColor(Color.BLACK);
       canvas.drawCircle(0, 0, radius, maskPaint);
     }
+  }
 
-    lastRadius = radius;
-    lastRtL = isRtL;
+  /**
+   * Creates a border drawable and adds it to this view's foreground. This is called from {@link
+   * RoundedCornerWrapperView} because when the corners are rounded, the borders also need to be
+   * rounded, and the radius can't properly be calculated until the view has been laid out and the
+   * height and width are known. From this class, it is easy to make sure the border is created
+   * after layout happens, since we are overriding draw. Draw is guaranteed to happen after layout,
+   * so we can make sure that the borders are drawn with the appropriate measurements.
+   */
+  private void addBorders(int radius) {
+    if (borders.getWidth() <= 0) {
+      return;
+    }
+    boolean isRtL = isRtLSupplier.get();
+    // Set up outline of borders
+    float[] outerRadii =
+        RoundedCornerViewHelper.createRoundedCornerMask(radius, roundedCorners.getBitmask(), isRtL);
+
+    // Create a drawable to stroke the border
+    BorderDrawable borderDrawable =
+        new BorderDrawable(context, borders, outerRadii, isRtL, lastWidth, lastHeight);
+    this.setForeground(borderDrawable);
   }
 
   /**
@@ -193,7 +234,11 @@ public class RoundedCornerWrapperView extends FrameLayout {
       return;
     }
 
-    int radius = makeRadius(width, height, roundedCornerRadius);
+    int radius = getRadius(width, height);
+
+    // Set up the corner masks and borders, both of which require knowing the radius.
+    // This should no-op if radius and isLtR have not changed.
+    setupCornerMasksAndBorders(radius);
 
     // We need to create a new bitmap because the default canvas doesn't have transparency (?)
     Bitmap offscreenBitmap = Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.ARGB_8888);
@@ -202,9 +247,6 @@ public class RoundedCornerWrapperView extends FrameLayout {
     // Draw the view without rounded corners on the offscreen canvas.
     super.draw(offscreenCanvas);
 
-    // Set up the corner masks. This should no-op if radius and isLtR have not changed.
-    makeCornerMasks(radius);
-
     // Crop the corners off using masks
     maskCorners(offscreenCanvas, width, height, radius, maskPaint);
 
@@ -212,27 +254,74 @@ public class RoundedCornerWrapperView extends FrameLayout {
     canvas.drawBitmap(offscreenBitmap, 0f, 0f, paint);
   }
 
-  /** Calculates the corner radius, clipping it to 50% of the smaller of view height and width. */
-  private static int makeRadius(int width, int height, int desiredRadius) {
-    if (desiredRadius == 0) {
+  /**
+   * Returns the radius, which is only calculated if necessary. If the width and height are the same
+   * as the previous width and height, there's no need to re-calculate, and the previous radius is
+   * returned. The width and height are needed for radii calculated as a percentage of width or
+   * height, and to make sure that the radius isn't too big for the size of the view.
+   */
+  public int getRadius(int width, int height) {
+    if (!hasRoundedCorners()) {
       return 0;
     }
-    int radius = desiredRadius;
-
-    // Radius can't be bigger than half of the width or height of the view.
-    // TODO: Allow for radius to be greater than half of the dimensions as long as adjacent
-    // corners aren't rounded.
-    if (radius > width / 2 || radius > height / 2) {
-      radius = Math.min(width / 2, height / 2);
-      Logger.w(
-          TAG,
-          "Can't use radius of %s px, instead using %s. Width: %s, height: %s",
-          desiredRadius,
-          radius,
-          width,
-          height);
+    if (radiusOverride > 0) {
+      roundedCornerRadius = radiusOverride;
+      return roundedCornerRadius;
     }
+    if (width == lastWidth && height == lastHeight) {
+      return roundedCornerRadius;
+    }
+    int radius = makeRadius(width, height);
+    lastWidth = width;
+    lastHeight = height;
     return radius;
+  }
+
+  /** Calculates the corner radius */
+  private int makeRadius(int width, int height) {
+
+    int radius = 0;
+    RadiusOptionsCase radiusOptions = roundedCorners.getRadiusOptionsCase();
+
+    switch (radiusOptions) {
+      case RADIUS_DP:
+        radius = (int) LayoutUtils.dpToPx(roundedCorners.getRadiusDp(), context);
+        break;
+      case RADIUS_PERCENTAGE_OF_HEIGHT:
+        radius = roundedCorners.getRadiusPercentageOfHeight() * height / 100;
+        break;
+      case RADIUS_PERCENTAGE_OF_WIDTH:
+        radius = roundedCorners.getRadiusPercentageOfWidth() * width / 100;
+        break;
+      default:
+        // TODO Remove deprecated radius code.
+        if (roundedCorners.hasRadius()) {
+          radius = (int) LayoutUtils.dpToPx(roundedCorners.getRadius(), context);
+        }
+    }
+
+    roundedCornerRadius = adjustRadiusIfTooBig(width, height, radius);
+    return roundedCornerRadius;
+  }
+
+  /**
+   * Returns the radius that was passed in, or a smaller radius if necessary. If the current radius
+   * is bigger than the width or height, or if it has adjacent rounded corners and the radius is
+   * more than half of the width or height, the radius is made smaller. It shrinks on all sides,
+   * even if only one corner needs to shrink--Piet does not allow different corners to have
+   * different radii.
+   */
+  private int adjustRadiusIfTooBig(int width, int height, int currentRadius) {
+    currentRadius = Math.min(currentRadius, height);
+    currentRadius = Math.min(currentRadius, width);
+
+    if (hasVerticallyAdjacentRoundedCorners()) {
+      currentRadius = Math.min(currentRadius, height / 2);
+    }
+    if (hasHorizontallyAdjacentRoundedCorners()) {
+      currentRadius = Math.min(currentRadius, width / 2);
+    }
+    return currentRadius;
   }
 
   /** Draws a mask on each corner that is rounded. */
@@ -253,10 +342,21 @@ public class RoundedCornerWrapperView extends FrameLayout {
 
   /** This should always be true; we should not be using this view when corners are not round. */
   public boolean hasRoundedCorners() {
-    return roundedCornerRadius > 0;
+    return RoundedCornerViewHelper.hasValidRoundedCorners(roundedCorners, radiusOverride);
+  }
+
+  private boolean hasVerticallyAdjacentRoundedCorners() {
+    return (shouldRoundCorner(Corners.TOP_START) && shouldRoundCorner(Corners.BOTTOM_START))
+        || (shouldRoundCorner(Corners.TOP_END) && shouldRoundCorner(Corners.BOTTOM_END));
+  }
+
+  private boolean hasHorizontallyAdjacentRoundedCorners() {
+    return (shouldRoundCorner(Corners.TOP_START) && shouldRoundCorner(Corners.TOP_END))
+        || (shouldRoundCorner(Corners.BOTTOM_START) && shouldRoundCorner(Corners.BOTTOM_END));
   }
 
   private boolean shouldRoundCorner(Corners corner) {
+    int bitmask = roundedCorners.getBitmask();
     return (bitmask == 0) || (bitmask & corner.getNumber()) != 0;
   }
 }

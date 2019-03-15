@@ -122,8 +122,14 @@ class StyleProvider {
   }
 
   /** Whether rounded corners are explicitly specified */
-  public boolean hasRoundedCorners(Context context) {
-    return getRoundedCornerRadius(context) > 0;
+  public boolean hasRoundedCorners() {
+    if (!style.hasRoundedCorners()) {
+      return false;
+    }
+    RoundedCorners roundedCorners = style.getRoundedCorners();
+    int radiusOverride =
+        roundedCorners.getUseHostRadiusOverride() ? assetProvider.getDefaultCornerRadius() : 0;
+    return RoundedCornerViewHelper.hasValidRoundedCorners(roundedCorners, radiusOverride);
   }
 
   /** The font for this style */
@@ -374,24 +380,14 @@ class StyleProvider {
     return 0;
   }
 
-  void addBorders(FrameLayout view, Context context) {
+  void addBordersWithoutRoundedCorners(FrameLayout view, Context context) {
     if (!hasBorders()) {
       return;
     }
 
-    // Set up outline of borders
-    float[] outerRadii;
-    boolean isRtL = assetProvider.isRtL();
-    if (hasRoundedCorners(context)) {
-      outerRadii =
-          RoundedCornerViewHelper.createRoundedCornerMask(
-              getRoundedCornerRadius(context), getRoundedCorners().getBitmask(), isRtL);
-    } else {
-      outerRadii = ZERO_RADIUS;
-    }
-
     // Create a drawable to stroke the border
-    BorderDrawable borderDrawable = new BorderDrawable(context, getBorders(), outerRadii, isRtL);
+    BorderDrawable borderDrawable =
+        new BorderDrawable(context, getBorders(), ZERO_RADIUS, assetProvider.isRtL());
     view.setForeground(borderDrawable);
   }
 
@@ -411,29 +407,14 @@ class StyleProvider {
     }
   }
 
-  int getRoundedCornerRadius(Context context) {
-    if (!style.hasRoundedCorners()) {
-      return 0;
-    }
-    RoundedCorners roundedCorners = getRoundedCorners();
-    if (roundedCorners.getUseHostRadiusOverride()) {
-      int radius = assetProvider.getDefaultCornerRadius();
-      if (radius > 0) {
-        return radius;
-      }
-    }
-    return (int) LayoutUtils.dpToPx(roundedCorners.getRadius(), context);
-  }
-
   FrameLayout createWrapperView(Context context) {
-    if (hasRoundedCorners(context)) {
-      return new RoundedCornerWrapperView(
-          context,
-          getRoundedCorners().getBitmask(),
-          getRoundedCornerRadius(context),
-          assetProvider.isRtLSupplier());
+    if (!hasRoundedCorners()) {
+      return new FrameLayout(context);
     }
-    return new FrameLayout(context);
+    int radiusOverride =
+        getRoundedCorners().getUseHostRadiusOverride() ? assetProvider.getDefaultCornerRadius() : 0;
+    return new RoundedCornerWrapperView(
+        context, getRoundedCorners(), assetProvider.isRtLSupplier(), radiusOverride, getBorders());
   }
 
   /**

@@ -60,6 +60,7 @@ import com.google.search.now.ui.piet.ElementsProto.Visibility;
 import com.google.search.now.ui.piet.ElementsProto.VisibilityState;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
+import com.google.search.now.ui.piet.StylesProto.Borders;
 import com.google.search.now.ui.piet.StylesProto.GravityHorizontal;
 import com.google.search.now.ui.piet.StylesProto.GravityVertical;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
@@ -100,7 +101,7 @@ public class ElementAdapterTest {
             context, Suppliers.of((ViewGroup) null), hostProviders, new FakeClock());
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(styleProvider);
     when(frameContext.getActionHandler()).thenReturn(actionHandler);
-    when(styleProvider.hasRoundedCorners(context)).thenReturn(false);
+    when(styleProvider.hasRoundedCorners()).thenReturn(false);
     when(styleProvider.getRoundedCorners()).thenReturn(RoundedCorners.getDefaultInstance());
     when(styleProvider.createWrapperView(context)).thenReturn(new FrameLayout(context));
 
@@ -338,7 +339,7 @@ public class ElementAdapterTest {
 
     adapter.createAdapter(Element.getDefaultInstance(), Element.getDefaultInstance(), frameContext);
 
-    verify(styleProvider).addBorders((FrameLayout) adapter.getView(), context);
+    verify(styleProvider).addBordersWithoutRoundedCorners((FrameLayout) adapter.getView(), context);
   }
 
   @Test
@@ -1266,9 +1267,15 @@ public class ElementAdapterTest {
 
   @Test
   public void testRoundedCorners() {
+    RoundedCorners roundedCorners = RoundedCorners.newBuilder().setRadiusDp(10).build();
     RoundedCornerWrapperView roundedCornerWrapperView =
-        new RoundedCornerWrapperView(context, 0, 10, Suppliers.of(false));
-    when(styleProvider.hasRoundedCorners(context)).thenReturn(true);
+        new RoundedCornerWrapperView(
+            context,
+            roundedCorners,
+            Suppliers.of(false),
+            /*radiusOverride= */ 0,
+            Borders.getDefaultInstance());
+    when(styleProvider.hasRoundedCorners()).thenReturn(true);
     when(styleProvider.createWrapperView(context)).thenReturn(roundedCornerWrapperView);
 
     adapter.createAdapter(Element.getDefaultInstance(), frameContext);
@@ -1278,9 +1285,15 @@ public class ElementAdapterTest {
 
   @Test
   public void testRoundedCornersWithVisibility() {
+    RoundedCorners roundedCorners = RoundedCorners.newBuilder().setRadiusDp(10).build();
     RoundedCornerWrapperView roundedCornerWrapperView =
-        new RoundedCornerWrapperView(context, 0, 10, Suppliers.of(false));
-    when(styleProvider.hasRoundedCorners(context)).thenReturn(true);
+        new RoundedCornerWrapperView(
+            context,
+            roundedCorners,
+            Suppliers.of(false),
+            /*radiusOverride= */ 0,
+            Borders.getDefaultInstance());
+    when(styleProvider.hasRoundedCorners()).thenReturn(true);
     when(styleProvider.createWrapperView(context)).thenReturn(roundedCornerWrapperView);
 
     VisibilityBindingRef visibilityBinding =

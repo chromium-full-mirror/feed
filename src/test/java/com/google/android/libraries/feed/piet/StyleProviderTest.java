@@ -45,7 +45,6 @@ import com.google.search.now.ui.piet.GradientsProto.Fill;
 import com.google.search.now.ui.piet.GradientsProto.LinearGradient;
 import com.google.search.now.ui.piet.ImagesProto.Image.ScaleType;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
-import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners.Corners;
 import com.google.search.now.ui.piet.ShadowsProto.ElevationShadow;
 import com.google.search.now.ui.piet.ShadowsProto.Shadow;
 import com.google.search.now.ui.piet.StylesProto.Borders;
@@ -131,7 +130,7 @@ public class StyleProviderTest {
     assertThat(styleProvider.getFadeInImageOnLoad())
         .isEqualTo(style.getImageLoadingSettings().getFadeInImageOnLoad());
     assertThat(styleProvider.getRoundedCorners()).isEqualTo(style.getRoundedCorners());
-    assertThat(styleProvider.hasRoundedCorners(context)).isTrue();
+    assertThat(styleProvider.hasRoundedCorners()).isTrue();
     assertThat(styleProvider.getFont()).isEqualTo(style.getFont());
     assertThat(styleProvider.getMaxLines()).isEqualTo(style.getMaxLines());
     assertThat(styleProvider.getHeightSpecPx(context))
@@ -161,7 +160,7 @@ public class StyleProviderTest {
     assertThat(styleProvider.hasPreLoadFill()).isFalse();
     assertThat(styleProvider.getPreLoadFill()).isEqualTo(Fill.getDefaultInstance());
     assertThat(styleProvider.getFadeInImageOnLoad()).isFalse();
-    assertThat(styleProvider.hasRoundedCorners(context)).isFalse();
+    assertThat(styleProvider.hasRoundedCorners()).isFalse();
     assertThat(styleProvider.getRoundedCorners()).isEqualTo(RoundedCorners.getDefaultInstance());
     assertThat(styleProvider.getFont()).isEqualTo(Font.getDefaultInstance());
     assertThat(styleProvider.getMaxLines()).isEqualTo(style.getMaxLines());
@@ -266,85 +265,12 @@ public class StyleProviderTest {
   }
 
   @Test
-  public void testHasRoundedCorners_notHostProvidedNonZero() {
-    StyleProvider styleProvider =
-        new StyleProvider(
-            Style.newBuilder()
-                .setRoundedCorners(
-                    RoundedCorners.newBuilder()
-                        .setRadius(123)
-                        .setBitmask(4)
-                        .setUseHostRadiusOverride(false))
-                .build(),
-            mockAssetProvider);
+  public void testHasRoundedCornersMethod_noRoundedCorners() {
+    Style noRoundedCornerStyle = Style.getDefaultInstance();
+    StyleProvider styleProvider = new StyleProvider(noRoundedCornerStyle, mockAssetProvider);
     when(mockAssetProvider.getDefaultCornerRadius()).thenReturn(321);
 
-    assertThat(styleProvider.hasRoundedCorners(context)).isTrue();
-    assertThat(styleProvider.getRoundedCornerRadius(context)).isEqualTo(123);
-  }
-
-  @Test
-  public void testHasRoundedCorners_hostProvidedNonZero() {
-    StyleProvider styleProvider =
-        new StyleProvider(
-            Style.newBuilder()
-                .setRoundedCorners(
-                    RoundedCorners.newBuilder()
-                        .setRadius(123)
-                        .setBitmask(4)
-                        .setUseHostRadiusOverride(true))
-                .build(),
-            mockAssetProvider);
-    when(mockAssetProvider.getDefaultCornerRadius()).thenReturn(321);
-
-    assertThat(styleProvider.hasRoundedCorners(context)).isTrue();
-    assertThat(styleProvider.getRoundedCornerRadius(context)).isEqualTo(321);
-  }
-
-  @Test
-  public void testHasRoundedCorners_notHostProvidedZero() {
-    StyleProvider styleProvider =
-        new StyleProvider(
-            Style.newBuilder()
-                .setRoundedCorners(
-                    RoundedCorners.newBuilder()
-                        .setRadius(0)
-                        .setBitmask(4)
-                        .setUseHostRadiusOverride(false))
-                .build(),
-            mockAssetProvider);
-    when(mockAssetProvider.getDefaultCornerRadius()).thenReturn(321);
-
-    assertThat(styleProvider.hasRoundedCorners(context)).isFalse();
-    assertThat(styleProvider.getRoundedCornerRadius(context)).isEqualTo(0);
-  }
-
-  @Test
-  public void testHasRoundedCorners_hostProvidedZero() {
-    StyleProvider styleProvider =
-        new StyleProvider(
-            Style.newBuilder()
-                .setRoundedCorners(RoundedCorners.newBuilder().setRadius(123).setBitmask(4))
-                .build(),
-            mockAssetProvider);
-    when(mockAssetProvider.getDefaultCornerRadius()).thenReturn(0);
-
-    assertThat(styleProvider.hasRoundedCorners(context)).isTrue();
-    assertThat(styleProvider.getRoundedCornerRadius(context)).isEqualTo(123);
-  }
-
-  @Test
-  public void testHasRoundedCorners_radiusAndHostSayZero() {
-    StyleProvider styleProvider =
-        new StyleProvider(
-            Style.newBuilder()
-                .setRoundedCorners(RoundedCorners.newBuilder().setRadius(0).setBitmask(4))
-                .build(),
-            mockAssetProvider);
-    when(mockAssetProvider.getDefaultCornerRadius()).thenReturn(0);
-
-    assertThat(styleProvider.hasRoundedCorners(context)).isFalse();
-    assertThat(styleProvider.getRoundedCornerRadius(context)).isEqualTo(0);
+    assertThat(styleProvider.hasRoundedCorners()).isFalse();
   }
 
   @Test
@@ -443,40 +369,12 @@ public class StyleProviderTest {
 
     FrameLayout view = new FrameLayout(context);
     new StyleProvider(Style.newBuilder().setBorders(borders).build(), mockAssetProvider)
-        .addBorders(view, context);
+        .addBordersWithoutRoundedCorners(view, context);
     BorderDrawable borderDrawable = (BorderDrawable) view.getForeground();
     borderDrawable.setBounds(0, 0, 0, 0);
 
     assertThat(borderDrawable.getPaint().getColor()).isEqualTo(Color.CYAN);
     assertThat(borderDrawable.getBounds()).isEqualTo(new Rect(-4, 0, 0, 4));
-  }
-
-  @Test
-  public void testCreateBorderDrawable_roundedCorners() {
-    Borders borders =
-        Borders.newBuilder()
-            .setColor(Color.CYAN)
-            .setWidth(4)
-            .setBitmask(Edges.TOP.getNumber() | Edges.END.getNumber())
-            .build();
-    RoundedCorners roundedCorners =
-        RoundedCorners.newBuilder()
-            .setRadius(16)
-            .setBitmask(Corners.TOP_START.getNumber() | Corners.BOTTOM_END.getNumber())
-            .build();
-
-    FrameLayout view = new FrameLayout(context);
-    new StyleProvider(
-            Style.newBuilder().setBorders(borders).setRoundedCorners(roundedCorners).build(),
-            mockAssetProvider)
-        .addBorders(view, context);
-    BorderDrawable borderDrawable = (BorderDrawable) view.getForeground();
-    borderDrawable.setBounds(0, 0, 0, 0);
-
-    assertThat(borderDrawable.getPaint().getColor()).isEqualTo(Color.CYAN);
-    assertThat(borderDrawable.getBounds()).isEqualTo(new Rect(-4, 0, 0, 4));
-
-    // I don't think there's any great way to test the rounded corners part.
   }
 
   @Test
@@ -485,7 +383,7 @@ public class StyleProviderTest {
     new StyleProvider(
             Style.newBuilder().setBorders(Borders.newBuilder().setWidth(0)).build(),
             mockAssetProvider)
-        .addBorders(view, context);
+        .addBordersWithoutRoundedCorners(view, context);
 
     assertThat(view.getForeground()).isNull();
   }

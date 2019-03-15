@@ -24,6 +24,7 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
+import com.google.android.libraries.feed.piet.ui.RoundedCornerWrapperView;
 import com.google.search.now.ui.piet.AccessibilityProto.Accessibility;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.ActionsProto.VisibilityAction;
@@ -165,7 +166,7 @@ abstract class ElementAdapter<V extends View, M> {
       // We have already initialized the wrapper view.
       return;
     }
-    if (!elementStyle.hasRoundedCorners(getContext())
+    if (!elementStyle.hasRoundedCorners()
         && baseElement.getOverlaysCount() == 0
         && !elementStyle.hasBorders()) {
       // We do not need a wrapper view.
@@ -185,7 +186,9 @@ abstract class ElementAdapter<V extends View, M> {
       wrapper.addView(overlayAdapter.getView());
     }
 
-    elementStyle.addBorders(wrapper, getContext());
+    if (!(wrapper instanceof RoundedCornerWrapperView)) {
+      elementStyle.addBordersWithoutRoundedCorners(wrapper, getContext());
+    }
 
     wrapperView = wrapper;
   }
