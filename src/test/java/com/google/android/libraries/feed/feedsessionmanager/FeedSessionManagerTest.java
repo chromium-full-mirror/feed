@@ -365,12 +365,15 @@ public class FeedSessionManagerTest {
         StreamToken.newBuilder().setNextPageToken(bytes).setParentId(rootContentId).build();
     FeedSessionManager sessionManager = getInitializedSessionManager();
     sessionManager.handleToken(SESSION_ID, streamToken);
-    verify(requestManager).loadMore(eq(streamToken), resultCapture.capture());
+  
     verify(actionUploadRequestManager)
         .triggerUploadActions(
             anySetOf(StreamUploadableAction.class),
             any(ConsistencyToken.class),
             tokenCapture.capture());
+    tokenCapture.getValue().accept(Result.success(ConsistencyToken.getDefaultInstance()));
+    verify(requestManager)
+        .loadMore(eq(streamToken), any(ConsistencyToken.class), resultCapture.capture());
   }
 
   @Test
@@ -378,13 +381,16 @@ public class FeedSessionManagerTest {
     FeedSessionManager sessionManager = getInitializedSessionManager();
     sessionManager.triggerRefresh(
         SESSION_ID, RequestReason.UNKNOWN, UiContext.getDefaultInstance());
-    verify(requestManager).triggerRefresh(eq(RequestReason.UNKNOWN), resultCapture.capture());
-
+  
     verify(actionUploadRequestManager)
         .triggerUploadActions(
             anySetOf(StreamUploadableAction.class),
             any(ConsistencyToken.class),
             tokenCapture.capture());
+    tokenCapture.getValue().accept(Result.success(ConsistencyToken.getDefaultInstance()));
+    verify(requestManager)
+        .triggerRefresh(
+            eq(RequestReason.UNKNOWN), any(ConsistencyToken.class), resultCapture.capture());
   }
 
   @Test
@@ -392,14 +398,16 @@ public class FeedSessionManagerTest {
     FeedSessionManager sessionManager = getInitializedSessionManager();
     sessionManager.triggerRefresh(
         SESSION_ID, RequestReason.HOST_REQUESTED, UiContext.getDefaultInstance());
-    verify(requestManager)
-        .triggerRefresh(eq(RequestReason.HOST_REQUESTED), resultCapture.capture());
 
     verify(actionUploadRequestManager)
         .triggerUploadActions(
             anySetOf(StreamUploadableAction.class),
             any(ConsistencyToken.class),
             tokenCapture.capture());
+    tokenCapture.getValue().accept(Result.success(ConsistencyToken.getDefaultInstance()));
+    verify(requestManager)
+        .triggerRefresh(
+            eq(RequestReason.HOST_REQUESTED), any(ConsistencyToken.class), resultCapture.capture());
   }
 
   @Test
@@ -661,7 +669,9 @@ public class FeedSessionManagerTest {
 
   @Test
   public void testTriggerUploadActions() {
-    FeedSessionManager sessionManager = getInitializedSessionManager();
+    FeedSessionManager sessionManager =
+        getInitializedSessionManager(
+            new Configuration.Builder().put(ConfigKey.UNDOABLE_ACTIONS_ENABLED, true).build());
     HashSet<StreamUploadableAction> actionSet = new HashSet<>();
     actionSet.add(StreamUploadableAction.getDefaultInstance());
     ConsistencyToken token =
@@ -674,7 +684,9 @@ public class FeedSessionManagerTest {
 
   @Test
   public void testGetConsistencyToken() {
-    FeedSessionManager sessionManager = getInitializedSessionManager();
+    FeedSessionManager sessionManager =
+        getInitializedSessionManager(
+            new Configuration.Builder().put(ConfigKey.UNDOABLE_ACTIONS_ENABLED, true).build());
     ConsistencyToken token =
         ConsistencyToken.newBuilder().setToken(ByteString.copyFrom(new byte[] {0x1, 0xf})).build();
     sessionManager.getConsistencyTokenConsumer().accept(Result.success(token));
@@ -728,6 +740,10 @@ public class FeedSessionManagerTest {
   }
 
   private FeedSessionManager getInitializedSessionManager() {
+    return getInitializedSessionManager(configuration);
+  }
+
+  private FeedSessionManager getInitializedSessionManager(Configuration config) {
     FeedStore store =
         new FeedStore(
             timingUtils,
@@ -749,7 +765,7 @@ public class FeedSessionManagerTest {
                 requestManager,
                 actionUploadRequestManager,
                 schedulerApi,
-                configuration,
+                config,
                 clock,
                 appLifecycleListener)
             .create();

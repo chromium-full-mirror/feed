@@ -50,6 +50,7 @@ import com.google.search.now.wire.feed.ActionTypeProto;
 import com.google.search.now.wire.feed.CapabilityProto.Capability;
 import com.google.search.now.wire.feed.ClientInfoProto.ClientInfo;
 import com.google.search.now.wire.feed.ClientInfoProto.ClientInfo.PlatformType;
+import com.google.search.now.wire.feed.ConsistencyTokenProto.ConsistencyToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.FeedActionQueryDataProto.Action;
 import com.google.search.now.wire.feed.FeedActionQueryDataProto.FeedActionQueryData;
@@ -124,14 +125,17 @@ public final class FeedRequestManager implements RequestManager {
 
   @Override
   public void loadMore(
-      StreamToken streamToken, Consumer<Result<List<StreamDataOperation>>> consumer) {
+      StreamToken streamToken,
+      ConsistencyToken token,
+      Consumer<Result<List<StreamDataOperation>>> consumer) {
     threadUtils.checkNotMainThread();
 
     Logger.i(TAG, "Task: FeedRequestManager LoadMore");
     ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
     RequestBuilder request =
         newDefaultRequest(RequestReason.MANUAL_CONTINUATION)
-            .setPageToken(streamToken.getNextPageToken());
+            .setPageToken(streamToken.getNextPageToken())
+            .setConsistencyToken(token);
     executeRequest(request, consumer);
     timeTracker.stop(
         "task", "FeedRequestManager LoadMore", "token", streamToken.getNextPageToken());
@@ -140,8 +144,16 @@ public final class FeedRequestManager implements RequestManager {
   @Override
   public void triggerRefresh(
       @RequestReason int reason, Consumer<Result<List<StreamDataOperation>>> consumer) {
+    triggerRefresh(reason, ConsistencyToken.getDefaultInstance(), consumer);
+  }
+
+  @Override
+  public void triggerRefresh(
+      @RequestReason int reason,
+      ConsistencyToken token,
+      Consumer<Result<List<StreamDataOperation>>> consumer) {
     Logger.i(TAG, "trigger refresh %s", reason);
-    RequestBuilder request = newDefaultRequest(reason);
+    RequestBuilder request = newDefaultRequest(reason).setConsistencyToken(token);
 
     if (threadUtils.isMainThread()) {
       // This will make a new request, it should invalidate the existing head to delay everything
@@ -291,6 +303,7 @@ public final class FeedRequestManager implements RequestManager {
   private static final class RequestBuilder {
 
     private ByteString token;
+    private ConsistencyToken consistencyToken;
     private List<DismissActionWithSemanticProperties> dismissActionsWithSemanticProperties;
     private final Context context;
     private final ApplicationInfo applicationInfo;
@@ -323,6 +336,15 @@ public final class FeedRequestManager implements RequestManager {
     boolean hasPageToken() {
       return token != null;
     }
+    /**
+     * Sets the token used to tell the server which storage version to read/write to.
+     *
+     * @param token the token used to maintain read/write consistency.
+     */
+    RequestBuilder setConsistencyToken(ConsistencyToken token) {
+      this.consistencyToken = token;
+      return this;
+    }
 
     RequestBuilder setActions(
         List<DismissActionWithSemanticProperties> dismissActionsWithSemanticProperties) {
@@ -339,6 +361,9 @@ public final class FeedRequestManager implements RequestManager {
         feedQuery.setPageToken(token);
       }
       Builder feedRequestBuilder = FeedRequest.newBuilder().setFeedQuery(feedQuery);
+      if (consistencyToken != null) {
+        feedRequestBuilder.setConsistencyToken(consistencyToken);
+      }
       if (dismissActionsWithSemanticProperties != null
           && !dismissActionsWithSemanticProperties.isEmpty()) {
         feedRequestBuilder.addFeedActionQueryData(buildFeedActionQueryData());

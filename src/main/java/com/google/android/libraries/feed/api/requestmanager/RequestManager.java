@@ -20,6 +20,7 @@ import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
+import com.google.search.now.wire.feed.ConsistencyTokenProto.ConsistencyToken;
 import java.util.List;
 
 /** Creates and issues requests to the server. */
@@ -27,10 +28,14 @@ public interface RequestManager {
 
   /**
    * Issues a request for the next page of data. The {@code streamToken} described to the server
-   * what the next page means. The response will be sent to a {@link Consumer} a set of {@link
-   * StreamDataOperation} created by the ProtocolAdapter.
+   * what the next page means. The{@code token} is used by the server for consistent data across
+   * requests. The response will be sent to a {@link Consumer} a set of {@link StreamDataOperation}
+   * created by the ProtocolAdapter.
    */
-  void loadMore(StreamToken streamToken, Consumer<Result<List<StreamDataOperation>>> consumer);
+  void loadMore(
+      StreamToken streamToken,
+      ConsistencyToken token,
+      Consumer<Result<List<StreamDataOperation>>> consumer);
 
   /**
    * Issues a request to refresh the entire feed, with the consumer being called back with the
@@ -41,6 +46,18 @@ public interface RequestManager {
   void triggerRefresh(
       @RequestReason int reason, Consumer<Result<List<StreamDataOperation>>> consumer);
 
+  /**
+   * Issues a request to refresh the entire feed, with the consumer being called back with the
+   * resulting {@link StreamDataOperation}s.
+   *
+   * @param reason The reason for this refresh.
+   * @param token Used by the server for consistent data across requests.
+   * @param consumer The consumer called after the refresh is performed.
+   */
+  void triggerRefresh(
+      @RequestReason int reason,
+      ConsistencyToken token,
+      Consumer<Result<List<StreamDataOperation>>> consumer);
   /**
    * Issues a request to refresh the entire feed.
    *

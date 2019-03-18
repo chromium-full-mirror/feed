@@ -61,6 +61,7 @@ import com.google.search.now.wire.feed.CapabilityProto.Capability;
 import com.google.search.now.wire.feed.ClientInfoProto.ClientInfo;
 import com.google.search.now.wire.feed.ClientInfoProto.ClientInfo.AppType;
 import com.google.search.now.wire.feed.ClientInfoProto.ClientInfo.PlatformType;
+import com.google.search.now.wire.feed.ConsistencyTokenProto.ConsistencyToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.FeedActionQueryDataProto.Action;
 import com.google.search.now.wire.feed.FeedActionQueryDataProto.FeedActionQueryData;
@@ -708,7 +709,7 @@ public class FeedRequestManagerTest {
         StreamToken.newBuilder()
             .setNextPageToken(ByteString.copyFrom("abc", Charset.defaultCharset()))
             .build();
-    requestManager.loadMore(token, consumer);
+    requestManager.loadMore(token, ConsistencyToken.getDefaultInstance(), consumer);
 
     verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
     Response response = Response.getDefaultInstance();
@@ -895,6 +896,7 @@ public class FeedRequestManagerTest {
 
   private static FeedRequest.Builder getTestFeedRequestBuilder() {
     return FeedRequest.newBuilder()
+        .setConsistencyToken(ConsistencyToken.getDefaultInstance())
         .setClientInfo(
             ClientInfo.newBuilder()
                 .setPlatformType(PlatformType.ANDROID)

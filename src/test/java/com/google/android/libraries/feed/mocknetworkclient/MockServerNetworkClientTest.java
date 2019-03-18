@@ -48,6 +48,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.CodedInputStream;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
+import com.google.search.now.wire.feed.ConsistencyTokenProto.ConsistencyToken;
 import com.google.search.now.wire.feed.ResponseProto.Response;
 import com.google.search.now.wire.feed.ResponseProto.Response.ResponseVersion;
 import com.google.search.now.wire.feed.mockserver.MockServerProto.ConditionalResponse;
@@ -189,6 +190,7 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
 
     feedRequestManager.loadMore(
         streamToken,
+        ConsistencyToken.getDefaultInstance(),
         result -> {
           assertThat(result.isSuccessful()).isTrue();
           assertThat(result.getValue()).hasSize(0);
@@ -232,6 +234,7 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
     StreamToken streamToken = StreamToken.newBuilder().setNextPageToken(token).build();
     feedRequestManager.loadMore(
         streamToken,
+        ConsistencyToken.getDefaultInstance(),
         result -> {
           assertThat(result.isSuccessful()).isTrue();
           assertThat(result.getValue()).hasSize(0);

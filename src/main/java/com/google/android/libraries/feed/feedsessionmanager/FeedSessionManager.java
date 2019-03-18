@@ -510,9 +510,13 @@ public final class FeedSessionManager
         "triggerLoadMore(FeedSessionManager)",
         TaskType.BACKGROUND,
         () -> {
-          // TODO:consume the consistency token before making the load more call.
-          fetchActionsAndUpload(getConsistencyToken(), getConsistencyTokenConsumer());
-          requestManager.loadMore(streamToken, getCommitter("handleToken", mutationContext));
+          fetchActionsAndUpload(
+              getConsistencyToken(),
+              result -> {
+                ConsistencyToken token = handleUpdateConsistencyToken(result);
+                requestManager.loadMore(
+                    streamToken, token, getCommitter("handleToken", mutationContext));
+              });
         });
   }
 
@@ -534,13 +538,38 @@ public final class FeedSessionManager
         () -> triggerRefreshTask(sessionId, requestReason, uiContext));
   }
 
+  private ConsistencyToken handleUpdateConsistencyToken(Result<ConsistencyToken> result) {
+    ConsistencyToken consistencyToken;
+    if (result.isSuccessful()) {
+      consistencyToken = result.getValue();
+      store
+          .editContent()
+          .add(
+              SessionCache.CONSISTENCY_TOKEN_CONTENT_ID,
+              StreamPayload.newBuilder().setConsistencyToken(consistencyToken).build())
+          .commit();
+
+    } else {
+      consistencyToken = getConsistencyToken();
+      Logger.w(TAG, "TriggerRefresh didn't get a consistencyToken Back");
+    }
+    return consistencyToken;
+  }
+
   private void triggerRefreshTask(
       /*@Nullable*/ String sessionId, @RequestReason int requestReason, UiContext uiContext) {
     threadUtils.checkNotMainThread();
-    // TODO: consume the consistency token before making the refresh call.
-    fetchActionsAndUpload(getConsistencyToken(), getConsistencyTokenConsumer());
-    requestManager.triggerRefresh(
-        requestReason, getCommitter("triggerRefresh", MutationContext.EMPTY_CONTEXT));
+
+    fetchActionsAndUpload(
+        getConsistencyToken(),
+        result -> {
+          ConsistencyToken consistencyToken = handleUpdateConsistencyToken(result);
+          requestManager.triggerRefresh(
+              requestReason,
+              consistencyToken,
+              getCommitter("triggerRefresh", MutationContext.EMPTY_CONTEXT));
+        });
+
     if (sessionId != null) {
       Session session = sessionCache.get(sessionId);
       if (session != null) {
@@ -563,6 +592,7 @@ public final class FeedSessionManager
     // fail fast if we're not actually recording these actions.
     if (!uploadingActionsEnabled) {
       consumer.accept(Result.success(token));
+      return;
     }
     Result<Set<StreamUploadableAction>> actionsResult = store.getAllUploadableActions();
     if (actionsResult.isSuccessful()) {

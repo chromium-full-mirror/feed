@@ -22,6 +22,7 @@ import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
+import com.google.search.now.wire.feed.ConsistencyTokenProto.ConsistencyToken;
 import com.google.search.now.wire.feed.ResponseProto.Response;
 import java.util.ArrayDeque;
 import java.util.List;
@@ -54,7 +55,9 @@ public class FakeRequestManager implements RequestManager {
 
   @Override
   public void loadMore(
-      StreamToken streamToken, Consumer<Result<List<StreamDataOperation>>> consumer) {
+      StreamToken streamToken,
+      ConsistencyToken token,
+      Consumer<Result<List<StreamDataOperation>>> consumer) {
     Response response = responses.remove();
     Result<List<StreamDataOperation>> result = protocolAdapter.createModel(response);
     Result<List<StreamDataOperation>> contextResult;
@@ -69,6 +72,14 @@ public class FakeRequestManager implements RequestManager {
   @Override
   public void triggerRefresh(
       @RequestReason int reason, Consumer<Result<List<StreamDataOperation>>> consumer) {
+    triggerRefresh(reason, ConsistencyToken.getDefaultInstance(), consumer);
+  }
+
+  @Override
+  public void triggerRefresh(
+      @RequestReason int reason,
+      ConsistencyToken token,
+      Consumer<Result<List<StreamDataOperation>>> consumer) {
     Response response = responses.remove();
     Result<List<StreamDataOperation>> result = protocolAdapter.createModel(response);
     Result<List<StreamDataOperation>> contextResult;
