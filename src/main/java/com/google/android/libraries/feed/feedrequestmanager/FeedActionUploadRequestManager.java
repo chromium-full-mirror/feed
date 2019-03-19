@@ -1,4 +1,4 @@
-// Copyright 2019 The Feed Authors.
+// Copyright 2018 The Feed Authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ import com.google.search.now.wire.feed.FeedActionResponseProto.FeedActionRespons
 import com.google.search.now.wire.feed.ResponseProto.Response;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -56,8 +57,11 @@ public final class FeedActionUploadRequestManager implements ActionUploadRequest
   private final ActionReader actionReader;
   private final Store store;
   private final Clock clock;
-  private final MainThreadRunner mainThreadRunner;
   private final int maxActionUploadAttempts;
+  // Total number of actions that can be uploaded in a chained batch request.
+  private final int maxActionsUploadsPerBatchedRequest;
+  // Maximum bytes that can be uploaded in a single request.
+  private final int maxBytesPerRequest;
   private final long maxActionUploadTtl;
 
   public FeedActionUploadRequestManager(
@@ -80,8 +84,10 @@ public final class FeedActionUploadRequestManager implements ActionUploadRequest
     this.actionReader = actionReader;
     this.store = store;
     this.clock = clock;
-    this.mainThreadRunner = mainThreadRunner;
-
+    maxBytesPerRequest =
+        configuration.getValueOrDefault(ConfigKey.FEED_ACTION_SERVER_MAX_SIZE_PER_REQUEST, 4000);
+    maxActionsUploadsPerBatchedRequest =
+        configuration.getValueOrDefault(ConfigKey.FEED_ACTION_SERVER_MAX_ACTIONS_PER_REQUEST, 10);
     maxActionUploadAttempts =
         configuration.getValueOrDefault(ConfigKey.FEED_ACTION_MAX_UPLOAD_ATTEMPTS, 1);
     maxActionUploadTtl = configuration.getValueOrDefault(ConfigKey.FEED_ACTION_TTL_SECONDS, 0L);
@@ -92,18 +98,55 @@ public final class FeedActionUploadRequestManager implements ActionUploadRequest
       Set<StreamUploadableAction> actions,
       ConsistencyToken token,
       Consumer<Result<ConsistencyToken>> consumer) {
+    if (maxActionUploadAttempts == 0
+        || maxBytesPerRequest == 0
+        || maxActionsUploadsPerBatchedRequest == 0) {
+      consumer.accept(Result.success(token));
+      return;
+    }
+    triggerUploadActions(actions, token, consumer, /* uploadCount= */ 0);
+  }
+
+  private void triggerUploadActions(
+      Set<StreamUploadableAction> actions,
+      ConsistencyToken token,
+      Consumer<Result<ConsistencyToken>> consumer,
+      int uploadCount) {
     threadUtils.checkNotMainThread();
     // Return the token if there are no actions to upload.
-    if (actions.isEmpty()) {
+    if (actions.isEmpty() || uploadCount >= maxActionsUploadsPerBatchedRequest) {
       consumer.accept(Result.success(token));
       return;
     }
     UploadableActionsRequestBuilder requestBuilder =
         new UploadableActionsRequestBuilder(actionReader, protocolAdapter);
-    // TODO: batch if necessary
-    requestBuilder.setConsistencyToken(token).setActions(actions);
-
-    executeUploadActionRequest(actions, requestBuilder, consumer);
+    int actionPayloadBytes = 0;
+    Set<StreamUploadableAction> actionsToUpload = new HashSet<>();
+    for (StreamUploadableAction action : actions) {
+      int actionBytes = action.toByteArray().length;
+      if (maxBytesPerRequest > actionPayloadBytes + actionBytes) {
+        actionsToUpload.add(action);
+        actionPayloadBytes += actionBytes;
+      } else {
+        break;
+      }
+    }
+    Consumer<Result<ConsistencyToken>> tokenConsumer =
+        result -> {
+          if (result.isSuccessful()) {
+            actions.removeAll(actionsToUpload);
+            if (!actions.isEmpty()) {
+              triggerUploadActions(
+                  actions, result.getValue(), consumer, uploadCount + actionsToUpload.size());
+            } else {
+              consumer.accept(Result.success(result.getValue()));
+            }
+          } else {
+            consumer.accept(uploadCount == 0 ? Result.failure() : Result.success(token));
+          }
+        };
+    requestBuilder.setConsistencyToken(token).setActions(actionsToUpload);
+    executeUploadActionRequest(actionsToUpload, requestBuilder, tokenConsumer);
   }
 
   private void executeUploadActionRequest(
@@ -188,8 +231,7 @@ public final class FeedActionUploadRequestManager implements ActionUploadRequest
             contextResult = Result.failure();
             handleUpdatingActionsOnFailure(actions);
           }
-          mainThreadRunner.execute(
-              "FeedRequestManager consumer", () -> consumer.accept(contextResult));
+          consumer.accept(contextResult);
         });
   }
 
