@@ -42,6 +42,7 @@ import com.google.android.libraries.feed.host.network.HttpRequest;
 import com.google.android.libraries.feed.host.network.HttpRequest.HttpMethod;
 import com.google.android.libraries.feed.host.network.HttpResponse;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
+import com.google.android.libraries.feed.host.stream.TooltipSupportedApi;
 import com.google.android.libraries.feed.testing.conformance.network.NetworkClientConformanceTest;
 import com.google.common.truth.extensions.proto.LiteProtoTruth;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -74,6 +75,7 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
   @Mock private ThreadUtils threadUtils;
   @Mock private ActionReader actionReader;
   @Mock private Clock clock;
+  @Mock private TooltipSupportedApi tooltipSupportedApi;
 
   @Captor private ArgumentCaptor<Response> responseCaptor;
 
@@ -184,7 +186,8 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
             context,
             applicationInfo,
             mainThreadRunner,
-            basicLoggingApi);
+            basicLoggingApi,
+            tooltipSupportedApi);
     when(protocolAdapter.createModel(any(Response.class)))
         .thenReturn(Result.success(new ArrayList<>()));
 
@@ -226,7 +229,8 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
             context,
             applicationInfo,
             mainThreadRunner,
-            basicLoggingApi);
+            basicLoggingApi,
+            tooltipSupportedApi);
     when(protocolAdapter.createModel(any(Response.class)))
         .thenReturn(Result.success(new ArrayList<>()));
 

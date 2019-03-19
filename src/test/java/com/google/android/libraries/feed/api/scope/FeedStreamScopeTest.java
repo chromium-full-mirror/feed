@@ -49,6 +49,7 @@ import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
 import com.google.android.libraries.feed.host.stream.StreamConfiguration;
 import com.google.android.libraries.feed.host.stream.TooltipApi;
+import com.google.android.libraries.feed.host.stream.TooltipSupportedApi;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
 import org.junit.Before;
@@ -66,6 +67,7 @@ public class FeedStreamScopeTest {
   @Mock private ActionApi actionApi;
   @Mock private ImageLoaderApi imageLoaderApi;
   @Mock private LoggingApi loggingApi;
+  @Mock private TooltipSupportedApi tooltipSupportedApi;
 
   // Mocks for optional fields
   @Mock private ProtocolAdapter protocolAdapter;
@@ -129,7 +131,8 @@ public class FeedStreamScopeTest {
                 basicLoggingApi,
                 offlineIndicatorApi,
                 knownContentApi,
-                tooltipApi)
+                tooltipApi,
+                tooltipSupportedApi)
             .build();
     assertThat(streamScope.getStream()).isNotNull();
     assertThat(streamScope.getModelProviderFactory()).isNotNull();
@@ -159,7 +162,8 @@ public class FeedStreamScopeTest {
                 basicLoggingApi,
                 offlineIndicatorApi,
                 knownContentApi,
-                tooltipApi)
+                tooltipApi,
+                tooltipSupportedApi)
             .setActionParserFactory(actionParserFactory)
             .setStream(stream)
             .setModelProviderFactory(modelProviderFactory)

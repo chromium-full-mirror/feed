@@ -42,6 +42,7 @@ import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
 import com.google.android.libraries.feed.host.stream.StreamConfiguration;
 import com.google.android.libraries.feed.host.stream.TooltipApi;
+import com.google.android.libraries.feed.host.stream.TooltipSupportedApi;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
 import java.util.ArrayList;
@@ -81,7 +82,8 @@ public final class FeedStreamScope {
         BasicLoggingApi basicLoggingApi,
         OfflineIndicatorApi offlineIndicatorApi,
         KnownContentApi knownContentApi,
-        TooltipApi tooltipApi) {
+        TooltipApi tooltipApi,
+        TooltipSupportedApi tooltipSupportedApi) {
       this.context = context;
       this.actionApi = actionApi;
       this.imageLoaderApi = imageLoaderApi;

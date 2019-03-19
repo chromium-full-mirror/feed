@@ -43,6 +43,8 @@ import com.google.android.libraries.feed.host.network.HttpRequest;
 import com.google.android.libraries.feed.host.network.HttpRequest.HttpMethod;
 import com.google.android.libraries.feed.host.network.NetworkClient;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
+import com.google.android.libraries.feed.host.stream.TooltipInfo.FeatureName;
+import com.google.android.libraries.feed.host.stream.TooltipSupportedApi;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
@@ -88,6 +90,7 @@ public final class FeedRequestManager implements RequestManager {
   private final Context context;
   private final MainThreadRunner mainThreadRunner;
   private final BasicLoggingApi basicLoggingApi;
+  private final TooltipSupportedApi tooltipSupportedApi;
   private ApplicationInfo applicationInfo;
 
   /*@Nullable*/
@@ -107,7 +110,8 @@ public final class FeedRequestManager implements RequestManager {
       Context context,
       ApplicationInfo applicationInfo,
       MainThreadRunner mainThreadRunner,
-      BasicLoggingApi basicLoggingApi) {
+      BasicLoggingApi basicLoggingApi,
+      TooltipSupportedApi tooltipSupportedApi) {
     this.configuration = configuration;
     this.networkClient = networkClient;
     this.protocolAdapter = protocolAdapter;
@@ -121,6 +125,7 @@ public final class FeedRequestManager implements RequestManager {
     this.applicationInfo = applicationInfo;
     this.mainThreadRunner = mainThreadRunner;
     this.basicLoggingApi = basicLoggingApi;
+    this.tooltipSupportedApi = tooltipSupportedApi;
   }
 
   @Override
@@ -224,6 +229,31 @@ public final class FeedRequestManager implements RequestManager {
       Logger.e(TAG, "Error fetching dismiss actions");
     }
 
+    if (configuration.getValueOrDefault(ConfigKey.CARD_MENU_TOOLTIP_ELIGIBLE, false)) {
+      // We need use the main thread to call the {@link TooltipSupportedApi#wouldTriggerHelpUi}.
+      mainThreadRunner.execute(
+          "Check Tooltips",
+          () -> {
+            tooltipSupportedApi.wouldTriggerHelpUi(
+                FeatureName.CARD_MENU_TOOLTIP,
+                (wouldTrigger) -> {
+                  taskQueue.execute(
+                      "sendRequest",
+                      TaskType.IMMEDIATE,
+                      () -> {
+                        requestBuilder.setCardMenuTooltipWouldTrigger(wouldTrigger);
+                        sendRequest(requestBuilder, consumer);
+                      });
+                });
+          });
+    } else {
+      sendRequest(requestBuilder, consumer);
+    }
+  }
+
+  private void sendRequest(
+      RequestBuilder requestBuilder, Consumer<Result<List<StreamDataOperation>>> consumer) {
+    threadUtils.checkNotMainThread();
     String endpoint = configuration.getValueOrDefault(ConfigKey.FEED_SERVER_ENDPOINT, "");
     @HttpMethod
     String httpMethod =
@@ -237,12 +267,10 @@ public final class FeedRequestManager implements RequestManager {
             LocaleUtils.getLanguageTag(context));
 
     Logger.i(TAG, "Making Request: %s", httpRequest.getUri().getPath());
-    mainThreadRunner.execute(
-        "Making request.",
-        () -> basicLoggingApi.onServerRequest(requestBuilder.clientLoggingRequestReason));
     networkClient.send(
         httpRequest,
         input -> {
+          basicLoggingApi.onServerRequest(requestBuilder.clientLoggingRequestReason);
           Logger.i(
               TAG,
               "Request: %s completed with response code: %s",
@@ -310,6 +338,7 @@ public final class FeedRequestManager implements RequestManager {
     private final Configuration configuration;
     private final FeedQuery.RequestReason requestReason;
     @RequestReason private final int clientLoggingRequestReason;
+    private boolean cardMenuTooltipWouldTrigger;
 
     RequestBuilder(
         Context context,
@@ -352,6 +381,11 @@ public final class FeedRequestManager implements RequestManager {
       return this;
     }
 
+    public RequestBuilder setCardMenuTooltipWouldTrigger(boolean wouldTrigger) {
+      cardMenuTooltipWouldTrigger = wouldTrigger;
+      return this;
+    }
+
     public Request build() {
       Request.Builder requestBuilder =
           Request.newBuilder().setRequestVersion(RequestVersion.FEED_QUERY);
@@ -382,8 +416,10 @@ public final class FeedRequestManager implements RequestManager {
           feedRequestBuilder, ConfigKey.UNDOABLE_ACTIONS_ENABLED, Capability.UNDOABLE_ACTIONS);
       addCapabilityIfConfigEnabled(
           feedRequestBuilder, ConfigKey.MANAGE_INTERESTS_ENABLED, Capability.MANAGE_INTERESTS);
-      addCapabilityIfConfigEnabled(
-          feedRequestBuilder, ConfigKey.CARD_MENU_TOOLTIP_ELIGIBLE, Capability.CARD_MENU_TOOLTIP);
+      if (cardMenuTooltipWouldTrigger) {
+        addCapabilityIfConfigEnabled(
+            feedRequestBuilder, ConfigKey.CARD_MENU_TOOLTIP_ELIGIBLE, Capability.CARD_MENU_TOOLTIP);
+      }
       addCapabilityIfConfigEnabled(
           feedRequestBuilder, ConfigKey.SNIPPETS_ENABLED, Capability.ARTICLE_SNIPPETS);
       addCapabilityIfConfigEnabled(

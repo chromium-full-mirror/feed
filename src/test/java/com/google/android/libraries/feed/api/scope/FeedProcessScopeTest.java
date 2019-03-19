@@ -41,6 +41,7 @@ import com.google.android.libraries.feed.host.storage.ContentStorage;
 import com.google.android.libraries.feed.host.storage.ContentStorageDirect;
 import com.google.android.libraries.feed.host.storage.JournalStorage;
 import com.google.android.libraries.feed.host.storage.JournalStorageDirect;
+import com.google.android.libraries.feed.host.stream.TooltipSupportedApi;
 import com.google.common.util.concurrent.MoreExecutors;
 import java.util.ArrayList;
 import org.junit.Before;
@@ -59,6 +60,7 @@ public class FeedProcessScopeTest {
   @Mock private NetworkClient networkClient;
   @Mock private SchedulerApi schedulerApi;
   @Mock private ApplicationInfo applicationInfo;
+  @Mock private TooltipSupportedApi tooltipSupportedApi;
 
   // Mocks for optional fields
   @Mock private ProtocolAdapter protocolAdapter;
@@ -89,7 +91,8 @@ public class FeedProcessScopeTest {
                 schedulerApi,
                 DebugBehavior.VERBOSE,
                 context,
-                applicationInfo)
+                applicationInfo,
+                tooltipSupportedApi)
             .setThreadUtils(threadUtils)
             .build();
 
@@ -122,7 +125,8 @@ public class FeedProcessScopeTest {
                 schedulerApi,
                 DebugBehavior.VERBOSE,
                 context,
-                applicationInfo)
+                applicationInfo,
+                tooltipSupportedApi)
             .setProtocolAdapter(protocolAdapter)
             .setRequestManager(requestManager)
             .setSessionManager(sessionManager)
@@ -153,7 +157,8 @@ public class FeedProcessScopeTest {
                 schedulerApi,
                 DebugBehavior.VERBOSE,
                 context,
-                applicationInfo)
+                applicationInfo,
+                tooltipSupportedApi)
             .setContentStorageDirect(contentStorageDirect)
             .setJournalStorageDirect(journalStorageDirect);
     assertThat(builder.contentStorage).isEqualTo(contentStorageDirect);
@@ -177,7 +182,8 @@ public class FeedProcessScopeTest {
                 schedulerApi,
                 DebugBehavior.VERBOSE,
                 context,
-                applicationInfo)
+                applicationInfo,
+                tooltipSupportedApi)
             .setContentStorage(contentStorageDirect)
             .setJournalStorage(journalStorageDirect);
     assertThat(builder.buildContentStorage()).isEqualTo(contentStorageDirect);
@@ -201,7 +207,8 @@ public class FeedProcessScopeTest {
                 schedulerApi,
                 DebugBehavior.VERBOSE,
                 context,
-                applicationInfo)
+                applicationInfo,
+                tooltipSupportedApi)
             .setContentStorage(contentStorageDirect)
             .setJournalStorage(journalStorageDirect);
     assertThat(builder.contentStorage).isNotEqualTo(contentStorageDirect);
@@ -220,7 +227,8 @@ public class FeedProcessScopeTest {
                 schedulerApi,
                 DebugBehavior.VERBOSE,
                 context,
-                applicationInfo)
+                applicationInfo,
+                tooltipSupportedApi)
             .setThreadUtils(threadUtils)
             .build();
     processScope.onDestroy();

@@ -50,6 +50,7 @@ import com.google.android.libraries.feed.host.network.HttpRequest.HttpMethod;
 import com.google.android.libraries.feed.host.network.HttpResponse;
 import com.google.android.libraries.feed.host.network.NetworkClient;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
+import com.google.android.libraries.feed.host.stream.TooltipSupportedApi;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.CodedOutputStream;
@@ -81,8 +82,10 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -116,11 +119,15 @@ public class FeedRequestManagerTest {
   @Mock private Consumer<Result<List<StreamDataOperation>>> consumer;
   @Mock private Clock clock;
   @Mock private ApplicationInfo applicationInfo;
+  @Mock private TooltipSupportedApi tooltipSupportedApi;
+
   private Context context;
   @Captor private ArgumentCaptor<Consumer<HttpResponse>> responseConsumerCaptor;
   @Captor private ArgumentCaptor<HttpRequest> requestCaptor;
   @Captor private ArgumentCaptor<Response> responseCaptor;
   @Captor private ArgumentCaptor<Result<List<StreamDataOperation>>> consumerCapture;
+  @Captor private ArgumentCaptor<Consumer<Boolean>> tooltipSupportedConsumerCapture;
+  private boolean cardMenuTooltipWouldTrigger;
   private ExtensionRegistryLite registry;
   private FeedRequestManager requestManager;
   private FakeMainThreadRunner fakeMainThreadRunner;
@@ -161,7 +168,8 @@ public class FeedRequestManagerTest {
             context,
             applicationInfo,
             fakeMainThreadRunner,
-            basicLoggingApi);
+            basicLoggingApi,
+            tooltipSupportedApi);
 
     when(actionReader.getDismissActionsWithSemanticProperties())
         .thenReturn(Result.success(Collections.emptyList()));
@@ -171,6 +179,7 @@ public class FeedRequestManagerTest {
   public void testTriggerRefresh() throws Exception {
     requestManager.triggerRefresh(RequestReason.HOST_REQUESTED, input -> {});
 
+    verify(tooltipSupportedApi, never()).wouldTriggerHelpUi(any(), any());
     verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
 
     HttpRequest httpRequest = requestCaptor.getValue();
@@ -208,7 +217,17 @@ public class FeedRequestManagerTest {
 
   @Test
   public void testTriggerRefresh_tooltipCapabilityAddedWhenFlagIsOn() throws Exception {
+    cardMenuTooltipWouldTrigger = true;
     testCapabilityAdded(ConfigKey.CARD_MENU_TOOLTIP_ELIGIBLE, Capability.CARD_MENU_TOOLTIP);
+  }
+
+  @Test
+  public void testTriggerRefresh_tooltipCapabilityNotAdded() throws Exception {
+    // If the config key for card menu tool tip is set but the
+    // TooltipSupportedApi.wouldTriggerHelpUi() returns false, then the capability should not be
+    // added and only the BASE_UI should be present.
+    cardMenuTooltipWouldTrigger = false;
+    testCapabilityAdded(ConfigKey.CARD_MENU_TOOLTIP_ELIGIBLE, /* capability= */ null);
   }
 
   @Test
@@ -843,11 +862,15 @@ public class FeedRequestManagerTest {
   private void testReason(@RequestReason int reason, FeedQuery.RequestReason expectedReason)
       throws Exception {
     requestManager.triggerRefresh(reason, input -> {});
+
     verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
     HttpRequest httpRequest = requestCaptor.getValue();
     Request request = getRequestFromHttpRequest(httpRequest);
     assertThat(request.getExtension(FeedRequest.feedRequest).getFeedQuery().getReason())
         .isEqualTo(expectedReason);
+    responseConsumerCaptor
+        .getValue()
+        .accept(createHttpResponse(NOT_FOUND, Response.getDefaultInstance()));
     assertThat(basicLoggingApi.serverRequestReason).isEqualTo(reason);
   }
 
@@ -937,27 +960,28 @@ public class FeedRequestManagerTest {
             context,
             applicationInfo,
             fakeMainThreadRunner,
-            basicLoggingApi);
+            basicLoggingApi,
+            tooltipSupportedApi);
     requestManager.triggerRefresh(RequestReason.HOST_REQUESTED, input -> {});
+
+    if (ConfigKey.CARD_MENU_TOOLTIP_ELIGIBLE.equals(configKey)) {
+      verify(tooltipSupportedApi)
+          .wouldTriggerHelpUi(any(), tooltipSupportedConsumerCapture.capture());
+      tooltipSupportedConsumerCapture.getValue().accept(cardMenuTooltipWouldTrigger);
+    }
 
     verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
 
     HttpRequest httpRequest = requestCaptor.getValue();
     assertHttpRequestFormattedCorrectly(httpRequest);
 
+    Set<Capability> expectedCap = EnumSet.of(Capability.BASE_UI);
+    if (capability != null) {
+      expectedCap.add(capability);
+    }
+
     Request request = getRequestFromHttpRequest(httpRequest);
-    Request expectedRequest =
-        Request.newBuilder()
-            .setRequestVersion(RequestVersion.FEED_QUERY)
-            .setExtension(
-                FeedRequest.feedRequest,
-                getTestFeedRequestBuilder()
-                    .setFeedQuery(
-                        FeedQuery.newBuilder().setReason(FeedQuery.RequestReason.SCHEDULED_REFRESH))
-                    .addClientCapability(capability)
-                    .addClientCapability(Capability.BASE_UI)
-                    .build())
-            .build();
-    assertThat(request).isEqualTo(expectedRequest);
+    assertThat(request.getExtension(FeedRequest.feedRequest).getClientCapabilityList())
+        .containsAllIn(expectedCap);
   }
 }
