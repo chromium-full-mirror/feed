@@ -210,7 +210,7 @@ public class FeedSessionManagerTest {
     Session head = sessions.get(HEAD_SESSION_ID);
     assertThat(head).isInstanceOf(HeadSessionImpl.class);
     String itemKey = idGenerators.createFeatureContentId(0);
-    Set<String> content = ((HeadSessionImpl) head).getContentInSessionForTest();
+    Set<String> content = head.getContentInSession();
     assertThat(content).contains(itemKey);
     assertThat(content).hasSize(streamStructures.size());
   }
@@ -365,7 +365,7 @@ public class FeedSessionManagerTest {
         StreamToken.newBuilder().setNextPageToken(bytes).setParentId(rootContentId).build();
     FeedSessionManager sessionManager = getInitializedSessionManager();
     sessionManager.handleToken(SESSION_ID, streamToken);
-  
+
     verify(actionUploadRequestManager)
         .triggerUploadActions(
             anySetOf(StreamUploadableAction.class),
@@ -381,7 +381,7 @@ public class FeedSessionManagerTest {
     FeedSessionManager sessionManager = getInitializedSessionManager();
     sessionManager.triggerRefresh(
         SESSION_ID, RequestReason.UNKNOWN, UiContext.getDefaultInstance());
-  
+
     verify(actionUploadRequestManager)
         .triggerUploadActions(
             anySetOf(StreamUploadableAction.class),

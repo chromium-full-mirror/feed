@@ -119,6 +119,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/common/protoextensions",
         "//src/main/java/com/google/android/libraries/feed/common/time",
         "//src/main/java/com/google/android/libraries/feed/feedsessionmanager/internal",
+        "//src/main/java/com/google/android/libraries/feed/feedsessionmanager/internal/testing",
         "//src/main/java/com/google/android/libraries/feed/feedstore",
         "//src/main/java/com/google/android/libraries/feed/feedstore/testing",
         "//src/main/java/com/google/android/libraries/feed/host/config",
@@ -155,6 +156,23 @@ android_local_test(
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@com_google_truth_truth//jar",
         "@org_mockito_mockito_all//jar",
+        "@robolectric//bazel:robolectric",
+    ],
+)
+
+android_local_test(
+    name = "SessionContentTrackerTest",
+    size = "small",
+    timeout = "moderate",
+    srcs = ["SessionContentTrackerTest.java"],
+    aapt_version = "aapt2",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
+    deps = [
+        "//src/main/java/com/google/android/libraries/feed/api/common/testing",
+        "//src/main/java/com/google/android/libraries/feed/feedsessionmanager/internal",
+        "//src/main/proto/com/google/android/libraries/feed/api/proto:client_feed_java_proto_lite",
+        "@com_google_protobuf_javalite//:protobuf_java_lite",
+        "@com_google_truth_truth//jar",
         "@robolectric//bazel:robolectric",
     ],
 )

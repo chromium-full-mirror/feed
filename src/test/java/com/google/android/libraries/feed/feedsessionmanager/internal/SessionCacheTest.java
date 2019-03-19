@@ -36,6 +36,7 @@ import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThrea
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
+import com.google.android.libraries.feed.feedsessionmanager.internal.testing.FakeModelMutation;
 import com.google.android.libraries.feed.feedstore.FeedStore;
 import com.google.android.libraries.feed.feedstore.testing.DelegatingStore;
 import com.google.android.libraries.feed.host.config.Configuration;
@@ -67,6 +68,7 @@ public class SessionCacheTest {
   @Mock private BasicLoggingApi basicLoggingApi;
   @Mock private ThreadUtils threadUtils;
   @Mock private Clock clock;
+  @Mock protected ModelProvider modelProvider;
 
   private SessionFactory sessionFactory;
   private Store storeSpy;
@@ -76,10 +78,12 @@ public class SessionCacheTest {
   private final ContentIdGenerators idGenerators = new ContentIdGenerators();
   private final FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(ArrayList::new);
   private final ContentStorageDirect contentStorage = new InMemoryContentStorage();
+  private final FakeModelMutation fakeModelMutation = new FakeModelMutation();
 
   @Before
   public void setUp() {
     initMocks(this);
+    when(modelProvider.edit()).thenReturn(fakeModelMutation);
   }
 
   @Test
@@ -447,7 +451,7 @@ public class SessionCacheTest {
               .build());
     }
     session.setSessionId("stream:" + id);
-    session.bindModelProvider(mock(ModelProvider.class), mock(ViewDepthProvider.class));
+    session.bindModelProvider(modelProvider, mock(ViewDepthProvider.class));
     session.populateModelProvider(head, true, false);
     return session;
   }

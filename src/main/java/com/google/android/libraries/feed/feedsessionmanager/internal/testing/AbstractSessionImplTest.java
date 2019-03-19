@@ -22,7 +22,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.common.testing.InternalProtocolBuilder;
-import com.google.android.libraries.feed.api.modelprovider.ModelMutation;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.Store;
@@ -72,8 +71,9 @@ public abstract class AbstractSessionImplTest {
     session.populateModelProvider(streamStructures, false, false);
     assertThat(fakeModelMutator.addedChildren).hasSize(featureCnt);
     assertThat(fakeModelMutator.commitCalled).isTrue();
-    assertThat(session.contentInSession).hasSize(featureCnt);
-    assertThat(session.contentInSession).contains(contentIdGenerators.createFeatureContentId(1));
+    assertThat(session.getContentInSession()).hasSize(featureCnt);
+    assertThat(session.getContentInSession())
+        .contains(contentIdGenerators.createFeatureContentId(1));
   }
 
   @Test
@@ -98,8 +98,9 @@ public abstract class AbstractSessionImplTest {
     session.updateSession(false, streamStructures, null);
     assertThat(fakeSessionMutation.streamStructures).hasSize(featureCnt);
     assertThat(fakeModelMutator.addedChildren).hasSize(featureCnt);
-    assertThat(session.contentInSession).hasSize(featureCnt);
-    assertThat(session.contentInSession).contains(contentIdGenerators.createFeatureContentId(1));
+    assertThat(session.getContentInSession()).hasSize(featureCnt);
+    assertThat(session.getContentInSession())
+        .contains(contentIdGenerators.createFeatureContentId(1));
   }
 
   @Test
@@ -115,8 +116,18 @@ public abstract class AbstractSessionImplTest {
     StreamToken token =
         StreamToken.newBuilder().setContentId(contentIdGenerators.createTokenContentId(2)).build();
     MutationContext context = new MutationContext.Builder().setContinuationToken(token).build();
-    // The token needs to be in the session
-    session.contentInSession.add(token.getContentId());
+
+    // The token needs to be in the session so temporarily detach the session to update its content
+    // IDs with the token.
+    ModelProvider modelProvider = session.getModelProvider();
+    session.bindModelProvider(null, null);
+
+    List<StreamStructure> tokenStructures =
+        new InternalProtocolBuilder().addToken(token.getContentId()).buildAsStreamStructure();
+    session.updateSession(false, tokenStructures, null);
+
+    session.bindModelProvider(modelProvider, null);
+
     session.updateSession(false, streamStructures, context);
     assertThat(fakeModelMutator.mutationContext).isEqualTo(context);
   }
@@ -132,12 +143,12 @@ public abstract class AbstractSessionImplTest {
     List<StreamStructure> streamStructures = protocolBuilder.buildAsStreamStructure();
 
     // The token is not in the session, so we ignore the update
-    assertThat(session.contentInSession).hasSize(0);
+    assertThat(session.getContentInSession()).isEmpty();
     StreamToken token =
         StreamToken.newBuilder().setContentId(contentIdGenerators.createTokenContentId(2)).build();
     MutationContext context = new MutationContext.Builder().setContinuationToken(token).build();
     session.updateSession(false, streamStructures, context);
-    assertThat(session.contentInSession).hasSize(0);
+    assertThat(session.getContentInSession()).isEmpty();
   }
 
   @Test
@@ -169,7 +180,7 @@ public abstract class AbstractSessionImplTest {
     List<StreamStructure> streamStructures = protocolBuilder.buildAsStreamStructure();
     session.updateSession(false, streamStructures, null);
     assertThat(fakeModelMutator.removedChildren).hasSize(1);
-    assertThat(session.contentInSession).hasSize(1);
+    assertThat(session.getContentInSession()).hasSize(1);
   }
 
   protected void addFeatures(InternalProtocolBuilder protocolBuilder, int featureCnt, int startId) {
@@ -177,58 +188,6 @@ public abstract class AbstractSessionImplTest {
       protocolBuilder.addFeature(
           contentIdGenerators.createFeatureContentId(startId++),
           contentIdGenerators.createRootContentId(0));
-    }
-  }
-
-  /** Fake ModelMutation for tests. */
-  protected static final class FakeModelMutation implements ModelMutation {
-    public final List<StreamStructure> addedChildren = new ArrayList<>();
-    final List<StreamStructure> removedChildren = new ArrayList<>();
-    final List<StreamStructure> updateChildren = new ArrayList<>();
-    MutationContext mutationContext;
-    boolean commitCalled = false;
-
-    @Override
-    public ModelMutation addChild(StreamStructure streamStructure) {
-      addedChildren.add(streamStructure);
-      return this;
-    }
-
-    @Override
-    public ModelMutation removeChild(StreamStructure streamStructure) {
-      removedChildren.add(streamStructure);
-      return this;
-    }
-
-    @Override
-    public ModelMutation updateChild(StreamStructure streamStructure) {
-      updateChildren.add(streamStructure);
-      return this;
-    }
-
-    @Override
-    public ModelMutation setMutationContext(MutationContext mutationContext) {
-      this.mutationContext = mutationContext;
-      return this;
-    }
-
-    @Override
-    public ModelMutation setSessionId(String sessionId) {
-      return this;
-    }
-
-    @Override
-    public ModelMutation hasCachedBindings(boolean cachedBindings) {
-      return this;
-    }
-
-    @Override
-    public void commit() {
-      commitCalled = true;
-    }
-
-    void clearCommit() {
-      commitCalled = false;
     }
   }
 

@@ -77,8 +77,8 @@ public class TimeoutSessionImplTest extends AbstractSessionImplTest {
     session.updateSession(true, streamStructures, null);
     assertThat(fakeSessionMutation.streamStructures).hasSize(featureCnt);
     assertThat(fakeModelMutator.addedChildren).hasSize(featureCnt);
-    assertThat(session.contentInSession).hasSize(featureCnt);
-    assertThat(session.contentInSession)
+    assertThat(session.getContentInSession()).hasSize(featureCnt);
+    assertThat(session.getContentInSession())
         .contains(contentIdGenerators.createFeatureContentId(featureId));
   }
 

@@ -72,13 +72,13 @@ public class HeadSessionImplTest {
     List<StreamStructure> streamStructures = protocolBuilder.buildAsStreamStructure();
 
     // 1 clear, 3 features
-    assertThat(streamStructures.size()).isEqualTo(featureCnt + 1);
+    assertThat(streamStructures).hasSize(featureCnt + 1);
     headSession.updateSession(false, streamStructures, null);
 
     // expect: 3 features
-    assertThat(fakeSessionMutation.streamStructures.size()).isEqualTo(featureCnt);
-    assertThat(headSession.contentInSession.size()).isEqualTo(featureCnt);
-    assertThat(headSession.contentInSession)
+    assertThat(fakeSessionMutation.streamStructures).hasSize(featureCnt);
+    assertThat(headSession.getContentInSession()).hasSize(featureCnt);
+    assertThat(headSession.getContentInSession())
         .contains(contentIdGenerators.createFeatureContentId(1));
   }
 
@@ -90,12 +90,12 @@ public class HeadSessionImplTest {
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder().addClearOperation();
     addFeatures(protocolBuilder, featureCnt, 1);
     List<StreamStructure> streamStructures = protocolBuilder.buildAsStreamStructure();
-    assertThat(streamStructures.size()).isEqualTo(featureCnt + 1);
+    assertThat(streamStructures).hasSize(featureCnt + 1);
     headSession.updateSession(false, streamStructures, null);
-    assertThat(headSession.contentInSession.size()).isEqualTo(featureCnt);
+    assertThat(headSession.getContentInSession()).hasSize(featureCnt);
 
     headSession.reset();
-    assertThat(headSession.contentInSession.size()).isEqualTo(0);
+    assertThat(headSession.getContentInSession()).isEmpty();
   }
 
   @Test
@@ -109,13 +109,13 @@ public class HeadSessionImplTest {
     List<StreamStructure> streamStructures = protocolBuilder.buildAsStreamStructure();
 
     // 1 clear, 3 features, token
-    assertThat(streamStructures.size()).isEqualTo(5);
+    assertThat(streamStructures).hasSize(5);
     headSession.updateSession(false, streamStructures, null);
 
     // expect: 3 features, 1 token
-    assertThat(fakeSessionMutation.streamStructures.size()).isEqualTo(featureCnt + 1);
-    assertThat(headSession.contentInSession.size()).isEqualTo(featureCnt + 1);
-    assertThat(headSession.contentInSession)
+    assertThat(fakeSessionMutation.streamStructures).hasSize(featureCnt + 1);
+    assertThat(headSession.getContentInSession()).hasSize(featureCnt + 1);
+    assertThat(headSession.getContentInSession())
         .contains(contentIdGenerators.createFeatureContentId(1));
   }
 
@@ -129,12 +129,16 @@ public class HeadSessionImplTest {
 
     StreamToken token =
         StreamToken.newBuilder().setContentId(contentIdGenerators.createTokenContentId(2)).build();
-    // The token needs to be in the session
-    headSession.contentInSession.add(token.getContentId());
+
+    // The token needs to be in the session so update its content IDs with the token.
+    List<StreamStructure> tokenStructures =
+        new InternalProtocolBuilder().addToken(token.getContentId()).buildAsStreamStructure();
+    headSession.updateSession(false, tokenStructures, null);
+
     MutationContext context = new MutationContext.Builder().setContinuationToken(token).build();
     headSession.updateSession(false, streamStructures, context);
     // features 3, plus the token added above
-    assertThat(headSession.contentInSession).hasSize(featureCnt + 1);
+    assertThat(headSession.getContentInSession()).hasSize(featureCnt + 1);
   }
 
   @Test
@@ -151,7 +155,7 @@ public class HeadSessionImplTest {
     // The token needs to be in the session, if not we ignore the update
     MutationContext context = new MutationContext.Builder().setContinuationToken(token).build();
     headSession.updateSession(false, streamStructures, context);
-    assertThat(headSession.contentInSession).hasSize(0);
+    assertThat(headSession.getContentInSession()).isEmpty();
   }
 
   @Test
@@ -166,15 +170,15 @@ public class HeadSessionImplTest {
     List<StreamStructure> streamStructures = protocolBuilder.buildAsStreamStructure();
 
     // 1 clear, 3 features, 1 remove
-    assertThat(streamStructures.size()).isEqualTo(5);
+    assertThat(streamStructures).hasSize(5);
     headSession.updateSession(false, streamStructures, null);
 
     // expect: 2 features (3 added, then 1 removed)
-    assertThat(fakeSessionMutation.streamStructures.size()).isEqualTo(featureCnt + 1);
-    assertThat(headSession.contentInSession.size()).isEqualTo(featureCnt - 1);
-    assertThat(headSession.contentInSession)
+    assertThat(fakeSessionMutation.streamStructures).hasSize(featureCnt + 1);
+    assertThat(headSession.getContentInSession()).hasSize(featureCnt - 1);
+    assertThat(headSession.getContentInSession())
         .contains(contentIdGenerators.createFeatureContentId(2));
-    assertThat(headSession.contentInSession)
+    assertThat(headSession.getContentInSession())
         .contains(contentIdGenerators.createFeatureContentId(3));
   }
 
@@ -186,24 +190,24 @@ public class HeadSessionImplTest {
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder().addClearOperation();
     addFeatures(protocolBuilder, featureCnt, 1);
     List<StreamStructure> streamStructures = protocolBuilder.buildAsStreamStructure();
-    assertThat(streamStructures.size()).isEqualTo(4);
+    assertThat(streamStructures).hasSize(4);
 
     // 1 clear, 3 features
     headSession.updateSession(false, streamStructures, null);
-    assertThat(fakeSessionMutation.streamStructures.size()).isEqualTo(featureCnt);
-    assertThat(headSession.contentInSession.size()).isEqualTo(featureCnt);
+    assertThat(fakeSessionMutation.streamStructures).hasSize(featureCnt);
+    assertThat(headSession.getContentInSession()).hasSize(featureCnt);
 
     // Now we will update feature 2
     fakeSessionMutation.streamStructures.clear();
     protocolBuilder = new InternalProtocolBuilder();
     addFeatures(protocolBuilder, 1, 2);
     streamStructures = protocolBuilder.buildAsStreamStructure();
-    assertThat(streamStructures.size()).isEqualTo(1);
+    assertThat(streamStructures).hasSize(1);
 
     // 0 features
     headSession.updateSession(false, streamStructures, null);
-    assertThat(fakeSessionMutation.streamStructures.size()).isEqualTo(0);
-    assertThat(headSession.contentInSession.size()).isEqualTo(featureCnt);
+    assertThat(fakeSessionMutation.streamStructures).isEmpty();
+    assertThat(headSession.getContentInSession()).hasSize(featureCnt);
   }
 
   @Test
@@ -214,12 +218,12 @@ public class HeadSessionImplTest {
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder().addClearOperation();
     addFeatures(protocolBuilder, featureCnt, 1);
     List<StreamStructure> streamStructures = protocolBuilder.buildAsStreamStructure();
-    assertThat(streamStructures.size()).isEqualTo(4);
+    assertThat(streamStructures).hasSize(4);
 
     // 1 clear, 3 features
     headSession.updateSession(false, streamStructures, null);
-    assertThat(fakeSessionMutation.streamStructures.size()).isEqualTo(featureCnt);
-    assertThat(headSession.contentInSession.size()).isEqualTo(featureCnt);
+    assertThat(fakeSessionMutation.streamStructures).hasSize(featureCnt);
+    assertThat(headSession.getContentInSession()).hasSize(featureCnt);
 
     // Now we add two new features
     fakeSessionMutation.streamStructures.clear();
@@ -227,12 +231,12 @@ public class HeadSessionImplTest {
     protocolBuilder = new InternalProtocolBuilder();
     addFeatures(protocolBuilder, additionalFeatureCnt, featureCnt + 1);
     streamStructures = protocolBuilder.buildAsStreamStructure();
-    assertThat(streamStructures.size()).isEqualTo(additionalFeatureCnt);
+    assertThat(streamStructures).hasSize(additionalFeatureCnt);
 
     // 0 features
     headSession.updateSession(false, streamStructures, null);
-    assertThat(fakeSessionMutation.streamStructures.size()).isEqualTo(additionalFeatureCnt);
-    assertThat(headSession.contentInSession.size()).isEqualTo(featureCnt + additionalFeatureCnt);
+    assertThat(fakeSessionMutation.streamStructures).hasSize(additionalFeatureCnt);
+    assertThat(headSession.getContentInSession()).hasSize(featureCnt + additionalFeatureCnt);
   }
 
   @Test
@@ -243,12 +247,12 @@ public class HeadSessionImplTest {
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder().addClearOperation();
     addFeatures(protocolBuilder, featureCnt, 1);
     List<StreamStructure> streamStructures = protocolBuilder.buildAsStreamStructure();
-    assertThat(streamStructures.size()).isEqualTo(4);
+    assertThat(streamStructures).hasSize(4);
 
     // 1 clear, 3 features
     headSession.updateSession(false, streamStructures, null);
-    assertThat(fakeSessionMutation.streamStructures.size()).isEqualTo(featureCnt);
-    assertThat(headSession.contentInSession.size()).isEqualTo(featureCnt);
+    assertThat(fakeSessionMutation.streamStructures).hasSize(featureCnt);
+    assertThat(headSession.getContentInSession()).hasSize(featureCnt);
 
     // Clear head and add 2 features, make sure we have new content ids
     fakeSessionMutation.streamStructures.clear();
@@ -258,12 +262,12 @@ public class HeadSessionImplTest {
     streamStructures = protocolBuilder.buildAsStreamStructure();
 
     // 2 features, 1 clear
-    assertThat(streamStructures.size()).isEqualTo(3);
+    assertThat(streamStructures).hasSize(3);
 
     // 0 features
     headSession.updateSession(false, streamStructures, null);
-    assertThat(fakeSessionMutation.streamStructures.size()).isEqualTo(newFeatureCnt);
-    assertThat(headSession.contentInSession.size()).isEqualTo(newFeatureCnt);
+    assertThat(fakeSessionMutation.streamStructures).hasSize(newFeatureCnt);
+    assertThat(headSession.getContentInSession()).hasSize(newFeatureCnt);
   }
 
   private void addFeatures(InternalProtocolBuilder protocolBuilder, int featureCnt, int startId) {

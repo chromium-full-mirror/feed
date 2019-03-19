@@ -71,9 +71,9 @@ public class SessionImplTest extends AbstractSessionImplTest {
     // clear head will be ignored
     assertThat(streamStructures).hasSize(4);
     session.updateSession(true, streamStructures, null);
-    assertThat(fakeSessionMutation.streamStructures).hasSize(0);
-    assertThat(fakeModelMutator.addedChildren).hasSize(0);
-    assertThat(session.contentInSession).hasSize(0);
+    assertThat(fakeSessionMutation.streamStructures).isEmpty();
+    assertThat(fakeModelMutator.addedChildren).isEmpty();
+    assertThat(session.getContentInSession()).isEmpty();
   }
 
   @Test

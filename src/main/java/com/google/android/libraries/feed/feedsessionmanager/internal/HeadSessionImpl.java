@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.feedsessionmanager.internal;
 
-import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.store.SessionMutation;
@@ -25,9 +24,7 @@ import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTracker;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
-import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -41,8 +38,9 @@ public class HeadSessionImpl implements Session, Dumpable {
 
   private final Store store;
   private final TimingUtils timingUtils;
-
-  @VisibleForTesting final Set<String> contentInSession = new HashSet<>();
+  // TODO: Move to SessionCache and get from there.
+  private final SessionContentTracker sessionContentTracker =
+      new SessionContentTracker(/* supportsClearAll= */ true);
 
   // operation counts for the dumper
   private int updateCount = 0;
@@ -56,13 +54,11 @@ public class HeadSessionImpl implements Session, Dumpable {
   /** Initialize head from the stored stream structures. */
   void initializeSession(List<StreamStructure> streamStructures) {
     Logger.i(TAG, "Initialize HEAD %s items", streamStructures.size());
-    for (StreamStructure streamStructure : streamStructures) {
-      contentInSession.add(streamStructure.getContentId());
-    }
+    sessionContentTracker.update(streamStructures);
   }
 
   void reset() {
-    contentInSession.clear();
+    sessionContentTracker.clear();
   }
 
   @Override
@@ -83,7 +79,7 @@ public class HeadSessionImpl implements Session, Dumpable {
         mutationContext != null ? mutationContext.getContinuationToken() : null;
     if (mutationSourceToken != null) {
       String contentId = mutationSourceToken.getContentId();
-      if (mutationSourceToken.hasContentId() && !contentInSession.contains(contentId)) {
+      if (mutationSourceToken.hasContentId() && !sessionContentTracker.contains(contentId)) {
         // Make sure that mutationSourceToken is a token in this session, if not, we don't update
         // the session.
         timeTracker.stop("updateSessionIgnored", getSessionId(), "Token Not Found", contentId);
@@ -97,34 +93,32 @@ public class HeadSessionImpl implements Session, Dumpable {
     boolean cleared = false;
     SessionMutation sessionMutation = store.editSession(getSessionId());
     for (StreamStructure streamStructure : streamStructures) {
-      if (streamStructure.getOperation() == Operation.UPDATE_OR_APPEND) {
-        String contentKey = streamStructure.getContentId();
-        if (contentInSession.contains(contentKey)) {
-          // this is an update operation so we can ignore it
-          updateCnt++;
-          continue;
-        }
-
-        sessionMutation.add(streamStructure);
-        contentInSession.add(contentKey);
-        addFeatureCnt++;
-        continue;
-      } else if (streamStructure.getOperation() == Operation.REMOVE) {
-        String contentKey = streamStructure.getContentId();
-        Logger.i(TAG, "Removing Item %s from $HEAD", contentKey);
-        if (contentInSession.contains(contentKey)) {
-          sessionMutation.add(streamStructure);
-          contentInSession.remove(contentKey);
-        } else {
-          Logger.w(TAG, "Remove operation content not found in $HEAD");
-        }
-        continue;
-      } else if (streamStructure.getOperation() == Operation.CLEAR_ALL) {
-        contentInSession.clear();
-        cleared = true;
-        continue;
+      String contentId = streamStructure.getContentId();
+      switch (streamStructure.getOperation()) {
+        case UPDATE_OR_APPEND:
+          if (sessionContentTracker.contains(contentId)) {
+            // this is an update operation so we can ignore it
+            updateCnt++;
+          } else {
+            sessionMutation.add(streamStructure);
+            addFeatureCnt++;
+          }
+          break;
+        case REMOVE:
+          Logger.i(TAG, "Removing Item %s from $HEAD", contentId);
+          if (sessionContentTracker.contains(contentId)) {
+            sessionMutation.add(streamStructure);
+          } else {
+            Logger.w(TAG, "Remove operation content not found in $HEAD");
+          }
+          break;
+        case CLEAR_ALL:
+          cleared = true;
+          break;
+        default:
+          Logger.e(TAG, "Unknown operation, ignoring: %s", streamStructure.getOperation());
       }
-      Logger.e(TAG, "Unknown operation, ignoring: %s", streamStructure.getOperation());
+      sessionContentTracker.update(streamStructure);
     }
     boolean success = sessionMutation.commit();
     if (success) {
@@ -163,24 +157,19 @@ public class HeadSessionImpl implements Session, Dumpable {
 
   @Override
   public Set<String> getContentInSession() {
-    return new HashSet<>(contentInSession);
+    return sessionContentTracker.getContentIds();
   }
 
   public boolean isHeadEmpty() {
-    return contentInSession.isEmpty();
-  }
-
-  // This is called only in tests to access the content in the session.
-  public Set<String> getContentInSessionForTest() {
-    return new HashSet<>(contentInSession);
+    return sessionContentTracker.isEmpty();
   }
 
   @Override
   public void dump(Dumper dumper) {
     dumper.title(TAG);
     dumper.forKey("sessionName").value(getSessionId());
-    dumper.forKey("contentInSession").value(contentInSession.size());
     dumper.forKey("updateCount").value(updateCount).compactPrevious();
     dumper.forKey("storeMutationFailures").value(storeMutationFailures).compactPrevious();
+    dumper.dump(sessionContentTracker);
   }
 }

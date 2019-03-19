@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.feedsessionmanager.internal;
 
-import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelMutation;
@@ -31,9 +30,7 @@ import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTracker;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
-import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -47,6 +44,9 @@ public class SessionImpl implements InitializableSession, Dumpable {
   protected final ThreadUtils threadUtils;
   protected final TimingUtils timingUtils;
   private final boolean limitPagingUpdates;
+  // TODO: Move to SessionCache and get from there.
+  private final SessionContentTracker sessionContentTracker =
+      new SessionContentTracker(/* supportsClearAll= */ false);
 
   // Allow creation of the session without a model provider, this becomes an unbound session
   /*@Nullable*/ protected ModelProvider modelProvider;
@@ -54,8 +54,6 @@ public class SessionImpl implements InitializableSession, Dumpable {
   protected boolean legacyHeadContent = false;
 
   protected String sessionId;
-
-  @VisibleForTesting public final Set<String> contentInSession = new HashSet<>();
 
   // operation counts for the dumper
   int updateCount = 0;
@@ -93,46 +91,38 @@ public class SessionImpl implements InitializableSession, Dumpable {
 
   @Override
   public void populateModelProvider(
-      List<StreamStructure> head,
-      boolean cachedBindings,
-      boolean legacyHeadContent) {
+      List<StreamStructure> head, boolean cachedBindings, boolean legacyHeadContent) {
     Logger.i(TAG, "PopulateModelProvider %s items", head.size());
     this.legacyHeadContent = legacyHeadContent;
     threadUtils.checkNotMainThread();
     ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
 
-    ModelMutation modelMutation = (modelProvider != null) ? modelProvider.edit() : null;
-    if (modelMutation != null) {
-      modelMutation.hasCachedBindings(cachedBindings);
+    if (modelProvider != null) {
+      ModelMutation modelMutation =
+          modelProvider.edit().hasCachedBindings(cachedBindings).setSessionId(sessionId);
+
+      // Walk through head and add all the DataOperations to the session.
+      for (StreamStructure streamStructure : head) {
+        String contentId = streamStructure.getContentId();
+        switch (streamStructure.getOperation()) {
+          case UPDATE_OR_APPEND:
+            if (!sessionContentTracker.contains(contentId)) {
+              modelMutation.addChild(streamStructure);
+            }
+            break;
+          case REMOVE:
+            modelMutation.removeChild(streamStructure);
+            break;
+          default:
+            Logger.e(TAG, "unsupported StreamDataOperation: %s", streamStructure.getOperation());
+        }
+        sessionContentTracker.update(streamStructure);
+      }
+      modelMutation.commit();
+    } else {
+      sessionContentTracker.update(head);
     }
 
-    // Walk through head and add all the DataOperations to the session.
-    for (StreamStructure streamStructure : head) {
-      if (streamStructure.getOperation() == Operation.UPDATE_OR_APPEND) {
-        if (contentInSession.contains(streamStructure.getContentId())) {
-          Logger.w(
-              TAG, "Updated operation stored in $HEAD, Item %s", streamStructure.getContentId());
-          continue;
-        } else {
-          contentInSession.add(streamStructure.getContentId());
-          if (modelMutation != null) {
-            modelMutation.addChild(streamStructure);
-          }
-        }
-        continue;
-      } else if (streamStructure.getOperation() == Operation.REMOVE) {
-        contentInSession.remove(streamStructure.getContentId());
-        if (modelMutation != null) {
-          modelMutation.removeChild(streamStructure);
-        }
-        continue;
-      }
-      Logger.e(TAG, "unsupported StreamDataOperation: %s", streamStructure.getOperation());
-    }
-    if (modelMutation != null) {
-      modelMutation.setSessionId(sessionId);
-      modelMutation.commit();
-    }
     timeTracker.stop("populateSession", sessionId, "operations", head.size());
   }
 
@@ -183,7 +173,7 @@ public class SessionImpl implements InitializableSession, Dumpable {
         mutationContext != null ? mutationContext.getContinuationToken() : null;
     if (mutationSourceToken != null) {
       String contentId = mutationSourceToken.getContentId();
-      if (!contentInSession.contains(contentId)) {
+      if (!sessionContentTracker.contains(contentId)) {
         // Make sure that mutationSourceToken is a token in this session, if not, we don't update
         // the session.
         timeTracker.stop("updateSessionIgnored", sessionId, "Token Not Found", contentId);
@@ -215,35 +205,38 @@ public class SessionImpl implements InitializableSession, Dumpable {
     int addFeatureCnt = 0;
     SessionMutation sessionMutation = store.editSession(sessionId);
     for (StreamStructure streamStructure : streamStructures) {
-      String contentKey = streamStructure.getContentId();
-      if (streamStructure.getOperation() == Operation.UPDATE_OR_APPEND) {
-        if (contentInSession.contains(contentKey)) {
-          // TODO: This could leave an empty feature if contentKey already exists in
-          // the session with a different parent.
-          if (modelMutation != null) {
-            // this is an update operation so we can ignore it
-            modelMutation.updateChild(streamStructure);
-            updateCnt++;
+      String contentId = streamStructure.getContentId();
+      switch (streamStructure.getOperation()) {
+        case UPDATE_OR_APPEND:
+          if (sessionContentTracker.contains(contentId)) {
+            // TODO: This could leave an empty feature if contentKey already exists in
+            // the session with a different parent.
+            if (modelMutation != null) {
+              // this is an update operation so we can ignore it
+              modelMutation.updateChild(streamStructure);
+              updateCnt++;
+            }
+          } else {
+            sessionMutation.add(streamStructure);
+            if (modelMutation != null) {
+              modelMutation.addChild(streamStructure);
+            }
+            addFeatureCnt++;
           }
-        } else {
-          contentInSession.add(contentKey);
+          break;
+        case REMOVE:
           sessionMutation.add(streamStructure);
           if (modelMutation != null) {
-            modelMutation.addChild(streamStructure);
+            modelMutation.removeChild(streamStructure);
           }
-          addFeatureCnt++;
-        }
-      } else if (streamStructure.getOperation() == Operation.REMOVE) {
-        sessionMutation.add(streamStructure);
-        contentInSession.remove(contentKey);
-        if (modelMutation != null) {
-          modelMutation.removeChild(streamStructure);
-        }
-      } else if (streamStructure.getOperation() == Operation.CLEAR_ALL) {
-        Logger.i(TAG, "CLEAR_ALL not support on this session type");
-      } else {
-        Logger.e(TAG, "Unknown operation, ignoring: %s", streamStructure.getOperation());
+          break;
+        case CLEAR_ALL:
+          Logger.i(TAG, "CLEAR_ALL not support on this session type");
+          break;
+        default:
+          Logger.e(TAG, "Unknown operation, ignoring: %s", streamStructure.getOperation());
       }
+      sessionContentTracker.update(streamStructure);
     }
 
     // Commit the Model Provider mutation after the store is updated.
@@ -265,7 +258,7 @@ public class SessionImpl implements InitializableSession, Dumpable {
 
   @Override
   public Set<String> getContentInSession() {
-    return new HashSet<>(contentInSession);
+    return sessionContentTracker.getContentIds();
   }
 
   @Override
@@ -276,8 +269,8 @@ public class SessionImpl implements InitializableSession, Dumpable {
         .forKey("")
         .value((modelProvider == null) ? "sessionIsUnbound" : "sessionIsBound")
         .compactPrevious();
-    dumper.forKey("contentInSession").value(contentInSession.size());
     dumper.forKey("updateCount").value(updateCount).compactPrevious();
+    dumper.dump(sessionContentTracker);
     if (modelProvider instanceof Dumpable) {
       dumper.dump((Dumpable) modelProvider);
     }
