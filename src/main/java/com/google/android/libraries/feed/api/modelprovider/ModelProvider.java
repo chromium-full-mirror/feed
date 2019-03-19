@@ -86,9 +86,10 @@ public interface ModelProvider {
   /**
    * Handle the processing of a {@code ModelToken}. For example start a request for the next page of
    * content. The results of handling the token will be available through Observers on the
-   * ModelToken.
+   * ModelToken. Returns {@literal false} if a {@code modelToken} is not recognized and observers
+   * will not be fired.
    */
-  void handleToken(ModelToken modelToken);
+  boolean handleToken(ModelToken modelToken);
 
   /**
    * Allow the stream to force a refresh. This will result in the current model being invalidated if

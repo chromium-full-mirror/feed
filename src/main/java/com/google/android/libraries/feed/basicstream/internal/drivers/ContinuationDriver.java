@@ -39,6 +39,7 @@ import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.host.logging.InternalFeedError;
 import com.google.android.libraries.feed.host.logging.SpinnerType;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
 import com.google.android.libraries.feed.sharedstream.logging.LoggingListener;
@@ -116,10 +117,15 @@ public class ContinuationDriver extends LeafFeatureDriver
     modelToken.registerObserver(this);
     if (modelToken.isSynthetic() && consumeSyntheticTokens) {
       Logger.d(TAG, "Handling synthetic token");
-      showSpinner = true;
-      spinnerType = SpinnerType.SYNTHETIC_TOKEN;
-      modelProvider.handleToken(modelToken);
-      tokenHandled = true;
+      boolean tokenWillBeHandled = modelProvider.handleToken(modelToken);
+      if (tokenWillBeHandled) {
+        showSpinner = true;
+        spinnerType = SpinnerType.SYNTHETIC_TOKEN;
+        tokenHandled = true;
+      } else {
+        Logger.e(TAG, "Synthetic token was not handled");
+        basicLoggingApi.onInternalError(InternalFeedError.UNHANDLED_TOKEN);
+      }
     }
   }
 
@@ -145,11 +151,17 @@ public class ContinuationDriver extends LeafFeatureDriver
       Logger.wtf(TAG, "Calling onClick before binding.");
       return;
     }
-    showSpinner = true;
-    spinnerLogger.spinnerStarted(SpinnerType.MORE_BUTTON);
-    checkNotNull(continuationViewHolder).setShowSpinner(true);
-    modelProvider.handleToken(modelToken);
-    tokenHandled = true;
+    boolean tokenWillBeHandled = modelProvider.handleToken(modelToken);
+    if (tokenWillBeHandled) {
+      showSpinner = true;
+      spinnerLogger.spinnerStarted(SpinnerType.MORE_BUTTON);
+      checkNotNull(continuationViewHolder).setShowSpinner(true);
+      tokenHandled = true;
+    } else {
+      Logger.e(TAG, "Continuation token was not handled");
+      basicLoggingApi.onInternalError(InternalFeedError.UNHANDLED_TOKEN);
+      showErrorUi();
+    }
   }
 
   @Override
@@ -224,6 +236,11 @@ public class ContinuationDriver extends LeafFeatureDriver
 
   @Override
   public void onError(ModelError modelError) {
+    basicLoggingApi.onTokenFailedToComplete(modelToken.isSynthetic(), ++failureCount);
+    showErrorUi();
+  }
+
+  private void showErrorUi() {
     showSpinner = false;
     spinnerLogger.spinnerFinished();
 
@@ -231,7 +248,6 @@ public class ContinuationDriver extends LeafFeatureDriver
       continuationViewHolder.setShowSpinner(false);
     }
 
-    basicLoggingApi.onTokenFailedToComplete(modelToken.isSynthetic(), ++failureCount);
     snackbarApi.show(context.getString(R.string.snackbar_fetch_failed));
   }
 

@@ -40,10 +40,11 @@ public class FakeModelProvider implements ModelProvider {
   private final Set<ModelProviderObserver> observers = new HashSet<>();
   private ModelFeature rootFeature;
   private boolean wasRefreshTriggered;
+  private boolean tokensEnabled = true;
   /*@Nullable*/ private String sessionId = null;
   @RequestReason private int lastRequestReason = RequestReason.UNKNOWN;
   /*@Nullable*/ private ModelFeature immediateSessionStartModel;
-  /*@Nullable*/ private UiContext triggerRefreshUiContext;
+  /*@Nullable*/ private UiContext unusedTriggerRefreshUiContext;
 
   @Override
   public ModelMutation edit() {
@@ -81,7 +82,9 @@ public class FakeModelProvider implements ModelProvider {
   }
 
   @Override
-  public void handleToken(ModelToken modelToken) {}
+  public boolean handleToken(ModelToken modelToken) {
+    return tokensEnabled;
+  }
 
   @Override
   public void triggerRefresh(@RequestReason int requestReason) {
@@ -93,7 +96,7 @@ public class FakeModelProvider implements ModelProvider {
   public void triggerRefresh(@RequestReason int requestReason, UiContext uiContext) {
     wasRefreshTriggered = true;
     lastRequestReason = requestReason;
-    triggerRefreshUiContext = uiContext;
+    unusedTriggerRefreshUiContext = uiContext;
   }
 
   @Override
@@ -175,5 +178,9 @@ public class FakeModelProvider implements ModelProvider {
 
   public void triggerOnSessionStartImmediately(ModelFeature modelFeature) {
     immediateSessionStartModel = modelFeature;
+  }
+
+  public void setTokensEnabled(boolean value) {
+    tokensEnabled = value;
   }
 }

@@ -142,8 +142,7 @@ public class FeedModelProviderTest {
   @Test
   public void testRemoveWithAppend() {
     // Enable synthetic tokens.
-    initDefaultConfig();
-    when(config.getValueOrDefault(ConfigKey.INITIAL_NON_CACHED_PAGE_SIZE, 0)).thenReturn(10);
+    initSyntheticTokenConfig(/* initialPageSize= */ 10, /* minPageSize= */ 0, /* pageSize= */ 0);
     FeedModelProvider modelProvider = createFeedModelProvider();
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.INITIALIZING);
 
@@ -197,12 +196,8 @@ public class FeedModelProviderTest {
   @Test
   public void testCursor() {
     FeedModelProvider modelProvider = createFeedModelProviderWithConfig();
-    ModelMutation mutator = getRootedModelMutator(modelProvider);
     int featureCnt = 2;
-    for (int i = 0; i < featureCnt; i++) {
-      mutator.addChild(createStreamStructureAndBinding(createFeature(i + 1, rootContentId)));
-    }
-    mutator.commit();
+    createTopLevelFeatures(modelProvider, featureCnt).commit();
 
     ModelFeature rootFeature = modelProvider.getRootFeature();
     assertThat(rootFeature).isNotNull();
@@ -221,13 +216,10 @@ public class FeedModelProviderTest {
   @Test
   public void testRemove() {
     FeedModelProvider modelProvider = createFeedModelProviderWithConfig();
-    ModelMutation mutator = getRootedModelMutator(modelProvider);
     int featureCnt = 2;
-    for (int i = 0; i < featureCnt; i++) {
-      mutator.addChild(createStreamStructureAndBinding(createFeature(i + 1, rootContentId)));
-    }
-    mutator.removeChild(createRemove(rootContentId, createFeatureContentId(2)));
-    mutator.commit();
+    createTopLevelFeatures(modelProvider, featureCnt)
+        .removeChild(createRemove(rootContentId, createFeatureContentId(2)))
+        .commit();
 
     ModelFeature rootFeature = modelProvider.getRootFeature();
     assertThat(rootFeature).isNotNull();
@@ -244,12 +236,8 @@ public class FeedModelProviderTest {
   @Test
   public void testMultiLevelCursors() {
     FeedModelProvider modelProvider = createFeedModelProviderWithConfig();
-    ModelMutation mutator = getRootedModelMutator(modelProvider);
-
     int featureCnt = 3;
-    for (int i = 0; i < featureCnt; i++) {
-      mutator.addChild(createStreamStructureAndBinding(createFeature(i + 1, rootContentId)));
-    }
+    ModelMutation mutator = createTopLevelFeatures(modelProvider, featureCnt);
     String featureParent = createFeatureContentId(2);
     for (int i = 0; i < featureCnt; i++) {
       mutator.addChild(
@@ -542,10 +530,8 @@ public class FeedModelProviderTest {
   public void testSyntheticToken() {
     int initialPageSize = 4;
     int pageSize = 4;
-    when(config.getValueOrDefault(ConfigKey.INITIAL_NON_CACHED_PAGE_SIZE, 0))
-        .thenReturn(initialPageSize);
-    when(config.getValueOrDefault(ConfigKey.NON_CACHED_PAGE_SIZE, 0)).thenReturn(pageSize);
-    when(config.getValueOrDefault(ConfigKey.NON_CACHED_MIN_PAGE_SIZE, 0)).thenReturn(2);
+    initSyntheticTokenConfig(
+        /* initialPageSize= */ initialPageSize, /* minPageSize= */ 2, /* pageSize= */ pageSize);
 
     doAnswer(
             invocation -> {
@@ -557,13 +543,8 @@ public class FeedModelProviderTest {
         .execute(anyString(), anyInt(), any());
 
     FeedModelProvider modelProvider = createFeedModelProvider();
-
-    ModelMutation mutator = getRootedModelMutator(modelProvider);
     int featureCnt = 11;
-    for (int i = 0; i < featureCnt; i++) {
-      mutator.addChild(createStreamStructureAndBinding(createFeature(i + 1, rootContentId)));
-    }
-    mutator.commit();
+    createTopLevelFeatures(modelProvider, featureCnt).commit();
 
     ModelFeature rootFeature = modelProvider.getRootFeature();
     assertThat(rootFeature).isNotNull();
@@ -572,7 +553,7 @@ public class FeedModelProviderTest {
 
     ModelChild lastChild = assertCursorSize(modelCursor, initialPageSize + 1);
     assertThat(lastChild.getType()).isEqualTo(Type.TOKEN);
-    assertThat(modelProvider.getSyntheticTokensForTest().size()).isEqualTo(1);
+    assertThat(lastChild.getModelToken().isSynthetic()).isTrue();
 
     // The token should be handled in the FeedModelProvider
     modelProvider.handleToken(lastChild.getModelToken());
@@ -581,7 +562,7 @@ public class FeedModelProviderTest {
 
     lastChild = assertCursorSize(modelCursor, initialPageSize + pageSize + 1);
     assertThat(lastChild.getType()).isEqualTo(Type.TOKEN);
-    assertThat(modelProvider.getSyntheticTokensForTest().size()).isEqualTo(1);
+    assertThat(lastChild.getModelToken().isSynthetic()).isTrue();
 
     // last page
     modelProvider.handleToken(lastChild.getModelToken());
@@ -590,7 +571,39 @@ public class FeedModelProviderTest {
 
     lastChild = assertCursorSize(modelCursor, featureCnt);
     assertThat(lastChild.getType()).isEqualTo(Type.FEATURE);
-    assertThat(modelProvider.getSyntheticTokensForTest().size()).isEqualTo(0);
+  }
+
+  @Test
+  public void testSyntheticToken_missingToken() {
+    int initialPageSize = 4;
+    int pageSize = 4;
+    initSyntheticTokenConfig(
+        /* initialPageSize= */ initialPageSize, /* minPageSize= */ 2, /* pageSize= */ pageSize);
+
+    doAnswer(
+            invocation -> {
+              Object[] args = invocation.getArguments();
+              ((Runnable) args[2]).run();
+              return null;
+            })
+        .when(taskQueue)
+        .execute(anyString(), anyInt(), any());
+
+    FeedModelProvider modelProvider = createFeedModelProvider();
+    createTopLevelFeatures(modelProvider, /* featureCount= */ 11).commit();
+
+    ModelCursor modelCursor = modelProvider.getRootFeature().getCursor();
+    ModelChild lastChild = assertCursorSize(modelCursor, initialPageSize + 1);
+    assertThat(lastChild.getType()).isEqualTo(Type.TOKEN);
+    assertThat(lastChild.getModelToken().isSynthetic()).isTrue();
+
+    // Simulate removing the synthetic token from the root.
+    FakeTokenCompletedObserver observer = new FakeTokenCompletedObserver();
+    lastChild.getModelToken().registerObserver(observer);
+    modelProvider.clearRootChildrenForTest();
+    modelProvider.handleToken(lastChild.getModelToken());
+    assertThat(observer.errorThrown).isNotNull();
+    assertThat(observer.errorThrown.getErrorType()).isEqualTo(ErrorType.SYNTHETIC_TOKEN_ERROR);
   }
 
   @Test
@@ -610,12 +623,8 @@ public class FeedModelProviderTest {
   @Test
   public void testViewDepthProvider_delegated() {
     FeedModelProvider modelProvider = createFeedModelProviderWithConfig();
-    ModelMutation mutator = getRootedModelMutator(modelProvider);
-
     int featureCnt = 3;
-    for (int i = 0; i < featureCnt; i++) {
-      mutator.addChild(createStreamStructureAndBinding(createFeature(i + 1, rootContentId)));
-    }
+    ModelMutation mutator = createTopLevelFeatures(modelProvider, featureCnt);
     String featureParent = createFeatureContentId(2);
     for (int i = 0; i < featureCnt; i++) {
       mutator.addChild(
@@ -634,13 +643,8 @@ public class FeedModelProviderTest {
   @Test
   public void testGetAllRootChildren() {
     FeedModelProvider modelProvider = createFeedModelProviderWithConfig();
-    ModelMutation mutator = getRootedModelMutator(modelProvider);
-
     int featureCnt = 3;
-    for (int i = 0; i < featureCnt; i++) {
-      mutator.addChild(createStreamStructureAndBinding(createFeature(i + 1, rootContentId)));
-    }
-    mutator.commit();
+    createTopLevelFeatures(modelProvider, featureCnt).commit();
 
     List<ModelChild> rootChildren = modelProvider.getAllRootChildren();
     assertThat(rootChildren).hasSize(featureCnt);
@@ -673,18 +677,20 @@ public class FeedModelProviderTest {
   }
 
   private void initDefaultConfig() {
-    when(config.getValueOrDefault(ConfigKey.INITIAL_NON_CACHED_PAGE_SIZE, 0)).thenReturn(0);
-    when(config.getValueOrDefault(ConfigKey.NON_CACHED_PAGE_SIZE, 0)).thenReturn(0);
-    when(config.getValueOrDefault(ConfigKey.NON_CACHED_MIN_PAGE_SIZE, 0)).thenReturn(0);
+    initSyntheticTokenConfig(/* initialPageSize= */ 0, /* minPageSize= */ 0, /* pageSize= */ 0);
+  }
+
+  private void initSyntheticTokenConfig(int initialPageSize, int minPageSize, int pageSize) {
+    when(config.getValueOrDefault(ConfigKey.INITIAL_NON_CACHED_PAGE_SIZE, 0))
+        .thenReturn(initialPageSize);
+    when(config.getValueOrDefault(ConfigKey.NON_CACHED_PAGE_SIZE, 0)).thenReturn(pageSize);
+    when(config.getValueOrDefault(ConfigKey.NON_CACHED_MIN_PAGE_SIZE, 0)).thenReturn(minPageSize);
   }
 
   private StreamToken initializeStreamWithToken(FeedModelProvider modelProvider, int featureCnt) {
-    ModelMutation mutator = getRootedModelMutator(modelProvider);
+    ModelMutation mutator = createTopLevelFeatures(modelProvider, featureCnt);
 
     // Populate the model provider with a continuation token at the end.
-    for (int i = 0; i < featureCnt; i++) {
-      mutator.addChild(createStreamStructureAndBinding(createFeature(i + 1, rootContentId)));
-    }
     ByteString bytes = ByteString.copyFrom("continuation", Charset.defaultCharset());
     StreamToken streamToken =
         StreamToken.newBuilder().setNextPageToken(bytes).setParentId(rootContentId).build();
@@ -702,6 +708,14 @@ public class FeedModelProviderTest {
   private FeedModelProvider createFeedModelProvider() {
     return new FeedModelProvider(
         sessionManager, threadUtils, timingUtils, taskQueue, fakeMainThreadRunner, null, config);
+  }
+
+  private ModelMutation createTopLevelFeatures(ModelProvider modelProvider, int featureCount) {
+    ModelMutation mutator = getRootedModelMutator(modelProvider);
+    for (int i = 0; i < featureCount; i++) {
+      mutator.addChild(createStreamStructureAndBinding(createFeature(i + 1, rootContentId)));
+    }
+    return mutator;
   }
 
   private StreamFeature createFeature(int i, String parentContentId) {
@@ -770,5 +784,17 @@ public class FeedModelProviderTest {
 
   private StreamFeature getRootFeature() {
     return StreamFeature.newBuilder().setContentId(rootContentId).build();
+  }
+
+  private static class FakeTokenCompletedObserver implements TokenCompletedObserver {
+    private ModelError errorThrown;
+
+    @Override
+    public void onTokenCompleted(TokenCompleted tokenCompleted) {}
+
+    @Override
+    public void onError(ModelError modelError) {
+      errorThrown = modelError;
+    }
   }
 }

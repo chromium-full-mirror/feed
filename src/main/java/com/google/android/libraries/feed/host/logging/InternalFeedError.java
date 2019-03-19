@@ -35,6 +35,7 @@ import android.support.annotation.IntDef;
   InternalFeedError.CARD_CHILD_MISSING_FEATURE,
   InternalFeedError.NULL_SHARED_STATES,
   InternalFeedError.FAILED_TO_CREATE_LEAF,
+  InternalFeedError.UNHANDLED_TOKEN,
   InternalFeedError.NEXT_VALUE
 })
 public @interface InternalFeedError {
@@ -72,6 +73,9 @@ public @interface InternalFeedError {
   /** Represents a failure to create a leaf child. */
   int FAILED_TO_CREATE_LEAF = 10;
 
+  /** Represents a token that could not be handled. */
+  int UNHANDLED_TOKEN = 11;
+
   /** The next value that should be used when adding additional values to the IntDef. */
-  int NEXT_VALUE = 11;
+  int NEXT_VALUE = 12;
 }

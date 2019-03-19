@@ -46,6 +46,7 @@ import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.host.logging.InternalFeedError;
 import com.google.android.libraries.feed.host.logging.SpinnerType;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
 import com.google.android.libraries.feed.sharedstream.logging.LoggingListener;
@@ -90,6 +91,7 @@ public class ContinuationDriverTest {
     initMocks(this);
     clock = new FakeClock();
     context = Robolectric.buildActivity(Activity.class).get();
+    when(modelProvider.handleToken(any(ModelToken.class))).thenReturn(true);
     when(modelChild.getModelToken()).thenReturn(modelToken);
 
     continuationDriver =
@@ -201,6 +203,31 @@ public class ContinuationDriverTest {
     continuationDriver.bind(continuationViewHolder);
     verify(continuationViewHolder)
         .bind(eq(continuationDriver), any(LoggingListener.class), eq(true));
+  }
+
+  @Test
+  public void testInitialize_syntheticTokenConsume_logsErrorForUnhandledToken() {
+    when(modelToken.isSynthetic()).thenReturn(true);
+    when(modelProvider.handleToken(any(ModelToken.class))).thenReturn(false);
+    continuationDriver =
+        new ContinuationDriverForTest(
+            basicLoggingApi,
+            clock,
+            new Configuration.Builder()
+                .put(ConfigKey.TRIGGER_IMMEDIATE_PAGINATION, true)
+                .put(ConfigKey.CONSUME_SYNTHETIC_TOKENS, true)
+                .build(),
+            context,
+            cursorChangedListener,
+            modelChild,
+            modelProvider,
+            POSITION,
+            snackbarApi,
+            threadUtils,
+            /* restoring= */ false);
+    continuationDriver.initialize();
+
+    verify(basicLoggingApi).onInternalError(InternalFeedError.UNHANDLED_TOKEN);
   }
 
   @Test
@@ -652,6 +679,18 @@ public class ContinuationDriverTest {
     continuationDriver.onClick(/* v= */ null);
 
     verify(spinnerLogger).spinnerStarted(SpinnerType.MORE_BUTTON);
+  }
+
+  @Test
+  public void testOnClick_logsErrorForUnhandledToken() {
+    when(modelProvider.handleToken(any(ModelToken.class))).thenReturn(false);
+    continuationDriver.bind(continuationViewHolder);
+
+    continuationDriver.onClick(/* v= */ null);
+
+    verify(basicLoggingApi).onInternalError(InternalFeedError.UNHANDLED_TOKEN);
+    verify(continuationViewHolder).setShowSpinner(false);
+    verify(snackbarApi).show(context.getString(R.string.snackbar_fetch_failed));
   }
 
   @Test

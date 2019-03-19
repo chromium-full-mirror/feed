@@ -35,6 +35,8 @@ public final class ModelError {
     // Pagination failed due to some type of error such as no network available or a request failed,
     // etc.
     int PAGINATION_ERROR = 2;
+    // Pagination failed due to a synthetic token error.
+    int SYNTHETIC_TOKEN_ERROR = 3;
   }
 
   private final @ErrorType int errorType;

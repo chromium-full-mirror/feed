@@ -212,7 +212,7 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
   }
 
   @Override
-  public void handleToken(ModelToken modelToken) {
+  public boolean handleToken(ModelToken modelToken) {
     if (modelToken instanceof UpdatableModelToken) {
       UpdatableModelToken token = (UpdatableModelToken) modelToken;
       if (token.isSynthetic()) {
@@ -222,7 +222,7 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
         }
         if (tokenTracker == null) {
           Logger.e(TAG, "Unable to find the SyntheticTokenTracker");
-          return;
+          return false;
         }
         // The nullness checker fails to understand tokenTracker can't be null in the Lambda usage
         SyntheticTokenTracker tt = Validators.checkNotNull(tokenTracker);
@@ -230,11 +230,12 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
             "FeedModelProvider.handleSyntheticToken",
             TaskType.USER_FACING,
             () -> tt.handleSyntheticToken(token));
-        return;
+        return true;
       }
     }
     String sessionId = Validators.checkNotNull(this.sessionId);
     sessionManager.handleToken(sessionId, modelToken.getStreamToken());
+    return true;
   }
 
   @Override
@@ -363,6 +364,7 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
       }
       cursors.clear();
       tokens.clear();
+      syntheticTokens.clear();
       containers.clear();
     }
     return true;
@@ -386,18 +388,22 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
         token = tokens.get(error.getContinuationToken());
       }
       if (token != null) {
-        mainThreadRunner.execute(
-            TAG + " onTokenChange",
-            () -> {
-              List<TokenCompletedObserver> observerList = token.tokenChild.getObserversToNotify();
-              for (TokenCompletedObserver observer : observerList) {
-                observer.onError(error);
-              }
-            });
+        raiseErrorOnToken(error, token.tokenChild);
       } else {
         Logger.e(TAG, "The Token Observer was not found during pagination error");
       }
     }
+  }
+
+  private void raiseErrorOnToken(ModelError error, UpdatableModelToken token) {
+    mainThreadRunner.execute(
+        TAG + " onTokenChange",
+        () -> {
+          List<TokenCompletedObserver> observerList = token.getObserversToNotify();
+          for (TokenCompletedObserver observer : observerList) {
+            observer.onError(error);
+          }
+        });
   }
 
   /**
@@ -894,56 +900,62 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
     /** Handle the synthetic token */
     void handleSyntheticToken(UpdatableModelToken token) {
       StreamToken streamToken = token.getStreamToken();
-      SyntheticTokenTracker tracker;
+      SyntheticTokenTracker tracker = null;
+      UpdatableModelChild tokenChild = null;
+      UpdatableModelChild currentRoot = null;
+      List<UpdatableModelChild> rootChildren = null;
+      int pos = -1;
       synchronized (lock) {
-        tracker = syntheticTokens.remove(streamToken.getContentId());
-      }
-      if (tracker == null) {
-        Logger.e(TAG, "SyntheticTokenTracker was not found");
-        return;
-      }
-
-      UpdatableModelChild tokenChild = tracker.getTokenChild();
-      Logger.i(TAG, "Found Token %s", tokenChild != null);
-      UpdatableModelChild currentRoot;
-      synchronized (lock) {
+        tracker = syntheticTokens.get(streamToken.getContentId());
+        if (tracker != null) {
+          tokenChild = tracker.getTokenChild();
+        }
         currentRoot = root;
-      }
-      if (tokenChild != null && currentRoot != null) {
-        List<UpdatableModelChild> rootChildren;
-        synchronized (lock) {
+        if (tokenChild != null && currentRoot != null) {
           rootChildren = containers.get(currentRoot.getContentId());
         }
         if (rootChildren != null) {
-          int pos = rootChildren.indexOf(tokenChild);
-          if (pos > 0) {
-            rootChildren.remove(pos);
-            SyntheticTokenTracker tokenTracker =
-                new SyntheticTokenTracker(currentRoot, pos, pageSize);
-            List<UpdatableModelChild> childrenToBind = tokenTracker.insertToken();
-            List<UpdatableModelChild> cursorSublist =
-                rootChildren.subList(pos, rootChildren.size());
-
-            // Bind the unbound children
-            bindChildrenAndTokens(
-                childrenToBind,
-                (bindingCount) -> {
-                  ModelCursorImpl cursor =
-                      new ModelCursorImpl(streamToken.getParentId(), cursorSublist);
-
-                  TokenCompleted tokenCompleted = new TokenCompleted(cursor);
-                  mainThreadRunner.execute(
-                      TAG + " onTokenChange",
-                      () -> {
-                        List<TokenCompletedObserver> observerList = token.getObserversToNotify();
-                        for (TokenCompletedObserver observer : observerList) {
-                          observer.onTokenCompleted(tokenCompleted);
-                        }
-                      });
-                });
-          }
+          pos = rootChildren.indexOf(tokenChild);
         }
       }
+
+      // Raise an error if the token cannot be processed.
+      if (pos < 0 || rootChildren == null || currentRoot == null) {
+        Logger.e(
+            TAG,
+            "Cannot find synthetic token, %b %b %b %b",
+            tracker != null,
+            tokenChild != null,
+            currentRoot != null,
+            rootChildren != null);
+        raiseErrorOnToken(
+            new ModelError(ErrorType.SYNTHETIC_TOKEN_ERROR, /* continuationToken= */ null), token);
+        return;
+      }
+
+      // Process the synthetic token.
+      synchronized (lock) {
+        syntheticTokens.remove(streamToken.getContentId());
+      }
+      rootChildren.remove(pos);
+      SyntheticTokenTracker tokenTracker = new SyntheticTokenTracker(currentRoot, pos, pageSize);
+      List<UpdatableModelChild> childrenToBind = tokenTracker.insertToken();
+      List<UpdatableModelChild> cursorSublist = rootChildren.subList(pos, rootChildren.size());
+      bindChildrenAndTokens(
+          childrenToBind,
+          (bindingCount) -> {
+            ModelCursorImpl cursor = new ModelCursorImpl(streamToken.getParentId(), cursorSublist);
+
+            TokenCompleted tokenCompleted = new TokenCompleted(cursor);
+            mainThreadRunner.execute(
+                TAG + " onTokenChange",
+                () -> {
+                  List<TokenCompletedObserver> observerList = token.getObserversToNotify();
+                  for (TokenCompletedObserver observer : observerList) {
+                    observer.onTokenCompleted(tokenCompleted);
+                  }
+                });
+          });
     }
 
     private void traverse(UpdatableModelChild node, int start, int end) {
@@ -1343,10 +1355,14 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
     }
   }
 
-  // test only method for verifying the synthetic tokens
-  Map<String, SyntheticTokenTracker> getSyntheticTokensForTest() {
+  @VisibleForTesting
+  void clearRootChildrenForTest() {
     synchronized (lock) {
-      return new HashMap<>(syntheticTokens);
+      if (root == null) {
+        return;
+      }
+
+      containers.remove(root.getContentId());
     }
   }
 }
