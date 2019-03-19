@@ -15,7 +15,6 @@
 package com.google.android.libraries.feed.feedrequestmanager;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Matchers.anyListOf;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -24,10 +23,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import android.os.Build;
 import android.os.Build.VERSION_CODES;
 import android.util.Base64;
-import com.google.android.libraries.feed.api.actionmanager.ActionReader;
-import com.google.android.libraries.feed.api.common.ActionPropertiesWithId;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
-import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.api.store.UploadableActionMutation;
 import com.google.android.libraries.feed.common.Result;
@@ -43,6 +39,8 @@ import com.google.android.libraries.feed.host.network.HttpRequest;
 import com.google.android.libraries.feed.host.network.HttpRequest.HttpMethod;
 import com.google.android.libraries.feed.host.network.HttpResponse;
 import com.google.android.libraries.feed.host.network.NetworkClient;
+import com.google.android.libraries.feed.testing.actionmanager.FakeActionReader;
+import com.google.android.libraries.feed.testing.protocoladapter.FakeProtocolAdapter;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.CodedOutputStream;
@@ -51,7 +49,6 @@ import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
 import com.google.search.now.wire.feed.ActionRequestProto.ActionRequest;
 import com.google.search.now.wire.feed.ConsistencyTokenProto.ConsistencyToken;
-import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.FeedActionResponseProto.FeedActionResponse;
 import com.google.search.now.wire.feed.FeedRequestProto.FeedRequest;
 import com.google.search.now.wire.feed.OpaqueActionDataForTestProto.OpaqueActionDataForTest;
@@ -60,10 +57,10 @@ import com.google.search.now.wire.feed.ResponseProto.Response;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -84,11 +81,11 @@ public class FeedActionUploadRequestManagerTest {
       ConsistencyToken.newBuilder().setToken(ByteString.copyFrom(new byte[] {0x1, 0xf})).build();
   private static final ConsistencyToken TOKEN_3 =
       ConsistencyToken.newBuilder().setToken(ByteString.copyFrom(new byte[] {0x2, 0xa})).build();
+  private static final String CONTENT_ID = "contentId";
+  private static final String CONTENT_ID_2 = "contentId2";
 
   @Mock private NetworkClient networkClient;
-  @Mock private ProtocolAdapter protocolAdapter;
   @Mock private ThreadUtils threadUtils;
-  @Mock private ActionReader actionReader;
   @Mock private Consumer<Result<List<StreamDataOperation>>> consumer;
   @Mock private Clock clock;
   @Mock private Store store;
@@ -98,33 +95,26 @@ public class FeedActionUploadRequestManagerTest {
   @Captor private ArgumentCaptor<HttpRequest> requestCaptor;
   private ExtensionRegistryLite registry;
   private FeedActionUploadRequestManager requestManager;
+  private FakeActionReader fakeActionReader;
   private FakeMainThreadRunner fakeMainThreadRunner;
+  private FakeProtocolAdapter fakeProtocolAdapter;
   private final Configuration configuration = new Configuration.Builder().build();
 
   @Before
   public void setUp() {
     initMocks(this);
-    FeedExtensionRegistry feedExtensionRegistry = new FeedExtensionRegistry(ArrayList::new);
     registry = ExtensionRegistryLite.newInstance();
     registry.add(FeedRequest.feedRequest);
+    fakeActionReader = new FakeActionReader();
     fakeMainThreadRunner = FakeMainThreadRunner.runTasksImmediately();
+    fakeProtocolAdapter = new FakeProtocolAdapter();
+    when(store.editUploadableActions()).thenReturn(actionMutation);
 
     ReflectionHelpers.setStaticField(Build.VERSION.class, "SDK_INT", VERSION_CODES.KITKAT);
     ReflectionHelpers.setStaticField(Build.VERSION.class, "RELEASE", "4.4.3");
     ReflectionHelpers.setStaticField(Build.class, "CPU_ABI", "armeabi");
     ReflectionHelpers.setStaticField(Build.class, "TAGS", "dev-keys");
-    requestManager =
-        new FeedActionUploadRequestManager(
-            configuration,
-            networkClient,
-            protocolAdapter,
-            feedExtensionRegistry,
-            getTaskQueue(),
-            threadUtils,
-            actionReader,
-            store,
-            clock,
-            fakeMainThreadRunner);
+    requestManager = createRequestManager(configuration);
   }
 
   @Test
@@ -135,48 +125,25 @@ public class FeedActionUploadRequestManagerTest {
             .put(ConfigKey.FEED_ACTION_TTL_SECONDS, 1L)
             .put(ConfigKey.FEED_ACTION_MAX_UPLOAD_ATTEMPTS, 5)
             .build();
-    requestManager =
-        new FeedActionUploadRequestManager(
-            configuration,
-            networkClient,
-            protocolAdapter,
-            new FeedExtensionRegistry(ArrayList::new),
-            getTaskQueue(),
-            threadUtils,
-            actionReader,
-            store,
-            clock,
-            fakeMainThreadRunner);
-    String contentId = "contentId";
-    HashSet<StreamUploadableAction> actionSet = new HashSet<>();
+    requestManager = createRequestManager(configuration);
     StreamUploadableAction action =
         StreamUploadableAction.newBuilder()
             .setUploadAttempts(1)
             .setTimestampSeconds(1L)
-            .setFeatureContentId(contentId)
+            .setFeatureContentId(CONTENT_ID)
             .build();
-    actionSet.add(action);
     RequiredConsumer<Result<ConsistencyToken>> consumer = new RequiredConsumer<>(input -> {});
-    OpaqueActionData data =
-        OpaqueActionData.newBuilder()
-            .setExtension(
-                OpaqueActionDataForTest.opaqueActionDataForTestExtension,
-                OpaqueActionDataForTest.newBuilder().setId(contentId).build())
-            .build();
+    fakeActionReader.addActionProperties(CONTENT_ID, createOpaqueActionData(CONTENT_ID));
     when(clock.currentTimeMillis()).thenReturn(5000L);
-    when(actionReader.getActionProperties(Collections.singletonList(contentId)))
-        .thenReturn(
-            Result.success(Collections.singletonList(new ActionPropertiesWithId(contentId, data))));
-    when(protocolAdapter.getWireContentId(contentId))
-        .thenReturn(Result.success(ContentId.getDefaultInstance()));
-    when(store.editUploadableActions()).thenReturn(actionMutation);
-    requestManager.triggerUploadActions(actionSet, ConsistencyToken.getDefaultInstance(), consumer);
+    requestManager.triggerUploadActions(
+        setOf(action), ConsistencyToken.getDefaultInstance(), consumer);
 
     verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
 
-    Response response = Response.getDefaultInstance();
-    responseConsumerCaptor.getValue().accept(createHttpResponse(/* responseCode= */ 200, response));
-    verify(actionMutation).remove(action, contentId);
+    responseConsumerCaptor
+        .getValue()
+        .accept(createHttpResponse(/* responseCode= */ 200, Response.getDefaultInstance()));
+    verify(actionMutation).remove(action, CONTENT_ID);
     assertThat(consumer.isCalled()).isTrue();
   }
 
@@ -188,52 +155,29 @@ public class FeedActionUploadRequestManagerTest {
             .put(ConfigKey.FEED_ACTION_TTL_SECONDS, 1000L)
             .put(ConfigKey.FEED_ACTION_MAX_UPLOAD_ATTEMPTS, 2)
             .build();
-    requestManager =
-        new FeedActionUploadRequestManager(
-            configuration,
-            networkClient,
-            protocolAdapter,
-            new FeedExtensionRegistry(ArrayList::new),
-            getTaskQueue(),
-            threadUtils,
-            actionReader,
-            store,
-            clock,
-            fakeMainThreadRunner);
-    String contentId = "contentId";
-    HashSet<StreamUploadableAction> actionSet = new HashSet<>();
+    requestManager = createRequestManager(configuration);
     StreamUploadableAction action =
         StreamUploadableAction.newBuilder()
             .setUploadAttempts(2)
-            .setFeatureContentId(contentId)
+            .setFeatureContentId(CONTENT_ID)
             .build();
-    actionSet.add(action);
     RequiredConsumer<Result<ConsistencyToken>> consumer = new RequiredConsumer<>(input -> {});
-    OpaqueActionData data =
-        OpaqueActionData.newBuilder()
-            .setExtension(
-                OpaqueActionDataForTest.opaqueActionDataForTestExtension,
-                OpaqueActionDataForTest.newBuilder().setId(contentId).build())
-            .build();
-    when(actionReader.getActionProperties(Collections.singletonList(contentId)))
-        .thenReturn(
-            Result.success(Collections.singletonList(new ActionPropertiesWithId(contentId, data))));
-    when(protocolAdapter.getWireContentId(contentId))
-        .thenReturn(Result.success(ContentId.getDefaultInstance()));
-    when(store.editUploadableActions()).thenReturn(actionMutation);
-    requestManager.triggerUploadActions(actionSet, ConsistencyToken.getDefaultInstance(), consumer);
+    fakeActionReader.addActionProperties(CONTENT_ID, createOpaqueActionData(CONTENT_ID));
+    requestManager.triggerUploadActions(
+        setOf(action), ConsistencyToken.getDefaultInstance(), consumer);
 
     verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
 
-    Response response = Response.getDefaultInstance();
-    responseConsumerCaptor.getValue().accept(createHttpResponse(/* responseCode= */ 200, response));
+    responseConsumerCaptor
+        .getValue()
+        .accept(createHttpResponse(/* responseCode= */ 200, Response.getDefaultInstance()));
     verify(actionMutation)
         .remove(
             StreamUploadableAction.newBuilder()
-                .setFeatureContentId(contentId)
+                .setFeatureContentId(CONTENT_ID)
                 .setUploadAttempts(2)
                 .build(),
-            contentId);
+            CONTENT_ID);
     assertThat(consumer.isCalled()).isTrue();
   }
 
@@ -247,57 +191,21 @@ public class FeedActionUploadRequestManagerTest {
             .put(ConfigKey.FEED_ACTION_MAX_UPLOAD_ATTEMPTS, 2)
             .put(ConfigKey.FEED_ACTION_SERVER_MAX_ACTIONS_PER_REQUEST, 2)
             .build();
-    requestManager =
-        new FeedActionUploadRequestManager(
-            configuration,
-            networkClient,
-            protocolAdapter,
-            new FeedExtensionRegistry(ArrayList::new),
-            getTaskQueue(),
-            threadUtils,
-            actionReader,
-            store,
-            clock,
-            fakeMainThreadRunner);
-    String contentId = "contentId";
-    String contentId2 = "contentId2";
+    requestManager = createRequestManager(configuration);
 
-    HashSet<StreamUploadableAction> actionSet = new HashSet<>();
-    StreamUploadableAction action1 =
-        StreamUploadableAction.newBuilder().setFeatureContentId(contentId).build();
-    StreamUploadableAction action2 =
-        StreamUploadableAction.newBuilder().setFeatureContentId(contentId2).build();
-    actionSet.add(action1);
-    actionSet.add(action2);
+    Set<StreamUploadableAction> actionSet =
+        setOf(
+            StreamUploadableAction.newBuilder().setFeatureContentId(CONTENT_ID).build(),
+            StreamUploadableAction.newBuilder().setFeatureContentId(CONTENT_ID_2).build());
     RequiredConsumer<Result<ConsistencyToken>> consumer =
         new RequiredConsumer<>(
             input -> {
               assertThat(input.isSuccessful()).isTrue();
               assertThat(input.getValue().toByteArray()).isEqualTo(TOKEN_3.toByteArray());
             });
-    OpaqueActionData data =
-        OpaqueActionData.newBuilder()
-            .setExtension(
-                OpaqueActionDataForTest.opaqueActionDataForTestExtension,
-                OpaqueActionDataForTest.newBuilder().setId(contentId).build())
-            .build();
-    when(protocolAdapter.getWireContentId(contentId))
-        .thenReturn(Result.success(ContentId.getDefaultInstance()));
-    OpaqueActionData data2 =
-        OpaqueActionData.newBuilder()
-            .setExtension(
-                OpaqueActionDataForTest.opaqueActionDataForTestExtension,
-                OpaqueActionDataForTest.newBuilder().setId(contentId2).build())
-            .build();
-    when(actionReader.getActionProperties(anyListOf(String.class)))
-        .thenReturn(
-            Result.success(
-                Arrays.asList(
-                    new ActionPropertiesWithId(contentId, data),
-                    new ActionPropertiesWithId(contentId2, data2))));
-    when(protocolAdapter.getWireContentId(contentId2))
-        .thenReturn(Result.success(ContentId.getDefaultInstance()));
-    when(store.editUploadableActions()).thenReturn(actionMutation);
+    fakeActionReader
+        .addActionProperties(CONTENT_ID, createOpaqueActionData(CONTENT_ID))
+        .addActionProperties(CONTENT_ID_2, createOpaqueActionData(CONTENT_ID_2));
     requestManager.triggerUploadActions(actionSet, TOKEN_1, consumer);
 
     verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
@@ -333,55 +241,19 @@ public class FeedActionUploadRequestManagerTest {
             .put(ConfigKey.FEED_ACTION_SERVER_MAX_SIZE_PER_REQUEST, 20)
             .put(ConfigKey.FEED_ACTION_SERVER_MAX_ACTIONS_PER_REQUEST, 2)
             .build();
-    requestManager =
-        new FeedActionUploadRequestManager(
-            configuration,
-            networkClient,
-            protocolAdapter,
-            new FeedExtensionRegistry(ArrayList::new),
-            getTaskQueue(),
-            threadUtils,
-            actionReader,
-            store,
-            clock,
-            fakeMainThreadRunner);
-    String contentId = "contentId";
-    String contentId2 = "contentId2";
-    HashSet<StreamUploadableAction> actionSet = new HashSet<>();
-    StreamUploadableAction action1 =
-        StreamUploadableAction.newBuilder().setFeatureContentId(contentId).build();
-    StreamUploadableAction action2 =
-        StreamUploadableAction.newBuilder().setFeatureContentId(contentId2).build();
-    actionSet.add(action1);
-    actionSet.add(action2);
+    requestManager = createRequestManager(configuration);
+    Set<StreamUploadableAction> actionSet =
+        setOf(
+            StreamUploadableAction.newBuilder().setFeatureContentId(CONTENT_ID).build(),
+            StreamUploadableAction.newBuilder().setFeatureContentId(CONTENT_ID_2).build());
     RequiredConsumer<Result<ConsistencyToken>> consumer =
         new RequiredConsumer<>(
             input -> {
               assertThat(input.isSuccessful()).isFalse();
             });
-    OpaqueActionData data =
-        OpaqueActionData.newBuilder()
-            .setExtension(
-                OpaqueActionDataForTest.opaqueActionDataForTestExtension,
-                OpaqueActionDataForTest.newBuilder().setId(contentId).build())
-            .build();
-    when(protocolAdapter.getWireContentId(contentId))
-        .thenReturn(Result.success(ContentId.getDefaultInstance()));
-    OpaqueActionData data2 =
-        OpaqueActionData.newBuilder()
-            .setExtension(
-                OpaqueActionDataForTest.opaqueActionDataForTestExtension,
-                OpaqueActionDataForTest.newBuilder().setId(contentId2).build())
-            .build();
-    when(actionReader.getActionProperties(anyListOf(String.class)))
-        .thenReturn(
-            Result.success(
-                Arrays.asList(
-                    new ActionPropertiesWithId(contentId, data),
-                    new ActionPropertiesWithId(contentId2, data2))));
-    when(protocolAdapter.getWireContentId(contentId2))
-        .thenReturn(Result.success(ContentId.getDefaultInstance()));
-    when(store.editUploadableActions()).thenReturn(actionMutation);
+    fakeActionReader
+        .addActionProperties(CONTENT_ID, createOpaqueActionData(CONTENT_ID))
+        .addActionProperties(CONTENT_ID_2, createOpaqueActionData(CONTENT_ID_2));
     requestManager.triggerUploadActions(actionSet, TOKEN_1, consumer);
 
     verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
@@ -407,56 +279,20 @@ public class FeedActionUploadRequestManagerTest {
             .put(ConfigKey.FEED_ACTION_SERVER_MAX_SIZE_PER_REQUEST, 20)
             .put(ConfigKey.FEED_ACTION_SERVER_MAX_ACTIONS_PER_REQUEST, 2)
             .build();
-    requestManager =
-        new FeedActionUploadRequestManager(
-            configuration,
-            networkClient,
-            protocolAdapter,
-            new FeedExtensionRegistry(ArrayList::new),
-            getTaskQueue(),
-            threadUtils,
-            actionReader,
-            store,
-            clock,
-            fakeMainThreadRunner);
-    String contentId = "contentId";
-    String contentId2 = "contentId2";
-    HashSet<StreamUploadableAction> actionSet = new HashSet<>();
-    StreamUploadableAction action1 =
-        StreamUploadableAction.newBuilder().setFeatureContentId(contentId).build();
-    StreamUploadableAction action2 =
-        StreamUploadableAction.newBuilder().setFeatureContentId(contentId2).build();
-    actionSet.add(action1);
-    actionSet.add(action2);
+    requestManager = createRequestManager(configuration);
+    Set<StreamUploadableAction> actionSet =
+        setOf(
+            StreamUploadableAction.newBuilder().setFeatureContentId(CONTENT_ID).build(),
+            StreamUploadableAction.newBuilder().setFeatureContentId(CONTENT_ID_2).build());
     RequiredConsumer<Result<ConsistencyToken>> consumer =
         new RequiredConsumer<>(
             input -> {
               assertThat(input.isSuccessful()).isTrue();
               assertThat(input.getValue().toByteArray()).isEqualTo(TOKEN_2.toByteArray());
             });
-    OpaqueActionData data =
-        OpaqueActionData.newBuilder()
-            .setExtension(
-                OpaqueActionDataForTest.opaqueActionDataForTestExtension,
-                OpaqueActionDataForTest.newBuilder().setId(contentId).build())
-            .build();
-    when(protocolAdapter.getWireContentId(contentId))
-        .thenReturn(Result.success(ContentId.getDefaultInstance()));
-    OpaqueActionData data2 =
-        OpaqueActionData.newBuilder()
-            .setExtension(
-                OpaqueActionDataForTest.opaqueActionDataForTestExtension,
-                OpaqueActionDataForTest.newBuilder().setId(contentId2).build())
-            .build();
-    when(actionReader.getActionProperties(anyListOf(String.class)))
-        .thenReturn(
-            Result.success(
-                Arrays.asList(
-                    new ActionPropertiesWithId(contentId, data),
-                    new ActionPropertiesWithId(contentId2, data2))));
-    when(protocolAdapter.getWireContentId(contentId2))
-        .thenReturn(Result.success(ContentId.getDefaultInstance()));
-    when(store.editUploadableActions()).thenReturn(actionMutation);
+    fakeActionReader
+        .addActionProperties(CONTENT_ID, createOpaqueActionData(CONTENT_ID))
+        .addActionProperties(CONTENT_ID_2, createOpaqueActionData(CONTENT_ID_2));
     requestManager.triggerUploadActions(actionSet, TOKEN_1, consumer);
 
     verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
@@ -493,56 +329,20 @@ public class FeedActionUploadRequestManagerTest {
             .put(ConfigKey.FEED_ACTION_SERVER_MAX_SIZE_PER_REQUEST, 20)
             .put(ConfigKey.FEED_ACTION_SERVER_MAX_ACTIONS_PER_REQUEST, 1)
             .build();
-    requestManager =
-        new FeedActionUploadRequestManager(
-            configuration,
-            networkClient,
-            protocolAdapter,
-            new FeedExtensionRegistry(ArrayList::new),
-            getTaskQueue(),
-            threadUtils,
-            actionReader,
-            store,
-            clock,
-            fakeMainThreadRunner);
-    String contentId = "contentId";
-    String contentId2 = "contentId2";
-    HashSet<StreamUploadableAction> actionSet = new HashSet<>();
-    StreamUploadableAction action1 =
-        StreamUploadableAction.newBuilder().setFeatureContentId(contentId).build();
-    StreamUploadableAction action2 =
-        StreamUploadableAction.newBuilder().setFeatureContentId(contentId2).build();
-    actionSet.add(action1);
-    actionSet.add(action2);
+    requestManager = createRequestManager(configuration);
+    Set<StreamUploadableAction> actionSet =
+        setOf(
+            StreamUploadableAction.newBuilder().setFeatureContentId(CONTENT_ID).build(),
+            StreamUploadableAction.newBuilder().setFeatureContentId(CONTENT_ID_2).build());
     RequiredConsumer<Result<ConsistencyToken>> consumer =
         new RequiredConsumer<>(
             input -> {
               assertThat(input.isSuccessful()).isTrue();
               assertThat(input.getValue().toByteArray()).isEqualTo(TOKEN_2.toByteArray());
             });
-    OpaqueActionData data =
-        OpaqueActionData.newBuilder()
-            .setExtension(
-                OpaqueActionDataForTest.opaqueActionDataForTestExtension,
-                OpaqueActionDataForTest.newBuilder().setId(contentId).build())
-            .build();
-    when(protocolAdapter.getWireContentId(contentId))
-        .thenReturn(Result.success(ContentId.getDefaultInstance()));
-    OpaqueActionData data2 =
-        OpaqueActionData.newBuilder()
-            .setExtension(
-                OpaqueActionDataForTest.opaqueActionDataForTestExtension,
-                OpaqueActionDataForTest.newBuilder().setId(contentId2).build())
-            .build();
-    when(actionReader.getActionProperties(anyListOf(String.class)))
-        .thenReturn(
-            Result.success(
-                Arrays.asList(
-                    new ActionPropertiesWithId(contentId, data),
-                    new ActionPropertiesWithId(contentId2, data2))));
-    when(protocolAdapter.getWireContentId(contentId2))
-        .thenReturn(Result.success(ContentId.getDefaultInstance()));
-    when(store.editUploadableActions()).thenReturn(actionMutation);
+    fakeActionReader
+        .addActionProperties(CONTENT_ID, createOpaqueActionData(CONTENT_ID))
+        .addActionProperties(CONTENT_ID_2, createOpaqueActionData(CONTENT_ID_2));
     requestManager.triggerUploadActions(actionSet, TOKEN_1, consumer);
 
     verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
@@ -567,36 +367,12 @@ public class FeedActionUploadRequestManagerTest {
             .put(ConfigKey.FEED_ACTION_TTL_SECONDS, 1000L)
             .put(ConfigKey.FEED_ACTION_MAX_UPLOAD_ATTEMPTS, 2)
             .build();
-    requestManager =
-        new FeedActionUploadRequestManager(
-            configuration,
-            networkClient,
-            protocolAdapter,
-            new FeedExtensionRegistry(ArrayList::new),
-            getTaskQueue(),
-            threadUtils,
-            actionReader,
-            store,
-            clock,
-            fakeMainThreadRunner);
-    String contentId = "contentId";
-    HashSet<StreamUploadableAction> actionSet = new HashSet<>();
+    requestManager = createRequestManager(configuration);
     StreamUploadableAction action =
-        StreamUploadableAction.newBuilder().setFeatureContentId(contentId).build();
-    actionSet.add(action);
+        StreamUploadableAction.newBuilder().setFeatureContentId(CONTENT_ID).build();
+    Set<StreamUploadableAction> actionSet = setOf(action);
     RequiredConsumer<Result<ConsistencyToken>> consumer = new RequiredConsumer<>(input -> {});
-    OpaqueActionData data =
-        OpaqueActionData.newBuilder()
-            .setExtension(
-                OpaqueActionDataForTest.opaqueActionDataForTestExtension,
-                OpaqueActionDataForTest.newBuilder().setId(contentId).build())
-            .build();
-    when(actionReader.getActionProperties(Collections.singletonList(contentId)))
-        .thenReturn(
-            Result.success(Collections.singletonList(new ActionPropertiesWithId(contentId, data))));
-    when(protocolAdapter.getWireContentId(contentId))
-        .thenReturn(Result.success(ContentId.getDefaultInstance()));
-    when(store.editUploadableActions()).thenReturn(actionMutation);
+    fakeActionReader.addActionProperties(CONTENT_ID, createOpaqueActionData(CONTENT_ID));
     requestManager.triggerUploadActions(actionSet, ConsistencyToken.getDefaultInstance(), consumer);
 
     verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
@@ -606,7 +382,7 @@ public class FeedActionUploadRequestManagerTest {
 
     ActionRequest request = getActionRequestFromHttpRequest(httpRequest);
     UploadableActionsRequestBuilder builder =
-        new UploadableActionsRequestBuilder(actionReader, protocolAdapter);
+        new UploadableActionsRequestBuilder(fakeActionReader, fakeProtocolAdapter);
     ActionRequest expectedRequest =
         builder
             .setConsistencyToken(ConsistencyToken.getDefaultInstance())
@@ -614,36 +390,25 @@ public class FeedActionUploadRequestManagerTest {
             .build();
     assertThat(request.toByteArray()).isEqualTo(expectedRequest.toByteArray());
 
-    Response response = Response.getDefaultInstance();
-    responseConsumerCaptor.getValue().accept(createHttpResponse(/* responseCode= */ 200, response));
+    responseConsumerCaptor
+        .getValue()
+        .accept(createHttpResponse(/* responseCode= */ 200, Response.getDefaultInstance()));
     verify(actionMutation)
         .upsert(
             StreamUploadableAction.newBuilder()
-                .setFeatureContentId(contentId)
+                .setFeatureContentId(CONTENT_ID)
                 .setUploadAttempts(1)
                 .build(),
-            contentId);
+            CONTENT_ID);
     assertThat(consumer.isCalled()).isTrue();
   }
 
   @Test
   public void testTriggerUploadActions_defaultMethod() throws Exception {
-    String contentId = "contentId";
-    HashSet<StreamUploadableAction> actionSet = new HashSet<>();
-    actionSet.add(StreamUploadableAction.newBuilder().setFeatureContentId(contentId).build());
+    Set<StreamUploadableAction> actionSet =
+        setOf(StreamUploadableAction.newBuilder().setFeatureContentId(CONTENT_ID).build());
     RequiredConsumer<Result<ConsistencyToken>> consumer = new RequiredConsumer<>(input -> {});
-    OpaqueActionData data =
-        OpaqueActionData.newBuilder()
-            .setExtension(
-                OpaqueActionDataForTest.opaqueActionDataForTestExtension,
-                OpaqueActionDataForTest.newBuilder().setId(contentId).build())
-            .build();
-    when(actionReader.getActionProperties(Collections.singletonList(contentId)))
-        .thenReturn(
-            Result.success(Collections.singletonList(new ActionPropertiesWithId(contentId, data))));
-    when(protocolAdapter.getWireContentId(contentId))
-        .thenReturn(Result.success(ContentId.getDefaultInstance()));
-    when(store.editUploadableActions()).thenReturn(actionMutation);
+    fakeActionReader.addActionProperties(CONTENT_ID, createOpaqueActionData(CONTENT_ID));
     requestManager.triggerUploadActions(actionSet, ConsistencyToken.getDefaultInstance(), consumer);
 
     verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
@@ -652,7 +417,7 @@ public class FeedActionUploadRequestManagerTest {
 
     ActionRequest request = getActionRequestFromHttpRequestBody(httpRequest);
     UploadableActionsRequestBuilder builder =
-        new UploadableActionsRequestBuilder(actionReader, protocolAdapter);
+        new UploadableActionsRequestBuilder(fakeActionReader, fakeProtocolAdapter);
     ActionRequest expectedRequest =
         builder
             .setConsistencyToken(ConsistencyToken.getDefaultInstance())
@@ -660,8 +425,9 @@ public class FeedActionUploadRequestManagerTest {
             .build();
     assertThat(request.toByteArray()).isEqualTo(expectedRequest.toByteArray());
 
-    Response response = Response.getDefaultInstance();
-    responseConsumerCaptor.getValue().accept(createHttpResponse(/* responseCode= */ 200, response));
+    responseConsumerCaptor
+        .getValue()
+        .accept(createHttpResponse(/* responseCode= */ 200, Response.getDefaultInstance()));
 
     assertThat(consumer.isCalled()).isTrue();
   }
@@ -703,5 +469,33 @@ public class FeedActionUploadRequestManagerTest {
   private ActionRequest getActionRequestFromHttpRequestBody(HttpRequest httpRequest)
       throws Exception {
     return ActionRequest.parseFrom(httpRequest.getBody(), registry);
+  }
+
+  private FeedActionUploadRequestManager createRequestManager(Configuration configuration) {
+    return new FeedActionUploadRequestManager(
+        configuration,
+        networkClient,
+        fakeProtocolAdapter,
+        new FeedExtensionRegistry(ArrayList::new),
+        getTaskQueue(),
+        threadUtils,
+        fakeActionReader,
+        store,
+        clock,
+        fakeMainThreadRunner);
+  }
+
+  private static OpaqueActionData createOpaqueActionData(String contentId) {
+    return OpaqueActionData.newBuilder()
+        .setExtension(
+            OpaqueActionDataForTest.opaqueActionDataForTestExtension,
+            OpaqueActionDataForTest.newBuilder().setId(contentId).build())
+        .build();
+  }
+
+  private static <T> Set<T> setOf(T... items) {
+    Set<T> result = new HashSet<>();
+    Collections.addAll(result, items);
+    return result;
   }
 }

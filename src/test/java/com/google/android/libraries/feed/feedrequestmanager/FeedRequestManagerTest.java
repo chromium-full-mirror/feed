@@ -27,10 +27,8 @@ import android.content.Context;
 import android.os.Build;
 import android.os.Build.VERSION_CODES;
 import android.util.Base64;
-import com.google.android.libraries.feed.api.actionmanager.ActionReader;
 import com.google.android.libraries.feed.api.common.DismissActionWithSemanticProperties;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
-import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
@@ -51,6 +49,8 @@ import com.google.android.libraries.feed.host.network.HttpResponse;
 import com.google.android.libraries.feed.host.network.NetworkClient;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.host.stream.TooltipSupportedApi;
+import com.google.android.libraries.feed.testing.actionmanager.FakeActionReader;
+import com.google.android.libraries.feed.testing.protocoladapter.FakeProtocolAdapter;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.CodedOutputStream;
@@ -112,10 +112,8 @@ public class FeedRequestManagerTest {
   private static final String APP_VERSION_STRING = "5.7";
 
   @Mock private NetworkClient networkClient;
-  @Mock private ProtocolAdapter protocolAdapter;
   @Mock private SchedulerApi scheduler;
   @Mock private ThreadUtils threadUtils;
-  @Mock private ActionReader actionReader;
   @Mock private Consumer<Result<List<StreamDataOperation>>> consumer;
   @Mock private Clock clock;
   @Mock private ApplicationInfo applicationInfo;
@@ -124,13 +122,14 @@ public class FeedRequestManagerTest {
   private Context context;
   @Captor private ArgumentCaptor<Consumer<HttpResponse>> responseConsumerCaptor;
   @Captor private ArgumentCaptor<HttpRequest> requestCaptor;
-  @Captor private ArgumentCaptor<Response> responseCaptor;
   @Captor private ArgumentCaptor<Result<List<StreamDataOperation>>> consumerCapture;
   @Captor private ArgumentCaptor<Consumer<Boolean>> tooltipSupportedConsumerCapture;
   private boolean cardMenuTooltipWouldTrigger;
   private ExtensionRegistryLite registry;
   private FeedRequestManager requestManager;
+  private FakeActionReader fakeActionReader;
   private FakeMainThreadRunner fakeMainThreadRunner;
+  private FakeProtocolAdapter fakeProtocolAdapter;
   private final TimingUtils timingUtils = new TimingUtils();
 
   private final Configuration configuration = new Configuration.Builder().build();
@@ -144,7 +143,9 @@ public class FeedRequestManagerTest {
     FeedExtensionRegistry feedExtensionRegistry = new FeedExtensionRegistry(ArrayList::new);
     registry = ExtensionRegistryLite.newInstance();
     registry.add(FeedRequest.feedRequest);
+    fakeActionReader = new FakeActionReader();
     fakeMainThreadRunner = FakeMainThreadRunner.runTasksImmediately();
+    fakeProtocolAdapter = new FakeProtocolAdapter();
     basicLoggingApi = new FakeBasicLoggingApi();
     ReflectionHelpers.setStaticField(Build.VERSION.class, "SDK_INT", VERSION_CODES.KITKAT);
     ReflectionHelpers.setStaticField(Build.VERSION.class, "RELEASE", "4.4.3");
@@ -158,21 +159,18 @@ public class FeedRequestManagerTest {
         new FeedRequestManager(
             configuration,
             networkClient,
-            protocolAdapter,
+            fakeProtocolAdapter,
             feedExtensionRegistry,
             scheduler,
             getTaskQueue(),
             timingUtils,
             threadUtils,
-            actionReader,
+            fakeActionReader,
             context,
             applicationInfo,
             fakeMainThreadRunner,
             basicLoggingApi,
             tooltipSupportedApi);
-
-    when(actionReader.getDismissActionsWithSemanticProperties())
-        .thenReturn(Result.success(Collections.emptyList()));
   }
 
   @Test
@@ -250,9 +248,6 @@ public class FeedRequestManagerTest {
 
     verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
 
-    when(protocolAdapter.createModel(any(Response.class)))
-        .thenReturn(Result.success(new ArrayList<>()));
-
     HttpRequest httpRequest = requestCaptor.getValue();
     assertHttpRequestFormattedCorrectly(httpRequest);
 
@@ -278,10 +273,8 @@ public class FeedRequestManagerTest {
 
   @Test
   public void testActionData_simpleDismiss() throws Exception {
-    DismissActionWithSemanticProperties dismissAction =
-        buildDismissAction(ID, CONTENT_DOMAIN, TABLE, null);
-    when(actionReader.getDismissActionsWithSemanticProperties())
-        .thenReturn(Result.success(Collections.singletonList(dismissAction)));
+    fakeActionReader.addDismissActionsWithSemanticProperties(
+        buildDismissAction(ID, CONTENT_DOMAIN, TABLE, null));
     requestManager.triggerRefresh(RequestReason.HOST_REQUESTED, input -> {});
 
     verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
@@ -327,12 +320,9 @@ public class FeedRequestManagerTest {
 
   @Test
   public void testActionData_uniqueDismisses() throws Exception {
-    DismissActionWithSemanticProperties dismissAction =
-        buildDismissAction(ID, CONTENT_DOMAIN, TABLE, null);
-    DismissActionWithSemanticProperties dismissAction2 =
-        buildDismissAction(ID_2, CONTENT_DOMAIN_2, TABLE_2, null);
-    when(actionReader.getDismissActionsWithSemanticProperties())
-        .thenReturn(Result.success(Arrays.asList(dismissAction, dismissAction2)));
+    fakeActionReader.addDismissActionsWithSemanticProperties(
+        buildDismissAction(ID, CONTENT_DOMAIN, TABLE, null),
+        buildDismissAction(ID_2, CONTENT_DOMAIN_2, TABLE_2, null));
     requestManager.triggerRefresh(RequestReason.HOST_REQUESTED, input -> {});
 
     verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
@@ -383,12 +373,9 @@ public class FeedRequestManagerTest {
 
   @Test
   public void testActionData_overlappingDismisses() throws Exception {
-    DismissActionWithSemanticProperties dismissAction =
-        buildDismissAction(ID, CONTENT_DOMAIN, TABLE, null);
-    DismissActionWithSemanticProperties dismissAction2 =
-        buildDismissAction(ID_2, CONTENT_DOMAIN, TABLE, null);
-    when(actionReader.getDismissActionsWithSemanticProperties())
-        .thenReturn(Result.success(Arrays.asList(dismissAction, dismissAction2)));
+    fakeActionReader.addDismissActionsWithSemanticProperties(
+        buildDismissAction(ID, CONTENT_DOMAIN, TABLE, null),
+        buildDismissAction(ID_2, CONTENT_DOMAIN, TABLE, null));
     requestManager.triggerRefresh(RequestReason.HOST_REQUESTED, input -> {});
 
     verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
@@ -440,10 +427,8 @@ public class FeedRequestManagerTest {
   @Test
   public void testActionData_simpleDismissWithSemanticProperties() throws Exception {
     byte[] semanticPropertiesBytes = {42, 17, 88};
-    DismissActionWithSemanticProperties dismissAction =
-        buildDismissAction(ID, CONTENT_DOMAIN, TABLE, semanticPropertiesBytes);
-    when(actionReader.getDismissActionsWithSemanticProperties())
-        .thenReturn(Result.success(Collections.singletonList(dismissAction)));
+    fakeActionReader.addDismissActionsWithSemanticProperties(
+        buildDismissAction(ID, CONTENT_DOMAIN, TABLE, semanticPropertiesBytes));
     requestManager.triggerRefresh(RequestReason.HOST_REQUESTED, input -> {});
 
     verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
@@ -495,13 +480,10 @@ public class FeedRequestManagerTest {
   @Test
   public void testActionData_uniqueDismissesWithSemanticProperties() throws Exception {
     byte[] semanticPropertiesBytes = {42, 17, 88};
-    DismissActionWithSemanticProperties dismissAction =
-        buildDismissAction(ID, CONTENT_DOMAIN, TABLE, semanticPropertiesBytes);
     byte[] semanticPropertiesBytes2 = {7, 43, 91};
-    DismissActionWithSemanticProperties dismissAction2 =
-        buildDismissAction(ID_2, CONTENT_DOMAIN_2, TABLE_2, semanticPropertiesBytes2);
-    when(actionReader.getDismissActionsWithSemanticProperties())
-        .thenReturn(Result.success(Arrays.asList(dismissAction, dismissAction2)));
+    fakeActionReader.addDismissActionsWithSemanticProperties(
+        buildDismissAction(ID, CONTENT_DOMAIN, TABLE, semanticPropertiesBytes),
+        buildDismissAction(ID_2, CONTENT_DOMAIN_2, TABLE_2, semanticPropertiesBytes2));
     requestManager.triggerRefresh(RequestReason.HOST_REQUESTED, input -> {});
 
     verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
@@ -562,12 +544,9 @@ public class FeedRequestManagerTest {
   @Test
   public void testActionData_overlappingDismissesWithSemanticProperties() throws Exception {
     byte[] semanticPropertiesBytes = {42, 17, 88};
-    DismissActionWithSemanticProperties dismissAction =
-        buildDismissAction(ID, CONTENT_DOMAIN, TABLE, semanticPropertiesBytes);
-    DismissActionWithSemanticProperties dismissAction2 =
-        buildDismissAction(ID_2, CONTENT_DOMAIN, TABLE_2, semanticPropertiesBytes);
-    when(actionReader.getDismissActionsWithSemanticProperties())
-        .thenReturn(Result.success(Arrays.asList(dismissAction, dismissAction2)));
+    fakeActionReader.addDismissActionsWithSemanticProperties(
+        buildDismissAction(ID, CONTENT_DOMAIN, TABLE, semanticPropertiesBytes),
+        buildDismissAction(ID_2, CONTENT_DOMAIN, TABLE_2, semanticPropertiesBytes));
     requestManager.triggerRefresh(RequestReason.HOST_REQUESTED, input -> {});
 
     verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
@@ -624,13 +603,10 @@ public class FeedRequestManagerTest {
 
   @Test
   public void testActionData_someDismissesWithSemanticProperties() throws Exception {
-    DismissActionWithSemanticProperties dismissAction =
-        buildDismissAction(ID, CONTENT_DOMAIN, TABLE, null);
     byte[] semanticPropertiesBytes = {42, 17, 88};
-    DismissActionWithSemanticProperties dismissAction2 =
-        buildDismissAction(ID_2, CONTENT_DOMAIN_2, TABLE_2, semanticPropertiesBytes);
-    when(actionReader.getDismissActionsWithSemanticProperties())
-        .thenReturn(Result.success(Arrays.asList(dismissAction, dismissAction2)));
+    fakeActionReader.addDismissActionsWithSemanticProperties(
+        buildDismissAction(ID, CONTENT_DOMAIN, TABLE, null),
+        buildDismissAction(ID_2, CONTENT_DOMAIN_2, TABLE_2, semanticPropertiesBytes));
     requestManager.triggerRefresh(RequestReason.HOST_REQUESTED, input -> {});
 
     verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
@@ -687,15 +663,12 @@ public class FeedRequestManagerTest {
   @Test
   public void testHandleResponse() throws Exception {
     requestManager.triggerRefresh(RequestReason.HOST_REQUESTED, consumer);
-    when(protocolAdapter.createModel(any(Response.class)))
-        .thenReturn(Result.success(new ArrayList<>()));
 
     verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
     Response response = Response.getDefaultInstance();
     responseConsumerCaptor.getValue().accept(createHttpResponse(/* responseCode= */ 200, response));
 
-    verify(protocolAdapter).createModel(responseCaptor.capture());
-    assertThat(responseCaptor.getValue()).isEqualTo(response);
+    assertThat(fakeProtocolAdapter.getLastResponse()).isEqualTo(response);
 
     verify(consumer).accept(consumerCapture.capture());
     List<Result<List<StreamDataOperation>>> consumerCaptures = consumerCapture.getAllValues();
@@ -754,7 +727,7 @@ public class FeedRequestManagerTest {
         .accept(
             new HttpResponse(/* responseCode= */ 200, Response.getDefaultInstance().toByteArray()));
 
-    verify(protocolAdapter, never()).createModel(any());
+    assertThat(fakeProtocolAdapter.getLastResponse()).isNull();
   }
 
   @Test
@@ -813,9 +786,6 @@ public class FeedRequestManagerTest {
     requestManager.triggerRefresh(RequestReason.HOST_REQUESTED, input -> {});
 
     verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
-
-    when(protocolAdapter.createModel(any(Response.class)))
-        .thenReturn(Result.success(new ArrayList<>()));
 
     HttpRequest httpRequest = requestCaptor.getValue();
 
@@ -950,13 +920,13 @@ public class FeedRequestManagerTest {
         new FeedRequestManager(
             configuration,
             networkClient,
-            protocolAdapter,
+            fakeProtocolAdapter,
             new FeedExtensionRegistry(ArrayList::new),
             scheduler,
             getTaskQueue(),
             timingUtils,
             threadUtils,
-            actionReader,
+            fakeActionReader,
             context,
             applicationInfo,
             fakeMainThreadRunner,
