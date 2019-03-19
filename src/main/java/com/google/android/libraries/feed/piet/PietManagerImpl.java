@@ -81,7 +81,9 @@ class PietManagerImpl implements PietManager {
   @Override
   public void purgeRecyclerPools() {
     if (adapterParameters != null) {
-      adapterParameters.elementAdapterFactory.purgeRecyclerPools();
+      AdapterParameters adapterParametersNonNull = adapterParameters;
+      adapterParametersNonNull.elementAdapterFactory.purgeRecyclerPools();
+      adapterParametersNonNull.pietStylesHelperFactory.purge();
     }
   }
 }

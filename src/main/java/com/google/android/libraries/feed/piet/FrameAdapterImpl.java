@@ -186,15 +186,18 @@ public class FrameAdapterImpl implements FrameAdapter {
   @VisibleForTesting
   FrameContext createFrameContext(
       Frame frame, int frameWidthPx, List<PietSharedState> pietSharedStates, View frameView) {
+    MediaQueryHelper mediaQueryHelper =
+        new MediaQueryHelper(frameWidthPx, parameters.hostProviders.getAssetProvider(), context);
+    PietStylesHelper pietStylesHelper =
+        checkNotNull(parameters.pietStylesHelperFactory.get(pietSharedStates, mediaQueryHelper));
     return FrameContext.createFrameContext(
         frame,
-        frameWidthPx,
         pietSharedStates,
+        pietStylesHelper,
         debugBehavior,
         new DebugLogger(),
         actionHandler,
         parameters.hostProviders,
-        context,
         frameView);
   }
 

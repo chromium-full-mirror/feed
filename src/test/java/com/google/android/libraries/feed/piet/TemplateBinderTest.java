@@ -35,6 +35,7 @@ import android.widget.LinearLayout;
 import com.google.android.libraries.feed.common.functional.Suppliers;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
+import com.google.android.libraries.feed.piet.PietStylesHelper.PietStylesHelperFactory;
 import com.google.android.libraries.feed.piet.TemplateBinder.TemplateAdapterModel;
 import com.google.android.libraries.feed.piet.TemplateBinder.TemplateKey;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
@@ -291,16 +292,19 @@ public class TemplateBinderTest {
     HostProviders mockHostProviders = mock(HostProviders.class);
     AssetProvider mockAssetProvider = mock(AssetProvider.class);
     when(mockHostProviders.getAssetProvider()).thenReturn(mockAssetProvider);
+    MediaQueryHelper mediaQueryHelper =
+        new MediaQueryHelper(FRAME_WIDTH_PX, mockAssetProvider, context);
+    PietStylesHelper pietStylesHelper =
+        new PietStylesHelperFactory().get(pietSharedStates, mediaQueryHelper);
     frameContext =
         FrameContext.createFrameContext(
             frame,
-            FRAME_WIDTH_PX,
             pietSharedStates,
+            pietStylesHelper,
             DebugBehavior.VERBOSE,
             new DebugLogger(),
             actionHandler,
             mockHostProviders,
-            context,
             new FrameLayout(context));
     AdapterParameters adapterParameters =
         new AdapterParameters(context, Suppliers.of(null), mockHostProviders, new FakeClock());
@@ -666,16 +670,20 @@ public class TemplateBinderTest {
     AssetProvider mockAssetProvider = mock(AssetProvider.class);
     when(mockHostProviders.getAssetProvider()).thenReturn(mockAssetProvider);
 
+    MediaQueryHelper mediaQueryHelper =
+        new MediaQueryHelper(FRAME_WIDTH_PX, mockAssetProvider, context);
+    PietStylesHelper pietStylesHelper =
+        new PietStylesHelperFactory().get(pietSharedStates, mediaQueryHelper);
+
     FrameContext frameContext =
         FrameContext.createFrameContext(
             DEFAULT_FRAME, // This defines MODEL_TEMPLATE
-            FRAME_WIDTH_PX,
             pietSharedStates,
+            pietStylesHelper,
             DebugBehavior.VERBOSE,
             new DebugLogger(),
             actionHandler,
             mockHostProviders,
-            context,
             new FrameLayout(context));
 
     TemplateAdapterModel model =

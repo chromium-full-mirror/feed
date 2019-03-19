@@ -22,7 +22,6 @@ import static com.google.search.now.ui.piet.ErrorsProto.ErrorCode.ERR_MISSING_BI
 import static com.google.search.now.ui.piet.ErrorsProto.ErrorCode.ERR_MISSING_STYLESHEET;
 import static com.google.search.now.ui.piet.ErrorsProto.ErrorCode.ERR_MISSING_TEMPLATE;
 
-import android.content.Context;
 import android.support.annotation.VisibleForTesting;
 import android.view.View;
 import com.google.android.libraries.feed.common.logging.Logger;
@@ -68,7 +67,7 @@ import java.util.Map;
 class FrameContext {
   private static final String TAG = "FrameContext";
 
-  private final PietStylesHelper stylesHelper;
+  @VisibleForTesting final PietStylesHelper stylesHelper;
   private final List<PietSharedState> pietSharedStates;
   private final DebugBehavior debugBehavior;
   private final DebugLogger debugLogger;
@@ -165,20 +164,16 @@ class FrameContext {
    */
   public static FrameContext createFrameContext(
       Frame frame,
-      int frameWidthPx,
       List<PietSharedState> pietSharedStates,
+      PietStylesHelper pietStylesHelper,
       DebugBehavior debugBehavior,
       DebugLogger debugLogger,
       ActionHandler actionHandler,
       HostProviders hostProviders,
-      Context context,
       View frameView) {
-    PietStylesHelper pietStylesHelper =
-        new PietStylesHelper(
-            pietSharedStates, frameWidthPx, hostProviders.getAssetProvider(), debugLogger, context);
     NoKeyOverwriteHashMap<String, Style> styleMap = null;
     if (frame.hasStylesheets()) {
-      styleMap = pietStylesHelper.getStylesheetMap(frame.getStylesheets());
+      styleMap = pietStylesHelper.getStylesheetMap(frame.getStylesheets(), debugLogger);
     } else if (frame.hasStylesheetId()) {
       // TODO: Remove this deprecated branch
       styleMap = pietStylesHelper.getStylesheetMap(frame.getStylesheetId());
@@ -258,7 +253,7 @@ class FrameContext {
     Map<String, Style> localStylesheet;
 
     if (template.hasStylesheets()) {
-      localStylesheet = stylesHelper.getStylesheetMap(template.getStylesheets());
+      localStylesheet = stylesHelper.getStylesheetMap(template.getStylesheets(), getDebugLogger());
     } else {
       // TODO: Remove this deprecated branch
       switch (template.getTemplateStylesheetCase()) {

@@ -27,6 +27,7 @@ import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.DebugLogger.ErrorCodeAndMessage;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
+import com.google.android.libraries.feed.piet.PietStylesHelper.PietStylesHelperFactory;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
@@ -141,8 +142,7 @@ public class FrameContextTest {
 
     defaultStylesheet.put(SAMPLE_STYLE_ID, SAMPLE_STYLE);
     pietSharedStates = new ArrayList<>();
-    pietStylesHelper =
-        new PietStylesHelper(pietSharedStates, FRAME_WIDTH_PX, assetProvider, debugLogger, context);
+    pietStylesHelper = newPietStylesHelper();
 
     frameView = new FrameLayout(context);
   }
@@ -199,8 +199,7 @@ public class FrameContextTest {
             DEFAULT_FRAME,
             defaultStylesheet,
             pietSharedStates,
-            new PietStylesHelper(
-                pietSharedStates, FRAME_WIDTH_PX, assetProvider, debugLogger, context),
+            newPietStylesHelper(),
             DebugBehavior.VERBOSE,
             debugLogger,
             actionHandler,
@@ -1249,7 +1248,7 @@ public class FrameContextTest {
         DEFAULT_FRAME,
         defaultStylesheet,
         pietSharedStates,
-        new PietStylesHelper(pietSharedStates, FRAME_WIDTH_PX, assetProvider, debugLogger, context),
+        newPietStylesHelper(),
         DebugBehavior.VERBOSE,
         debugLogger,
         actionHandler,
@@ -1294,13 +1293,12 @@ public class FrameContextTest {
   private FrameContext makeFrameContextFromFrame(Frame frame) {
     return FrameContext.createFrameContext(
         frame,
-        FRAME_WIDTH_PX,
         pietSharedStates,
+        newPietStylesHelper(),
         DebugBehavior.VERBOSE,
         debugLogger,
         actionHandler,
         hostProviders,
-        context,
         frameView);
   }
 
@@ -1326,5 +1324,10 @@ public class FrameContextTest {
 
   private BindingValue.Builder defaultBinding() {
     return BindingValue.newBuilder().setBindingId(BINDING_ID);
+  }
+
+  private PietStylesHelper newPietStylesHelper() {
+    return new PietStylesHelperFactory()
+        .get(pietSharedStates, new MediaQueryHelper(FRAME_WIDTH_PX, assetProvider, context));
   }
 }

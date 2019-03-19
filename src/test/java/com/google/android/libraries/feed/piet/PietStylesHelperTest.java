@@ -21,7 +21,10 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
 import android.content.Context;
+import com.google.android.libraries.feed.piet.PietStylesHelper.PietStylesHelperFactory;
+import com.google.android.libraries.feed.piet.PietStylesHelper.PietStylesHelperKey;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
+import com.google.common.collect.ImmutableList;
 import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
 import com.google.search.now.ui.piet.GradientsProto.ColorStop;
 import com.google.search.now.ui.piet.GradientsProto.Fill;
@@ -38,6 +41,7 @@ import com.google.search.now.ui.piet.StylesProto.Font.FontWeight;
 import com.google.search.now.ui.piet.StylesProto.Style;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -83,6 +87,7 @@ public class PietStylesHelperTest {
   DebugLogger debugLogger;
 
   private Context context;
+  private PietStylesHelperFactory helperFactory;
   private PietStylesHelper helper;
   private PietSharedState sharedState1;
 
@@ -112,8 +117,8 @@ public class PietStylesHelperTest {
 
     debugLogger = new DebugLogger();
 
-    helper =
-        new PietStylesHelper(sharedStates, FRAME_WIDTH_PX, assetProvider, debugLogger, context);
+    helperFactory = new PietStylesHelperFactory();
+    helper = helperFactory.get(sharedStates, newMediaQueryHelper());
   }
 
   @Test
@@ -155,26 +160,14 @@ public class PietStylesHelperTest {
             .build();
 
     when(assetProvider.isDarkTheme()).thenReturn(true);
-    helper =
-        new PietStylesHelper(
-            Collections.singletonList(sharedState),
-            FRAME_WIDTH_PX,
-            assetProvider,
-            debugLogger,
-            context);
+    helper = helperFactory.get(Collections.singletonList(sharedState), newMediaQueryHelper());
 
     assertThat(helper.getStylesheetMap("DARK")).containsExactly(STYLE_ID_1, STYLE_1);
     assertThat(helper.getStylesheetMap("LIGHT")).isEmpty();
     assertThat(helper.getStylesheetMap("SWITCH")).containsExactly("dark", darkStyle);
 
     when(assetProvider.isDarkTheme()).thenReturn(false);
-    helper =
-        new PietStylesHelper(
-            Collections.singletonList(sharedState),
-            FRAME_WIDTH_PX,
-            assetProvider,
-            debugLogger,
-            context);
+    helper = helperFactory.get(Collections.singletonList(sharedState), newMediaQueryHelper());
 
     assertThat(helper.getStylesheetMap("DARK")).isEmpty();
     assertThat(helper.getStylesheetMap("LIGHT")).containsExactly(STYLE_ID_2, STYLE_2);
@@ -201,26 +194,14 @@ public class PietStylesHelperTest {
             .build();
 
     when(assetProvider.isDarkTheme()).thenReturn(true);
-    helper =
-        new PietStylesHelper(
-            Collections.singletonList(sharedState),
-            FRAME_WIDTH_PX,
-            assetProvider,
-            debugLogger,
-            context);
+    helper = helperFactory.get(Collections.singletonList(sharedState), newMediaQueryHelper());
 
     assertThat(helper.getTemplate("DARK")).isSameAs(darkTemplate);
     assertThat(helper.getTemplate("LIGHT")).isNull();
     assertThat(helper.getTemplate("SWITCH")).isSameAs(switchTemplateDark);
 
     when(assetProvider.isDarkTheme()).thenReturn(false);
-    helper =
-        new PietStylesHelper(
-            Collections.singletonList(sharedState),
-            FRAME_WIDTH_PX,
-            assetProvider,
-            debugLogger,
-            context);
+    helper = helperFactory.get(Collections.singletonList(sharedState), newMediaQueryHelper());
 
     assertThat(helper.getTemplate("DARK")).isNull();
     assertThat(helper.getTemplate("LIGHT")).isSameAs(lightTemplate);
@@ -253,10 +234,7 @@ public class PietStylesHelperTest {
     sharedStates.add(sharedState1);
     sharedStates.add(sharedState2);
 
-    assertThatRunnable(
-            () ->
-                new PietStylesHelper(
-                    sharedStates, FRAME_WIDTH_PX, assetProvider, debugLogger, context))
+    assertThatRunnable(() -> helperFactory.get(sharedStates, newMediaQueryHelper()))
         .throwsAnExceptionOfType(PietFatalException.class)
         .that()
         .hasMessageThat()
@@ -316,10 +294,12 @@ public class PietStylesHelperTest {
     myStyles.addStyles(darkStyle);
 
     when(assetProvider.isDarkTheme()).thenReturn(true);
+    helper = helperFactory.get(sharedStates, newMediaQueryHelper());
     assertThat(helper.createMapFromStylesheet(myStyles.build()))
         .containsExactly("theme", darkStyle);
 
     when(assetProvider.isDarkTheme()).thenReturn(false);
+    helper = helperFactory.get(sharedStates, newMediaQueryHelper());
     assertThat(helper.createMapFromStylesheet(myStyles.build()))
         .containsExactly("theme", lightStyle);
   }
@@ -462,5 +442,103 @@ public class PietStylesHelperTest {
         .that()
         .hasMessageThat()
         .contains("Binding styles not supported when frameContext is null");
+  }
+
+  @Test
+  public void testHashCodeAndEquals() {
+    PietSharedState sharedState =
+        PietSharedState.newBuilder()
+            .addStylesheets(
+                Stylesheet.newBuilder().addStyles(Style.newBuilder().setStyleId("style")))
+            .build();
+    PietSharedState equalSharedState =
+        PietSharedState.newBuilder()
+            .addStylesheets(
+                Stylesheet.newBuilder().addStyles(Style.newBuilder().setStyleId("style")))
+            .build();
+    PietSharedState differentSharedState =
+        PietSharedState.newBuilder()
+            .addStylesheets(
+                Stylesheet.newBuilder().addStyles(Style.newBuilder().setStyleId("NOT_SAME")))
+            .build();
+
+    MediaQueryHelper mediaQueryHelper = new MediaQueryHelper(123, 4, false, context);
+    MediaQueryHelper equalMediaQueryHelper = new MediaQueryHelper(123, 4, false, context);
+    MediaQueryHelper differentMediaQueryHelper = new MediaQueryHelper(456, 7, false, context);
+
+    // Objects that should be equal
+    assertThat(ImmutableList.of(sharedState).hashCode())
+        .isEqualTo(ImmutableList.of(sharedState).hashCode());
+    assertThat(ImmutableList.of(sharedState).hashCode())
+        .isEqualTo(ImmutableList.of(equalSharedState).hashCode());
+    assertThat(new PietStylesHelperKey(ImmutableList.of(sharedState), mediaQueryHelper))
+        .isEqualTo(new PietStylesHelperKey(ImmutableList.of(sharedState), mediaQueryHelper));
+    assertThat(new PietStylesHelperKey(ImmutableList.of(sharedState), mediaQueryHelper))
+        .isEqualTo(
+            new PietStylesHelperKey(ImmutableList.of(equalSharedState), equalMediaQueryHelper));
+    assertThat(
+            new PietStylesHelperKey(
+                ImmutableList.of(sharedState, differentSharedState), mediaQueryHelper))
+        .isEqualTo(
+            new PietStylesHelperKey(
+                ImmutableList.of(sharedState, differentSharedState), equalMediaQueryHelper));
+    assertThat(
+            new PietStylesHelperKey(
+                ImmutableList.of(sharedState, differentSharedState), mediaQueryHelper))
+        .isEqualTo(
+            new PietStylesHelperKey(
+                ImmutableList.of(differentSharedState, equalSharedState), equalMediaQueryHelper));
+    assertThat(
+            new PietStylesHelperKey(
+                ImmutableList.of(sharedState, differentSharedState), mediaQueryHelper))
+        .isEqualTo(
+            new PietStylesHelperKey(
+                Arrays.asList(sharedState, differentSharedState), equalMediaQueryHelper));
+
+    assertThat(new PietStylesHelperKey(ImmutableList.of(sharedState), mediaQueryHelper).hashCode())
+        .isEqualTo(
+            new PietStylesHelperKey(ImmutableList.of(sharedState), mediaQueryHelper).hashCode());
+    assertThat(new PietStylesHelperKey(ImmutableList.of(sharedState), mediaQueryHelper).hashCode())
+        .isEqualTo(
+            new PietStylesHelperKey(ImmutableList.of(equalSharedState), equalMediaQueryHelper)
+                .hashCode());
+    assertThat(
+            new PietStylesHelperKey(
+                    ImmutableList.of(sharedState, differentSharedState), mediaQueryHelper)
+                .hashCode())
+        .isEqualTo(
+            new PietStylesHelperKey(
+                    ImmutableList.of(sharedState, differentSharedState), equalMediaQueryHelper)
+                .hashCode());
+
+    // Objects that should be different
+    assertThat(new PietStylesHelperKey(ImmutableList.of(sharedState), mediaQueryHelper))
+        .isNotEqualTo(
+            new PietStylesHelperKey(ImmutableList.of(differentSharedState), mediaQueryHelper));
+    assertThat(new PietStylesHelperKey(ImmutableList.of(sharedState), mediaQueryHelper))
+        .isNotEqualTo(
+            new PietStylesHelperKey(ImmutableList.of(equalSharedState), differentMediaQueryHelper));
+    assertThat(new PietStylesHelperKey(ImmutableList.of(sharedState), mediaQueryHelper))
+        .isNotEqualTo(
+            new PietStylesHelperKey(
+                ImmutableList.of(sharedState, differentSharedState), mediaQueryHelper));
+
+    assertThat(new PietStylesHelperKey(ImmutableList.of(sharedState), mediaQueryHelper).hashCode())
+        .isNotEqualTo(
+            new PietStylesHelperKey(ImmutableList.of(differentSharedState), mediaQueryHelper)
+                .hashCode());
+    assertThat(new PietStylesHelperKey(ImmutableList.of(sharedState), mediaQueryHelper).hashCode())
+        .isNotEqualTo(
+            new PietStylesHelperKey(ImmutableList.of(equalSharedState), differentMediaQueryHelper)
+                .hashCode());
+    assertThat(new PietStylesHelperKey(ImmutableList.of(sharedState), mediaQueryHelper).hashCode())
+        .isNotEqualTo(
+            new PietStylesHelperKey(
+                    ImmutableList.of(sharedState, differentSharedState), mediaQueryHelper)
+                .hashCode());
+  }
+
+  private MediaQueryHelper newMediaQueryHelper() {
+    return new MediaQueryHelper(FRAME_WIDTH_PX, assetProvider, context);
   }
 }

@@ -39,6 +39,7 @@ import com.google.android.libraries.feed.common.functional.Suppliers;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
+import com.google.android.libraries.feed.piet.PietStylesHelper.PietStylesHelperFactory;
 import com.google.android.libraries.feed.piet.TemplateBinder.TemplateAdapterModel;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.ActionHandler.ActionType;
@@ -114,6 +115,7 @@ public class FrameAdapterImplTest {
   @Mock private ActionHandler actionHandler;
   @Mock private HostProviders hostProviders;
   @Mock private EventLogger eventLogger;
+  @Mock private PietStylesHelperFactory stylesHelpers;
 
   @Captor private ArgumentCaptor<LayoutParams> layoutParamsCaptor;
 
@@ -135,7 +137,8 @@ public class FrameAdapterImplTest {
             new ParameterizedTextEvaluator(new FakeClock()),
             adapterFactory,
             templateBinder,
-            new FakeClock());
+            new FakeClock(),
+            stylesHelpers);
     when(elementAdapter.getView()).thenReturn(new LinearLayout(context));
     when(templateAdapter.getView()).thenReturn(new LinearLayout(context));
     doReturn(elementAdapter)
@@ -272,16 +275,20 @@ public class FrameAdapterImplTest {
                     .setElement(Element.newBuilder().setElementList(defaultList)))
             .build();
     pietSharedStates.add(pietSharedState);
+    MediaQueryHelper mediaQueryHelper =
+        new MediaQueryHelper(
+            FRAME_WIDTH, adapterParameters.hostProviders.getAssetProvider(), context);
+    PietStylesHelper stylesHelper =
+        adapterParameters.pietStylesHelperFactory.get(pietSharedStates, mediaQueryHelper);
     FrameContext frameContext =
         FrameContext.createFrameContext(
             Frame.newBuilder().setStylesheet(Stylesheet.getDefaultInstance()).build(),
-            FRAME_WIDTH,
             pietSharedStates,
+            stylesHelper,
             debugBehavior,
             new DebugLogger(),
             actionHandler,
             new HostProviders(assetProvider, customElementProvider, new HostBindingProvider()),
-            context,
             new FrameLayout(context));
 
     frameAdapter =
@@ -521,6 +528,46 @@ public class FrameAdapterImplTest {
     verify(elementAdapter).setLayoutParams(layoutParamsCaptor.capture());
     assertThat(((LinearLayout.LayoutParams) layoutParamsCaptor.getValue()).gravity)
         .isEqualTo(Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM);
+  }
+
+  @Test
+  public void testCreateFrameContext_recyclesPietStylesHelper() {
+    AdapterParameters adapterParameters =
+        new AdapterParameters(
+            context, Suppliers.of(new LinearLayout(context)), hostProviders, new FakeClock());
+    PietSharedState pietSharedState =
+        PietSharedState.newBuilder()
+            .addStylesheets(
+                Stylesheet.newBuilder().addStyles(Style.newBuilder().setStyleId("style")))
+            .build();
+    pietSharedStates.add(pietSharedState);
+    FrameAdapterImpl frameAdapter =
+        new FrameAdapterImpl(context, adapterParameters, actionHandler, eventLogger, debugBehavior);
+
+    FrameContext frameContext1 =
+        frameAdapter.createFrameContext(
+            Frame.newBuilder().setTag("frame1").build(),
+            FRAME_WIDTH,
+            pietSharedStates,
+            frameAdapter.getView());
+    FrameContext frameContext2 =
+        frameAdapter.createFrameContext(
+            Frame.newBuilder().setTag("frame2").build(),
+            FRAME_WIDTH,
+            pietSharedStates,
+            frameAdapter.getView());
+    FrameContext frameContext3 =
+        frameAdapter.createFrameContext(
+            Frame.newBuilder().setTag("frame3").build(),
+            FRAME_WIDTH + 1,
+            pietSharedStates,
+            frameAdapter.getView());
+
+    // These should both pull the same object from the cache.
+    assertThat(frameContext1.stylesHelper).isSameAs(frameContext2.stylesHelper);
+
+    // This one is different because of the different frame width.
+    assertThat(frameContext1.stylesHelper).isNotEqualTo(frameContext3.stylesHelper);
   }
 
   @Test

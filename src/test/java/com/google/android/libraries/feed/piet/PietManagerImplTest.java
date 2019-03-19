@@ -33,6 +33,7 @@ import com.google.android.libraries.feed.common.time.SystemClockImpl;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
+import com.google.android.libraries.feed.piet.PietStylesHelper.PietStylesHelperFactory;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
@@ -63,6 +64,7 @@ public class PietManagerImplTest {
   @Mock ImageLoader imageLoader;
   @Mock StringFormatter stringFormatter;
   @Mock TypefaceProvider typefaceProvider;
+  @Mock private PietStylesHelperFactory stylesHelpers;
 
   private Context context;
   private ViewGroup viewGroup1;
@@ -229,8 +231,10 @@ public class PietManagerImplTest {
             null,
             mockFactory,
             mockTemplateBinder,
-            new FakeClock());
+            new FakeClock(),
+            stylesHelpers);
     pietManager.purgeRecyclerPools();
     verify(mockFactory).purgeRecyclerPools();
+    verify(stylesHelpers).purge();
   }
 }

@@ -20,6 +20,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.time.Clock;
+import com.google.android.libraries.feed.piet.PietStylesHelper.PietStylesHelperFactory;
 
 /**
  * A state shared by instances of Cards and Slices. The state is accessed directly from the instance
@@ -40,6 +41,8 @@ class AdapterParameters {
   final TemplateBinder templateBinder;
   final StyleProvider defaultStyleProvider;
   final Clock clock;
+
+  final PietStylesHelperFactory pietStylesHelperFactory;
 
   // Doesn't like passing "this" to the new ElementAdapterFactory; however, nothing in the factory's
   // construction will reference the elementAdapterFactory member of this, so should be safe.
@@ -62,6 +65,8 @@ class AdapterParameters {
     templateBinder = new TemplateBinder(templateRecyclerPool, elementAdapterFactory);
 
     this.defaultStyleProvider = new StyleProvider(hostProviders.getAssetProvider());
+
+    this.pietStylesHelperFactory = new PietStylesHelperFactory();
   }
 
   /** Testing-only constructor for mocking the internally-constructed objects. */
@@ -74,6 +79,28 @@ class AdapterParameters {
       ElementAdapterFactory elementAdapterFactory,
       TemplateBinder templateBinder,
       Clock clock) {
+    this(
+        context,
+        parentViewSupplier,
+        hostProviders,
+        templatedStringEvaluator,
+        elementAdapterFactory,
+        templateBinder,
+        clock,
+        new PietStylesHelperFactory());
+  }
+
+  /** Testing-only constructor for mocking the internally-constructed objects. */
+  @VisibleForTesting
+  AdapterParameters(
+      Context context,
+      Supplier</*@Nullable*/ ViewGroup> parentViewSupplier,
+      HostProviders hostProviders,
+      ParameterizedTextEvaluator templatedStringEvaluator,
+      ElementAdapterFactory elementAdapterFactory,
+      TemplateBinder templateBinder,
+      Clock clock,
+      PietStylesHelperFactory pietStylesHelperFactory) {
     this.context = context;
     this.parentViewSupplier = parentViewSupplier;
     this.hostProviders = hostProviders;
@@ -83,5 +110,6 @@ class AdapterParameters {
     this.templateBinder = templateBinder;
     this.defaultStyleProvider = new StyleProvider(hostProviders.getAssetProvider());
     this.clock = clock;
+    this.pietStylesHelperFactory = pietStylesHelperFactory;
   }
 }

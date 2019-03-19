@@ -155,6 +155,7 @@ public class MediaQueryHelperTest {
   @Test
   public void testMediaQueryConditions_orientation() {
     context.getResources().getConfiguration().orientation = Configuration.ORIENTATION_LANDSCAPE;
+    mediaQueryHelper = new MediaQueryHelper(DEFAULT_FRAME_WIDTH, assetProvider, context);
     assertThat(
             mediaQueryHelper.isMediaQueryMet(
                 MediaQueryCondition.newBuilder()
@@ -171,6 +172,7 @@ public class MediaQueryHelperTest {
         .isFalse();
 
     context.getResources().getConfiguration().orientation = Configuration.ORIENTATION_PORTRAIT;
+    mediaQueryHelper = new MediaQueryHelper(DEFAULT_FRAME_WIDTH, assetProvider, context);
     assertThat(
             mediaQueryHelper.isMediaQueryMet(
                 MediaQueryCondition.newBuilder()
@@ -194,6 +196,7 @@ public class MediaQueryHelperTest {
         .isTrue();
 
     context.getResources().getConfiguration().orientation = Configuration.ORIENTATION_UNDEFINED;
+    mediaQueryHelper = new MediaQueryHelper(DEFAULT_FRAME_WIDTH, assetProvider, context);
     assertThat(
             mediaQueryHelper.isMediaQueryMet(
                 MediaQueryCondition.newBuilder()
@@ -220,6 +223,7 @@ public class MediaQueryHelperTest {
   @Test
   public void testMediaQueryConditions_darkLight() {
     when(assetProvider.isDarkTheme()).thenReturn(true);
+    mediaQueryHelper = new MediaQueryHelper(DEFAULT_FRAME_WIDTH, assetProvider, context);
     assertThat(
             mediaQueryHelper.isMediaQueryMet(
                 MediaQueryCondition.newBuilder()
@@ -241,6 +245,7 @@ public class MediaQueryHelperTest {
         .isFalse();
 
     when(assetProvider.isDarkTheme()).thenReturn(false);
+    mediaQueryHelper = new MediaQueryHelper(DEFAULT_FRAME_WIDTH, assetProvider, context);
     assertThat(
             mediaQueryHelper.isMediaQueryMet(
                 MediaQueryCondition.newBuilder()
@@ -286,9 +291,11 @@ public class MediaQueryHelperTest {
     context.getResources().getConfiguration().orientation = Configuration.ORIENTATION_LANDSCAPE;
 
     when(assetProvider.isDarkTheme()).thenReturn(true);
+    mediaQueryHelper = new MediaQueryHelper(DEFAULT_FRAME_WIDTH, assetProvider, context);
     assertThat(mediaQueryHelper.areMediaQueriesMet(conditions)).isTrue();
 
     when(assetProvider.isDarkTheme()).thenReturn(false);
+    mediaQueryHelper = new MediaQueryHelper(DEFAULT_FRAME_WIDTH, assetProvider, context);
     assertThat(mediaQueryHelper.areMediaQueriesMet(conditions)).isFalse();
   }
 }
