@@ -35,6 +35,14 @@ maven_install(
     ],
 )
 
+# Loading android_library rules for Bazel scripts.
+http_archive(
+    name = "build_bazel_rules_android",
+    urls = ["https://github.com/bazelbuild/rules_android/archive/v0.1.1.zip"],
+    sha256 = "cd06d15dd8bb59926e4d65f9003bfc20f9da4b2519985c27e190cddc8b7a7806",
+    strip_prefix = "rules_android-0.1.1",
+)
+
 http_archive(
     name = "com_google_protobuf",
     sha256 = "73fdad358857e120fd0fa19e071a96e15c0f23bb25f85d3f7009abfd4f264a2a",
