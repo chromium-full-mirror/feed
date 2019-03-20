@@ -307,10 +307,6 @@ public final class SessionCache implements Dumpable {
             session.getSessionId(),
             StringFormattingUtils.formatLogDate(metadata.getCreationTimeMillis()));
         cleanupSessions = true;
-        synchronized (lock) {
-          sessions.remove(session.getSessionId());
-          sessionsMetadata.remove(session.getSessionId());
-        }
         continue;
       }
       HeadSessionImpl headSession = Validators.checkNotNull(head);
