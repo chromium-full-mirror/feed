@@ -148,8 +148,12 @@ public class FakeModelProvider implements ModelProvider {
   }
 
   public void triggerOnSessionFinished() {
+    triggerOnSessionFinished(UiContext.getDefaultInstance());
+  }
+
+  public void triggerOnSessionFinished(UiContext uiContext) {
     for (ModelProviderObserver observer : observers) {
-      observer.onSessionFinished(UiContext.getDefaultInstance());
+      observer.onSessionFinished(uiContext);
     }
   }
 
