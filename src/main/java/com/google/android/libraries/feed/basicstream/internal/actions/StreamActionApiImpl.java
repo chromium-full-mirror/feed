@@ -350,12 +350,12 @@ public class StreamActionApiImpl implements StreamActionApi {
         new TooltipCallbackApi() {
           @Override
           public void onShow() {
-            // TODO: Log this.
+            onElementView(ElementType.TOOLTIP);
           }
 
           @Override
           public void onHide(int dismissType) {
-            // TODO: Log this.
+            onElementHide(ElementType.TOOLTIP);
           }
         });
   }

@@ -40,6 +40,7 @@ import com.google.android.libraries.feed.host.logging.ContentLoggingData;
 import com.google.android.libraries.feed.host.logging.ElementType;
 import com.google.android.libraries.feed.host.stream.TooltipApi;
 import com.google.android.libraries.feed.host.stream.TooltipCallbackApi;
+import com.google.android.libraries.feed.host.stream.TooltipCallbackApi.TooltipDismissType;
 import com.google.android.libraries.feed.host.stream.TooltipInfo;
 import com.google.android.libraries.feed.sharedstream.pendingdismiss.PendingDismissCallback;
 import com.google.android.libraries.feed.testing.sharedstream.contextmenumanager.FakeContextMenuManager;
@@ -460,8 +461,18 @@ public class StreamActionApiImplTest {
   @Test
   public void testMaybeShowTooltip() {
     TooltipInfo info = mock(TooltipInfo.class);
+    ArgumentCaptor<TooltipCallbackApi> callbackCaptor =
+        ArgumentCaptor.forClass(TooltipCallbackApi.class);
+
     streamActionApi.maybeShowTooltip(info, view);
-    verify(tooltipApi).maybeShowHelpUi(eq(info), eq(view), any(TooltipCallbackApi.class));
+
+    verify(tooltipApi).maybeShowHelpUi(eq(info), eq(view), callbackCaptor.capture());
+
+    callbackCaptor.getValue().onShow();
+    verify(viewElementActionHandler).onElementView(ElementType.TOOLTIP);
+
+    callbackCaptor.getValue().onHide(TooltipDismissType.TIMEOUT);
+    verify(viewElementActionHandler).onElementHide(ElementType.TOOLTIP);
   }
 
   private void testCommittedDismissWithSnackbar(Type actionType) {
