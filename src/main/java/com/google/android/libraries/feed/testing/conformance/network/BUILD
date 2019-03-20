@@ -9,7 +9,7 @@ android_library(
     deps = [
         "//src/main/java/com/google/android/libraries/feed/common/testing",
         "//src/main/java/com/google/android/libraries/feed/host/network",
-        "@com_google_truth_truth//jar",
         "@junit_junit//jar",
+        "@maven//:com_google_truth_truth",
     ],
 )

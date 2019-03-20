@@ -22,8 +22,8 @@ android_library(
         "//src/main/proto/search/now/wire/feed:feed_java_proto_lite",
         "//src/test/proto/search/now/wire/feed:feed_test_java_proto_lite",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
-        "@com_google_truth_truth//jar",
         "@junit_junit//jar",
-        "@org_mockito_mockito_all//jar",
+        "@maven//:com_google_truth_truth",
+        "@maven//:org_mockito_mockito_all",
     ],
 )

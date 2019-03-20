@@ -15,7 +15,7 @@ android_local_test(
         "//src/main/proto/search/now/ui/stream:stream_java_proto_lite",
         "//src/main/proto/search/now/wire/feed:feed_java_proto_lite",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
-        "@com_google_truth_truth//jar",
+        "@maven//:com_google_truth_truth",
         "@robolectric//bazel:robolectric",
     ],
 )
@@ -33,7 +33,7 @@ android_local_test(
         "//src/main/proto/search/now/ui/stream:stream_java_proto_lite",
         "//src/main/proto/search/now/wire/feed:feed_java_proto_lite",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
-        "@com_google_truth_truth//jar",
+        "@maven//:com_google_truth_truth",
         "@robolectric//bazel:robolectric",
     ],
 )

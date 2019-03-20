@@ -14,7 +14,7 @@ android_local_test(
         "//src/main/proto/search/now/wire/feed:feed_java_proto_lite",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@com_google_truth_liteproto_extension//jar",
-        "@com_google_truth_truth//jar",  # buildclean: keep
+        "@maven//:com_google_truth_truth",  # buildclean: keep
         "@robolectric//bazel:robolectric",
     ],
 )

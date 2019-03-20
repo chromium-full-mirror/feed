@@ -13,8 +13,8 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/sharedstream/contextmenumanager",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/publicapi/menumeasurer",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
-        "@com_google_truth_truth//jar",
-        "@org_mockito_mockito_all//jar",
+        "@maven//:com_google_truth_truth",
+        "@maven//:org_mockito_mockito_all",
         "@robolectric//bazel:robolectric",
     ],
 )
@@ -31,8 +31,8 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/sharedstream/publicapi/menumeasurer",
         "@com_google_guava_guava_android//jar",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
-        "@com_google_truth_truth//jar",
-        "@org_mockito_mockito_all//jar",
+        "@maven//:com_google_truth_truth",
+        "@maven//:org_mockito_mockito_all",
         "@robolectric//bazel:robolectric",
     ],
 )

@@ -12,7 +12,7 @@ android_local_test(
     deps = [
         "//src/main/java/com/google/android/libraries/feed/common/feedobservable",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
-        "@com_google_truth_truth//jar",
+        "@maven//:com_google_truth_truth",
         "@robolectric//bazel:robolectric",
     ],
 )

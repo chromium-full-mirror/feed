@@ -12,8 +12,8 @@ android_local_test(
     deps = [
         "//src/main/java/com/google/android/libraries/feed/host/storage",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
-        "@com_google_truth_truth//jar",
-        "@org_mockito_mockito_all//jar",
+        "@maven//:com_google_truth_truth",
+        "@maven//:org_mockito_mockito_all",
         "@robolectric//bazel:robolectric",
     ],
 )

@@ -29,8 +29,11 @@ maven_install(
         "com.android.support:support-annotations:" + ANDROID_SUPPORT_LIBRARY_VERSION,
         "com.android.support:support-compat:" + ANDROID_SUPPORT_LIBRARY_VERSION,
         "com.android.support:support-core-ui:" + ANDROID_SUPPORT_LIBRARY_VERSION,
+        "com.google.truth:truth:0.42",
+        "org.mockito:mockito-all:1.9.5",
     ],
     repositories = [
+        "http://central.maven.org/maven2/",
         "https://maven.google.com",
     ],
 )
@@ -102,18 +105,8 @@ maven_jar(
 )
 
 maven_jar(
-    name = "com_google_truth_truth",
-    artifact = "com.google.truth:truth:0.42",
-)
-
-maven_jar(
     name = "com_google_truth_liteproto_extension",
     artifact = "com.google.truth.extensions:truth-liteproto-extension:0.42"
-)
-
-maven_jar(
-    name = "org_mockito_mockito_all",
-    artifact = "org.mockito:mockito-all:1.9.5",
 )
 
 maven_jar(
@@ -129,9 +122,4 @@ maven_jar(
 maven_jar(
     name = "javax_inject_javax_inject",
     artifact = "javax.inject:javax.inject:1",
-)
-
-maven_jar(
-    name = "com_googlecode_java_diff_utils_diffutils",
-    artifact = "com.googlecode.java-diff-utils:diffutils:1.3.0",
 )
