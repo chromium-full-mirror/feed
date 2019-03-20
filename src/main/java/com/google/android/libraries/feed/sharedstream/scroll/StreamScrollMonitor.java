@@ -102,4 +102,9 @@ public class StreamScrollMonitor extends RecyclerView.OnScrollListener {
         return ScrollState.IDLE;
     }
   }
+
+  @VisibleForTesting
+  public int getListenerCount() {
+    return scrollListeners.size();
+  }
 }

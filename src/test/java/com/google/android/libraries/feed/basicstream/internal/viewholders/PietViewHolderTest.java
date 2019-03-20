@@ -17,36 +17,37 @@ package com.google.android.libraries.feed.basicstream.internal.viewholders;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.drawable.ColorDrawable;
+import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.FrameLayout;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.actionparser.ActionSource;
 import com.google.android.libraries.feed.api.actionparser.ActionSourceConverter;
+import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.actions.StreamActionApiImpl;
-import com.google.android.libraries.feed.basicstream.internal.viewholders.PietViewHolder.PietViewActionScrollListener;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
-import com.google.android.libraries.feed.piet.FrameAdapter;
 import com.google.android.libraries.feed.piet.PietManager;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.ActionHandler.ActionType;
 import com.google.android.libraries.feed.piet.host.EventLogger;
+import com.google.android.libraries.feed.piet.testing.FakeFrameAdapter;
 import com.google.android.libraries.feed.sharedstream.logging.LoggingListener;
 import com.google.android.libraries.feed.sharedstream.logging.VisibilityMonitor;
 import com.google.android.libraries.feed.sharedstream.piet.PietEventLogger;
@@ -65,7 +66,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.robolectric.Robolectric;
@@ -83,15 +83,15 @@ public class PietViewHolderTest {
   private static final String VE_LOGGING_TOKEN = "token";
 
   private CardConfiguration cardConfiguration;
-  @Mock private FrameAdapter frameAdapter;
   @Mock private ActionParser actionParser;
   @Mock private PietManager pietManager;
   @Mock private StreamActionApiImpl streamActionApi;
   @Mock private LoggingListener loggingListener;
   @Mock private VisibilityMonitor visibilityMonitor;
-  @Mock private StreamScrollMonitor streamScrollMonitor;
   @Mock private BasicLoggingApi basicLoggingApi;
 
+  private StreamScrollMonitor streamScrollMonitor;
+  private FakeFrameAdapter frameAdapter;
   private ActionHandler actionHandler;
   private Configuration configuration;
   private PietViewHolder pietViewHolder;
@@ -104,19 +104,32 @@ public class PietViewHolderTest {
   @Before
   public void setUp() {
     initMocks(this);
+    streamScrollMonitor =
+        new StreamScrollMonitor(
+            mock(ContentChangedListener.class), FakeMainThreadRunner.runTasksImmediately());
     cardConfiguration = new FakeCardConfiguration();
     context = Robolectric.buildActivity(Activity.class).get();
     frameLayout = new FrameLayout(context);
     frameLayout.setLayoutParams(new MarginLayoutParams(100, 100));
     view = new TextView(context);
     viewport = new FrameLayout(context);
+
+    // TODO: Use FakePietManager once it is implemented.
     when(pietManager.createPietFrameAdapter(
             Mockito.<Supplier<ViewGroup>>any(),
             any(ActionHandler.class),
             any(EventLogger.class),
             eq(context)))
-        .thenReturn(frameAdapter);
-    when(frameAdapter.getFrameContainer()).thenReturn(new LinearLayout(context));
+        .thenAnswer(
+            invocation -> {
+              frameAdapter =
+                  FakeFrameAdapter.builder(context)
+                      .setActionHandler((ActionHandler) invocation.getArguments()[1])
+                      .addViewAction(Action.getDefaultInstance())
+                      .addHideAction(Action.getDefaultInstance())
+                      .build();
+              return frameAdapter;
+            });
 
     configuration = new Configuration.Builder().build();
     pietViewHolder =
@@ -209,8 +222,7 @@ public class PietViewHolderTest {
         loggingListener,
         actionParser);
 
-    verify(frameAdapter)
-        .bindModel(Frame.getDefaultInstance(), 0, /* shardingControl= */ null, pietSharedStates);
+    assertThat(frameAdapter.isBound()).isTrue();
   }
 
   @Test
@@ -223,10 +235,6 @@ public class PietViewHolderTest {
         loggingListener,
         actionParser);
 
-    verify(frameAdapter)
-        .bindModel(Frame.getDefaultInstance(), 0, /* shardingControl= */ null, pietSharedStates);
-    verify(frameAdapter).getFrameContainer();
-
     pietViewHolder.bind(
         Frame.getDefaultInstance(),
         pietSharedStates,
@@ -235,7 +243,7 @@ public class PietViewHolderTest {
         loggingListener,
         actionParser);
 
-    verifyNoMoreInteractions(frameAdapter);
+    // Should not crash.
   }
 
   @Test
@@ -261,7 +269,7 @@ public class PietViewHolderTest {
         loggingListener,
         actionParser);
 
-    verify(streamScrollMonitor).addScrollListener(any(PietViewActionScrollListener.class));
+    assertThat(streamScrollMonitor.getListenerCount()).isEqualTo(1);
   }
 
   @Test
@@ -275,13 +283,8 @@ public class PietViewHolderTest {
         actionParser);
 
     pietViewHolder.unbind();
-    InOrder inOrder = Mockito.inOrder(frameAdapter);
 
-    inOrder
-        .verify(frameAdapter)
-        .bindModel(Frame.getDefaultInstance(), 0, /* shardingControl= */ null, pietSharedStates);
-    inOrder.verify(frameAdapter).unbindModel();
-    inOrder.verifyNoMoreInteractions();
+    assertThat(frameAdapter.isBound()).isFalse();
   }
 
   @Test
@@ -300,7 +303,7 @@ public class PietViewHolderTest {
   }
 
   @Test
-  public void testBind_unsetsScrollListener() {
+  public void testUnbind_unsetsScrollListener() {
     pietViewHolder.bind(
         Frame.getDefaultInstance(),
         pietSharedStates,
@@ -311,10 +314,7 @@ public class PietViewHolderTest {
 
     pietViewHolder.unbind();
 
-    ArgumentCaptor<PietViewActionScrollListener> captor =
-        ArgumentCaptor.forClass(PietViewActionScrollListener.class);
-    verify(streamScrollMonitor).addScrollListener(captor.capture());
-    verify(streamScrollMonitor).removeScrollListener(captor.getValue());
+    assertThat(streamScrollMonitor.getListenerCount()).isEqualTo(0);
   }
 
   @Test
@@ -422,29 +422,23 @@ public class PietViewHolderTest {
         loggingListener,
         actionParser);
 
-    doAnswer(
-            invocation -> {
-              actionHandler.handleAction(
-                  Action.getDefaultInstance(),
-                  ActionType.VIEW,
-                  Frame.getDefaultInstance(),
-                  view,
-                  null);
-              return null;
-            })
-        .when(frameAdapter)
-        .unbindModel();
+    // Triggers view actions.
+    streamScrollMonitor.onScrollStateChanged(
+        new RecyclerView(context), RecyclerView.SCROLL_STATE_IDLE);
 
+    // Triggers hide actions associated with those views
     pietViewHolder.unbind();
 
-    verify(actionParser)
+    // TODO: Instead of using the default instance twice, create an extension for test
+    // proto.
+    // Once on the view, once on the hide.
+    verify(actionParser, times(2))
         .parseAction(
             Action.getDefaultInstance(),
             streamActionApi,
-            view,
+            frameAdapter.getFrameContainer(),
             null,
             ActionSourceConverter.convertPietAction(ActionType.VIEW));
-    // Does not crash
   }
 
   @Test

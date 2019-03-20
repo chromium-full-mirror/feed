@@ -22,7 +22,7 @@ import com.google.search.now.ui.piet.PietProto.Frame;
 /**
  * Interface from the Piet host which provides handling of {@link Action} from the UI. An instance
  * of this is provided by the host. When an action is raised by the client {@link
- * #handleAction(Action, Frame, View, String)} will be called.
+ * #handleAction(Action, int, Frame, View, String)} will be called.
  */
 public interface ActionHandler {
   /** Called on a event, such as a click of a view, on a UI element */
