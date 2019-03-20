@@ -406,7 +406,9 @@ public class StreamDriver
   }
 
   public boolean isZeroStateBeingShown() {
-    return !featureDrivers.isEmpty() && featureDrivers.get(0) instanceof ZeroStateDriver;
+    return !featureDrivers.isEmpty()
+        && featureDrivers.get(0) instanceof ZeroStateDriver
+        && !((ZeroStateDriver) featureDrivers.get(0)).isSpinnerShowing();
   }
 
   public void setModelProviderForZeroState(ModelProvider modelProvider) {

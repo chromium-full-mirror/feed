@@ -149,4 +149,9 @@ public class ZeroStateDriver extends LeafFeatureDriver implements OnClickListene
       /*@UnderInitialization*/ ZeroStateDriver this, BasicLoggingApi basicLoggingApi, Clock clock) {
     return new SpinnerLogger(basicLoggingApi, clock);
   }
+
+  /** Returns whether the spinner is showing. */
+  boolean isSpinnerShowing() {
+    return spinnerShown;
+  }
 }

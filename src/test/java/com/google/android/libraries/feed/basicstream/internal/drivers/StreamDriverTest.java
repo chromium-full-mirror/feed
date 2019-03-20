@@ -159,6 +159,8 @@ public class StreamDriverTest {
     when(continuationDriver.getLeafFeatureDriver()).thenReturn(continuationDriver);
     when(noContentDriver.getLeafFeatureDriver()).thenReturn(noContentDriver);
     when(zeroStateDriver.getLeafFeatureDriver()).thenReturn(zeroStateDriver);
+    when(zeroStateDriver.isSpinnerShowing()).thenReturn(false);
+
     when(modelProvider.getRootFeature()).thenReturn(streamFeature);
     when(modelProvider.getCurrentState()).thenReturn(State.READY);
     threadUtils = new ThreadUtils();
@@ -810,9 +812,23 @@ public class StreamDriverTest {
   }
 
   @Test
-  public void testIsZeroStateBeingShown_returnsFalse_ifNoZeroState() {
+  public void testIsZeroStateBeingShown_returnsFalse_whenNoContentCardShowing() {
     FakeModelCursor cursor = FakeModelCursor.newBuilder().addCard().addToken().build();
+
+    // Dismisses all features, but not the token, so the no-content state will be showing.
     initializeStreamDriverAndDismissAllFeatureChildren(cursor);
+
+    assertThat(streamDriver.isZeroStateBeingShown()).isFalse();
+  }
+
+  @Test
+  public void testIsZeroStateBeingShown_returnsFalse_ifZeroStateIsSpinner() {
+    when(streamFeature.getCursor())
+        .thenReturn(FakeModelCursor.newBuilder().addCard().addToken().build());
+
+    streamDriver.getLeafFeatureDrivers();
+
+    streamDriver.showSpinner();
 
     assertThat(streamDriver.isZeroStateBeingShown()).isFalse();
   }
