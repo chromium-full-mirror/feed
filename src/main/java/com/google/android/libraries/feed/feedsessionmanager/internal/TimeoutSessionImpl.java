@@ -119,8 +119,7 @@ public final class TimeoutSessionImpl extends SessionImpl {
     return false;
   }
 
-  @VisibleForTesting
-  List<StreamStructure> removeItems(String lowestChild, List<ModelChild> rootChildren) {
+  private List<StreamStructure> removeItems(String lowestChild, List<ModelChild> rootChildren) {
     boolean remove = false;
     List<StreamStructure> removeOperations = new ArrayList<>();
     for (ModelChild child : rootChildren) {

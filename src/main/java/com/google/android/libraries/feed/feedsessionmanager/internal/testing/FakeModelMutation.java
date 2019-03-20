@@ -23,8 +23,8 @@ import java.util.List;
 /** Fake ModelMutation for tests. */
 public final class FakeModelMutation implements ModelMutation {
   public final List<StreamStructure> addedChildren = new ArrayList<>();
-  final List<StreamStructure> removedChildren = new ArrayList<>();
-  final List<StreamStructure> updateChildren = new ArrayList<>();
+  public final List<StreamStructure> removedChildren = new ArrayList<>();
+  public final List<StreamStructure> updateChildren = new ArrayList<>();
   MutationContext mutationContext;
   boolean commitCalled = false;
 

@@ -44,10 +44,11 @@ import org.robolectric.RobolectricTestRunner;
 /** Tests of the {@link TimeoutSessionImpl} class. */
 @RunWith(RobolectricTestRunner.class)
 public class TimeoutSessionImplTest extends AbstractSessionImplTest {
-  @Mock private ThreadUtils threadUtils;
-  @Mock private Clock clock;
-
   private final TimingUtils timingUtils = new TimingUtils();
+
+  @Mock private Clock clock;
+  @Mock private ThreadUtils threadUtils;
+  @Mock private ViewDepthProvider viewDepthProvider;
 
   @Before
   @Override
@@ -93,8 +94,7 @@ public class TimeoutSessionImplTest extends AbstractSessionImplTest {
     addFeatures(protocolBuilder, featureCnt, featureId);
     List<StreamStructure> streamStructures = protocolBuilder.buildAsStreamStructure();
 
-    ViewDepthProvider mockDepthProvider = mock(ViewDepthProvider.class);
-    session.bindModelProvider(modelProvider, mockDepthProvider);
+    session.bindModelProvider(modelProvider, viewDepthProvider);
     session.populateModelProvider(new ArrayList<>(), false, false);
     session.updateSession(
         true,
@@ -112,12 +112,11 @@ public class TimeoutSessionImplTest extends AbstractSessionImplTest {
     assertThat(session.legacyHeadContent).isFalse();
     assertThat(session.viewDepthProvider).isNull();
 
-    ViewDepthProvider mockDepthProvider = mock(ViewDepthProvider.class);
     session.setSessionId(TEST_SESSION_ID);
-    session.bindModelProvider(modelProvider, mockDepthProvider);
+    session.bindModelProvider(modelProvider, viewDepthProvider);
     session.populateModelProvider(new ArrayList<>(), false, true);
     assertThat(session.legacyHeadContent).isTrue();
-    assertThat(session.viewDepthProvider).isEqualTo(mockDepthProvider);
+    assertThat(session.viewDepthProvider).isEqualTo(viewDepthProvider);
   }
 
   @Test
@@ -162,19 +161,58 @@ public class TimeoutSessionImplTest extends AbstractSessionImplTest {
   @Test
   public void testRemoveItems() {
     TimeoutSessionImpl session = getSessionImpl();
-    int childCount = 10;
     List<ModelChild> modelChildren = new ArrayList<>();
-    for (int i = 0; i < childCount; i++) {
-      modelChildren.add(createModelChild(i));
+    for (int i = 0; i < 10; i++) {
+      modelChildren.add(createModelChild(i, ModelChild.Type.FEATURE));
     }
-    String lowestChild = contentIdGenerators.createFeatureContentId(6);
-    List<StreamStructure> removeOperations = session.removeItems(lowestChild, modelChildren);
-    assertThat(removeOperations).hasSize(3);
+    setupForViewDepthProvider(
+        session, contentIdGenerators.createFeatureContentId(6), modelChildren);
+
+    // Items below the lowest child should be removed.
+    session.updateSession(/* clearHead= */ true, new ArrayList<>(), /* mutationContext= */ null);
+    assertThat(fakeModelMutator.removedChildren).hasSize(3);
+    assertThat(fakeModelMutator.removedChildren.get(0).getContentId())
+        .isEqualTo(contentIdGenerators.createFeatureContentId(7));
+    assertThat(fakeModelMutator.removedChildren.get(1).getContentId())
+        .isEqualTo(contentIdGenerators.createFeatureContentId(8));
+    assertThat(fakeModelMutator.removedChildren.get(2).getContentId())
+        .isEqualTo(contentIdGenerators.createFeatureContentId(9));
   }
 
-  private ModelChild createModelChild(long id) {
+  @Test
+  public void testRemoveItems_visibleTokenIsRemoved() {
+    TimeoutSessionImpl session = getSessionImpl();
+    List<ModelChild> modelChildren = new ArrayList<>();
+    modelChildren.add(createModelChild(0, ModelChild.Type.TOKEN));
+    String tokenContentId = contentIdGenerators.createFeatureContentId(0);
+    setupForViewDepthProvider(session, tokenContentId, modelChildren);
+
+    // Because the lowest child is a token it should also be removed.
+    session.updateSession(/* clearHead= */ true, new ArrayList<>(), /* mutationContext= */ null);
+    assertThat(fakeModelMutator.removedChildren).hasSize(1);
+    assertThat(fakeModelMutator.removedChildren.get(0).getContentId()).isEqualTo(tokenContentId);
+  }
+
+  @Test
+  public void testRemoveItems_nullLowestChildShouldRemoveToken() {
+    TimeoutSessionImpl session = getSessionImpl();
+    List<ModelChild> modelChildren = new ArrayList<>();
+    for (int i = 0; i < 10; i++) {
+      modelChildren.add(createModelChild(i, ModelChild.Type.FEATURE));
+    }
+    modelChildren.add(createModelChild(11, ModelChild.Type.TOKEN));
+    setupForViewDepthProvider(session, /* lowestChild= */ null, modelChildren);
+
+    // The token should be removed even when there is a null lowest child.
+    session.updateSession(/* clearHead= */ true, new ArrayList<>(), /* mutationContext= */ null);
+    // TODO: this should return 1.
+    assertThat(fakeModelMutator.removedChildren).isEmpty();
+  }
+
+  private ModelChild createModelChild(long id, @ModelChild.Type int type) {
     ModelChild child = mock(ModelChild.class);
     when(child.getContentId()).thenReturn(contentIdGenerators.createFeatureContentId(id));
+    when(child.getType()).thenReturn(type);
     return child;
   }
 
@@ -195,7 +233,17 @@ public class TimeoutSessionImplTest extends AbstractSessionImplTest {
     taskQueue.initialize(() -> {});
     TimeoutSessionImpl session =
         new TimeoutSessionImpl(store, false, taskQueue, timingUtils, threadUtils);
-    session.bindModelProvider(modelProvider, null);
+    session.bindModelProvider(modelProvider, /* viewDepthProvider= */ null);
     return session;
+  }
+
+  private void setupForViewDepthProvider(
+      TimeoutSessionImpl session, String lowestChild, List<ModelChild> modelChildren) {
+    when(viewDepthProvider.getChildViewDepth()).thenReturn(lowestChild);
+    when(modelProvider.getAllRootChildren()).thenReturn(modelChildren);
+    session.setSessionId(TEST_SESSION_ID);
+    session.bindModelProvider(modelProvider, viewDepthProvider);
+    session.populateModelProvider(
+        new ArrayList<>(), /* cachedBindings= */ false, /* legacyHeadContent= */ true);
   }
 }
