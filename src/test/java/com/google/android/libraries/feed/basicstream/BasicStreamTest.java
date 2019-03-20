@@ -1169,7 +1169,8 @@ public class BasicStreamTest {
           offlineIndicatorApi,
           mainThreadRunner,
           knownContentApi,
-          tooltipApi);
+          tooltipApi,
+          /* isBackgroundDark= */ false);
       this.layoutManager = layoutManager;
       this.streamDriver = streamDriver;
     }
@@ -1184,7 +1185,8 @@ public class BasicStreamTest {
         Clock clock,
         /*@Nullable*/ HostBindingProvider hostBindingProvider,
         StreamOfflineMonitor streamOfflineMonitor,
-        Configuration config) {
+        Configuration config,
+        boolean isBackgroundDark) {
       return pietManager;
     }
 
@@ -1237,8 +1239,7 @@ public class BasicStreamTest {
 
     @Override
     StreamScrollMonitor createStreamScrollMonitor(
-        ContentChangedListener contentChangedListener,
-        MainThreadRunner mainThreadRunner) {
+        ContentChangedListener contentChangedListener, MainThreadRunner mainThreadRunner) {
       return streamScrollMonitor;
     }
 

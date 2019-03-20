@@ -112,6 +112,11 @@ public final class FeedStreamScope {
       return this;
     }
 
+    public Builder setIsBackgroundDark(boolean isBackgroundDark) {
+      this.isBackgroundDark = isBackgroundDark;
+      return this;
+    }
+
     public Builder setStream(Stream stream) {
       this.stream = stream;
       return this;
@@ -164,7 +169,8 @@ public final class FeedStreamScope {
                 offlineIndicatorApi,
                 mainThreadRunner,
                 knownContentApi,
-                tooltipApi);
+                tooltipApi,
+                isBackgroundDark);
       }
       return new FeedStreamScope(
           Validators.checkNotNull(stream), Validators.checkNotNull(modelProviderFactory));
@@ -195,6 +201,7 @@ public final class FeedStreamScope {
     private final OfflineIndicatorApi offlineIndicatorApi;
     private final KnownContentApi knownContentApi;
     private final TooltipApi tooltipApi;
+    private boolean isBackgroundDark;
 
     // Optional internal components to override the default implementations.
     /*@MonotonicNonNull*/ private ActionParserFactory actionParserFactory;

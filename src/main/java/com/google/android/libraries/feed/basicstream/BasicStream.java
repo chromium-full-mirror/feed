@@ -172,7 +172,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
       OfflineIndicatorApi offlineIndicatorApi,
       MainThreadRunner mainThreadRunner,
       KnownContentApi knownContentApi,
-      TooltipApi tooltipApi) {
+      TooltipApi tooltipApi,
+      boolean isBackgroundDark) {
     this.cardConfiguration = cardConfiguration;
     this.clock = clock;
     this.threadUtils = threadUtils;
@@ -208,7 +209,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
             clock,
             hostBindingProvider,
             streamOfflineMonitor,
-            configuration);
+            configuration,
+            isBackgroundDark);
   }
 
   @VisibleForTesting
@@ -222,7 +224,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
       Clock clock,
       /*@Nullable*/ HostBindingProvider hostBindingProvider,
       StreamOfflineMonitor streamOfflineMonitor,
-      Configuration configuration) {
+      Configuration configuration,
+      boolean isBackgroundDark) {
     return PietManager.builder()
         .setImageLoader(new PietImageLoader(imageLoaderApi))
         .setStringFormatter(new PietStringFormatter(clock))
@@ -234,6 +237,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
         .setHostBindingProvider(
             new PietHostBindingProvider(hostBindingProvider, streamOfflineMonitor))
         .setClock(clock)
+        .setIsDarkTheme(Suppliers.of(isBackgroundDark))
         .build();
   }
 
