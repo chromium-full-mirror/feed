@@ -151,12 +151,12 @@ public final class SessionManagerMutation implements Dumpable {
     void resetHead(/*@Nullable*/ String mutationSessionId) {
       threadUtils.checkNotMainThread();
       ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
-      Collection<Session> currentSessions = sessionCache.getSessions();
+      Collection<Session> attachedSessions = sessionCache.getAttachedSessions();
 
       // If we have old sessions and we received a clear head, let's invalidate the session that
       // initiated the clear.
       store.clearHead();
-      for (Session session : currentSessions) {
+      for (Session session : attachedSessions) {
         ModelProvider modelProvider = session.getModelProvider();
         if (modelProvider != null
             && session.invalidateOnResetHead()
@@ -237,7 +237,7 @@ public final class SessionManagerMutation implements Dumpable {
         Session session = null;
         String sessionId = mutationContext.getRequestingSessionId();
         if (sessionId != null) {
-          session = sessionCache.get(sessionId);
+          session = sessionCache.getAttached(sessionId);
         }
         if (mutationContext.getContinuationToken() != null) {
           StreamToken streamToken = mutationContext.getContinuationToken();
@@ -381,14 +381,15 @@ public final class SessionManagerMutation implements Dumpable {
           streamStructures.add(0, removeOperation);
         }
       }
-      Collection<Session> updates = sessionCache.getSessions();
+      Collection<Session> updates = sessionCache.getAllSessions();
+
       HeadSessionImpl head = sessionCache.getHead();
       for (Session session : updates) {
         ModelProvider modelProvider = session.getModelProvider();
         if (modelProvider != null && modelProvider.getCurrentState() == State.INVALIDATED) {
           Logger.w(TAG, "Removing an invalidate session");
           // Remove all invalidated sessions
-          sessionCache.remove(session.getSessionId());
+          sessionCache.removeAttached(session.getSessionId());
           continue;
         }
         if (session == head) {

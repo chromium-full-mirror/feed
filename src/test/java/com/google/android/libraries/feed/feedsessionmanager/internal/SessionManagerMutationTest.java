@@ -382,7 +382,7 @@ public class SessionManagerMutationTest {
   private Session getSession(String sessionId) {
     Session session = mock(Session.class);
     when(session.getSessionId()).thenReturn(sessionId);
-    sessionCache.putAndRetainMetadata(sessionId, session);
+    sessionCache.putAttachedAndRetainMetadata(sessionId, session);
     return session;
   }
 

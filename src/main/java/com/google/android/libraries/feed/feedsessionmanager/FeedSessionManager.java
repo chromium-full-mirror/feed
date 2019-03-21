@@ -345,7 +345,7 @@ public final class FeedSessionManager
       modelProvider.raiseError(Validators.checkNotNull(noCardsError));
       String sessionId = streamSessionResult.getValue();
       session.setSessionId(sessionId);
-      sessionCache.put(sessionId, clock.currentTimeMillis(), session);
+      sessionCache.putAttached(sessionId, clock.currentTimeMillis(), session);
       synchronized (lock) {
         sessionsUnderConstruction.remove(session);
       }
@@ -376,7 +376,7 @@ public final class FeedSessionManager
     long creationTimeMillis = clock.currentTimeMillis();
     session.populateModelProvider(
         streamStructuresResult.getValue(), cachedBindings, legacyHeadContent);
-    sessionCache.put(sessionId, creationTimeMillis, session);
+    sessionCache.putAttached(sessionId, creationTimeMillis, session);
     synchronized (lock) {
       sessionsUnderConstruction.remove(session);
     }
@@ -439,12 +439,12 @@ public final class FeedSessionManager
         TaskType.USER_FACING,
         () -> {
           threadUtils.checkNotMainThread();
-          Session existingSession = sessionCache.get(sessionId);
-          if (existingSession == null) {
+          if (!sessionCache.hasSession(sessionId)) {
             modelProvider.invalidate();
             return;
           }
-          if (!existingSession.getContentInSession().isEmpty()) {
+          Session existingSession = sessionCache.getAttached(sessionId);
+          if (existingSession != null && !existingSession.getContentInSession().isEmpty()) {
             ModelProvider existingModelProvider = existingSession.getModelProvider();
             if (existingModelProvider != null) {
               existingModelProvider.invalidate();
@@ -456,7 +456,7 @@ public final class FeedSessionManager
           if (streamStructuresResult.isSuccessful()) {
             session.setSessionId(sessionId);
             session.populateModelProvider(streamStructuresResult.getValue(), false, false);
-            sessionCache.putAndRetainMetadata(sessionId, session);
+            sessionCache.putAttachedAndRetainMetadata(sessionId, session);
             existingSessionCount++;
           } else {
             Logger.e(
@@ -469,12 +469,12 @@ public final class FeedSessionManager
   }
 
   @Override
-  public void invalidatedSession(String sessionId) {
+  public void invalidateSession(String sessionId) {
     if (threadUtils.isMainThread()) {
       taskQueue.execute(
-          "invalidatedSession", TaskType.USER_FACING, () -> sessionCache.remove(sessionId));
+          "invalidateSession", TaskType.USER_FACING, () -> sessionCache.removeAttached(sessionId));
     } else {
-      sessionCache.remove(sessionId);
+      sessionCache.removeAttached(sessionId);
     }
   }
 
@@ -571,11 +571,11 @@ public final class FeedSessionManager
         });
 
     if (sessionId != null) {
-      Session session = sessionCache.get(sessionId);
+      Session session = sessionCache.getAttached(sessionId);
       if (session != null) {
         ModelProvider modelProvider = session.getModelProvider();
         if (modelProvider != null) {
-          invalidateSession(modelProvider, session, uiContext);
+          invalidateSessionInternal(modelProvider, session, uiContext);
         } else {
           Logger.w(TAG, "Session didn't have a ModelProvider %s", sessionId);
         }
@@ -761,7 +761,7 @@ public final class FeedSessionManager
     dumper.dump(sessionManagerMutation);
   }
 
-  private void invalidateSession(
+  private void invalidateSessionInternal(
       ModelProvider modelProvider, Session session, UiContext uiContext) {
     threadUtils.checkNotMainThread();
     Logger.i(TAG, "Invalidate session %s", session.getSessionId());
@@ -769,13 +769,15 @@ public final class FeedSessionManager
   }
 
   // This is only used in tests to verify the contents of the shared state cache.
+  @VisibleForTesting
   Map<String, StreamSharedState> getSharedStateCacheForTest() {
     return new HashMap<>(sharedStateCache);
   }
 
-  // This is only used in tests to access a copy of the session state
-  Map<String, Session> getSessionsMapForTest() {
-    return sessionCache.getSessionsMapForTest();
+  // This is only used in tests to access a the associated sessions.
+  @VisibleForTesting
+  SessionCache getSessionCacheForTest() {
+    return sessionCache;
   }
 
   // Called in the integration tests

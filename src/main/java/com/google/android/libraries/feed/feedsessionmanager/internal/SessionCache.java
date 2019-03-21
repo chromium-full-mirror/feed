@@ -37,6 +37,7 @@ import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSessions;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -53,22 +54,23 @@ public final class SessionCache implements Dumpable {
   private static final String TAG = "SessionCache";
   @VisibleForTesting static final String STREAM_SESSION_CONTENT_ID = "FSM::Sessions::0";
 
-  /** Key used to store the consistency token in {@link ContentStorage} */
+  /**
+   * Key used to store the consistency token in {@link
+   * com.google.android.libraries.feed.host.storage.ContentStorage}
+   */
   public static final String CONSISTENCY_TOKEN_CONTENT_ID = "ct";
 
   // Used to synchronize the stored data
   private final Object lock = new Object();
 
+  // Sessions with ModelProviders (attached).
   @GuardedBy("lock")
-  private final Map<String, Session> sessions = new HashMap<>();
+  private final Map<String, Session> attachedSessions = new HashMap<>();
 
   @GuardedBy("lock")
   private final Map<String, SessionMetadata> sessionsMetadata = new HashMap<>();
 
-  // Head is in effect final once it's assigned in the initializationTask.
   private final HeadSessionImpl head;
-
-  private boolean initialized = false;
 
   private final Store store;
   private final TaskQueue taskQueue;
@@ -78,26 +80,17 @@ public final class SessionCache implements Dumpable {
   private final ThreadUtils threadUtils;
   private final Clock clock;
 
+  private boolean initialized = false;
+
   // operation counts for the dumper
   private int getCount = 0;
+  private int getAttachedCount = 0;
   private int getAllCount = 0;
   private int putCount = 0;
   private int removeCount = 0;
   private int unboundSessionCount = 0;
   private int detachedSessionCount = 0;
   private int expiredSessionsCleared = 0;
-
-  @VisibleForTesting
-  final Supplier<Set<String>> accessibleContentSupplier =
-      () -> {
-        Set<String> accessibleContent = new HashSet<>();
-        synchronized (lock) {
-          for (Session session : sessions.values()) {
-            accessibleContent.addAll(session.getContentInSession());
-          }
-        }
-        return accessibleContent;
-      };
 
   public SessionCache(
       Store store,
@@ -119,14 +112,66 @@ public final class SessionCache implements Dumpable {
   }
 
   /**
-   * Return a {@link Session} for the sessionId, or {@code null} if the sessionCache doesn't contain
-   * the Session.
+   * Return {@link HeadSessionImpl} for head. Returns {@code null} if {@link #initialize()} hasn't
+   * finished running.
+   */
+  public HeadSessionImpl getHead() {
+    return head;
+  }
+
+  /** Returns {@code true} if HEAD has been initialize, which happens in {@link #initialize()}. */
+  public boolean isHeadInitialized() {
+    return initialized;
+  }
+
+  /** Returns true if sessionId exists in any of {attached, unbound, head} set, false otherwise. */
+  public boolean hasSession(String sessionId) {
+    synchronized (lock) {
+      return sessionsMetadata.containsKey(sessionId);
+    }
+  }
+
+  /** Returns all attached sessions tracked by the SessionCache. This does NOT include head. */
+  public List<Session> getAttachedSessions() {
+    getAttachedCount++;
+    synchronized (lock) {
+      Logger.d(TAG, "getAttachedSessions, size=%d", attachedSessions.size());
+      return new ArrayList<>(attachedSessions.values());
+    }
+  }
+
+  /**
+   * Returns all sessions tracked by the SessionCache. This includes head and previously thrown away
+   * unbounded sessions, which are re-created.
+   *
+   * <p>NOTE: This method should be called from a background thread, as it reads the persistent
+   * storage in order to populate the unbound sessions.
+   */
+  List<Session> getAllSessions() {
+    threadUtils.checkNotMainThread();
+    getAllCount++;
+
+    // Re-build the unbound sessions (that were thrown away on detach) and add them.
+    List<Session> allSessions = new ArrayList<>(populateUnboundSessions());
+
+    allSessions.add(head);
+    synchronized (lock) {
+      allSessions.addAll(attachedSessions.values());
+    }
+
+    Logger.d(TAG, "getAllSessions, size=%d", allSessions.size());
+    return allSessions;
+  }
+
+  /**
+   * Return an attached {@link Session} for the sessionId, or {@code null} if the sessionCache
+   * doesn't contain the Session or it is no longer attached.
    */
   /*@Nullable*/
-  public Session get(String sessionId) {
+  public Session getAttached(String sessionId) {
     getCount++;
     synchronized (lock) {
-      return sessions.get(sessionId);
+      return attachedSessions.get(sessionId);
     }
   }
 
@@ -142,104 +187,88 @@ public final class SessionCache implements Dumpable {
     }
   }
 
-  /** Returns when the specified {@code sessionId} was created. */
-  public long getCreationTimeMillis(String sessionId) {
-    synchronized (lock) {
-      SessionMetadata metadata = sessionsMetadata.get(sessionId);
-      if (metadata == null) {
-        Logger.e(TAG, "SessionMetadata missing for session %s", sessionId);
-        return 0L;
-      }
-      return metadata.getCreationTimeMillis();
-    }
-  }
-
-  /** Updates the last time content was added to HEAD and writes data to disk. */
-  public void updateHeadLastAddedTimeMillis(long lastAddedTimeMillis) {
-    threadUtils.checkNotMainThread();
-    synchronized (lock) {
-      sessionsMetadata.put(
-          head.getSessionId(),
-          SessionMetadata.newBuilder().setLastAddedTimeMillis(lastAddedTimeMillis).build());
-    }
-    updatePersistedSessions();
-  }
-
   /** Add a {@link Session} to the SessionCache. */
-  public void put(String sessionId, long creationTimeMillis, Session session) {
+  public void putAttached(String sessionId, long creationTimeMillis, Session session) {
+    Logger.d(TAG, "putAttached, sessionId=%s", sessionId);
+
     threadUtils.checkNotMainThread();
     putCount++;
     synchronized (lock) {
-      sessions.put(sessionId, session);
+      attachedSessions.put(sessionId, session);
       sessionsMetadata.put(
           sessionId,
           SessionMetadata.newBuilder().setCreationTimeMillis(creationTimeMillis).build());
+      Logger.d(
+          TAG,
+          "Sessions size: attached=%d, all=%d",
+          attachedSessions.size(),
+          sessionsMetadata.size());
     }
-    updatePersistedSessions();
+    updatePersistedSessionsMetadata();
   }
 
   /** Add a {@link Session} to the SessionCache and retain the existing metadata. */
-  public void putAndRetainMetadata(String sessionId, Session session) {
+  public void putAttachedAndRetainMetadata(String sessionId, Session session) {
+    Logger.d(TAG, "putAttachedAndRetainMetadata, sessionId=%s", sessionId);
+
     threadUtils.checkNotMainThread();
     putCount++;
     synchronized (lock) {
-      sessions.put(sessionId, session);
+      attachedSessions.put(sessionId, session);
+      Logger.d(
+          TAG,
+          "Sessions size: attached=%d, all=%d",
+          attachedSessions.size(),
+          sessionsMetadata.size());
     }
   }
 
+  /**
+   * Detaches the model provider from the session, which becomes unbound. We throw away unbound
+   * sessions for memory reasons, they are re-created on demand when needed in {@link
+   * #populateUnboundSessions()}.
+   */
   public void detachModelProvider(String sessionId) {
+    Logger.d(TAG, "detachModelProvider, sessionId=%s", sessionId);
+
     threadUtils.checkNotMainThread();
     InitializableSession initializableSession;
     synchronized (lock) {
-      Session session = sessions.get(sessionId);
+      Session session = attachedSessions.get(sessionId);
       if (!(session instanceof InitializableSession)) {
         Logger.w(TAG, "Unable to detach session %s", sessionId);
         return;
       } else {
         initializableSession = (InitializableSession) session;
       }
+      attachedSessions.remove(sessionId);
+      Logger.d(
+          TAG,
+          "Sessions size: attached=%d, all=%d",
+          attachedSessions.size(),
+          sessionsMetadata.size());
     }
 
     initializableSession.bindModelProvider(null, null);
     detachedSessionCount++;
   }
 
-  /**
-   * Remove a {@link Session} from the SessionCache. Returns the Session removed or {@code Null} if
-   * it wasn't defined.
-   */
-  /*@Nullable*/
-  public Session remove(String sessionId) {
+  /** Remove an attached {@link Session} from the SessionCache. */
+  public void removeAttached(String sessionId) {
+    Logger.d(TAG, "removeAttached, sessionId=%s", sessionId);
+
     threadUtils.checkNotMainThread();
     removeCount++;
-    Session session;
     synchronized (lock) {
-      session = sessions.remove(sessionId);
+      attachedSessions.remove(sessionId);
       sessionsMetadata.remove(sessionId);
+      Logger.d(
+          TAG,
+          "Sessions size: attached=%d, all=%d",
+          attachedSessions.size(),
+          sessionsMetadata.size());
     }
-    updatePersistedSessions();
-    return session;
-  }
-
-  /** Returns {@code true} if HEAD has been initialize, which happens in {@link #initialize()}. */
-  public boolean isHeadInitialized() {
-    return initialized;
-  }
-
-  /**
-   * Return {@link HeadSessionImpl} for head. Returns {@code null} if {@link #initialize()} hasn't
-   * finished running.
-   */
-  public HeadSessionImpl getHead() {
-    return head;
-  }
-
-  /** Returns all the session tracked by the SessionCache. */
-  public List<Session> getSessions() {
-    getAllCount++;
-    synchronized (lock) {
-      return new ArrayList<>(sessions.values());
-    }
+    updatePersistedSessionsMetadata();
   }
 
   /** Initialize the SessionCache from Store. */
@@ -248,9 +277,6 @@ public final class SessionCache implements Dumpable {
 
     // create the head session from the data in the Store
     ElapsedTimeTracker headTimeTracker = timingUtils.getElapsedTimeTracker(TAG);
-    synchronized (lock) {
-      sessions.put(head.getSessionId(), head);
-    }
     Result<List<StreamStructure>> results = store.getStreamStructures(head.getSessionId());
     if (!results.isSuccessful()) {
       Logger.w(TAG, "unable to get head stream structures");
@@ -267,6 +293,7 @@ public final class SessionCache implements Dumpable {
       if (!sessionsMetadata.containsKey(head.getSessionId())) {
         sessionsMetadata.put(head.getSessionId(), SessionMetadata.getDefaultInstance());
       }
+      Logger.d(TAG, "initialize, size=%d", sessionsMetadata.size());
     }
     return true;
   }
@@ -274,7 +301,7 @@ public final class SessionCache implements Dumpable {
   public void reset() {
     List<Session> sessionList;
     synchronized (lock) {
-      sessionList = new ArrayList<>(sessions.values());
+      sessionList = new ArrayList<>(attachedSessions.values());
     }
     for (Session session : sessionList) {
       ModelProvider modelProvider = session.getModelProvider();
@@ -283,24 +310,111 @@ public final class SessionCache implements Dumpable {
       }
     }
     synchronized (lock) {
-      sessions.clear();
+      attachedSessions.clear();
       sessionsMetadata.clear();
       head.reset();
-      sessions.put(head.getSessionId(), head);
       sessionsMetadata.put(head.getSessionId(), SessionMetadata.getDefaultInstance());
       initialized = true;
     }
   }
 
+  /** Returns when the specified {@code sessionId} was created. */
   @VisibleForTesting
-  void initializePersistedSessions() {
+  long getCreationTimeMillis(String sessionId) {
+    synchronized (lock) {
+      SessionMetadata metadata = sessionsMetadata.get(sessionId);
+      if (metadata == null) {
+        Logger.e(TAG, "SessionMetadata missing for session %s", sessionId);
+        return 0L;
+      }
+      return metadata.getCreationTimeMillis();
+    }
+  }
+
+  /** Updates the last time content was added to HEAD and writes data to disk. */
+  void updateHeadLastAddedTimeMillis(long lastAddedTimeMillis) {
+    threadUtils.checkNotMainThread();
+    synchronized (lock) {
+      sessionsMetadata.put(
+          head.getSessionId(),
+          SessionMetadata.newBuilder().setLastAddedTimeMillis(lastAddedTimeMillis).build());
+    }
+    updatePersistedSessionsMetadata();
+  }
+
+  /**
+   * Creates a list of unbound sessions, which are populated from persisted storage. Unbound
+   * sessions are defined as the set of sessions whose IDs are in the set {sessionsMetadata.keys -
+   * sessions.keys - head.key}, i.e sessions that were detached and thrown away in {@link
+   * #detachModelProvider(String)}.
+   *
+   * <p>NOTE: The head and attached sessions will explicitly not be returned.
+   */
+  private Collection<Session> populateUnboundSessions() {
+    threadUtils.checkNotMainThread();
+
+    List<StreamSession> sessionList = getPersistedSessions();
+    HeadSessionImpl headSession = Validators.checkNotNull(head);
+    String headSessionId = headSession.getSessionId();
+
+    Map<String, Session> unboundSessions = new HashMap<>();
+    for (StreamSession session : sessionList) {
+      String sessionId = session.getSessionId();
+      synchronized (lock) {
+        // We need only unbound sessions, i.e. sessions whose IDs are part of sessionsMetadata but
+        // are not attached or head (those are always stored in attachedSessions/head respectively
+        // so do not need to be restored from persistent storage.
+        if (attachedSessions.containsKey(sessionId)
+            || !sessionsMetadata.containsKey(sessionId)
+            || sessionId.equals(headSessionId)) {
+          continue;
+        }
+      }
+      InitializableSession unboundSession;
+      // Unbound sessions are sessions that are able to be created through restore
+      unboundSession = sessionFactory.getSession();
+      unboundSession.setSessionId(sessionId);
+      unboundSessions.put(sessionId, unboundSession);
+
+      // Populate the newly created unbound session.
+      Logger.i(TAG, "Populate unbound session %s", sessionId);
+      Result<List<StreamStructure>> streamStructuresResult = store.getStreamStructures(sessionId);
+      if (streamStructuresResult.isSuccessful()) {
+        unboundSession.populateModelProvider(
+            streamStructuresResult.getValue(),
+            /* cachedBindings= */ false,
+            /* legacyHeadContent= */ false);
+      } else {
+        Logger.e(TAG, "Failed to read unbound session state, ignored");
+      }
+    }
+
+    return unboundSessions.values();
+  }
+
+  private void initializePersistedSessions() {
     threadUtils.checkNotMainThread();
     List<StreamSession> sessionList = getPersistedSessions();
 
+    HeadSessionImpl headSession = Validators.checkNotNull(head);
+    String headSessionId = headSession.getSessionId();
+    List<SessionContentTracker> sessionContentTrackers = new ArrayList<>();
     boolean cleanupSessions = false;
     for (StreamSession session : sessionList) {
       SessionMetadata metadata = getOrCreateSessionMetadata(session);
-      if (!isSessionAlive(session.getSessionId(), metadata)) {
+      String sessionId = session.getSessionId();
+      if (sessionId.equals(headSessionId)) {
+        // update the information stored for the $HEAD record we created previously
+        Logger.i(
+            TAG,
+            "Updating $HEAD state, lastAdded %s",
+            StringFormattingUtils.formatLogDate(metadata.getLastAddedTimeMillis()));
+        synchronized (lock) {
+          sessionsMetadata.put(sessionId, metadata);
+        }
+        continue;
+      }
+      if (!isSessionAlive(sessionId, metadata)) {
         Logger.i(
             TAG,
             "Found expired session %s, created %s",
@@ -309,47 +423,35 @@ public final class SessionCache implements Dumpable {
         cleanupSessions = true;
         continue;
       }
-      HeadSessionImpl headSession = Validators.checkNotNull(head);
-      if (session.getSessionId().equals(headSession.getSessionId())) {
-        // update the information stored for the $HEAD record we created previously
-        Logger.i(
-            TAG,
-            "Updating $HEAD state, lastAdded %s",
-            StringFormattingUtils.formatLogDate(metadata.getLastAddedTimeMillis()));
-        synchronized (lock) {
-          sessionsMetadata.put(session.getSessionId(), metadata);
-        }
-        continue;
-      }
-      InitializableSession unboundSession;
       synchronized (lock) {
-        if (sessions.containsKey(session.getSessionId())) {
+        if (sessionsMetadata.containsKey(session.getSessionId())) {
           // Don't replace sessions already found in sessions
           continue;
         }
-        // Unbound sessions are sessions that are able to be created through restore
-        unboundSession = sessionFactory.getSession();
-        unboundSession.setSessionId(session.getSessionId());
-        sessions.put(session.getSessionId(), unboundSession);
         sessionsMetadata.put(session.getSessionId(), metadata);
       }
+      SessionContentTracker sessionContentTracker =
+          new SessionContentTracker(/* supportsClearAll= */ false);
+      // Unbound sessions are able to be created through restore so we only create content trackers
+      // here and delay creation of unbound sessions until they are actually needed.
+      sessionContentTrackers.add(sessionContentTracker);
 
-      // Task which populates the newly created unbound session.
-      Runnable createUnboundSession =
+      // Task which updates the newly created content tracker.
+      Runnable updateContentTracker =
           () -> {
-            Logger.i(TAG, "Task: createUnboundSession %s", session.getSessionId());
+            Logger.i(TAG, "Task: updateContentTracker %s", sessionId);
             ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
             Result<List<StreamStructure>> streamStructuresResult =
-                store.getStreamStructures(session.getSessionId());
+                store.getStreamStructures(sessionId);
             if (streamStructuresResult.isSuccessful()) {
-              unboundSession.populateModelProvider(streamStructuresResult.getValue(), false, false);
+              sessionContentTracker.update(streamStructuresResult.getValue());
             } else {
               Logger.e(TAG, "Failed to read unbound session state, ignored");
             }
-            timeTracker.stop("task", "createUnboundSession");
+            timeTracker.stop("task", "updateContentTracker");
             unboundSessionCount++;
           };
-      taskQueue.execute("createUnboundSession", TaskType.BACKGROUND, createUnboundSession);
+      taskQueue.execute("updateContentTracker", TaskType.BACKGROUND, updateContentTracker);
     }
 
     if (cleanupSessions) {
@@ -363,7 +465,23 @@ public final class SessionCache implements Dumpable {
     taskQueue.execute(
         "contentGc",
         TaskType.BACKGROUND,
-        store.triggerContentGc(reservedContentIds, accessibleContentSupplier));
+        store.triggerContentGc(
+            reservedContentIds, getAccessibleContentSupplier(sessionContentTrackers)));
+  }
+
+  private Supplier<Set<String>> getAccessibleContentSupplier(
+      List<SessionContentTracker> sessionContentTrackers) {
+    return () -> {
+      /*
+       * We add head separately to make sure it is not GC-ed, just in case it is not present
+       * in {@link #getPersistedSessions()}.
+       */
+      Set<String> accessibleContent = new HashSet<>(head.getContentInSession());
+      for (SessionContentTracker sessionContentTracker : sessionContentTrackers) {
+        accessibleContent.addAll(sessionContentTracker.getContentIds());
+      }
+      return accessibleContent;
+    };
   }
 
   @VisibleForTesting
@@ -393,7 +511,7 @@ public final class SessionCache implements Dumpable {
   }
 
   @VisibleForTesting
-  void updatePersistedSessions() {
+  void updatePersistedSessionsMetadata() {
     threadUtils.checkNotMainThread();
     ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
     StreamSessions.Builder sessionsBuilder = StreamSessions.newBuilder();
@@ -416,12 +534,13 @@ public final class SessionCache implements Dumpable {
             STREAM_SESSION_CONTENT_ID,
             StreamPayload.newBuilder().setStreamSessions(sessionsBuilder).build())
         .commit();
-    timeTracker.stop("task", "updatePersistedSessions(Content)", "sessionCount", sessionCount);
+    timeTracker.stop(
+        "task", "updatePersistedSessionsMetadata(Content)", "sessionCount", sessionCount);
   }
 
   /**
-   * Remove all session journals which are not currently found in {@code sessions} which contains
-   * all of the known sessions. This is a garbage collection task.
+   * Remove all session journals which are not currently found in {@code sessionsMetadata} which
+   * contains all of the known sessions. This is a garbage collection task.
    */
   @VisibleForTesting
   void cleanupSessionJournals() {
@@ -434,7 +553,7 @@ public final class SessionCache implements Dumpable {
     if (storedSessionsResult.isSuccessful()) {
       synchronized (lock) {
         for (String sessionId : storedSessionsResult.getValue()) {
-          if (!sessions.containsKey(sessionId)) {
+          if (!sessionsMetadata.containsKey(sessionId)) {
             store.removeSession(sessionId);
             expiredSessionsCleared++;
           }
@@ -478,27 +597,15 @@ public final class SessionCache implements Dumpable {
   public void dump(Dumper dumper) {
     dumper.title(TAG);
     synchronized (lock) {
-      dumper.forKey("sessions").value(sessions.size());
+      dumper.forKey("attached sessions").value(attachedSessions.size());
     }
     dumper.forKey("expiredSessionsCleared").value(expiredSessionsCleared).compactPrevious();
     dumper.forKey("unboundSessionCount").value(unboundSessionCount).compactPrevious();
     dumper.forKey("detachedSessionCount").value(detachedSessionCount).compactPrevious();
     dumper.forKey("get").value(getCount);
+    dumper.forKey("getAttached").value(getAttachedCount).compactPrevious();
     dumper.forKey("getAll").value(getAllCount).compactPrevious();
     dumper.forKey("put").value(putCount).compactPrevious();
     dumper.forKey("remove").value(removeCount).compactPrevious();
-  }
-
-  // This is only used in tests to access a copy of the session state
-  public Map<String, Session> getSessionsMapForTest() {
-    synchronized (lock) {
-      return new HashMap<>(sessions);
-    }
-  }
-
-  void setSessionsForTest(Session... testSessions) {
-    for (Session session : testSessions) {
-      put(session.getSessionId(), /* creationTimeMillis= */ 0L, session);
-    }
   }
 }

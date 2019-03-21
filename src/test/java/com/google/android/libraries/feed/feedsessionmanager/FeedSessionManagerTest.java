@@ -59,6 +59,7 @@ import com.google.android.libraries.feed.feedmodelprovider.FeedModelProviderFact
 import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManager.SessionMutationTracker;
 import com.google.android.libraries.feed.feedsessionmanager.internal.HeadSessionImpl;
 import com.google.android.libraries.feed.feedsessionmanager.internal.Session;
+import com.google.android.libraries.feed.feedsessionmanager.internal.SessionCache;
 import com.google.android.libraries.feed.feedstore.FeedStore;
 import com.google.android.libraries.feed.feedstore.testing.DelegatingStore;
 import com.google.android.libraries.feed.host.config.Configuration;
@@ -206,8 +207,8 @@ public class FeedSessionManagerTest {
     Map<String, StreamSharedState> sharedStateCache = sessionManager.getSharedStateCacheForTest();
     assertThat(sharedStateCache).hasSize(sharedStates.size());
 
-    Map<String, Session> sessions = sessionManager.getSessionsMapForTest();
-    Session head = sessions.get(HEAD_SESSION_ID);
+    SessionCache sessionCache = sessionManager.getSessionCacheForTest();
+    Session head = sessionCache.getHead();
     assertThat(head).isInstanceOf(HeadSessionImpl.class);
     String itemKey = idGenerators.createFeatureContentId(0);
     Set<String> content = head.getContentInSession();
@@ -333,9 +334,9 @@ public class FeedSessionManagerTest {
     ModelProvider modelProvider = getModelProvider(sessionManager);
 
     // Verify the failed session is correct
-    Map<String, Session> sessions = sessionManager.getSessionsMapForTest();
-    assertThat(sessions).hasSize(2);
-    Session session = sessions.get(modelProvider.getSessionId());
+    SessionCache sessionCache = sessionManager.getSessionCacheForTest();
+    assertThat(sessionCache.getAttachedSessions()).hasSize(1);
+    Session session = sessionCache.getAttached(modelProvider.getSessionId());
     assertThat(session).isNotNull();
   }
 
@@ -603,9 +604,9 @@ public class FeedSessionManagerTest {
 
     Map<String, StreamSharedState> sharedStates = sessionManager.getSharedStateCacheForTest();
     assertThat(sharedStates).hasSize(1);
-    Map<String, Session> sessions = sessionManager.getSessionsMapForTest();
-    assertThat(sessions).hasSize(1);
-    Session session = sessions.get(HEAD_SESSION_ID);
+    SessionCache sessionCache = sessionManager.getSessionCacheForTest();
+    assertThat(sessionCache.getAttachedSessions()).isEmpty();
+    Session session = sessionCache.getHead();
     assertThat(session).isNotNull();
     Set<String> contentInSession = session.getContentInSession();
     assertThat(contentInSession).hasSize(featureCount + 1);
@@ -614,9 +615,8 @@ public class FeedSessionManagerTest {
 
     sharedStates = sessionManager.getSharedStateCacheForTest();
     assertThat(sharedStates).hasSize(0);
-    sessions = sessionManager.getSessionsMapForTest();
-    assertThat(sessions).hasSize(1);
-    session = sessions.get(HEAD_SESSION_ID);
+    assertThat(sessionCache.getAttachedSessions()).isEmpty();
+    session = sessionCache.getHead();
     assertThat(session).isNotNull();
     contentInSession = session.getContentInSession();
     assertThat(contentInSession).hasSize(0);

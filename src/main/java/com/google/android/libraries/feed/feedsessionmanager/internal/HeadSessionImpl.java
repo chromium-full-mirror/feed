@@ -38,7 +38,6 @@ public class HeadSessionImpl implements Session, Dumpable {
 
   private final Store store;
   private final TimingUtils timingUtils;
-  // TODO: Move to SessionCache and get from there.
   private final SessionContentTracker sessionContentTracker =
       new SessionContentTracker(/* supportsClearAll= */ true);
 

@@ -58,7 +58,7 @@ public interface SessionManager extends Resettable {
   void getExistingSession(String sessionId, ModelProvider modelProvider);
 
   /** This is called by the ModelProvider when it is invalidated. */
-  void invalidatedSession(String sessionId);
+  void invalidateSession(String sessionId);
 
   /** This is called by the ModelProvider to detach the ModelProvider for the session. */
   void detachSession(String sessionId);

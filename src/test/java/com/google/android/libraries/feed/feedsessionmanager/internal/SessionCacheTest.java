@@ -53,8 +53,6 @@ import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -70,9 +68,6 @@ public class SessionCacheTest {
   @Mock private Clock clock;
   @Mock protected ModelProvider modelProvider;
 
-  private SessionFactory sessionFactory;
-  private Store storeSpy;
-
   private final TimingUtils timingUtils = new TimingUtils();
   private final Configuration configuration = new Configuration.Builder().build();
   private final ContentIdGenerators idGenerators = new ContentIdGenerators();
@@ -80,54 +75,54 @@ public class SessionCacheTest {
   private final ContentStorageDirect contentStorage = new InMemoryContentStorage();
   private final FakeModelMutation fakeModelMutation = new FakeModelMutation();
 
+  private SessionFactory sessionFactory;
+  private Store storeSpy;
+  private SessionCache sessionCache;
+
   @Before
   public void setUp() {
     initMocks(this);
     when(modelProvider.edit()).thenReturn(fakeModelMutation);
+    sessionCache = getSessionCache();
   }
 
   @Test
   public void testInitialization() {
-    SessionCache sessionCache = getSessionCache();
     populateHead();
-    Map<String, Session> sessions = sessionCache.getSessionsMapForTest();
-    assertThat(sessions).isEmpty();
+    assertThat(sessionCache.getAttachedSessions()).isEmpty();
     assertThat(sessionCache.isHeadInitialized()).isFalse();
     assertThat(sessionCache.getHead()).isNotNull();
     assertThat(sessionCache.getHead().isHeadEmpty()).isTrue();
     sessionCache.initialize();
 
     // Initialization adds $HEAD
-    sessions = sessionCache.getSessionsMapForTest();
     assertThat(sessionCache.isHeadInitialized()).isTrue();
-    assertThat(sessions).hasSize(1);
+    assertThat(sessionCache.getAttachedSessions()).isEmpty();
     assertThat(sessionCache.getHead()).isNotNull();
     assertThat(sessionCache.getHead().isHeadEmpty()).isFalse();
   }
 
   @Test
   public void testPutGet() {
-    SessionCache sessionCache = getSessionCache();
     sessionCache.initialize();
     Session session = populateSession(1, 2);
-    sessionCache.putAndRetainMetadata(session.getSessionId(), session);
+    sessionCache.putAttachedAndRetainMetadata(session.getSessionId(), session);
 
-    Session ret = sessionCache.get(session.getSessionId());
+    Session ret = sessionCache.getAttached(session.getSessionId());
     assertThat(ret).isEqualTo(session);
   }
 
   @Test
   public void testPut_persisted() {
-    SessionCache sessionCache = getSessionCache();
     sessionCache.initialize();
     Session session = populateSession(1, 2);
-    sessionCache.put(session.getSessionId(), /* creationTimeMillis= */ 0L, session);
+    sessionCache.putAttached(session.getSessionId(), /* creationTimeMillis= */ 0L, session);
 
-    Session ret = sessionCache.get(session.getSessionId());
+    Session ret = sessionCache.getAttached(session.getSessionId());
     assertThat(ret).isEqualTo(session);
 
     session = populateSession(2, 2);
-    sessionCache.put(session.getSessionId(), /* creationTimeMillis= */ 0L, session);
+    sessionCache.putAttached(session.getSessionId(), /* creationTimeMillis= */ 0L, session);
 
     List<StreamSession> streamSessionList = sessionCache.getPersistedSessions();
     assertThat(streamSessionList).hasSize(3);
@@ -135,17 +130,16 @@ public class SessionCacheTest {
 
   @Test
   public void testRemove() {
-    SessionCache sessionCache = getSessionCache();
     sessionCache.initialize();
     Session session = populateSession(1, 2);
-    sessionCache.put(session.getSessionId(), /* creationTimeMillis= */ 0L, session);
+    sessionCache.putAttached(session.getSessionId(), /* creationTimeMillis= */ 0L, session);
 
     List<StreamSession> streamSessionList = sessionCache.getPersistedSessions();
     assertThat(streamSessionList).hasSize(2);
 
-    String token = session.getSessionId();
-    assertThat(sessionCache.remove(token)).isEqualTo(session);
-    assertThat(sessionCache.get(token)).isNull();
+    String id = session.getSessionId();
+    sessionCache.removeAttached(id);
+    assertThat(sessionCache.getAttached(id)).isNull();
 
     streamSessionList = sessionCache.getPersistedSessions();
     assertThat(streamSessionList).hasSize(1);
@@ -153,85 +147,97 @@ public class SessionCacheTest {
 
   @Test
   public void testDetach() {
-    SessionCache sessionCache = getSessionCache();
     sessionCache.initialize();
     Session s1 = populateSession(1, 2);
-    String s1Token = s1.getSessionId();
-    sessionCache.putAndRetainMetadata(s1Token, s1);
+    String s1Id = s1.getSessionId();
+    sessionCache.putAttachedAndRetainMetadata(s1Id, s1);
 
-    List<Session> sessions = sessionCache.getSessions();
-    assertThat(sessions).hasSize(2);
+    List<Session> sessions = sessionCache.getAttachedSessions();
+    assertThat(sessions).hasSize(1);
     assertThat(sessions).contains(s1);
     assertThat(s1.getModelProvider()).isNotNull();
 
-    sessionCache.detachModelProvider(s1Token);
-    sessions = sessionCache.getSessions();
-    assertThat(sessions).hasSize(2);
-    assertThat(sessions).contains(s1);
+    sessionCache.detachModelProvider(s1Id);
+    assertThat(sessionCache.getAttachedSessions()).isEmpty();
     assertThat(s1.getModelProvider()).isNull();
   }
 
   @Test
-  public void testGetSessions() {
-    SessionCache sessionCache = getSessionCache();
+  public void testGetAttachedSessions() {
     sessionCache.initialize();
     Session s1 = populateSession(1, 2);
-    sessionCache.putAndRetainMetadata(s1.getSessionId(), s1);
+    sessionCache.putAttachedAndRetainMetadata(s1.getSessionId(), s1);
     Session s2 = populateSession(2, 2);
-    sessionCache.putAndRetainMetadata(s2.getSessionId(), s2);
+    sessionCache.putAttachedAndRetainMetadata(s2.getSessionId(), s2);
 
-    List<Session> sessions = sessionCache.getSessions();
-    assertThat(sessions).hasSize(3);
-    assertThat(sessions).contains(sessionCache.get(s1.getSessionId()));
-    assertThat(sessions).contains(sessionCache.get(s2.getSessionId()));
+    List<Session> sessions = sessionCache.getAttachedSessions();
+    assertThat(sessions).hasSize(2);
+    assertThat(sessions).contains(sessionCache.getAttached(s1.getSessionId()));
+    assertThat(sessions).contains(sessionCache.getAttached(s2.getSessionId()));
+  }
+
+  @Test
+  public void testGetAllSessions() {
+    sessionCache.initialize();
+    Session headSession = sessionCache.getHead();
+
+    Session s1 = populateSession(1, 2, /* commitToStore= */ true);
+    String s1Id = s1.getSessionId();
+    sessionCache.putAttached(s1Id, 1L, s1);
+
+    assertThat(sessionCache.getAttachedSessions()).containsExactly(s1);
+    assertThat(sessionCache.getAllSessions()).containsExactly(s1, headSession);
+
+    Session s2 = populateSession(2, 2, /* commitToStore= */ true);
+    String s2Id = s2.getSessionId();
+    sessionCache.putAttached(s2Id, 2L, s2);
+
+    assertThat(sessionCache.getAttachedSessions()).containsExactly(s1, s2);
+    assertThat(sessionCache.getAllSessions()).containsExactly(s1, s2, headSession);
+
+    // Detach the session, which will throw it away from SessionCache.
+    sessionCache.detachModelProvider(s1Id);
+    assertThat(sessionCache.getAttachedSessions()).containsExactly(s2);
+
+    List<Session> allSessions = new ArrayList<>(sessionCache.getAllSessions());
+    assertThat(allSessions).hasSize(3);
+    assertThat(allSessions).containsAllOf(s2, headSession);
+    allSessions.remove(s2);
+    allSessions.remove(headSession);
+
+    // A new unbound session was created for the detached one, with the same ID.
+    Session unboundSession = allSessions.get(0);
+    assertThat(unboundSession.getSessionId()).isEqualTo(s1.getSessionId());
+    assertThat(unboundSession.getContentInSession()).isEqualTo(s1.getContentInSession());
+    assertThat(unboundSession).isNotSameAs(s1);
   }
 
   @Test
   public void testReset_headOnly() {
-    SessionCache sessionCache = getSessionCache();
     sessionCache.initialize();
-    List<Session> sessions = sessionCache.getSessions();
-    assertThat(sessions).hasSize(1);
+    assertThat(sessionCache.getAttachedSessions()).isEmpty();
 
     sessionCache.reset();
-    sessions = sessionCache.getSessions();
-    assertThat(sessions).hasSize(1);
+    assertThat(sessionCache.getAttachedSessions()).isEmpty();
   }
 
   @Test
   public void testReset_sessions() {
-    SessionCache sessionCache = getSessionCache();
     sessionCache.initialize();
     int sessionCount = 2;
     for (int i = 0; i < sessionCount; i++) {
       Session session = populateSession(i, 2);
-      sessionCache.putAndRetainMetadata(session.getSessionId(), session);
+      sessionCache.putAttachedAndRetainMetadata(session.getSessionId(), session);
     }
-    List<Session> sessions = sessionCache.getSessions();
-    assertThat(sessions).hasSize(sessionCount + 1);
+    List<Session> sessions = sessionCache.getAttachedSessions();
+    assertThat(sessions).hasSize(sessionCount);
 
     sessionCache.reset();
-    sessions = sessionCache.getSessions();
-    assertThat(sessions).hasSize(1);
-  }
-
-  @Test
-  public void testAccessibleContentSupplier() {
-    SessionCache sessionCache = getSessionCache();
-    sessionCache.initialize();
-
-    int featureCnt = 3;
-    Session session = populateSession(1, featureCnt);
-    sessionCache.putAndRetainMetadata(session.getSessionId(), session);
-
-    Set<String> accessibleContent = sessionCache.accessibleContentSupplier.get();
-    // Add one for the root feature
-    assertThat(accessibleContent).hasSize(featureCnt + 1);
+    assertThat(sessionCache.getAttachedSessions()).isEmpty();
   }
 
   @Test
   public void testIsSessionAlive() {
-    SessionCache sessionCache = getSessionCache();
     sessionCache.initialize();
     when(clock.currentTimeMillis()).thenReturn(DEFAULT_LIFETIME_MS + 2);
     assertThat(sessionCache.isSessionAlive("stream:1", SessionMetadata.getDefaultInstance()))
@@ -258,7 +264,6 @@ public class SessionCacheTest {
     StreamPayload payload = StreamPayload.newBuilder().setStreamSessions(streamSessions).build();
     persistedSessions.add(new PayloadWithId(SessionCache.STREAM_SESSION_CONTENT_ID, payload));
 
-    SessionCache sessionCache = getSessionCache();
     doReturn(Result.success(persistedSessions)).when(storeSpy).getPayloads(any());
 
     List<StreamSession> sessionList = sessionCache.getPersistedSessions();
@@ -273,26 +278,24 @@ public class SessionCacheTest {
     storedSessions.add(sessionId1);
     storedSessions.add(sessionId2);
 
-    SessionCache sessionCache = getSessionCache();
     doReturn(Result.success(storedSessions)).when(storeSpy).getAllSessions();
 
     Session s2 = mock(Session.class);
     when(s2.getSessionId()).thenReturn(sessionId2);
-    sessionCache.setSessionsForTest(s2);
+    setSessions(s2);
     sessionCache.cleanupSessionJournals();
     verify(storeSpy).removeSession(sessionId1);
-    assertThat(sessionCache.getSessionsMapForTest().get(sessionId2)).isEqualTo(s2);
+    assertThat(sessionCache.getAttached(sessionId2)).isEqualTo(s2);
   }
 
   @Test
   public void testInitializePersistedSessions_emptyStreamSessions() {
     when(clock.currentTimeMillis()).thenReturn(DEFAULT_LIFETIME_MS + 2);
 
-    SessionCache sessionCache = getSessionCache();
     mockStreamSessions(StreamSessions.getDefaultInstance());
     sessionCache.initialize();
 
-    assertThat(sessionCache.get(Store.HEAD_SESSION_ID)).isNotNull();
+    assertThat(sessionCache.getAttachedSessions()).isEmpty();
   }
 
   @Test
@@ -313,13 +316,11 @@ public class SessionCacheTest {
 
     when(clock.currentTimeMillis()).thenReturn(DEFAULT_LIFETIME_MS + 2);
 
-    SessionCache sessionCache = getSessionCache();
     mockStreamSessions(streamSessions);
     sessionCache.initialize();
 
-    assertThat(sessionCache.get(Store.HEAD_SESSION_ID)).isNotNull();
-    assertThat(sessionCache.get("stream:1")).isNull();
-    assertThat(sessionCache.get("stream:2")).isNotNull();
+    assertThat(sessionCache.hasSession("stream:1")).isFalse();
+    assertThat(sessionCache.hasSession("stream:2")).isTrue();
     assertThat(sessionCache.getCreationTimeMillis("stream:2")).isEqualTo(DEFAULT_LIFETIME_MS - 1);
     assertThat(sessionCache.getHeadLastAddedTimeMillis()).isEqualTo(1);
   }
@@ -342,23 +343,20 @@ public class SessionCacheTest {
 
     when(clock.currentTimeMillis()).thenReturn(DEFAULT_LIFETIME_MS + 2);
 
-    SessionCache sessionCache = getSessionCache();
     mockStreamSessions(streamSessions);
     sessionCache.initialize();
 
-    assertThat(sessionCache.get(Store.HEAD_SESSION_ID)).isNotNull();
-    assertThat(sessionCache.get("stream:1")).isNull();
-    assertThat(sessionCache.get("stream:2")).isNotNull();
+    assertThat(sessionCache.hasSession("stream:1")).isFalse();
+    assertThat(sessionCache.hasSession("stream:2")).isTrue();
     assertThat(sessionCache.getCreationTimeMillis("stream:2")).isEqualTo(DEFAULT_LIFETIME_MS - 1);
   }
 
   @Test
   public void testUpdatePersistedSessions() {
-    SessionCache sessionCache = getSessionCache();
     sessionCache.initialize();
 
     // persist HEAD into the store
-    sessionCache.updatePersistedSessions();
+    sessionCache.updatePersistedSessionsMetadata();
     List<StreamSession> streamSessionList = sessionCache.getPersistedSessions();
     assertThat(streamSessionList).hasSize(1);
 
@@ -377,9 +375,9 @@ public class SessionCacheTest {
     when(s1.getSessionId()).thenReturn(session1.getSessionId());
     Session s2 = mock(Session.class);
     when(s2.getSessionId()).thenReturn(session2.getSessionId());
-    sessionCache.setSessionsForTest(s1, s2);
+    setSessions(s1, s2);
 
-    sessionCache.updatePersistedSessions();
+    sessionCache.updatePersistedSessionsMetadata();
     streamSessionList = sessionCache.getPersistedSessions();
     assertThat(streamSessionList).hasSize(3);
     assertThat(streamSessionList).contains(session1);
@@ -388,9 +386,8 @@ public class SessionCacheTest {
 
   @Test
   public void testErrors_persistedSession() {
-    SessionCache sessionCache = getSessionCache();
     sessionCache.initialize();
-    sessionCache.updatePersistedSessions();
+    sessionCache.updatePersistedSessionsMetadata();
 
     doReturn(Result.failure()).when(storeSpy).getPayloads(any());
     assertThat(sessionCache.getPersistedSessions()).isEmpty();
@@ -434,6 +431,10 @@ public class SessionCacheTest {
   }
 
   private Session populateSession(int id, int featureCnt) {
+    return populateSession(id, featureCnt, /* commitToStore= */ false);
+  }
+
+  private Session populateSession(int id, int featureCnt, boolean commitToStore) {
     InitializableSession session = sessionFactory.getSession();
     String rootId = idGenerators.createRootContentId(1);
     List<StreamStructure> head = new ArrayList<>();
@@ -453,6 +454,15 @@ public class SessionCacheTest {
     session.setSessionId("stream:" + id);
     session.bindModelProvider(modelProvider, mock(ViewDepthProvider.class));
     session.populateModelProvider(head, true, false);
+
+    if (commitToStore) {
+      SessionMutation sessionMutation = storeSpy.editSession(session.getSessionId());
+      for (StreamStructure streamStructure : head) {
+        sessionMutation.add(streamStructure);
+      }
+      sessionMutation.commit();
+    }
+
     return session;
   }
 
@@ -465,5 +475,11 @@ public class SessionCacheTest {
             .setContentId(rootId)
             .build());
     sessionMutation.commit();
+  }
+
+  private void setSessions(Session... testSessions) {
+    for (Session session : testSessions) {
+      sessionCache.putAttached(session.getSessionId(), /* creationTimeMillis= */ 0L, session);
+    }
   }
 }

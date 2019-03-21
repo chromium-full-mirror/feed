@@ -44,7 +44,6 @@ public class SessionImpl implements InitializableSession, Dumpable {
   protected final ThreadUtils threadUtils;
   protected final TimingUtils timingUtils;
   private final boolean limitPagingUpdates;
-  // TODO: Move to SessionCache and get from there.
   private final SessionContentTracker sessionContentTracker =
       new SessionContentTracker(/* supportsClearAll= */ false);
 

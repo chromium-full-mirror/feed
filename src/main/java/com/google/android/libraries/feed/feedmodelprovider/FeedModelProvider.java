@@ -333,7 +333,7 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
     String sessionId = getSessionId();
     if (sessionId != null) {
       Logger.i(TAG, "Invalidating the current ModelProvider: session %s", sessionId);
-      sessionManager.invalidatedSession(sessionId);
+      sessionManager.invalidateSession(sessionId);
     }
 
     // Always run the observers on the UI Thread
