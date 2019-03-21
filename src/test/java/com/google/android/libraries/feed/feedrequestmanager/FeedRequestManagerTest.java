@@ -28,10 +28,10 @@ import android.os.Build;
 import android.os.Build.VERSION_CODES;
 import android.util.Base64;
 import com.google.android.libraries.feed.api.common.DismissActionWithSemanticProperties;
-import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.common.Result;
-import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeTaskQueue;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.locale.LocaleUtils;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
@@ -46,10 +46,10 @@ import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.android.libraries.feed.host.network.HttpRequest;
 import com.google.android.libraries.feed.host.network.HttpRequest.HttpMethod;
 import com.google.android.libraries.feed.host.network.HttpResponse;
-import com.google.android.libraries.feed.host.network.NetworkClient;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.host.stream.TooltipSupportedApi;
 import com.google.android.libraries.feed.testing.actionmanager.FakeActionReader;
+import com.google.android.libraries.feed.testing.network.FakeNetworkClient;
 import com.google.android.libraries.feed.testing.protocoladapter.FakeProtocolAdapter;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
@@ -111,32 +111,32 @@ public class FeedRequestManagerTest {
   private static final long ID_2 = 2;
   private static final String APP_VERSION_STRING = "5.7";
 
-  @Mock private NetworkClient networkClient;
+  private final TimingUtils timingUtils = new TimingUtils();
+  private final Configuration configuration = new Configuration.Builder().build();
+
   @Mock private SchedulerApi scheduler;
-  @Mock private ThreadUtils threadUtils;
-  @Mock private Consumer<Result<List<StreamDataOperation>>> consumer;
   @Mock private Clock clock;
   @Mock private ApplicationInfo applicationInfo;
   @Mock private TooltipSupportedApi tooltipSupportedApi;
+  @Captor private ArgumentCaptor<Consumer<Boolean>> tooltipSupportedConsumerCapture;
 
   private Context context;
-  @Captor private ArgumentCaptor<Consumer<HttpResponse>> responseConsumerCaptor;
-  @Captor private ArgumentCaptor<HttpRequest> requestCaptor;
-  @Captor private ArgumentCaptor<Result<List<StreamDataOperation>>> consumerCapture;
-  @Captor private ArgumentCaptor<Consumer<Boolean>> tooltipSupportedConsumerCapture;
-  private boolean cardMenuTooltipWouldTrigger;
   private ExtensionRegistryLite registry;
   private FeedRequestManager requestManager;
   private FakeActionReader fakeActionReader;
   private FakeMainThreadRunner fakeMainThreadRunner;
   private FakeProtocolAdapter fakeProtocolAdapter;
-  private final TimingUtils timingUtils = new TimingUtils();
-
-  private final Configuration configuration = new Configuration.Builder().build();
-  private FakeBasicLoggingApi basicLoggingApi;
+  private FakeThreadUtils fakeThreadUtils;
+  private FakeTaskQueue fakeTaskQueue;
+  private FakeBasicLoggingApi fakeBasicLoggingApi;
+  private FakeNetworkClient fakeNetworkClient;
+  private RequiredConsumer<Result<List<StreamDataOperation>>> consumer;
+  private Result<List<StreamDataOperation>> consumedResult = Result.failure();
+  private HttpResponse failingResponse;
+  private boolean cardMenuTooltipWouldTrigger;
 
   @Before
-  public void setUp() {
+  public void setUp() throws Exception {
     initMocks(this);
     context = Robolectric.buildActivity(Activity.class).get();
     context.getResources().getConfiguration().locale = Locale.US;
@@ -144,9 +144,23 @@ public class FeedRequestManagerTest {
     registry = ExtensionRegistryLite.newInstance();
     registry.add(FeedRequest.feedRequest);
     fakeActionReader = new FakeActionReader();
-    fakeMainThreadRunner = FakeMainThreadRunner.runTasksImmediately();
     fakeProtocolAdapter = new FakeProtocolAdapter();
-    basicLoggingApi = new FakeBasicLoggingApi();
+    fakeBasicLoggingApi = new FakeBasicLoggingApi();
+    fakeThreadUtils = new FakeThreadUtils();
+    fakeMainThreadRunner =
+        FakeMainThreadRunner.runTasksImmediatelyWithThreadChecks(fakeThreadUtils);
+    fakeNetworkClient = new FakeNetworkClient(fakeThreadUtils);
+    fakeNetworkClient.setDefaultResponse(
+        createHttpResponse(/* responseCode= */ 200, Response.getDefaultInstance()));
+    fakeTaskQueue = new FakeTaskQueue(MoreExecutors.directExecutor(), clock, fakeThreadUtils);
+    fakeTaskQueue.initialize(() -> {});
+    failingResponse =
+        createHttpResponse(/* responseCode= */ NOT_FOUND, Response.getDefaultInstance());
+    consumer =
+        new RequiredConsumer<>(
+            input -> {
+              consumedResult = input;
+            });
     ReflectionHelpers.setStaticField(Build.VERSION.class, "SDK_INT", VERSION_CODES.KITKAT);
     ReflectionHelpers.setStaticField(Build.VERSION.class, "RELEASE", "4.4.3");
     ReflectionHelpers.setStaticField(Build.class, "CPU_ABI", "armeabi");
@@ -158,18 +172,18 @@ public class FeedRequestManagerTest {
     requestManager =
         new FeedRequestManager(
             configuration,
-            networkClient,
+            fakeNetworkClient,
             fakeProtocolAdapter,
             feedExtensionRegistry,
             scheduler,
-            getTaskQueue(),
+            fakeTaskQueue,
             timingUtils,
-            threadUtils,
+            fakeThreadUtils,
             fakeActionReader,
             context,
             applicationInfo,
             fakeMainThreadRunner,
-            basicLoggingApi,
+            fakeBasicLoggingApi,
             tooltipSupportedApi);
   }
 
@@ -178,9 +192,8 @@ public class FeedRequestManagerTest {
     requestManager.triggerRefresh(RequestReason.HOST_REQUESTED, input -> {});
 
     verify(tooltipSupportedApi, never()).wouldTriggerHelpUi(any(), any());
-    verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
 
-    HttpRequest httpRequest = requestCaptor.getValue();
+    HttpRequest httpRequest = fakeNetworkClient.getLatestRequest();
     assertHttpRequestFormattedCorrectly(httpRequest);
 
     Request request = getRequestFromHttpRequest(httpRequest);
@@ -246,9 +259,7 @@ public class FeedRequestManagerTest {
     requestManager.setDefaultTriggerRefreshConsumerSupplier(() -> consumer);
     requestManager.triggerRefresh(RequestReason.HOST_REQUESTED);
 
-    verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
-
-    HttpRequest httpRequest = requestCaptor.getValue();
+    HttpRequest httpRequest = fakeNetworkClient.getLatestRequest();
     assertHttpRequestFormattedCorrectly(httpRequest);
 
     Request request = getRequestFromHttpRequest(httpRequest);
@@ -264,10 +275,6 @@ public class FeedRequestManagerTest {
                     .build())
             .build();
     assertThat(request).isEqualTo(expectedRequest);
-
-    Response response = Response.getDefaultInstance();
-    responseConsumerCaptor.getValue().accept(createHttpResponse(/* responseCode= */ 200, response));
-
     assertThat(consumer.isCalled()).isTrue();
   }
 
@@ -277,9 +284,7 @@ public class FeedRequestManagerTest {
         buildDismissAction(ID, CONTENT_DOMAIN, TABLE, null));
     requestManager.triggerRefresh(RequestReason.HOST_REQUESTED, input -> {});
 
-    verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
-
-    HttpRequest httpRequest = requestCaptor.getValue();
+    HttpRequest httpRequest = fakeNetworkClient.getLatestRequest();
     assertHttpRequestFormattedCorrectly(httpRequest);
 
     Request request = getRequestFromHttpRequest(httpRequest);
@@ -325,9 +330,7 @@ public class FeedRequestManagerTest {
         buildDismissAction(ID_2, CONTENT_DOMAIN_2, TABLE_2, null));
     requestManager.triggerRefresh(RequestReason.HOST_REQUESTED, input -> {});
 
-    verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
-
-    HttpRequest httpRequest = requestCaptor.getValue();
+    HttpRequest httpRequest = fakeNetworkClient.getLatestRequest();
     assertHttpRequestFormattedCorrectly(httpRequest);
 
     Request request = getRequestFromHttpRequest(httpRequest);
@@ -378,9 +381,7 @@ public class FeedRequestManagerTest {
         buildDismissAction(ID_2, CONTENT_DOMAIN, TABLE, null));
     requestManager.triggerRefresh(RequestReason.HOST_REQUESTED, input -> {});
 
-    verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
-
-    HttpRequest httpRequest = requestCaptor.getValue();
+    HttpRequest httpRequest = fakeNetworkClient.getLatestRequest();
     assertHttpRequestFormattedCorrectly(httpRequest);
 
     Request request = getRequestFromHttpRequest(httpRequest);
@@ -431,9 +432,7 @@ public class FeedRequestManagerTest {
         buildDismissAction(ID, CONTENT_DOMAIN, TABLE, semanticPropertiesBytes));
     requestManager.triggerRefresh(RequestReason.HOST_REQUESTED, input -> {});
 
-    verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
-
-    HttpRequest httpRequest = requestCaptor.getValue();
+    HttpRequest httpRequest = fakeNetworkClient.getLatestRequest();
     assertHttpRequestFormattedCorrectly(httpRequest);
 
     Request request = getRequestFromHttpRequest(httpRequest);
@@ -486,9 +485,7 @@ public class FeedRequestManagerTest {
         buildDismissAction(ID_2, CONTENT_DOMAIN_2, TABLE_2, semanticPropertiesBytes2));
     requestManager.triggerRefresh(RequestReason.HOST_REQUESTED, input -> {});
 
-    verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
-
-    HttpRequest httpRequest = requestCaptor.getValue();
+    HttpRequest httpRequest = fakeNetworkClient.getLatestRequest();
     assertHttpRequestFormattedCorrectly(httpRequest);
 
     Request request = getRequestFromHttpRequest(httpRequest);
@@ -549,9 +546,7 @@ public class FeedRequestManagerTest {
         buildDismissAction(ID_2, CONTENT_DOMAIN, TABLE_2, semanticPropertiesBytes));
     requestManager.triggerRefresh(RequestReason.HOST_REQUESTED, input -> {});
 
-    verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
-
-    HttpRequest httpRequest = requestCaptor.getValue();
+    HttpRequest httpRequest = fakeNetworkClient.getLatestRequest();
     assertHttpRequestFormattedCorrectly(httpRequest);
 
     Request request = getRequestFromHttpRequest(httpRequest);
@@ -609,9 +604,7 @@ public class FeedRequestManagerTest {
         buildDismissAction(ID_2, CONTENT_DOMAIN_2, TABLE_2, semanticPropertiesBytes));
     requestManager.triggerRefresh(RequestReason.HOST_REQUESTED, input -> {});
 
-    verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
-
-    HttpRequest httpRequest = requestCaptor.getValue();
+    HttpRequest httpRequest = fakeNetworkClient.getLatestRequest();
     assertHttpRequestFormattedCorrectly(httpRequest);
 
     Request request = getRequestFromHttpRequest(httpRequest);
@@ -664,69 +657,43 @@ public class FeedRequestManagerTest {
   public void testHandleResponse() throws Exception {
     requestManager.triggerRefresh(RequestReason.HOST_REQUESTED, consumer);
 
-    verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
-    Response response = Response.getDefaultInstance();
-    responseConsumerCaptor.getValue().accept(createHttpResponse(/* responseCode= */ 200, response));
-
-    assertThat(fakeProtocolAdapter.getLastResponse()).isEqualTo(response);
-
-    verify(consumer).accept(consumerCapture.capture());
-    List<Result<List<StreamDataOperation>>> consumerCaptures = consumerCapture.getAllValues();
-    assertThat(consumerCaptures).hasSize(1);
-    Result<List<StreamDataOperation>> result = consumerCaptures.get(0);
-    assertThat(result.isSuccessful()).isTrue();
+    assertThat(fakeProtocolAdapter.getLastResponse()).isEqualToDefaultInstance();
+    assertThat(consumer.isCalled()).isTrue();
+    assertThat(consumedResult.isSuccessful()).isTrue();
   }
 
   @Test
   public void testHandleResponse_notFound() throws Exception {
+    fakeNetworkClient.addResponse(failingResponse);
     requestManager.triggerRefresh(RequestReason.HOST_REQUESTED, consumer);
 
-    verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
-    Response response = Response.getDefaultInstance();
-    responseConsumerCaptor
-        .getValue()
-        .accept(createHttpResponse(/* responseCode= */ NOT_FOUND, response));
-
     verify(scheduler).onRequestError(NOT_FOUND);
-    verify(consumer).accept(consumerCapture.capture());
-    List<Result<List<StreamDataOperation>>> consumerCaptures = consumerCapture.getAllValues();
-    assertThat(consumerCaptures).hasSize(1);
-    Result<List<StreamDataOperation>> result = consumerCaptures.get(0);
-    assertThat(result.isSuccessful()).isFalse();
+    assertThat(consumer.isCalled()).isTrue();
+    assertThat(consumedResult.isSuccessful()).isFalse();
   }
 
   @Test
   public void testHandleResponse_pageNotFound() throws Exception {
+    fakeNetworkClient.addResponse(failingResponse);
     StreamToken token =
         StreamToken.newBuilder()
             .setNextPageToken(ByteString.copyFrom("abc", Charset.defaultCharset()))
             .build();
+    fakeThreadUtils.enforceMainThread(false);
     requestManager.loadMore(token, ConsistencyToken.getDefaultInstance(), consumer);
 
-    verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
-    Response response = Response.getDefaultInstance();
-    responseConsumerCaptor
-        .getValue()
-        .accept(createHttpResponse(/* responseCode= */ NOT_FOUND, response));
-
     verify(scheduler, never()).onRequestError(NOT_FOUND);
-    verify(consumer).accept(consumerCapture.capture());
-    List<Result<List<StreamDataOperation>>> consumerCaptures = consumerCapture.getAllValues();
-    assertThat(consumerCaptures).hasSize(1);
-    Result<List<StreamDataOperation>> result = consumerCaptures.get(0);
-    assertThat(result.isSuccessful()).isFalse();
+    assertThat(consumer.isCalled()).isTrue();
+    assertThat(consumedResult.isSuccessful()).isFalse();
   }
 
   @Test
   public void testHandleResponse_missingLengthPrefixNotSupported() {
-    requestManager.triggerRefresh(RequestReason.HOST_REQUESTED, input -> {});
-
-    verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
-    responseConsumerCaptor
-        .getValue()
-        .accept(
-            new HttpResponse(/* responseCode= */ 200, Response.getDefaultInstance().toByteArray()));
-
+    fakeNetworkClient.addResponse(
+        new HttpResponse(/* responseCode= */ 200, Response.getDefaultInstance().toByteArray()));
+    requestManager.triggerRefresh(RequestReason.HOST_REQUESTED, consumer);
+    assertThat(consumer.isCalled()).isTrue();
+    assertThat(consumedResult.isSuccessful()).isFalse();
     assertThat(fakeProtocolAdapter.getLastResponse()).isNull();
   }
 
@@ -785,9 +752,7 @@ public class FeedRequestManagerTest {
 
     requestManager.triggerRefresh(RequestReason.HOST_REQUESTED, input -> {});
 
-    verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
-
-    HttpRequest httpRequest = requestCaptor.getValue();
+    HttpRequest httpRequest = fakeNetworkClient.getLatestRequest();
 
     Request request = getRequestFromHttpRequest(httpRequest);
     Request expectedRequest =
@@ -831,17 +796,14 @@ public class FeedRequestManagerTest {
 
   private void testReason(@RequestReason int reason, FeedQuery.RequestReason expectedReason)
       throws Exception {
+    fakeNetworkClient.addResponse(failingResponse);
     requestManager.triggerRefresh(reason, input -> {});
 
-    verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
-    HttpRequest httpRequest = requestCaptor.getValue();
+    HttpRequest httpRequest = fakeNetworkClient.getLatestRequest();
     Request request = getRequestFromHttpRequest(httpRequest);
     assertThat(request.getExtension(FeedRequest.feedRequest).getFeedQuery().getReason())
         .isEqualTo(expectedReason);
-    responseConsumerCaptor
-        .getValue()
-        .accept(createHttpResponse(NOT_FOUND, Response.getDefaultInstance()));
-    assertThat(basicLoggingApi.serverRequestReason).isEqualTo(reason);
+    assertThat(fakeBasicLoggingApi.serverRequestReason).isEqualTo(reason);
   }
 
   private static void assertHttpRequestFormattedCorrectly(HttpRequest httpRequest) {
@@ -870,13 +832,6 @@ public class FeedRequestManagerTest {
     ContentId contentId =
         ContentId.newBuilder().setTable(table).setContentDomain(contentDomain).setId(id).build();
     return new DismissActionWithSemanticProperties(contentId, semanticProperties);
-  }
-
-  private TaskQueue getTaskQueue() {
-    TaskQueue taskQueue =
-        new TaskQueue(MoreExecutors.directExecutor(), fakeMainThreadRunner, clock, false);
-    taskQueue.initialize(() -> {});
-    return taskQueue;
   }
 
   private Request getRequestFromHttpRequest(HttpRequest httpRequest) throws Exception {
@@ -919,18 +874,18 @@ public class FeedRequestManagerTest {
     requestManager =
         new FeedRequestManager(
             configuration,
-            networkClient,
+            fakeNetworkClient,
             fakeProtocolAdapter,
             new FeedExtensionRegistry(ArrayList::new),
             scheduler,
-            getTaskQueue(),
+            fakeTaskQueue,
             timingUtils,
-            threadUtils,
+            fakeThreadUtils,
             fakeActionReader,
             context,
             applicationInfo,
             fakeMainThreadRunner,
-            basicLoggingApi,
+            fakeBasicLoggingApi,
             tooltipSupportedApi);
     requestManager.triggerRefresh(RequestReason.HOST_REQUESTED, input -> {});
 
@@ -940,9 +895,7 @@ public class FeedRequestManagerTest {
       tooltipSupportedConsumerCapture.getValue().accept(cardMenuTooltipWouldTrigger);
     }
 
-    verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
-
-    HttpRequest httpRequest = requestCaptor.getValue();
+    HttpRequest httpRequest = fakeNetworkClient.getLatestRequest();
     assertHttpRequestFormattedCorrectly(httpRequest);
 
     Set<Capability> expectedCap = EnumSet.of(Capability.BASE_UI);

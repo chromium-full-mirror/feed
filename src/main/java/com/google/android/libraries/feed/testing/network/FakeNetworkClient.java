@@ -26,6 +26,7 @@ public final class FakeNetworkClient implements NetworkClient {
   private final FakeThreadUtils fakeThreadUtils;
   private final ArrayList<HttpResponse> responses = new ArrayList<>();
   /*@Nullable*/ private HttpRequest request = null;
+  /*@Nullable*/ private HttpResponse defaultResponse = null;
 
   public FakeNetworkClient(FakeThreadUtils fakeThreadUtils) {
     this.fakeThreadUtils = fakeThreadUtils;
@@ -36,6 +37,11 @@ public final class FakeNetworkClient implements NetworkClient {
     this.request = request;
     boolean policy = fakeThreadUtils.enforceMainThread(true);
     try {
+      if (responses.isEmpty() && defaultResponse != null) {
+        responseConsumer.accept(defaultResponse);
+        return;
+      }
+
       responseConsumer.accept(responses.remove(0));
     } finally {
       fakeThreadUtils.enforceMainThread(policy);
@@ -48,6 +54,12 @@ public final class FakeNetworkClient implements NetworkClient {
   /** Adds a response to the {@link FakeNetworkClient} to be returned in order. */
   public FakeNetworkClient addResponse(HttpResponse response) {
     responses.add(response);
+    return this;
+  }
+
+  /** Sets a default response to use if no other response is available. */
+  public FakeNetworkClient setDefaultResponse(HttpResponse response) {
+    defaultResponse = response;
     return this;
   }
 
