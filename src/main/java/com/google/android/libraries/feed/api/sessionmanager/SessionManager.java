@@ -135,4 +135,10 @@ public interface SessionManager extends Resettable {
    * resulting {@link ConsistencyToken}.
    */
   void triggerUploadActions(Set<StreamUploadableAction> actions);
+
+  /**
+   * Issues a request to record a set of actions, with the consumer being called back with the
+   * resulting {@link ConsistencyToken}.
+   */
+  void fetchActionsAndUpload(Consumer<Result<ConsistencyToken>> consumer);
 }

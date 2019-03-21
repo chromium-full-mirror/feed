@@ -700,6 +700,26 @@ public class FeedSessionManagerTest {
         .isEqualTo(ConsistencyToken.getDefaultInstance());
   }
 
+  @Test
+  public void testFetchActionsAndUpload() {
+    FeedSessionManager sessionManager = getInitializedSessionManager();
+    ConsistencyToken token =
+        ConsistencyToken.newBuilder().setToken(ByteString.copyFrom(new byte[] {0x1, 0xf})).build();
+    Consumer<Result<ConsistencyToken>> consumer =
+        result -> {
+          assertThat(result.isSuccessful()).isTrue();
+          assertThat(result.getValue()).isEqualTo(token);
+        };
+    sessionManager.getConsistencyTokenConsumer().accept(Result.success(token));
+    sessionManager.fetchActionsAndUpload(consumer);
+    verify(actionUploadRequestManager)
+        .triggerUploadActions(
+            anySetOf(StreamUploadableAction.class),
+            any(ConsistencyToken.class),
+            tokenCapture.capture());
+    tokenCapture.getValue().accept(Result.success(token));
+  }
+
   private int populateSession(
       FeedSessionManager sessionManager,
       int featureCnt,

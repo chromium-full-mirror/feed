@@ -82,4 +82,25 @@ public interface StreamActionApi extends ActionApi {
    * not meet triggering conditions.
    */
   void maybeShowTooltip(TooltipInfo tooltipInfo, View view);
+
+  /* Called to open a url after uploading actions and attaching the consistency token to it. */
+  void openUrl(String url, String consistencyTokenQueryParamName);
+
+  /**
+   * Opens the given URL in incognito mode after uploading actions and attaching the consistency
+   * token to it.
+   */
+  void openUrlInIncognitoMode(String url, String consistencyTokenQueryParamName);
+
+  /**
+   * Opens the given URL in a new tab after uploading actions and attaching the consistency token to
+   * it.
+   */
+  void openUrlInNewTab(String url, String consistencyTokenQueryParamName);
+
+  /**
+   * Opens the given URL in a new windowafter uploading actions and attaching the consistency token
+   * to it.
+   */
+  void openUrlInNewWindow(String url, String consistencyTokenQueryParamName);
 }

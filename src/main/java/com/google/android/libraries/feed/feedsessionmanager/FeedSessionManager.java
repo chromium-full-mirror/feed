@@ -541,6 +541,7 @@ public final class FeedSessionManager
   private ConsistencyToken handleUpdateConsistencyToken(Result<ConsistencyToken> result) {
     ConsistencyToken consistencyToken;
     if (result.isSuccessful()) {
+      threadUtils.checkNotMainThread();
       consistencyToken = result.getValue();
       store
           .editContent()
@@ -585,6 +586,12 @@ public final class FeedSessionManager
     } else {
       Logger.i(TAG, "triggerRefreshTask no StreamSession provided");
     }
+  }
+
+  @Override
+  public void fetchActionsAndUpload(Consumer<Result<ConsistencyToken>> consumer) {
+    threadUtils.checkNotMainThread();
+    fetchActionsAndUpload(getConsistencyToken(), consumer);
   }
 
   private void fetchActionsAndUpload(

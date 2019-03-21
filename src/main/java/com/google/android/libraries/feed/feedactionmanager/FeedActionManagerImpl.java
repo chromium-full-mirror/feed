@@ -14,6 +14,8 @@
 
 package com.google.android.libraries.feed.feedactionmanager;
 
+import android.net.Uri;
+import android.util.Base64;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
@@ -22,8 +24,10 @@ import com.google.android.libraries.feed.api.store.LocalActionMutation;
 import com.google.android.libraries.feed.api.store.LocalActionMutation.ActionType;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
+import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
+import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
 import java.util.List;
@@ -36,13 +40,19 @@ public class FeedActionManagerImpl implements ActionManager {
   private final Store store;
   private final ThreadUtils threadUtils;
   private final TaskQueue taskQueue;
+  private final MainThreadRunner mainThreadRunner;
 
   public FeedActionManagerImpl(
-      SessionManager sessionManager, Store store, ThreadUtils threadUtils, TaskQueue taskQueue) {
+      SessionManager sessionManager,
+      Store store,
+      ThreadUtils threadUtils,
+      TaskQueue taskQueue,
+      MainThreadRunner mainThreadRunner) {
     this.sessionManager = sessionManager;
     this.store = store;
     this.threadUtils = threadUtils;
     this.taskQueue = taskQueue;
+    this.mainThreadRunner = mainThreadRunner;
   }
 
   @Override
@@ -77,6 +87,41 @@ public class FeedActionManagerImpl implements ActionManager {
         () -> {
           sessionManager.triggerUploadActions(actions);
         });
+  }
+
+  @Override
+  public void uploadAllActionsAndUpdateUrl(
+      String url, String consistencyTokenQueryParamName, Consumer<String> consumer) {
+    taskQueue.execute(
+        "feedActionUpload",
+        TaskType.BACKGROUND,
+        () -> {
+          // TODO: figure out spinner and/or timeout conditions
+          sessionManager.fetchActionsAndUpload(
+              result -> {
+                mainThreadRunner.execute(
+                    "Open url",
+                    () -> {
+                      if (result.isSuccessful()) {
+                        consumer.accept(
+                            updateParam(
+                                url,
+                                consistencyTokenQueryParamName,
+                                result.getValue().toByteArray()));
+                      } else {
+                        consumer.accept(url);
+                      }
+                    });
+              });
+        });
+  }
+
+  static String updateParam(String url, String consistencyTokenQueryParamName, byte[] value) {
+    Uri.Builder uriBuilder = Uri.parse(url).buildUpon();
+    uriBuilder.appendQueryParameter(
+        consistencyTokenQueryParamName,
+        Base64.encodeToString(value, Base64.URL_SAFE | Base64.NO_WRAP));
+    return uriBuilder.build().toString();
   }
 
   private void executeStreamDataOperations(

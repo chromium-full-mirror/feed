@@ -538,7 +538,8 @@ public final class FeedProcessScope implements Dumpable {
       requestManager.setDefaultTriggerRefreshConsumerSupplier(
           sessionManager.getTriggerRefreshConsumer());
       ActionManager actionManager =
-          new FeedActionManagerImpl(sessionManager, store, threadUtils, taskQueue);
+          new FeedActionManagerImpl(
+              sessionManager, store, threadUtils, taskQueue, getOrCreateMainThreadRunner());
 
       if (knownContentApi == null) {
         knownContentApi =

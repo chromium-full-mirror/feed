@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.api.actionmanager;
 
+import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
 import java.util.List;
@@ -52,4 +53,11 @@ public interface ActionManager {
    * resulting {@link ConsistencyToken}.
    */
   void uploadActions(Set<StreamUploadableAction> actions);
+
+  /**
+   * Issues a request to record a set of action and update the url with consistency token with the
+   * consumer being called on the main thread with the resulting url.
+   */
+  void uploadAllActionsAndUpdateUrl(
+      String url, String consistencyTokenQueryParamName, Consumer<String> consumer);
 }

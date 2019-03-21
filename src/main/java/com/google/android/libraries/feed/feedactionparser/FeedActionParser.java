@@ -279,16 +279,33 @@ public final class FeedActionParser implements ActionParser {
     String url = openUrlData.getUrl();
     switch (urlType) {
       case OPEN_URL:
-        streamActionApi.openUrl(url);
+        if (openUrlData.hasConsistencyTokenQueryParamName()) {
+          streamActionApi.openUrl(url, openUrlData.getConsistencyTokenQueryParamName());
+        } else {
+          streamActionApi.openUrl(url);
+        }
         break;
       case OPEN_URL_NEW_WINDOW:
-        streamActionApi.openUrlInNewWindow(url);
+        if (openUrlData.hasConsistencyTokenQueryParamName()) {
+          streamActionApi.openUrlInNewWindow(url, openUrlData.getConsistencyTokenQueryParamName());
+        } else {
+          streamActionApi.openUrlInNewWindow(url);
+        }
         break;
       case OPEN_URL_INCOGNITO:
-        streamActionApi.openUrlInIncognitoMode(url);
+        if (openUrlData.hasConsistencyTokenQueryParamName()) {
+          streamActionApi.openUrlInIncognitoMode(
+              url, openUrlData.getConsistencyTokenQueryParamName());
+        } else {
+          streamActionApi.openUrlInIncognitoMode(url);
+        }
         break;
       case OPEN_URL_NEW_TAB:
-        streamActionApi.openUrlInNewTab(url);
+        if (openUrlData.hasConsistencyTokenQueryParamName()) {
+          streamActionApi.openUrlInNewTab(url, openUrlData.getConsistencyTokenQueryParamName());
+        } else {
+          streamActionApi.openUrlInNewTab(url);
+        }
         break;
       default:
         throw new AssertionError("Unhandled URL type: " + urlType);

@@ -253,6 +253,16 @@ public class StreamActionApiImpl implements StreamActionApi {
   }
 
   @Override
+  public void openUrl(String url, String consistencyTokenQueryParamName) {
+    actionManager.uploadAllActionsAndUpdateUrl(
+        url,
+        consistencyTokenQueryParamName,
+        result -> {
+          actionApi.openUrl(result);
+        });
+  }
+
+  @Override
   public boolean canOpenUrl() {
     return actionApi.canOpenUrl();
   }
@@ -260,6 +270,16 @@ public class StreamActionApiImpl implements StreamActionApi {
   @Override
   public void openUrlInIncognitoMode(String url) {
     actionApi.openUrlInIncognitoMode(url);
+  }
+
+  @Override
+  public void openUrlInIncognitoMode(String url, String consistencyTokenQueryParamName) {
+    actionManager.uploadAllActionsAndUpdateUrl(
+        url,
+        consistencyTokenQueryParamName,
+        result -> {
+          actionApi.openUrlInIncognitoMode(result);
+        });
   }
 
   @Override
@@ -273,6 +293,16 @@ public class StreamActionApiImpl implements StreamActionApi {
   }
 
   @Override
+  public void openUrlInNewTab(String url, String consistencyTokenQueryParamName) {
+    actionManager.uploadAllActionsAndUpdateUrl(
+        url,
+        consistencyTokenQueryParamName,
+        result -> {
+          actionApi.openUrlInNewTab(result);
+        });
+  }
+
+  @Override
   public boolean canOpenUrlInNewTab() {
     return actionApi.canOpenUrlInNewTab();
   }
@@ -280,6 +310,16 @@ public class StreamActionApiImpl implements StreamActionApi {
   @Override
   public void openUrlInNewWindow(String url) {
     actionApi.openUrlInNewWindow(url);
+  }
+
+  @Override
+  public void openUrlInNewWindow(String url, String consistencyTokenQueryParamName) {
+    actionManager.uploadAllActionsAndUpdateUrl(
+        url,
+        consistencyTokenQueryParamName,
+        result -> {
+          actionApi.openUrlInNewWindow(result);
+        });
   }
 
   @Override

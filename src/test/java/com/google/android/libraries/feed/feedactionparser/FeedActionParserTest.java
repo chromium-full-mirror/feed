@@ -74,6 +74,7 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class FeedActionParserTest {
   private static final String URL = "www.google.com";
+  private static final String PARAM = "param";
 
   private static final FeedActionPayload OPEN_URL_FEED_ACTION =
       FeedActionPayload.newBuilder()
@@ -84,6 +85,20 @@ public class FeedActionParserTest {
                       FeedActionMetadata.newBuilder()
                           .setType(Type.OPEN_URL)
                           .setOpenUrlData(OpenUrlData.newBuilder().setUrl(URL)))
+                  .build())
+          .build();
+  private static final FeedActionPayload OPEN_URL_WITH_PARAM_FEED_ACTION =
+      FeedActionPayload.newBuilder()
+          .setExtension(
+              FeedAction.feedActionExtension,
+              FeedAction.newBuilder()
+                  .setMetadata(
+                      FeedActionMetadata.newBuilder()
+                          .setType(Type.OPEN_URL)
+                          .setOpenUrlData(
+                              OpenUrlData.newBuilder()
+                                  .setUrl(URL)
+                                  .setConsistencyTokenQueryParamName(PARAM)))
                   .build())
           .build();
   private static final FeedActionPayload CONTEXT_MENU_FEED_ACTION =
@@ -114,6 +129,20 @@ public class FeedActionParserTest {
                           .setOpenUrlData(OpenUrlData.newBuilder().setUrl(URL)))
                   .build())
           .build();
+  private static final FeedActionPayload OPEN_URL_NEW_WINDOW_WITH_PARAM_FEED_ACTION =
+      FeedActionPayload.newBuilder()
+          .setExtension(
+              FeedAction.feedActionExtension,
+              FeedAction.newBuilder()
+                  .setMetadata(
+                      FeedActionMetadata.newBuilder()
+                          .setType(Type.OPEN_URL_NEW_WINDOW)
+                          .setOpenUrlData(
+                              OpenUrlData.newBuilder()
+                                  .setUrl(URL)
+                                  .setConsistencyTokenQueryParamName(PARAM)))
+                  .build())
+          .build();
 
   private static final FeedActionPayload OPEN_URL_INCOGNITO_FEED_ACTION =
       FeedActionPayload.newBuilder()
@@ -126,6 +155,20 @@ public class FeedActionParserTest {
                           .setOpenUrlData(OpenUrlData.newBuilder().setUrl(URL)))
                   .build())
           .build();
+  private static final FeedActionPayload OPEN_URL_INCOGNITO_WITH_PARAM_FEED_ACTION =
+      FeedActionPayload.newBuilder()
+          .setExtension(
+              FeedAction.feedActionExtension,
+              FeedAction.newBuilder()
+                  .setMetadata(
+                      FeedActionMetadata.newBuilder()
+                          .setType(Type.OPEN_URL_INCOGNITO)
+                          .setOpenUrlData(
+                              OpenUrlData.newBuilder()
+                                  .setUrl(URL)
+                                  .setConsistencyTokenQueryParamName(PARAM)))
+                  .build())
+          .build();
 
   private static final FeedActionPayload OPEN_URL_NEW_TAB_FEED_ACTION =
       FeedActionPayload.newBuilder()
@@ -136,6 +179,20 @@ public class FeedActionParserTest {
                       FeedActionMetadata.newBuilder()
                           .setType(Type.OPEN_URL_NEW_TAB)
                           .setOpenUrlData(OpenUrlData.newBuilder().setUrl(URL)))
+                  .build())
+          .build();
+  private static final FeedActionPayload OPEN_URL_NEW_TAB_WITH_PARAM_FEED_ACTION =
+      FeedActionPayload.newBuilder()
+          .setExtension(
+              FeedAction.feedActionExtension,
+              FeedAction.newBuilder()
+                  .setMetadata(
+                      FeedActionMetadata.newBuilder()
+                          .setType(Type.OPEN_URL_NEW_TAB)
+                          .setOpenUrlData(
+                              OpenUrlData.newBuilder()
+                                  .setUrl(URL)
+                                  .setConsistencyTokenQueryParamName(PARAM)))
                   .build())
           .build();
 
@@ -164,12 +221,29 @@ public class FeedActionParserTest {
               PietFeedActionPayload.newBuilder().setFeedActionPayload(OPEN_URL_FEED_ACTION).build())
           .build();
 
+  private static final Action OPEN_URL_WITH_PARAM_ACTION =
+      Action.newBuilder()
+          .setExtension(
+              PietFeedActionPayload.pietFeedActionPayloadExtension,
+              PietFeedActionPayload.newBuilder()
+                  .setFeedActionPayload(OPEN_URL_WITH_PARAM_FEED_ACTION)
+                  .build())
+          .build();
+
   private static final Action OPEN_INCOGNITO_ACTION =
       Action.newBuilder()
           .setExtension(
               PietFeedActionPayload.pietFeedActionPayloadExtension,
               PietFeedActionPayload.newBuilder()
                   .setFeedActionPayload(OPEN_URL_INCOGNITO_FEED_ACTION)
+                  .build())
+          .build();
+  private static final Action OPEN_INCOGNITO_WITH_PARAM_ACTION =
+      Action.newBuilder()
+          .setExtension(
+              PietFeedActionPayload.pietFeedActionPayloadExtension,
+              PietFeedActionPayload.newBuilder()
+                  .setFeedActionPayload(OPEN_URL_INCOGNITO_WITH_PARAM_FEED_ACTION)
                   .build())
           .build();
 
@@ -181,13 +255,28 @@ public class FeedActionParserTest {
                   .setFeedActionPayload(OPEN_URL_NEW_WINDOW_FEED_ACTION)
                   .build())
           .build();
-
+  private static final Action OPEN_NEW_WINDOW_WITH_PARAM_ACTION =
+      Action.newBuilder()
+          .setExtension(
+              PietFeedActionPayload.pietFeedActionPayloadExtension,
+              PietFeedActionPayload.newBuilder()
+                  .setFeedActionPayload(OPEN_URL_NEW_WINDOW_WITH_PARAM_FEED_ACTION)
+                  .build())
+          .build();
   private static final Action OPEN_NEW_TAB_ACTION =
       Action.newBuilder()
           .setExtension(
               PietFeedActionPayload.pietFeedActionPayloadExtension,
               PietFeedActionPayload.newBuilder()
                   .setFeedActionPayload(OPEN_URL_NEW_TAB_FEED_ACTION)
+                  .build())
+          .build();
+  private static final Action OPEN_NEW_TAB_WITH_PARAM_ACTION =
+      Action.newBuilder()
+          .setExtension(
+              PietFeedActionPayload.pietFeedActionPayloadExtension,
+              PietFeedActionPayload.newBuilder()
+                  .setFeedActionPayload(OPEN_URL_NEW_TAB_WITH_PARAM_FEED_ACTION)
                   .build())
           .build();
 
@@ -364,6 +453,20 @@ public class FeedActionParserTest {
   }
 
   @Test
+  public void testParseAction_openUrlWithParam() {
+    when(streamActionApi.canOpenUrl()).thenReturn(true);
+    feedActionParser.parseAction(
+        OPEN_URL_WITH_PARAM_ACTION,
+        streamActionApi,
+        /* view= */ null,
+        /* veLoggingToken= */ null,
+        ActionSource.CLICK);
+
+    verify(streamActionApi).openUrl(URL, PARAM);
+    verify(streamActionApi).onClientAction(ActionType.OPEN_URL);
+  }
+
+  @Test
   public void testParseAction_newWindow() {
     when(streamActionApi.canOpenUrlInNewWindow()).thenReturn(true);
     feedActionParser.parseAction(
@@ -374,6 +477,20 @@ public class FeedActionParserTest {
         ActionSource.CLICK);
 
     verify(streamActionApi).openUrlInNewWindow(URL);
+    verify(streamActionApi).onClientAction(ActionType.OPEN_URL_NEW_WINDOW);
+  }
+
+  @Test
+  public void testParseAction_newWindowWithParam() {
+    when(streamActionApi.canOpenUrlInNewWindow()).thenReturn(true);
+    feedActionParser.parseAction(
+        OPEN_NEW_WINDOW_WITH_PARAM_ACTION,
+        streamActionApi,
+        /* view= */ null,
+        /* veLoggingToken= */ null,
+        ActionSource.CLICK);
+
+    verify(streamActionApi).openUrlInNewWindow(URL, PARAM);
     verify(streamActionApi).onClientAction(ActionType.OPEN_URL_NEW_WINDOW);
   }
 
@@ -392,6 +509,20 @@ public class FeedActionParserTest {
   }
 
   @Test
+  public void testParseAction_incognitoWithParam() {
+    when(streamActionApi.canOpenUrlInIncognitoMode()).thenReturn(true);
+    feedActionParser.parseAction(
+        OPEN_INCOGNITO_WITH_PARAM_ACTION,
+        streamActionApi,
+        /* view= */ null,
+        /* veLoggingToken= */ null,
+        ActionSource.CLICK);
+
+    verify(streamActionApi).openUrlInIncognitoMode(URL, PARAM);
+    verify(streamActionApi).onClientAction(ActionType.OPEN_URL_INCOGNITO);
+  }
+
+  @Test
   public void testParseAction_newTab() {
     when(streamActionApi.canOpenUrlInNewTab()).thenReturn(true);
     feedActionParser.parseAction(
@@ -402,6 +533,20 @@ public class FeedActionParserTest {
         ActionSource.CLICK);
 
     verify(streamActionApi).openUrlInNewTab(URL);
+    verify(streamActionApi).onClientAction(ActionType.OPEN_URL_NEW_TAB);
+  }
+
+  @Test
+  public void testParseAction_newTabWithParam() {
+    when(streamActionApi.canOpenUrlInNewTab()).thenReturn(true);
+    feedActionParser.parseAction(
+        OPEN_NEW_TAB_WITH_PARAM_ACTION,
+        streamActionApi,
+        /* view= */ null,
+        /* veLoggingToken= */ null,
+        ActionSource.CLICK);
+
+    verify(streamActionApi).openUrlInNewTab(URL, PARAM);
     verify(streamActionApi).onClientAction(ActionType.OPEN_URL_NEW_TAB);
   }
 

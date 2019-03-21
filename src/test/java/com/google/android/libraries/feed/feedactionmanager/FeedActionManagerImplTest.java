@@ -34,10 +34,12 @@ import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThrea
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
 import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
+import com.google.search.now.wire.feed.ConsistencyTokenProto.ConsistencyToken;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -56,6 +58,8 @@ public class FeedActionManagerImplTest {
   private static final String CONTENT_ID_STRING = "contentIdString";
   private static final String SESSION_ID = "session";
 
+  private FakeMainThreadRunner fakeMainThreadRunner = FakeMainThreadRunner.runTasksImmediately();
+  ;
   @Mock private SessionManager sessionManager;
   @Mock private Store store;
   @Mock private ThreadUtils threadUtils;
@@ -66,13 +70,16 @@ public class FeedActionManagerImplTest {
   @Captor private ArgumentCaptor<String> contentIdStringCaptor;
   @Captor private ArgumentCaptor<Result<List<StreamDataOperation>>> streamDataOperationsCaptor;
   @Captor private ArgumentCaptor<MutationContext> mutationContextCaptor;
+  @Captor private ArgumentCaptor<Consumer<Result<ConsistencyToken>>> consumerCaptor;
 
   private ActionManager actionManager;
 
   @Before
   public void setUp() throws Exception {
     initMocks(this);
-    actionManager = new FeedActionManagerImpl(sessionManager, store, threadUtils, getTaskQueue());
+    actionManager =
+        new FeedActionManagerImpl(
+            sessionManager, store, threadUtils, getTaskQueue(), fakeMainThreadRunner);
   }
 
   @Test
@@ -169,6 +176,22 @@ public class FeedActionManagerImplTest {
     actionSet.add(StreamUploadableAction.getDefaultInstance());
     actionManager.uploadActions(actionSet);
     verify(sessionManager).triggerUploadActions(actionSet);
+  }
+
+  @Test
+  public void triggerUploadAllActions() throws Exception {
+    String url = "url";
+    String param = "param";
+    ConsistencyToken token =
+        ConsistencyToken.newBuilder().setToken(ByteString.copyFrom(new byte[] {0x1, 0x2})).build();
+    String expectedUrl = FeedActionManagerImpl.updateParam(url, param, token.toByteArray());
+    Consumer<String> consumer =
+        result -> {
+          assertThat(result).isEqualTo(expectedUrl);
+        };
+    actionManager.uploadAllActionsAndUpdateUrl(url, param, consumer);
+    verify(sessionManager).fetchActionsAndUpload(consumerCaptor.capture());
+    consumerCaptor.getValue().accept(Result.success(token));
   }
 
   private StreamDataOperation buildBasicDismissOperation() {

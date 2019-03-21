@@ -33,6 +33,7 @@ import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.actionparser.ActionSource;
 import com.google.android.libraries.feed.api.knowncontent.ContentMetadata;
 import com.google.android.libraries.feed.basicstream.internal.pendingdismiss.ClusterPendingDismissHelper;
+import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.logging.ActionType;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
@@ -64,6 +65,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -76,6 +78,8 @@ public class StreamActionApiImplTest {
   private static final String URL = "www.google.com";
   private static final String OPEN_LABEL = "Open";
   private static final String OPEN_IN_NEW_WINDOW_LABEL = "Open in new window";
+  private static final String PARAM = "param";
+  private static final String NEW_URL = "ooh.shiny.com";
   private static final LabelledFeedActionData OPEN_IN_NEW_WINDOW =
       LabelledFeedActionData.newBuilder()
           .setLabel(OPEN_IN_NEW_WINDOW_LABEL)
@@ -143,6 +147,7 @@ public class StreamActionApiImplTest {
   @Mock private ViewElementActionHandler viewElementActionHandler;
   @Mock private TooltipApi tooltipApi;
 
+  @Captor private ArgumentCaptor<Consumer<String>> consumerCaptor;
   private FakeContextMenuManager contextMenuManager;
   private StreamActionApiImpl streamActionApi;
   private View view;
@@ -281,6 +286,16 @@ public class StreamActionApiImplTest {
   }
 
   @Test
+  public void testOpenUrl_withParam() {
+    streamActionApi.openUrl(URL, PARAM);
+
+    verify(actionManager)
+        .uploadAllActionsAndUpdateUrl(eq(URL), eq(PARAM), consumerCaptor.capture());
+    consumerCaptor.getValue().accept(NEW_URL);
+    verify(actionApi).openUrl(NEW_URL);
+  }
+
+  @Test
   public void testCanOpenUrl() {
     when(actionApi.canOpenUrl()).thenReturn(true);
     assertThat(streamActionApi.canOpenUrl()).isTrue();
@@ -299,9 +314,29 @@ public class StreamActionApiImplTest {
   }
 
   @Test
+  public void testOpenUrlInIncognitoMode_withParam() {
+    streamActionApi.openUrlInIncognitoMode(URL, PARAM);
+
+    verify(actionManager)
+        .uploadAllActionsAndUpdateUrl(eq(URL), eq(PARAM), consumerCaptor.capture());
+    consumerCaptor.getValue().accept(NEW_URL);
+    verify(actionApi).openUrlInIncognitoMode(NEW_URL);
+  }
+
+  @Test
   public void testOpenUrlInNewTab() {
     streamActionApi.openUrlInNewTab(URL);
     verify(actionApi).openUrlInNewTab(URL);
+  }
+
+  @Test
+  public void testOpenUrlInNewTab_withParam() {
+    streamActionApi.openUrlInNewTab(URL, PARAM);
+
+    verify(actionManager)
+        .uploadAllActionsAndUpdateUrl(eq(URL), eq(PARAM), consumerCaptor.capture());
+    consumerCaptor.getValue().accept(NEW_URL);
+    verify(actionApi).openUrlInNewTab(NEW_URL);
   }
 
   @Test

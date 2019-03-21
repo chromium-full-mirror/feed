@@ -15,6 +15,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/api/knowncontent",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/actions",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/pendingdismiss",
+        "//src/main/java/com/google/android/libraries/feed/common/functional",
         "//src/main/java/com/google/android/libraries/feed/host/action",
         "//src/main/java/com/google/android/libraries/feed/host/logging",
         "//src/main/java/com/google/android/libraries/feed/host/stream",
