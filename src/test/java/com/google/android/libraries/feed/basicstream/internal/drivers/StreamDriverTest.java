@@ -783,8 +783,12 @@ public class StreamDriverTest {
     SnackbarCallbackApi snackbarCallbackApi =
         triggerPendingDismiss(UndoAction.newBuilder().setConfirmationLabel("confirmation").build());
 
+    assertThat(streamDriver.isZeroStateBeingShown()).isTrue();
+
     snackbarCallbackApi.onDismissNoAction();
+    
     verify(pendingDismissCallback).onDismissCommitted();
+    assertThat(streamDriver.isZeroStateBeingShown()).isTrue();
   }
 
   @Test
@@ -792,9 +796,13 @@ public class StreamDriverTest {
     SnackbarCallbackApi snackbarCallbackApi =
         triggerPendingDismiss(UndoAction.newBuilder().setConfirmationLabel("confirmation").build());
 
+    assertThat(streamDriver.isZeroStateBeingShown()).isTrue();
+
     snackbarCallbackApi.onDismissedWithAction();
+    
     verify(pendingDismissCallback).onDismissReverted();
-    verify(contentListener).notifyContentsAdded(eq(0), any());
+    verify(contentListener, times(2)).notifyContentsAdded(eq(0), any());
+    assertThat(streamDriver.isZeroStateBeingShown()).isFalse();
   }
 
   @Test

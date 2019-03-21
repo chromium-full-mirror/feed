@@ -369,11 +369,7 @@ public class StreamDriver
     basicLoggingApi.onTokenCompleted(
         wasSynthetic, tokenPayload.contentCount, tokenPayload.tokenCount);
     notifyContentsAdded(continuationIndex, buildLeafFeatureDrivers(newChildren));
-    if (shouldRemoveNoContentCardOrZeroState()) {
-      featureDrivers.get(0).onDestroy();
-      featureDrivers.remove(0);
-      notifyContentRemoved(0);
-    }
+    maybeRemoveNoContentOrZeroStateCard();
     // Swap no content card with zero state if there are no more drivers.
     if (newChildren.isEmpty()
         && featureDrivers.size() == 1
@@ -382,6 +378,14 @@ public class StreamDriver
     }
 
     maybeRestoreScroll();
+  }
+
+  private void maybeRemoveNoContentOrZeroStateCard() {
+    if (shouldRemoveNoContentCardOrZeroState()) {
+      featureDrivers.get(0).onDestroy();
+      featureDrivers.remove(0);
+      notifyContentRemoved(0);
+    }
   }
 
   public void onDestroy() {
@@ -650,7 +654,7 @@ public class StreamDriver
     }
 
     removeDriver(modelChild);
-
+    addNoContentCardOrZeroStateIfNecessary(ZeroStateShowReason.CONTENT_DISMISSED);
     snackbarApi.show(
         undoAction.getConfirmationLabel(),
         undoAction.hasUndoLabel()
@@ -664,6 +668,7 @@ public class StreamDriver
 
           @Override
           public void onDismissedWithAction() {
+            maybeRemoveNoContentOrZeroStateCard();
             pendingDismissCallback.onDismissReverted();
             createFeatureChildAndInsertAtIndex(modelChild, index);
           }
