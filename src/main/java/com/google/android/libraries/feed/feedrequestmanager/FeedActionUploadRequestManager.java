@@ -133,6 +133,7 @@ public final class FeedActionUploadRequestManager implements ActionUploadRequest
     }
     Consumer<Result<ConsistencyToken>> tokenConsumer =
         result -> {
+          threadUtils.checkNotMainThread();
           if (result.isSuccessful()) {
             actions.removeAll(actionsToUpload);
             if (!actions.isEmpty()) {
@@ -181,7 +182,12 @@ public final class FeedActionUploadRequestManager implements ActionUploadRequest
             }
             Logger.e(TAG, "errorCode: %d", input.getResponseCode());
             Logger.e(TAG, "errorResponse: %s", errorBody);
-            consumer.accept(Result.failure());
+            taskQueue.execute(
+                "executeUploadActionRequest",
+                TaskType.IMMEDIATE,
+                () -> {
+                  consumer.accept(Result.failure());
+                });
             return;
           }
           handleUploadableActionResponseBytes(actions, input.getResponseBody(), consumer);

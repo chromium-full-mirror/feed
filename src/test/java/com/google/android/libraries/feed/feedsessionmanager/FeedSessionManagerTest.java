@@ -18,7 +18,6 @@ import static com.google.android.libraries.feed.api.store.Store.HEAD_SESSION_ID;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anySetOf;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doReturn;
@@ -29,7 +28,6 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.MutationContext;
-import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.common.testing.InternalProtocolBuilder;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
@@ -39,16 +37,15 @@ import com.google.android.libraries.feed.api.modelprovider.ModelMutation;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
-import com.google.android.libraries.feed.api.requestmanager.ActionUploadRequestManager;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.store.ActionPropertiesMutation;
 import com.google.android.libraries.feed.api.store.ContentMutation;
 import com.google.android.libraries.feed.api.store.SemanticPropertiesMutation;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
-import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
-import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeTaskQueue;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.time.Clock;
@@ -72,6 +69,7 @@ import com.google.android.libraries.feed.host.scheduler.SchedulerApi.SessionMana
 import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
+import com.google.android.libraries.feed.testing.requestmanager.FakeActionUploadRequestManager;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
@@ -118,20 +116,19 @@ public class FeedSessionManagerTest {
   private final ContentIdGenerators idGenerators = new ContentIdGenerators();
   private final String rootContentId = idGenerators.createRootContentId(0);
 
-  private MainThreadRunner mainThreadRunner;
   private FeedAppLifecycleListener appLifecycleListener;
-  private TaskQueue taskQueue;
+  private FakeActionUploadRequestManager fakeActionUploadRequestManager;
+  private FakeMainThreadRunner fakeMainThreadRunner;
+  private FakeTaskQueue fakeTaskQueue;
+  private FakeThreadUtils fakeThreadUtils;
   @Mock private BasicLoggingApi basicLoggingApi;
-  @Mock private ThreadUtils threadUtils;
   @Mock private ProtocolAdapter protocolAdapter;
   @Mock private RequestManager requestManager;
-  @Mock private ActionUploadRequestManager actionUploadRequestManager;
   @Mock private SchedulerApi schedulerApi;
   @Mock private ModelProvider modelProvider;
   @Mock private ModelMutation modelMutation;
   @Mock private Store store;
   @Mock private Clock clock;
-  @Captor private ArgumentCaptor<Consumer<Result<ConsistencyToken>>> tokenCapture;
   @Captor private ArgumentCaptor<Consumer<Result<List<StreamDataOperation>>>> resultCapture;
 
   private final ContentIdGenerators contentIdGenerators = new ContentIdGenerators();
@@ -143,8 +140,12 @@ public class FeedSessionManagerTest {
   @Before
   public void setUp() {
     initMocks(this);
-    mainThreadRunner = new MainThreadRunner();
-    appLifecycleListener = new FeedAppLifecycleListener(threadUtils);
+    fakeThreadUtils = new FakeThreadUtils();
+    fakeMainThreadRunner =
+        FakeMainThreadRunner.runTasksImmediatelyWithThreadChecks(fakeThreadUtils);
+    fakeTaskQueue = new FakeTaskQueue(MoreExecutors.directExecutor(), clock, fakeThreadUtils);
+    appLifecycleListener = new FeedAppLifecycleListener(fakeThreadUtils);
+    fakeActionUploadRequestManager = new FakeActionUploadRequestManager(fakeThreadUtils);
     when(modelProvider.edit()).thenReturn(modelMutation);
     when(store.triggerContentGc(anyObject(), anyObject())).thenReturn(() -> {});
     when(store.getSharedStates()).thenReturn(Result.success(new ArrayList<>()));
@@ -154,12 +155,6 @@ public class FeedSessionManagerTest {
     when(store.getAllUploadableActions()).thenReturn(Result.success(new HashSet<>()));
     when(schedulerApi.shouldSessionRequestData(any(SessionManagerState.class)))
         .thenReturn(RequestBehavior.NO_REQUEST_WITH_CONTENT);
-    taskQueue =
-        new TaskQueue(
-            MoreExecutors.directExecutor(),
-            FakeMainThreadRunner.runTasksImmediately(),
-            clock,
-            false);
   }
 
   @Test
@@ -188,13 +183,13 @@ public class FeedSessionManagerTest {
 
     FeedSessionManager sessionManager =
         new FeedSessionManagerFactory(
-                taskQueue,
+                fakeTaskQueue,
                 store,
                 timingUtils,
-                threadUtils,
+                fakeThreadUtils,
                 protocolAdapter,
                 requestManager,
-                actionUploadRequestManager,
+                fakeActionUploadRequestManager,
                 schedulerApi,
                 configuration,
                 clock,
@@ -220,13 +215,13 @@ public class FeedSessionManagerTest {
   public void testLifecycleInitialization() {
     FeedSessionManager sessionManager =
         new FeedSessionManagerFactory(
-                taskQueue,
+                fakeTaskQueue,
                 store,
                 timingUtils,
-                threadUtils,
+                fakeThreadUtils,
                 protocolAdapter,
                 requestManager,
-                actionUploadRequestManager,
+                fakeActionUploadRequestManager,
                 schedulerApi,
                 configuration,
                 clock,
@@ -274,15 +269,15 @@ public class FeedSessionManagerTest {
 
     FeedSessionManager sessionManager = getInitializedSessionManager();
     populateSession(sessionManager, 3, 1, true, null);
-    taskQueue.resetCounts();
+    fakeTaskQueue.resetCounts();
 
     // Population will happen in a user-facing task and no request is sent.
     ModelProvider modelProvider = getModelProvider(sessionManager);
     assertThat(modelProvider).isNotNull();
-    assertThat(taskQueue.getImmediateTaskCount()).isEqualTo(0);
-    assertThat(taskQueue.getBackgroundTaskCount()).isEqualTo(0);
-    assertThat(taskQueue.getUserFacingTaskCount()).isEqualTo(1);
-    assertThat(taskQueue.isMakingRequest()).isFalse();
+    assertThat(fakeTaskQueue.getImmediateTaskCount()).isEqualTo(0);
+    assertThat(fakeTaskQueue.getBackgroundTaskCount()).isEqualTo(0);
+    assertThat(fakeTaskQueue.getUserFacingTaskCount()).isEqualTo(1);
+    assertThat(fakeTaskQueue.isMakingRequest()).isFalse();
   }
 
   @Test
@@ -292,15 +287,15 @@ public class FeedSessionManagerTest {
 
     FeedSessionManager sessionManager = getInitializedSessionManager();
     populateSession(sessionManager, 3, 1, true, null);
-    taskQueue.resetCounts();
+    fakeTaskQueue.resetCounts();
 
     // Population will happen immediately and a request is sent.
     ModelProvider modelProvider = getModelProvider(sessionManager);
     assertThat(modelProvider).isNotNull();
-    assertThat(taskQueue.getImmediateTaskCount()).isEqualTo(1);
-    assertThat(taskQueue.getBackgroundTaskCount()).isEqualTo(0);
-    assertThat(taskQueue.getUserFacingTaskCount()).isEqualTo(0);
-    assertThat(taskQueue.isMakingRequest()).isTrue();
+    assertThat(fakeTaskQueue.getImmediateTaskCount()).isEqualTo(1);
+    assertThat(fakeTaskQueue.getBackgroundTaskCount()).isEqualTo(0);
+    assertThat(fakeTaskQueue.getUserFacingTaskCount()).isEqualTo(0);
+    assertThat(fakeTaskQueue.isMakingRequest()).isTrue();
   }
 
   @Test
@@ -310,15 +305,15 @@ public class FeedSessionManagerTest {
 
     FeedSessionManager sessionManager = getInitializedSessionManager();
     populateSession(sessionManager, 3, 1, true, null);
-    taskQueue.resetCounts();
+    fakeTaskQueue.resetCounts();
 
     // Population will happen in a user-facing task and a request is sent.
     ModelProvider modelProvider = getModelProvider(sessionManager);
     assertThat(modelProvider).isNotNull();
-    assertThat(taskQueue.getImmediateTaskCount()).isEqualTo(0);
-    assertThat(taskQueue.getBackgroundTaskCount()).isEqualTo(0);
-    assertThat(taskQueue.getUserFacingTaskCount()).isEqualTo(1);
-    assertThat(taskQueue.isMakingRequest()).isTrue();
+    assertThat(fakeTaskQueue.getImmediateTaskCount()).isEqualTo(0);
+    assertThat(fakeTaskQueue.getBackgroundTaskCount()).isEqualTo(0);
+    assertThat(fakeTaskQueue.getUserFacingTaskCount()).isEqualTo(1);
+    assertThat(fakeTaskQueue.isMakingRequest()).isTrue();
   }
 
   @Test
@@ -367,12 +362,6 @@ public class FeedSessionManagerTest {
     FeedSessionManager sessionManager = getInitializedSessionManager();
     sessionManager.handleToken(SESSION_ID, streamToken);
 
-    verify(actionUploadRequestManager)
-        .triggerUploadActions(
-            anySetOf(StreamUploadableAction.class),
-            any(ConsistencyToken.class),
-            tokenCapture.capture());
-    tokenCapture.getValue().accept(Result.success(ConsistencyToken.getDefaultInstance()));
     verify(requestManager)
         .loadMore(eq(streamToken), any(ConsistencyToken.class), resultCapture.capture());
   }
@@ -383,12 +372,6 @@ public class FeedSessionManagerTest {
     sessionManager.triggerRefresh(
         SESSION_ID, RequestReason.UNKNOWN, UiContext.getDefaultInstance());
 
-    verify(actionUploadRequestManager)
-        .triggerUploadActions(
-            anySetOf(StreamUploadableAction.class),
-            any(ConsistencyToken.class),
-            tokenCapture.capture());
-    tokenCapture.getValue().accept(Result.success(ConsistencyToken.getDefaultInstance()));
     verify(requestManager)
         .triggerRefresh(
             eq(RequestReason.UNKNOWN), any(ConsistencyToken.class), resultCapture.capture());
@@ -400,12 +383,6 @@ public class FeedSessionManagerTest {
     sessionManager.triggerRefresh(
         SESSION_ID, RequestReason.HOST_REQUESTED, UiContext.getDefaultInstance());
 
-    verify(actionUploadRequestManager)
-        .triggerUploadActions(
-            anySetOf(StreamUploadableAction.class),
-            any(ConsistencyToken.class),
-            tokenCapture.capture());
-    tokenCapture.getValue().accept(Result.success(ConsistencyToken.getDefaultInstance()));
     verify(requestManager)
         .triggerRefresh(
             eq(RequestReason.HOST_REQUESTED), any(ConsistencyToken.class), resultCapture.capture());
@@ -494,13 +471,13 @@ public class FeedSessionManagerTest {
 
     FeedSessionManager sessionManager =
         new FeedSessionManagerFactory(
-                taskQueue,
+                fakeTaskQueue,
                 store,
                 timingUtils,
-                threadUtils,
+                fakeThreadUtils,
                 protocolAdapter,
                 requestManager,
-                actionUploadRequestManager,
+                fakeActionUploadRequestManager,
                 schedulerApi,
                 configuration,
                 clock,
@@ -551,13 +528,13 @@ public class FeedSessionManagerTest {
 
     FeedSessionManager sessionManager =
         new FeedSessionManagerFactory(
-                taskQueue,
+                fakeTaskQueue,
                 store,
                 timingUtils,
-                threadUtils,
+                fakeThreadUtils,
                 protocolAdapter,
                 requestManager,
-                actionUploadRequestManager,
+                fakeActionUploadRequestManager,
                 schedulerApi,
                 configuration,
                 clock,
@@ -611,6 +588,7 @@ public class FeedSessionManagerTest {
     Set<String> contentInSession = session.getContentInSession();
     assertThat(contentInSession).hasSize(featureCount + 1);
 
+    fakeThreadUtils.enforceMainThread(false);
     sessionManager.onSwitchToEphemeralMode();
 
     sharedStates = sessionManager.getSharedStateCacheForTest();
@@ -676,10 +654,11 @@ public class FeedSessionManagerTest {
     actionSet.add(StreamUploadableAction.getDefaultInstance());
     ConsistencyToken token =
         ConsistencyToken.newBuilder().setToken(ByteString.copyFrom(new byte[] {0x1, 0xf})).build();
+    fakeThreadUtils.enforceMainThread(false);
     sessionManager.getConsistencyTokenConsumer().accept(Result.success(token));
     sessionManager.triggerUploadActions(actionSet);
-    verify(actionUploadRequestManager)
-        .triggerUploadActions(eq(actionSet), eq(token), tokenCapture.capture());
+    assertThat(fakeActionUploadRequestManager.getLatestActions())
+        .containsExactlyElementsIn(actionSet);
   }
 
   @Test
@@ -689,6 +668,7 @@ public class FeedSessionManagerTest {
             new Configuration.Builder().put(ConfigKey.UNDOABLE_ACTIONS_ENABLED, true).build());
     ConsistencyToken token =
         ConsistencyToken.newBuilder().setToken(ByteString.copyFrom(new byte[] {0x1, 0xf})).build();
+    fakeThreadUtils.enforceMainThread(false);
     sessionManager.getConsistencyTokenConsumer().accept(Result.success(token));
     assertThat(sessionManager.getConsistencyToken()).isEqualTo(token);
   }
@@ -696,6 +676,7 @@ public class FeedSessionManagerTest {
   @Test
   public void testGetConsistencyTokenEmpty() {
     FeedSessionManager sessionManager = getInitializedSessionManager();
+    fakeThreadUtils.enforceMainThread(false);
     assertThat(sessionManager.getConsistencyToken())
         .isEqualTo(ConsistencyToken.getDefaultInstance());
   }
@@ -710,14 +691,11 @@ public class FeedSessionManagerTest {
           assertThat(result.isSuccessful()).isTrue();
           assertThat(result.getValue()).isEqualTo(token);
         };
+    fakeActionUploadRequestManager.setResult(Result.success(token));
+    fakeThreadUtils.enforceMainThread(false);
     sessionManager.getConsistencyTokenConsumer().accept(Result.success(token));
     sessionManager.fetchActionsAndUpload(consumer);
-    verify(actionUploadRequestManager)
-        .triggerUploadActions(
-            anySetOf(StreamUploadableAction.class),
-            any(ConsistencyToken.class),
-            tokenCapture.capture());
-    tokenCapture.getValue().accept(Result.success(token));
+    assertThat(fakeActionUploadRequestManager.getLatestActions()).isNotNull();
   }
 
   private int populateSession(
@@ -755,7 +733,12 @@ public class FeedSessionManagerTest {
   private ModelProvider getModelProvider(FeedSessionManager sessionManager) {
     ModelProviderFactory modelProviderFactory =
         new FeedModelProviderFactory(
-            sessionManager, threadUtils, timingUtils, taskQueue, mainThreadRunner, configuration);
+            sessionManager,
+            fakeThreadUtils,
+            timingUtils,
+            fakeTaskQueue,
+            fakeMainThreadRunner,
+            configuration);
     return modelProviderFactory.createNew(null);
   }
 
@@ -770,20 +753,20 @@ public class FeedSessionManagerTest {
             extensionRegistry,
             new InMemoryContentStorage(),
             new InMemoryJournalStorage(),
-            threadUtils,
-            taskQueue,
+            fakeThreadUtils,
+            fakeTaskQueue,
             clock,
             basicLoggingApi,
             FakeMainThreadRunner.runTasksImmediately());
     FeedSessionManager fsm =
         new FeedSessionManagerFactory(
-                taskQueue,
+                fakeTaskQueue,
                 store,
                 timingUtils,
-                threadUtils,
+                fakeThreadUtils,
                 protocolAdapter,
                 requestManager,
-                actionUploadRequestManager,
+                fakeActionUploadRequestManager,
                 schedulerApi,
                 config,
                 clock,
@@ -801,8 +784,8 @@ public class FeedSessionManagerTest {
                 extensionRegistry,
                 new InMemoryContentStorage(),
                 new InMemoryJournalStorage(),
-                threadUtils,
-                taskQueue,
+                fakeThreadUtils,
+                fakeTaskQueue,
                 clock,
                 basicLoggingApi,
                 FakeMainThreadRunner.runTasksImmediately())));
@@ -810,13 +793,13 @@ public class FeedSessionManagerTest {
 
   private FeedSessionManager getUninitializedSessionManager(Store feedStore) {
     return new FeedSessionManagerFactory(
-            taskQueue,
+            fakeTaskQueue,
             feedStore,
             timingUtils,
-            threadUtils,
+            fakeThreadUtils,
             protocolAdapter,
             requestManager,
-            actionUploadRequestManager,
+            fakeActionUploadRequestManager,
             schedulerApi,
             configuration,
             clock,

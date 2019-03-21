@@ -23,7 +23,11 @@ import java.util.Set;
 /** Creates and issues upload action requests to the server. */
 public interface ActionUploadRequestManager {
 
-  /** Issues a request to record a set of actions */
+  /**
+   * Issues a request to record a set of actions.
+   *
+   * <p>The provided {@code consumer} will be executed on a background thread.
+   */
   void triggerUploadActions(
       Set<StreamUploadableAction> actions,
       ConsistencyToken token,

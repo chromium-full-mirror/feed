@@ -425,6 +425,18 @@ public class TaskQueue implements Dumpable {
   }
 
   /**
+   * Called before any task runnable is executed. This method is executed on the same thread as the
+   * task runnable.
+   */
+  protected void onPreTaskRun() {}
+
+  /**
+   * Called after any task runnable is executed. This method is executed on the same thread as the
+   * task runnable.
+   */
+  protected void onPostTaskRun() {}
+
+  /**
    * This class wraps the Runnable as a Runnable. It provides common handling of all tasks. This is
    * the default which supports the basic Task, subclasses will manage state changes.
    */
@@ -462,8 +474,10 @@ public class TaskQueue implements Dumpable {
       // maintain the currentTask on the stack encase we queue multiple tasks to the Executor
       TaskWrapper saveTask = currentTask;
       currentTask = this;
+      onPreTaskRun();
       runnable.run();
       postRunnableRun();
+      onPostTaskRun();
 
       currentTask = saveTask;
       Logger.i(TAG, " - Finished %s, time %s ms", task, (System.nanoTime() - start) / 1000000);

@@ -35,7 +35,7 @@ public class ThreadUtils {
     check(isMainThread(), "checkMainThread failed");
   }
 
-  private void check(boolean condition, String message) {
+  protected void check(boolean condition, String message) {
     if (!condition) {
       throw new IllegalStateException(message);
     }

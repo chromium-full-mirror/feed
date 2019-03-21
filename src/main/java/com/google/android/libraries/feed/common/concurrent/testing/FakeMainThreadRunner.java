@@ -1,4 +1,4 @@
-// Copyright 2018 The Feed Authors.
+// Copyright 2019 The Feed Authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import java.util.TreeSet;
 /** {@link MainThreadRunner} used for tests which is able to queue up tasks. */
 public final class FakeMainThreadRunner extends MainThreadRunner {
 
+  private final FakeThreadUtils fakeThreadUtils;
   private final boolean runTasksImmediately;
 
   @SuppressWarnings("AndroidJdkLibsChecker")
@@ -36,14 +37,22 @@ public final class FakeMainThreadRunner extends MainThreadRunner {
   private final List<Runnable> completedTasks = new ArrayList<>();
 
   public static FakeMainThreadRunner runTasksImmediately() {
-    return new FakeMainThreadRunner(true);
+    return new FakeMainThreadRunner(
+        new FakeThreadUtils(/* enforceThreadChecks= */ false), /* runTasksImmediately= */ true);
+  }
+
+  public static FakeMainThreadRunner runTasksImmediatelyWithThreadChecks(
+      FakeThreadUtils fakeThreadUtils) {
+    return new FakeMainThreadRunner(fakeThreadUtils, /* runTasksImmediately= */ true);
   }
 
   public static FakeMainThreadRunner queueAllTasks() {
-    return new FakeMainThreadRunner(false);
+    return new FakeMainThreadRunner(
+        new FakeThreadUtils(/* enforceThreadChecks= */ false), /* runTasksImmediately= */ false);
   }
 
-  FakeMainThreadRunner(boolean runTasksImmediately) {
+  FakeMainThreadRunner(FakeThreadUtils fakeThreadUtils, boolean runTasksImmediately) {
+    this.fakeThreadUtils = fakeThreadUtils;
     this.runTasksImmediately = runTasksImmediately;
   }
 
@@ -67,6 +76,8 @@ public final class FakeMainThreadRunner extends MainThreadRunner {
   }
 
   public void runAllTasks() {
+    boolean policy = fakeThreadUtils.enforceMainThread(true);
+
     for (Runnable task : immediateTasks) {
       task.run();
       completedTasks.add(task);
@@ -78,6 +89,8 @@ public final class FakeMainThreadRunner extends MainThreadRunner {
 
     immediateTasks.clear();
     delayedTasks.clear();
+
+    fakeThreadUtils.enforceMainThread(policy);
   }
 
   public boolean hasTasks() {
