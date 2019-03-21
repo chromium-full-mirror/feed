@@ -205,8 +205,9 @@ public class TimeoutSessionImplTest extends AbstractSessionImplTest {
 
     // The token should be removed even when there is a null lowest child.
     session.updateSession(/* clearHead= */ true, new ArrayList<>(), /* mutationContext= */ null);
-    // TODO: this should return 1.
-    assertThat(fakeModelMutator.removedChildren).isEmpty();
+    assertThat(fakeModelMutator.removedChildren).hasSize(1);
+    assertThat(fakeModelMutator.removedChildren.get(0).getContentId())
+        .isEqualTo(contentIdGenerators.createFeatureContentId(11));
   }
 
   private ModelChild createModelChild(long id, @ModelChild.Type int type) {

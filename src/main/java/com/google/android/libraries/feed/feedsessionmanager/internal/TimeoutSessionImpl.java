@@ -96,13 +96,11 @@ public final class TimeoutSessionImpl extends SessionImpl {
 
           // Calculate the children to remove and append StreamStructure remove operations
           String lowestChild = Validators.checkNotNull(viewDepthProvider).getChildViewDepth();
-          if (lowestChild != null) {
-            List<StreamStructure> removeOperations = removeItems(lowestChild, rootChildren);
-            Logger.i(TAG, "Removing %d items", removeOperations.size());
-            if (!removeOperations.isEmpty()) {
-              removeOperations.addAll(streamStructures);
-              streamStructures = removeOperations;
-            }
+          List<StreamStructure> removeOperations = removeItems(lowestChild, rootChildren);
+          Logger.i(TAG, "Removing %d items", removeOperations.size());
+          if (!removeOperations.isEmpty()) {
+            removeOperations.addAll(streamStructures);
+            streamStructures = removeOperations;
           }
         }
       }
@@ -119,7 +117,14 @@ public final class TimeoutSessionImpl extends SessionImpl {
     return false;
   }
 
-  private List<StreamStructure> removeItems(String lowestChild, List<ModelChild> rootChildren) {
+  /**
+   * Remove items found below the specified {@code lowestChild}. If {@code lowestChild} is itself a
+   * token, it will also be removed to avoid multiple "More" buttons. If {@code lowestChild} is
+   * {@literal null}, only tokens will be removed to prevent potentially removing items that the
+   * user can currently see.
+   */
+  private List<StreamStructure> removeItems(
+      /*@Nullable*/ String lowestChild, List<ModelChild> rootChildren) {
     boolean remove = false;
     List<StreamStructure> removeOperations = new ArrayList<>();
     for (ModelChild child : rootChildren) {
