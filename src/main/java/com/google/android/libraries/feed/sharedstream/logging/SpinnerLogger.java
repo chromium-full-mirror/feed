@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.sharedstream.logging;
 
+import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
@@ -68,6 +69,13 @@ public class SpinnerLogger {
 
     long spinnerDuration = clock.currentTimeMillis() - spinnerStartTime;
     basicLoggingApi.onSpinnerDestroyedWithoutCompleting((int) spinnerDuration, spinnerType);
+    spinnerStartTime = SPINNER_INACTIVE;
+  }
+
+  @VisibleForTesting
+  @SpinnerType
+  public int getSpinnerType() {
+    return spinnerType;
   }
 
   public boolean isSpinnerActive() {

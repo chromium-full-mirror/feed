@@ -238,11 +238,11 @@ public class ContinuationDriver extends LeafFeatureDriver
   public void onError(ModelError modelError) {
     basicLoggingApi.onTokenFailedToComplete(modelToken.isSynthetic(), ++failureCount);
     showErrorUi();
+    spinnerLogger.spinnerFinished();
   }
 
   private void showErrorUi() {
     showSpinner = false;
-    spinnerLogger.spinnerFinished();
 
     if (continuationViewHolder != null) {
       continuationViewHolder.setShowSpinner(false);

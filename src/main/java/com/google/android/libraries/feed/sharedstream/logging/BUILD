@@ -14,6 +14,7 @@ android_library(
         "//src/main/proto/com/google/android/libraries/feed/api/proto:client_feed_java_proto_lite",
         "//src/main/proto/search/now/ui/stream:stream_java_proto_lite",
         "@com_google_code_findbugs_jsr305//jar",
+        "@maven//:com_android_support_support_annotations",
         "@maven//:com_android_support_support_compat",  # buildcleaner: keep
         "@maven//:com_android_support_support_core_ui",
     ],

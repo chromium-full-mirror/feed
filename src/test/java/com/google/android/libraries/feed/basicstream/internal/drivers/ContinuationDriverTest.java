@@ -30,6 +30,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
 import android.content.Context;
+import android.view.View;
 import android.view.View.OnClickListener;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
@@ -70,29 +71,34 @@ import org.robolectric.RobolectricTestRunner;
 public class ContinuationDriverTest {
 
   private static final int POSITION = 1;
+  public static final TokenCompleted EMPTY_TOKEN_COMPLETED =
+      new TokenCompleted(FakeModelCursor.newBuilder().build());
 
   @Mock private BasicLoggingApi basicLoggingApi;
   @Mock private ModelChild modelChild;
   @Mock private ModelProvider modelProvider;
   @Mock private ModelToken modelToken;
   @Mock private SnackbarApi snackbarApi;
-  @Mock private SpinnerLogger spinnerLogger;
   @Mock private ThreadUtils threadUtils;
   @Mock private CursorChangedListener cursorChangedListener;
   @Mock private ContinuationViewHolder continuationViewHolder;
 
+  private SpinnerLogger spinnerLogger;
   private Clock clock;
   private Context context;
   private ContinuationDriver continuationDriver;
   private Configuration configuration = new Configuration.Builder().build();
+  private View view;
 
   @Before
   public void setup() {
     initMocks(this);
     clock = new FakeClock();
     context = Robolectric.buildActivity(Activity.class).get();
+    view = new View(context);
     when(modelProvider.handleToken(any(ModelToken.class))).thenReturn(true);
     when(modelChild.getModelToken()).thenReturn(modelToken);
+    spinnerLogger = new SpinnerLogger(basicLoggingApi, clock);
 
     continuationDriver =
         new ContinuationDriverForTest(
@@ -406,7 +412,7 @@ public class ContinuationDriverTest {
   public void testShowsSpinnerAfterClick() {
     continuationDriver.bind(continuationViewHolder);
 
-    continuationDriver.onClick(/* v= */ null);
+    continuationDriver.onClick(view);
 
     continuationDriver.unbind();
 
@@ -447,7 +453,7 @@ public class ContinuationDriverTest {
   @Test
   public void testOnClick() {
     continuationDriver.bind(continuationViewHolder);
-    continuationDriver.onClick(/* v= */ null);
+    continuationDriver.onClick(view);
 
     verify(continuationViewHolder).setShowSpinner(true);
     verify(modelProvider).handleToken(modelToken);
@@ -525,7 +531,9 @@ public class ContinuationDriverTest {
 
   @Test
   public void testOnTokenCompleted_checksMainThread() {
-    continuationDriver.onTokenCompleted(new TokenCompleted(FakeModelCursor.newBuilder().build()));
+    continuationDriver.bind(continuationViewHolder);
+
+    clickWithTokenCompleted(EMPTY_TOKEN_COMPLETED);
 
     verify(threadUtils).checkMainThread();
   }
@@ -534,7 +542,7 @@ public class ContinuationDriverTest {
   public void testOnTokenCompleted_afterDestroy() {
     continuationDriver.onDestroy();
 
-    continuationDriver.onTokenCompleted(new TokenCompleted(FakeModelCursor.newBuilder().build()));
+    continuationDriver.onTokenCompleted(EMPTY_TOKEN_COMPLETED);
 
     verify(cursorChangedListener, never())
         .onNewChildren(
@@ -555,9 +563,8 @@ public class ContinuationDriverTest {
   @Test
   public void testOnTokenCompleted_createsSnackbar_whenCursorReturnsEmptyPage() {
     continuationDriver.bind(continuationViewHolder);
-    continuationDriver.onClick(/* v= */ null);
 
-    continuationDriver.onTokenCompleted(new TokenCompleted(FakeModelCursor.newBuilder().build()));
+    clickWithTokenCompleted(EMPTY_TOKEN_COMPLETED);
 
     verify(snackbarApi).show(context.getString(R.string.snackbar_fetch_no_new_suggestions));
     verify(cursorChangedListener)
@@ -567,10 +574,9 @@ public class ContinuationDriverTest {
   @Test
   public void testOnTokenCompleted_createsSnackbar_whenCursorJustReturnsToken() {
     continuationDriver.bind(continuationViewHolder);
-    continuationDriver.onClick(/* v= */ null);
 
     FakeModelCursor cursor = FakeModelCursor.newBuilder().addToken().build();
-    continuationDriver.onTokenCompleted(new TokenCompleted(cursor));
+    clickWithTokenCompleted(new TokenCompleted(cursor));
 
     verify(snackbarApi).show(context.getString(R.string.snackbar_fetch_no_new_suggestions));
     verify(cursorChangedListener)
@@ -591,7 +597,7 @@ public class ContinuationDriverTest {
   public void testOnError() {
     continuationDriver.bind(continuationViewHolder);
 
-    continuationDriver.onError(new ModelError(ErrorType.PAGINATION_ERROR, null));
+    clickWithError();
 
     verify(continuationViewHolder).setShowSpinner(false);
     verify(snackbarApi).show(context.getString(R.string.snackbar_fetch_failed));
@@ -647,7 +653,7 @@ public class ContinuationDriverTest {
 
     continuationDriver.bind(continuationViewHolder);
 
-    verify(spinnerLogger).spinnerStarted(SpinnerType.SYNTHETIC_TOKEN);
+    assertThat(spinnerLogger.getSpinnerType()).isEqualTo(SpinnerType.SYNTHETIC_TOKEN);
   }
 
   @Test
@@ -669,16 +675,16 @@ public class ContinuationDriverTest {
 
     continuationDriver.bind(continuationViewHolder);
 
-    verify(spinnerLogger).spinnerStarted(SpinnerType.INFINITE_FEED);
+    assertThat(spinnerLogger.getSpinnerType()).isEqualTo(SpinnerType.INFINITE_FEED);
   }
 
   @Test
   public void testOnClick_logsSpinnerStarted() {
     continuationDriver.bind(continuationViewHolder);
 
-    continuationDriver.onClick(/* v= */ null);
+    continuationDriver.onClick(view);
 
-    verify(spinnerLogger).spinnerStarted(SpinnerType.MORE_BUTTON);
+    assertThat(spinnerLogger.getSpinnerType()).isEqualTo(SpinnerType.MORE_BUTTON);
   }
 
   @Test
@@ -686,7 +692,7 @@ public class ContinuationDriverTest {
     when(modelProvider.handleToken(any(ModelToken.class))).thenReturn(false);
     continuationDriver.bind(continuationViewHolder);
 
-    continuationDriver.onClick(/* v= */ null);
+    continuationDriver.onClick(view);
 
     verify(basicLoggingApi).onInternalError(InternalFeedError.UNHANDLED_TOKEN);
     verify(continuationViewHolder).setShowSpinner(false);
@@ -697,16 +703,17 @@ public class ContinuationDriverTest {
   public void testOnError_logsSpinnerFinished() {
     continuationDriver.bind(continuationViewHolder);
 
-    continuationDriver.onError(new ModelError(ErrorType.PAGINATION_ERROR, null));
+    clickWithError();
 
-    verify(spinnerLogger).spinnerFinished();
+    verify(basicLoggingApi)
+        .onSpinnerFinished(/* timeShownMs= */ anyInt(), /* spinnerType= */ anyInt());
   }
 
   @Test
   public void testOnError_logsTokenError() {
     continuationDriver.bind(continuationViewHolder);
 
-    continuationDriver.onError(new ModelError(ErrorType.PAGINATION_ERROR, null));
+    clickWithError();
 
     verify(basicLoggingApi).onTokenFailedToComplete(/* wasSynthetic= */ false, /*failureCount=*/ 1);
   }
@@ -715,9 +722,9 @@ public class ContinuationDriverTest {
   public void testOnError_logsTokenError_incrementsFailureCount() {
     continuationDriver.bind(continuationViewHolder);
 
-    continuationDriver.onError(new ModelError(ErrorType.PAGINATION_ERROR, null));
-    continuationDriver.onError(new ModelError(ErrorType.PAGINATION_ERROR, null));
-    continuationDriver.onError(new ModelError(ErrorType.PAGINATION_ERROR, null));
+    clickWithError();
+    clickWithError();
+    clickWithError();
 
     InOrder inOrder = Mockito.inOrder(basicLoggingApi);
     inOrder.verify(basicLoggingApi).onTokenFailedToComplete(/* wasSynthetic= */ false, 1);
@@ -731,7 +738,7 @@ public class ContinuationDriverTest {
 
     continuationDriver.bind(continuationViewHolder);
 
-    continuationDriver.onError(new ModelError(ErrorType.PAGINATION_ERROR, null));
+    clickWithError();
 
     verify(basicLoggingApi)
         .onTokenFailedToComplete(/* wasSynthetic= */ true, /* failureCount= */ 1);
@@ -739,12 +746,14 @@ public class ContinuationDriverTest {
 
   @Test
   public void testOnDestroy_logsSpinnerFinished_ifSpinnerActive() {
-    when(spinnerLogger.isSpinnerActive()).thenReturn(true);
     continuationDriver.bind(continuationViewHolder);
 
+    continuationDriver.onClick(view);
     continuationDriver.onDestroy();
 
-    verify(spinnerLogger).spinnerDestroyedWithoutCompleting();
+    verify(basicLoggingApi)
+        .onSpinnerDestroyedWithoutCompleting(
+            /* timeShownMs= */ anyInt(), /* spinnerType= */ anyInt());
   }
 
   @Test
@@ -754,7 +763,9 @@ public class ContinuationDriverTest {
 
     continuationDriver.onDestroy();
 
-    verify(spinnerLogger, never()).spinnerDestroyedWithoutCompleting();
+    verify(basicLoggingApi, never())
+        .onSpinnerDestroyedWithoutCompleting(
+            /* timeShownMs= */ anyInt(), /* spinnerType= */ anyInt());
   }
 
   @Test
@@ -778,6 +789,16 @@ public class ContinuationDriverTest {
     verify(continuationViewHolder, never()).unbind();
     verify(continuationViewHolder, never())
         .bind(any(OnClickListener.class), any(LoggingListener.class), anyBoolean());
+  }
+
+  private void clickWithError() {
+    continuationDriver.onClick(view);
+    continuationDriver.onError(new ModelError(ErrorType.PAGINATION_ERROR, null));
+  }
+
+  private void clickWithTokenCompleted(TokenCompleted tokenCompleted) {
+    continuationDriver.onClick(view);
+    continuationDriver.onTokenCompleted(tokenCompleted);
   }
 
   private final class ContinuationDriverForTest extends ContinuationDriver {
