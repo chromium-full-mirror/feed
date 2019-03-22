@@ -58,7 +58,6 @@ import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
-import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
@@ -66,9 +65,7 @@ import com.google.search.now.wire.feed.OpaqueActionDataForTestProto.OpaqueAction
 import com.google.search.now.wire.feed.OpaqueActionDataProto.OpaqueActionData;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -91,7 +88,6 @@ public class SessionManagerMutationTest {
   private final ContentStorageDirect contentStorage = new InMemoryContentStorage();
   private final TimingUtils timingUtils = new TimingUtils();
   private final Configuration configuration = new Configuration.Builder().build();
-  private final Map<String, StreamSharedState> sharedStateCache = new HashMap<>();
   private final ContentIdGenerators idGenerators = new ContentIdGenerators();
 
   private final String rootContentId = idGenerators.createRootContentId(0);
@@ -107,7 +103,6 @@ public class SessionManagerMutationTest {
   public void setUp() {
     initMocks(this);
     storeSpy = null;
-    sharedStateCache.clear();
     notifySession = null;
     taskQueue =
         new TaskQueue(
@@ -260,36 +255,34 @@ public class SessionManagerMutationTest {
 
   @Test
   public void testValidDataOperation() {
-    MutationCommitter mutationCommitter = getMutationCommitter(EMPTY_CONTEXT);
-
     StreamDataOperation operation = StreamDataOperation.getDefaultInstance();
-    assertThat(mutationCommitter.validDataOperation(operation)).isFalse();
+    assertThat(SessionManagerMutation.validDataOperation(operation)).isFalse();
 
     operation =
         StreamDataOperation.newBuilder()
             .setStreamPayload(StreamPayload.getDefaultInstance())
             .build();
-    assertThat(mutationCommitter.validDataOperation(operation)).isFalse();
+    assertThat(SessionManagerMutation.validDataOperation(operation)).isFalse();
 
     operation =
         StreamDataOperation.newBuilder()
             .setStreamStructure(StreamStructure.getDefaultInstance())
             .build();
-    assertThat(mutationCommitter.validDataOperation(operation)).isFalse();
+    assertThat(SessionManagerMutation.validDataOperation(operation)).isFalse();
 
     operation =
         StreamDataOperation.newBuilder()
             .setStreamPayload(StreamPayload.getDefaultInstance())
             .setStreamStructure(StreamStructure.getDefaultInstance())
             .build();
-    assertThat(mutationCommitter.validDataOperation(operation)).isFalse();
+    assertThat(SessionManagerMutation.validDataOperation(operation)).isFalse();
 
     operation =
         StreamDataOperation.newBuilder()
             .setStreamPayload(StreamPayload.getDefaultInstance())
             .setStreamStructure(StreamStructure.newBuilder().setContentId("content").build())
             .build();
-    assertThat(mutationCommitter.validDataOperation(operation)).isTrue();
+    assertThat(SessionManagerMutation.validDataOperation(operation)).isTrue();
   }
 
   @Test
@@ -364,11 +357,7 @@ public class SessionManagerMutationTest {
             clock);
     return (MutationCommitter)
         mutation.createCommitter(
-            "task",
-            mutationContext,
-            this::notifySessionError,
-            sharedStateCache,
-            knownContentListener);
+            "task", mutationContext, this::notifySessionError, knownContentListener);
   }
 
   private List<String> getContentIds(int count) {

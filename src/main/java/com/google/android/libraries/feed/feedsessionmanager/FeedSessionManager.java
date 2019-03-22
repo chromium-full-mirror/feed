@@ -69,6 +69,7 @@ import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
+import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
 import com.google.search.now.feed.client.StreamDataProto.UiContext;
@@ -680,12 +681,14 @@ public final class FeedSessionManager
     @Override
     public void accept(Result<List<StreamDataOperation>> input) {
       if (outstandingMutations.remove(this)) {
+        if (input.isSuccessful()) {
+          updateSharedStateCache(input.getValue());
+        }
         sessionManagerMutation
             .createCommitter(
                 taskName,
                 mutationContext,
                 FeedSessionManager.this::modelErrorObserver,
-                sharedStateCache,
                 knownContentListener)
             .accept(input);
       } else {
@@ -855,5 +858,19 @@ public final class FeedSessionManager
             .commit();
       }
     };
+  }
+
+  private void updateSharedStateCache(List<StreamDataOperation> updates) {
+    for (StreamDataOperation dataOperation : updates) {
+      Operation operation = dataOperation.getStreamStructure().getOperation();
+      if ((operation == Operation.UPDATE_OR_APPEND)
+          && SessionManagerMutation.validDataOperation(dataOperation)) {
+        String contentId = dataOperation.getStreamStructure().getContentId();
+        StreamPayload payload = dataOperation.getStreamPayload();
+        if (payload.hasStreamSharedState()) {
+          sharedStateCache.put(contentId, payload.getStreamSharedState());
+        }
+      }
+    }
   }
 }

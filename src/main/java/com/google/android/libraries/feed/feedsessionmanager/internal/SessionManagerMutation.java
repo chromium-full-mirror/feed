@@ -43,14 +43,12 @@ import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.search.now.feed.client.StreamDataProto;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
-import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Class which implements factory to create the task which commits a mutation to the SessionManager
@@ -110,11 +108,9 @@ public final class SessionManagerMutation implements Dumpable {
       String task,
       MutationContext mutationContext,
       ModelErrorObserver modelErrorObserver,
-      Map<String, StreamSharedState> sharedStateCache,
       /*@Nullable*/ KnownContentListener knownContentListener) {
     createCount++;
-    return new MutationCommitter(
-        task, mutationContext, modelErrorObserver, sharedStateCache, knownContentListener);
+    return new MutationCommitter(task, mutationContext, modelErrorObserver, knownContentListener);
   }
 
   public void resetHead() {
@@ -142,6 +138,19 @@ public final class SessionManagerMutation implements Dumpable {
         .forKey("actionPropertiesCommitErrorCount")
         .value(actionPropertiesCommitErrorCount)
         .compactPrevious();
+  }
+
+  public static boolean validDataOperation(StreamDataOperation dataOperation) {
+    if (!dataOperation.hasStreamPayload() || !dataOperation.hasStreamStructure()) {
+      Logger.e(TAG, "Invalid StreamDataOperation - payload or streamStructure not defined");
+      return false;
+    }
+    String contentId = dataOperation.getStreamStructure().getContentId();
+    if (TextUtils.isEmpty(contentId)) {
+      Logger.e(TAG, "Invalid StreamDataOperation - No ID Found");
+      return false;
+    }
+    return true;
   }
 
   // TODO: Tiktok doesn't allow MutationCommitter to extend HeadMutationCommitter
@@ -209,7 +218,6 @@ public final class SessionManagerMutation implements Dumpable {
     private final String task;
     private final MutationContext mutationContext;
     private final ModelErrorObserver modelErrorObserver;
-    private final Map<String, StreamSharedState> sharedStateCache;
     /*@Nullable*/ private final KnownContentListener knownContentListener;
 
     private final List<StreamStructure> streamStructures = new ArrayList<>();
@@ -221,12 +229,10 @@ public final class SessionManagerMutation implements Dumpable {
         String task,
         MutationContext mutationContext,
         ModelErrorObserver modelErrorObserver,
-        Map<String, StreamSharedState> sharedStateCache,
         /*@Nullable*/ KnownContentListener knownContentListener) {
       this.task = task;
       this.mutationContext = mutationContext;
       this.modelErrorObserver = modelErrorObserver;
-      this.sharedStateCache = sharedStateCache;
       this.knownContentListener = knownContentListener;
     }
 
@@ -313,17 +319,16 @@ public final class SessionManagerMutation implements Dumpable {
 
         if (operation == Operation.UPDATE_OR_APPEND) {
           if (!validDataOperation(dataOperation)) {
+            errorCount++;
             continue;
           }
           String contentId = dataOperation.getStreamStructure().getContentId();
           StreamPayload payload = dataOperation.getStreamPayload();
-          contentCache.put(contentId, payload);
           if (payload.hasStreamSharedState()) {
             // don't add StreamSharedState to the metadata list stored for sessions
             contentMutation.add(contentId, payload);
-            sharedStateCache.put(
-                dataOperation.getStreamStructure().getContentId(), payload.getStreamSharedState());
           } else if (payload.hasStreamFeature() || payload.hasStreamToken()) {
+            contentCache.put(contentId, payload);
             contentMutation.add(contentId, payload);
             streamStructures.add(dataOperation.getStreamStructure());
           } else if (dataOperation.getStreamPayload().hasSemanticData()) {
@@ -414,22 +419,6 @@ public final class SessionManagerMutation implements Dumpable {
         session.updateSession(clearedHead, streamStructures, mutationContext);
       }
       timeTracker.stop("", "sessionUpdate", "sessions", updates.size());
-    }
-
-    @VisibleForTesting
-    boolean validDataOperation(StreamDataOperation dataOperation) {
-      if (!dataOperation.hasStreamPayload() || !dataOperation.hasStreamStructure()) {
-        Logger.e(TAG, "Invalid StreamDataOperation - payload or streamStructure not defined");
-        errorCount++;
-        return false;
-      }
-      String contentId = dataOperation.getStreamStructure().getContentId();
-      if (TextUtils.isEmpty(contentId)) {
-        Logger.e(TAG, "Invalid StreamDataOperation - No ID Found");
-        errorCount++;
-        return false;
-      }
-      return true;
     }
 
     /*@Nullable*/
