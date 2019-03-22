@@ -15,15 +15,12 @@
 package com.google.android.libraries.feed.feedrequestmanager;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.os.Build;
 import android.os.Build.VERSION_CODES;
 import android.util.Base64;
-import com.google.android.libraries.feed.api.store.Store;
-import com.google.android.libraries.feed.api.store.UploadableActionMutation;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeTaskQueue;
@@ -39,6 +36,7 @@ import com.google.android.libraries.feed.host.network.HttpResponse;
 import com.google.android.libraries.feed.testing.actionmanager.FakeActionReader;
 import com.google.android.libraries.feed.testing.network.FakeNetworkClient;
 import com.google.android.libraries.feed.testing.protocoladapter.FakeProtocolAdapter;
+import com.google.android.libraries.feed.testing.store.FakeStore;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.CodedOutputStream;
@@ -91,8 +89,6 @@ public class FeedActionUploadRequestManagerTest {
           .build();
 
   @Mock private Clock clock;
-  @Mock private Store store;
-  @Mock private UploadableActionMutation actionMutation;
 
   private ExtensionRegistryLite registry;
   private FeedActionUploadRequestManager requestManager;
@@ -102,6 +98,7 @@ public class FeedActionUploadRequestManagerTest {
   private FakeNetworkClient fakeNetworkClient;
   private FakeTaskQueue fakeTaskQueue;
   private FakeThreadUtils fakeThreadUtils;
+  private FakeStore fakeStore;
   private RequiredConsumer<Result<ConsistencyToken>> consumer;
   private final Configuration configuration = new Configuration.Builder().build();
 
@@ -117,12 +114,12 @@ public class FeedActionUploadRequestManagerTest {
     fakeNetworkClient = new FakeNetworkClient(fakeThreadUtils);
     fakeTaskQueue = new FakeTaskQueue(MoreExecutors.directExecutor(), clock, fakeThreadUtils);
     fakeProtocolAdapter = new FakeProtocolAdapter();
+    fakeStore = new FakeStore(fakeThreadUtils, fakeTaskQueue, clock);
     consumer =
         new RequiredConsumer<>(
             input -> {
               fakeThreadUtils.checkNotMainThread();
             });
-    when(store.editUploadableActions()).thenReturn(actionMutation);
 
     ReflectionHelpers.setStaticField(Build.VERSION.class, "SDK_INT", VERSION_CODES.KITKAT);
     ReflectionHelpers.setStaticField(Build.VERSION.class, "RELEASE", "4.4.3");
@@ -149,14 +146,15 @@ public class FeedActionUploadRequestManagerTest {
             .setFeatureContentId(CONTENT_ID)
             .build();
     fakeActionReader.addActionProperties(CONTENT_ID, createOpaqueActionData(CONTENT_ID));
+    fakeStore.setStreamUploadableActions(action);
     when(clock.currentTimeMillis()).thenReturn(5000L);
     fakeNetworkClient.addResponse(
         createHttpResponse(/* responseCode= */ 200, Response.getDefaultInstance()));
     requestManager.triggerUploadActions(
         setOf(action), ConsistencyToken.getDefaultInstance(), consumer);
 
-    verify(actionMutation).remove(action, CONTENT_ID);
     assertThat(consumer.isCalled()).isTrue();
+    assertThat(fakeStore.getContentById(CONTENT_ID)).isEmpty();
   }
 
   @Test
@@ -179,14 +177,8 @@ public class FeedActionUploadRequestManagerTest {
     requestManager.triggerUploadActions(
         setOf(action), ConsistencyToken.getDefaultInstance(), consumer);
 
-    verify(actionMutation)
-        .remove(
-            StreamUploadableAction.newBuilder()
-                .setFeatureContentId(CONTENT_ID)
-                .setUploadAttempts(2)
-                .build(),
-            CONTENT_ID);
     assertThat(consumer.isCalled()).isTrue();
+    assertThat(fakeStore.getContentById(CONTENT_ID)).isEmpty();
   }
 
   @Test
@@ -346,15 +338,13 @@ public class FeedActionUploadRequestManagerTest {
             .setActions(actionSet)
             .build();
     assertThat(request.toByteArray()).isEqualTo(expectedRequest.toByteArray());
-
-    verify(actionMutation)
-        .upsert(
+    assertThat(consumer.isCalled()).isTrue();
+    assertThat(fakeStore.getContentById(CONTENT_ID))
+        .contains(
             StreamUploadableAction.newBuilder()
                 .setFeatureContentId(CONTENT_ID)
                 .setUploadAttempts(1)
-                .build(),
-            CONTENT_ID);
-    assertThat(consumer.isCalled()).isTrue();
+                .build());
   }
 
   @Test
@@ -422,7 +412,7 @@ public class FeedActionUploadRequestManagerTest {
         fakeTaskQueue,
         fakeThreadUtils,
         fakeActionReader,
-        store,
+        fakeStore,
         clock,
         fakeMainThreadRunner);
   }

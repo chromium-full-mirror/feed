@@ -17,17 +17,14 @@ package com.google.android.libraries.feed.feedsessionmanager;
 import static com.google.android.libraries.feed.api.store.Store.HEAD_SESSION_ID;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.google.android.libraries.feed.api.common.ActionPropertiesWithId;
 import com.google.android.libraries.feed.api.common.MutationContext;
+import com.google.android.libraries.feed.api.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.common.testing.InternalProtocolBuilder;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
@@ -38,16 +35,11 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
-import com.google.android.libraries.feed.api.store.ActionPropertiesMutation;
-import com.google.android.libraries.feed.api.store.ContentMutation;
-import com.google.android.libraries.feed.api.store.SemanticPropertiesMutation;
-import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeTaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.functional.Consumer;
-import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedapplifecyclelistener.FeedAppLifecycleListener;
@@ -57,19 +49,14 @@ import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManager.S
 import com.google.android.libraries.feed.feedsessionmanager.internal.HeadSessionImpl;
 import com.google.android.libraries.feed.feedsessionmanager.internal.Session;
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionCache;
-import com.google.android.libraries.feed.feedstore.FeedStore;
-import com.google.android.libraries.feed.feedstore.testing.DelegatingStore;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
-import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi.RequestBehavior;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi.SessionManagerState;
-import com.google.android.libraries.feed.host.storage.CommitResult;
-import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
-import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
 import com.google.android.libraries.feed.testing.requestmanager.FakeActionUploadRequestManager;
+import com.google.android.libraries.feed.testing.store.FakeStore;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
@@ -87,6 +74,7 @@ import com.google.search.now.wire.feed.OpaqueActionDataProto.OpaqueActionData;
 import com.google.search.now.wire.feed.PietSharedStateItemProto.PietSharedStateItem;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -94,7 +82,6 @@ import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.AdditionalMatchers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
@@ -121,19 +108,17 @@ public class FeedSessionManagerTest {
   private FakeMainThreadRunner fakeMainThreadRunner;
   private FakeTaskQueue fakeTaskQueue;
   private FakeThreadUtils fakeThreadUtils;
-  @Mock private BasicLoggingApi basicLoggingApi;
+  private FakeStore fakeStore;
   @Mock private ProtocolAdapter protocolAdapter;
   @Mock private RequestManager requestManager;
   @Mock private SchedulerApi schedulerApi;
   @Mock private ModelProvider modelProvider;
   @Mock private ModelMutation modelMutation;
-  @Mock private Store store;
   @Mock private Clock clock;
   @Captor private ArgumentCaptor<Consumer<Result<List<StreamDataOperation>>>> resultCapture;
 
   private final ContentIdGenerators contentIdGenerators = new ContentIdGenerators();
   private final TimingUtils timingUtils = new TimingUtils();
-  private final FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(ArrayList::new);
   private final Configuration configuration =
       new Configuration.Builder().put(ConfigKey.UNDOABLE_ACTIONS_ENABLED, true).build();
 
@@ -146,13 +131,8 @@ public class FeedSessionManagerTest {
     fakeTaskQueue = new FakeTaskQueue(MoreExecutors.directExecutor(), clock, fakeThreadUtils);
     appLifecycleListener = new FeedAppLifecycleListener(fakeThreadUtils);
     fakeActionUploadRequestManager = new FakeActionUploadRequestManager(fakeThreadUtils);
+    fakeStore = new FakeStore(fakeThreadUtils, fakeTaskQueue, clock);
     when(modelProvider.edit()).thenReturn(modelMutation);
-    when(store.triggerContentGc(anyObject(), anyObject())).thenReturn(() -> {});
-    when(store.getSharedStates()).thenReturn(Result.success(new ArrayList<>()));
-    when(store.getStreamStructures(anyString())).thenReturn(Result.success(new ArrayList<>()));
-    when(store.getPayloads(any())).thenReturn(Result.success(new ArrayList<>()));
-    when(store.getAllSessions()).thenReturn(Result.success(new ArrayList<>()));
-    when(store.getAllUploadableActions()).thenReturn(Result.success(new HashSet<>()));
     when(schedulerApi.shouldSessionRequestData(any(SessionManagerState.class)))
         .thenReturn(RequestBehavior.NO_REQUEST_WITH_CONTENT);
   }
@@ -164,27 +144,17 @@ public class FeedSessionManagerTest {
             .setContentId(idGenerators.createFeatureContentId(0))
             .setPietSharedStateItem(PietSharedStateItem.getDefaultInstance())
             .build();
-    List<StreamSharedState> sharedStates = new ArrayList<>();
-    sharedStates.add(sharedState);
-    when(store.getSharedStates()).thenReturn(Result.success(sharedStates));
-
-    List<StreamStructure> streamStructures = new ArrayList<>();
     StreamStructure operation =
         StreamStructure.newBuilder()
             .setContentId(idGenerators.createFeatureContentId(0))
             .setOperation(StreamStructure.Operation.UPDATE_OR_APPEND)
             .build();
-    streamStructures.add(operation);
-    com.google.android.libraries.feed.api.store.SessionMutation sessionMutation =
-        mock(com.google.android.libraries.feed.api.store.SessionMutation.class);
-    when(store.getStreamStructures(anyString())).thenReturn(Result.success(streamStructures));
-    when(store.editSession(HEAD_SESSION_ID)).thenReturn(sessionMutation);
-    when(sessionMutation.commit()).thenReturn(true);
+    fakeStore.setSharedStates(sharedState).setStreamStructures(HEAD_SESSION_ID, operation);
 
     FeedSessionManager sessionManager =
         new FeedSessionManagerFactory(
                 fakeTaskQueue,
-                store,
+                fakeStore,
                 timingUtils,
                 fakeThreadUtils,
                 protocolAdapter,
@@ -200,7 +170,7 @@ public class FeedSessionManagerTest {
     assertThat(sessionManager.initialized.get()).isTrue();
 
     Map<String, StreamSharedState> sharedStateCache = sessionManager.getSharedStateCacheForTest();
-    assertThat(sharedStateCache).hasSize(sharedStates.size());
+    assertThat(sharedStateCache).hasSize(1);
 
     SessionCache sessionCache = sessionManager.getSessionCacheForTest();
     Session head = sessionCache.getHead();
@@ -208,7 +178,7 @@ public class FeedSessionManagerTest {
     String itemKey = idGenerators.createFeatureContentId(0);
     Set<String> content = head.getContentInSession();
     assertThat(content).contains(itemKey);
-    assertThat(content).hasSize(streamStructures.size());
+    assertThat(content).hasSize(1);
   }
 
   @Test
@@ -216,7 +186,7 @@ public class FeedSessionManagerTest {
     FeedSessionManager sessionManager =
         new FeedSessionManagerFactory(
                 fakeTaskQueue,
-                store,
+                fakeStore,
                 timingUtils,
                 fakeThreadUtils,
                 protocolAdapter,
@@ -456,23 +426,10 @@ public class FeedSessionManagerTest {
 
   @Test
   public void testEdit_actionProperties() {
-    com.google.android.libraries.feed.api.store.SessionMutation session =
-        mock(com.google.android.libraries.feed.api.store.SessionMutation.class);
-    when(store.editSession(anyString())).thenReturn(session);
-    ContentMutation content = mock(ContentMutation.class);
-    when(content.commit()).thenReturn(CommitResult.SUCCESS);
-    when(store.editContent()).thenReturn(content);
-    SemanticPropertiesMutation semanticPropertiesMutation = mock(SemanticPropertiesMutation.class);
-    when(semanticPropertiesMutation.commit()).thenReturn(CommitResult.SUCCESS);
-    when(store.editSemanticProperties()).thenReturn(semanticPropertiesMutation);
-    ActionPropertiesMutation actionPropertiesMutation = mock(ActionPropertiesMutation.class);
-    when(actionPropertiesMutation.commit()).thenReturn(CommitResult.SUCCESS);
-    when(store.editActionProperties()).thenReturn(actionPropertiesMutation);
-
     FeedSessionManager sessionManager =
         new FeedSessionManagerFactory(
                 fakeTaskQueue,
-                store,
+                fakeStore,
                 timingUtils,
                 fakeThreadUtils,
                 protocolAdapter,
@@ -502,34 +459,19 @@ public class FeedSessionManagerTest {
 
     Consumer<Result<List<StreamDataOperation>>> updateConsumer =
         sessionManager.getUpdateConsumer(EMPTY_MUTATION);
-    List<StreamDataOperation> operations = new ArrayList<>();
-    operations.add(streamDataOperation);
-    Result<List<StreamDataOperation>> result = Result.success(operations);
+    Result<List<StreamDataOperation>> result = Result.success(listOf(streamDataOperation));
     updateConsumer.accept(result);
 
-    verify(actionPropertiesMutation).add(rootContentId, actionData);
-    verify(actionPropertiesMutation).commit();
+    assertThat(fakeStore.getContentById(rootContentId))
+        .contains(new ActionPropertiesWithId(rootContentId, actionData));
   }
 
   @Test
   public void testEdit_semanticProperties() {
-    com.google.android.libraries.feed.api.store.SessionMutation session =
-        mock(com.google.android.libraries.feed.api.store.SessionMutation.class);
-    when(store.editSession(anyString())).thenReturn(session);
-    ContentMutation content = mock(ContentMutation.class);
-    when(content.commit()).thenReturn(CommitResult.SUCCESS);
-    when(store.editContent()).thenReturn(content);
-    ActionPropertiesMutation actionPropertiesMutation = mock(ActionPropertiesMutation.class);
-    when(actionPropertiesMutation.commit()).thenReturn(CommitResult.SUCCESS);
-    when(store.editActionProperties()).thenReturn(actionPropertiesMutation);
-    SemanticPropertiesMutation semanticPropertiesMutation = mock(SemanticPropertiesMutation.class);
-    when(semanticPropertiesMutation.commit()).thenReturn(CommitResult.SUCCESS);
-    when(store.editSemanticProperties()).thenReturn(semanticPropertiesMutation);
-
     FeedSessionManager sessionManager =
         new FeedSessionManagerFactory(
                 fakeTaskQueue,
-                store,
+                fakeStore,
                 timingUtils,
                 fakeThreadUtils,
                 protocolAdapter,
@@ -554,21 +496,19 @@ public class FeedSessionManagerTest {
 
     Consumer<Result<List<StreamDataOperation>>> updateConsumer =
         sessionManager.getUpdateConsumer(EMPTY_MUTATION);
-    List<StreamDataOperation> operations = new ArrayList<>();
-    operations.add(streamDataOperation);
-    Result<List<StreamDataOperation>> result = Result.success(operations);
+    Result<List<StreamDataOperation>> result = Result.success(listOf(streamDataOperation));
     updateConsumer.accept(result);
 
-    verify(semanticPropertiesMutation).add(rootContentId, semanticData);
-    verify(semanticPropertiesMutation).commit();
+    assertThat(fakeStore.getContentById(rootContentId))
+        .contains(new SemanticPropertiesWithId(rootContentId, semanticData.toByteArray()));
   }
 
   @Test
   public void testSwitchToEphemeralMode() {
-    Store store = mock(Store.class);
-    FeedSessionManager sessionManager = getUninitializedSessionManager(store);
+    FeedSessionManager sessionManager = getUninitializedSessionManager();
+    fakeThreadUtils.enforceMainThread(false);
     sessionManager.switchToEphemeralMode("An Error Message");
-    verify(store).switchToEphemeralMode();
+    assertThat(fakeStore.isEphemeralMode()).isTrue();
   }
 
   @Test
@@ -602,47 +542,40 @@ public class FeedSessionManagerTest {
 
   @Test
   public void testErrors_initializationSharedStateError() {
-    Store store = mock(Store.class);
-    when(store.getSharedStates()).thenReturn(Result.failure());
-    FeedSessionManager spySessionManager = getUninitializedSessionManager(store);
-    spySessionManager.initialize();
-    verify(store).switchToEphemeralMode();
+    fakeStore.setAllowGetSharedStates(false);
+    FeedSessionManager sessionManager = getUninitializedSessionManager();
+    sessionManager.initialize();
+    assertThat(fakeStore.isEphemeralMode()).isTrue();
   }
 
   @Test
   public void testErrors_initializationStreamStructureError() {
-    Store store = mock(Store.class);
-    when(store.getSharedStates()).thenReturn(Result.success(new ArrayList<>()));
-    when(store.getStreamStructures(anyString())).thenReturn(Result.failure());
-    FeedSessionManager spySessionManager = getUninitializedSessionManager(store);
-    spySessionManager.initialize();
-    verify(store).switchToEphemeralMode();
+    fakeStore.setAllowGetStreamStructures(false);
+    FeedSessionManager sessionManager = getUninitializedSessionManager();
+    sessionManager.initialize();
+    assertThat(fakeStore.isEphemeralMode()).isTrue();
   }
 
   @Test
   public void testErrors_createNewSessionError() {
-    Store spyFeedStore = getSpyFeedStore();
-    doReturn(Result.failure()).when(spyFeedStore).createNewSession();
-    FeedSessionManager sessionManager = getUninitializedSessionManager(spyFeedStore);
+    fakeStore.setAllowCreateNewSession(false);
+    FeedSessionManager sessionManager = getUninitializedSessionManager();
     sessionManager.initialize();
     populateSession(sessionManager, 5, 1, true, null);
 
     ModelProvider unused = getModelProvider(sessionManager);
-    verify(spyFeedStore).switchToEphemeralMode();
+    assertThat(fakeStore.isEphemeralMode()).isTrue();
   }
 
   @Test
   public void testErrors_getStreamStructuresError() {
-    Store spyFeedStore = getSpyFeedStore();
-    doReturn(Result.failure())
-        .when(spyFeedStore)
-        .getStreamStructures(AdditionalMatchers.not(eq(HEAD_SESSION_ID)));
-    FeedSessionManager sessionManager = getUninitializedSessionManager(spyFeedStore);
+    FeedSessionManager sessionManager = getUninitializedSessionManager();
     sessionManager.initialize();
+    fakeStore.setAllowGetStreamStructures(false);
     populateSession(sessionManager, 5, 1, true, null);
 
     ModelProvider unused = getModelProvider(sessionManager);
-    verify(spyFeedStore).switchToEphemeralMode();
+    assertThat(fakeStore.isEphemeralMode()).isTrue();
   }
 
   @Test
@@ -747,21 +680,10 @@ public class FeedSessionManagerTest {
   }
 
   private FeedSessionManager getInitializedSessionManager(Configuration config) {
-    FeedStore store =
-        new FeedStore(
-            timingUtils,
-            extensionRegistry,
-            new InMemoryContentStorage(),
-            new InMemoryJournalStorage(),
-            fakeThreadUtils,
-            fakeTaskQueue,
-            clock,
-            basicLoggingApi,
-            FakeMainThreadRunner.runTasksImmediately());
     FeedSessionManager fsm =
         new FeedSessionManagerFactory(
                 fakeTaskQueue,
-                store,
+                fakeStore,
                 timingUtils,
                 fakeThreadUtils,
                 protocolAdapter,
@@ -776,25 +698,10 @@ public class FeedSessionManagerTest {
     return fsm;
   }
 
-  private Store getSpyFeedStore() {
-    return spy(
-        new DelegatingStore(
-            new FeedStore(
-                timingUtils,
-                extensionRegistry,
-                new InMemoryContentStorage(),
-                new InMemoryJournalStorage(),
-                fakeThreadUtils,
-                fakeTaskQueue,
-                clock,
-                basicLoggingApi,
-                FakeMainThreadRunner.runTasksImmediately())));
-  }
-
-  private FeedSessionManager getUninitializedSessionManager(Store feedStore) {
+  private FeedSessionManager getUninitializedSessionManager() {
     return new FeedSessionManagerFactory(
             fakeTaskQueue,
-            feedStore,
+            fakeStore,
             timingUtils,
             fakeThreadUtils,
             protocolAdapter,
@@ -805,5 +712,11 @@ public class FeedSessionManagerTest {
             clock,
             appLifecycleListener)
         .create();
+  }
+
+  private static <T> List<T> listOf(T... items) {
+    ArrayList<T> result = new ArrayList<>(items.length);
+    Collections.addAll(result, items);
+    return result;
   }
 }

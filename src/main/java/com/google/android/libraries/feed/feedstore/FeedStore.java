@@ -67,7 +67,7 @@ import java.util.Set;
  * independent of what delegate is actually running. The delegates currently throw a
  * IllegalStateException if the register/unregister methods are called.
  */
-public final class FeedStore extends FeedObservable<StoreListener>
+public class FeedStore extends FeedObservable<StoreListener>
     implements Store, Resettable, FeedLifecycleListener {
   private static final String TAG = "FeedStore";
 
