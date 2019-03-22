@@ -23,6 +23,7 @@ import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.SystemClockImpl;
@@ -41,6 +42,7 @@ import com.google.android.libraries.feed.host.storage.ContentStorageDirect;
 import com.google.android.libraries.feed.host.storage.JournalStorageDirect;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
+import com.google.android.libraries.feed.testing.requestmanager.FakeActionUploadRequestManager;
 import com.google.protobuf.GeneratedMessageLite.GeneratedExtension;
 import java.util.ArrayList;
 import java.util.List;
@@ -123,7 +125,7 @@ public class InfrastructureIntegrationScope {
             mainThreadRunner);
     feedProtocolAdapter = new FeedProtocolAdapter(timingUtils);
     fakeRequestManager = new FakeRequestManager(feedProtocolAdapter, requestDelayMs);
-    fakeActionUploadRequestManager = new FakeActionUploadRequestManager(requestDelayMs);
+    fakeActionUploadRequestManager = new FakeActionUploadRequestManager(new FakeThreadUtils());
     feedSessionManager =
         new FeedSessionManagerFactory(
                 taskQueue,
