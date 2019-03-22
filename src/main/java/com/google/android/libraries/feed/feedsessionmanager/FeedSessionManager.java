@@ -539,9 +539,10 @@ public final class FeedSessionManager
   }
 
   private ConsistencyToken handleUpdateConsistencyToken(Result<ConsistencyToken> result) {
+    threadUtils.checkNotMainThread();
+
     ConsistencyToken consistencyToken;
     if (result.isSuccessful()) {
-      threadUtils.checkNotMainThread();
       consistencyToken = result.getValue();
       store
           .editContent()
@@ -824,6 +825,8 @@ public final class FeedSessionManager
 
   @VisibleForTesting
   ConsistencyToken getConsistencyToken() {
+    threadUtils.checkNotMainThread();
+
     // don't bother with reading consistencytoken if we're not uploading actions.
     if (!uploadingActionsEnabled) {
       return ConsistencyToken.getDefaultInstance();

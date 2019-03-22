@@ -17,8 +17,6 @@ package com.google.android.libraries.feed.feedsessionmanager;
 import static com.google.android.libraries.feed.api.store.Store.HEAD_SESSION_ID;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -33,8 +31,6 @@ import com.google.android.libraries.feed.api.modelprovider.ModelError.ErrorType;
 import com.google.android.libraries.feed.api.modelprovider.ModelMutation;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
-import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
-import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeTaskQueue;
@@ -55,7 +51,9 @@ import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi.RequestBehavior;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi.SessionManagerState;
+import com.google.android.libraries.feed.testing.protocoladapter.FakeProtocolAdapter;
 import com.google.android.libraries.feed.testing.requestmanager.FakeActionUploadRequestManager;
+import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
 import com.google.android.libraries.feed.testing.store.FakeStore;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
@@ -72,6 +70,7 @@ import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.OpaqueActionDataForTestProto.OpaqueActionDataForTest;
 import com.google.search.now.wire.feed.OpaqueActionDataProto.OpaqueActionData;
 import com.google.search.now.wire.feed.PietSharedStateItemProto.PietSharedStateItem;
+import com.google.search.now.wire.feed.ResponseProto.Response;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -82,8 +81,6 @@ import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
 
@@ -106,16 +103,15 @@ public class FeedSessionManagerTest {
   private FeedAppLifecycleListener appLifecycleListener;
   private FakeActionUploadRequestManager fakeActionUploadRequestManager;
   private FakeMainThreadRunner fakeMainThreadRunner;
+  private FakeRequestManager fakeRequestManager;
+  private FakeProtocolAdapter fakeProtocolAdapter;
   private FakeTaskQueue fakeTaskQueue;
   private FakeThreadUtils fakeThreadUtils;
   private FakeStore fakeStore;
-  @Mock private ProtocolAdapter protocolAdapter;
-  @Mock private RequestManager requestManager;
   @Mock private SchedulerApi schedulerApi;
   @Mock private ModelProvider modelProvider;
   @Mock private ModelMutation modelMutation;
   @Mock private Clock clock;
-  @Captor private ArgumentCaptor<Consumer<Result<List<StreamDataOperation>>>> resultCapture;
 
   private final ContentIdGenerators contentIdGenerators = new ContentIdGenerators();
   private final TimingUtils timingUtils = new TimingUtils();
@@ -132,6 +128,10 @@ public class FeedSessionManagerTest {
     appLifecycleListener = new FeedAppLifecycleListener(fakeThreadUtils);
     fakeActionUploadRequestManager = new FakeActionUploadRequestManager(fakeThreadUtils);
     fakeStore = new FakeStore(fakeThreadUtils, fakeTaskQueue, clock);
+    fakeProtocolAdapter = new FakeProtocolAdapter();
+    fakeRequestManager =
+        new FakeRequestManager(fakeThreadUtils, fakeProtocolAdapter, /* requestDelayMs= */ 0);
+    fakeRequestManager.queueResponse(Response.getDefaultInstance());
     when(modelProvider.edit()).thenReturn(modelMutation);
     when(schedulerApi.shouldSessionRequestData(any(SessionManagerState.class)))
         .thenReturn(RequestBehavior.NO_REQUEST_WITH_CONTENT);
@@ -157,8 +157,8 @@ public class FeedSessionManagerTest {
                 fakeStore,
                 timingUtils,
                 fakeThreadUtils,
-                protocolAdapter,
-                requestManager,
+                fakeProtocolAdapter,
+                fakeRequestManager,
                 fakeActionUploadRequestManager,
                 schedulerApi,
                 configuration,
@@ -189,8 +189,8 @@ public class FeedSessionManagerTest {
                 fakeStore,
                 timingUtils,
                 fakeThreadUtils,
-                protocolAdapter,
-                requestManager,
+                fakeProtocolAdapter,
+                fakeRequestManager,
                 fakeActionUploadRequestManager,
                 schedulerApi,
                 configuration,
@@ -264,7 +264,7 @@ public class FeedSessionManagerTest {
     assertThat(modelProvider).isNotNull();
     assertThat(fakeTaskQueue.getImmediateTaskCount()).isEqualTo(1);
     assertThat(fakeTaskQueue.getBackgroundTaskCount()).isEqualTo(0);
-    assertThat(fakeTaskQueue.getUserFacingTaskCount()).isEqualTo(0);
+    assertThat(fakeTaskQueue.getUserFacingTaskCount()).isEqualTo(1);
     assertThat(fakeTaskQueue.isMakingRequest()).isTrue();
   }
 
@@ -282,7 +282,7 @@ public class FeedSessionManagerTest {
     assertThat(modelProvider).isNotNull();
     assertThat(fakeTaskQueue.getImmediateTaskCount()).isEqualTo(0);
     assertThat(fakeTaskQueue.getBackgroundTaskCount()).isEqualTo(0);
-    assertThat(fakeTaskQueue.getUserFacingTaskCount()).isEqualTo(1);
+    assertThat(fakeTaskQueue.getUserFacingTaskCount()).isEqualTo(2);
     assertThat(fakeTaskQueue.isMakingRequest()).isTrue();
   }
 
@@ -332,19 +332,16 @@ public class FeedSessionManagerTest {
     FeedSessionManager sessionManager = getInitializedSessionManager();
     sessionManager.handleToken(SESSION_ID, streamToken);
 
-    verify(requestManager)
-        .loadMore(eq(streamToken), any(ConsistencyToken.class), resultCapture.capture());
+    assertThat(fakeRequestManager.getLatestStreamToken()).isEqualTo(streamToken);
   }
 
   @Test
   public void testForceRefresh() {
     FeedSessionManager sessionManager = getInitializedSessionManager();
     sessionManager.triggerRefresh(
-        SESSION_ID, RequestReason.UNKNOWN, UiContext.getDefaultInstance());
+        SESSION_ID, RequestReason.ZERO_STATE, UiContext.getDefaultInstance());
 
-    verify(requestManager)
-        .triggerRefresh(
-            eq(RequestReason.UNKNOWN), any(ConsistencyToken.class), resultCapture.capture());
+    assertThat(fakeRequestManager.getLatestRequestReason()).isEqualTo(RequestReason.ZERO_STATE);
   }
 
   @Test
@@ -353,21 +350,13 @@ public class FeedSessionManagerTest {
     sessionManager.triggerRefresh(
         SESSION_ID, RequestReason.HOST_REQUESTED, UiContext.getDefaultInstance());
 
-    verify(requestManager)
-        .triggerRefresh(
-            eq(RequestReason.HOST_REQUESTED), any(ConsistencyToken.class), resultCapture.capture());
+    assertThat(fakeRequestManager.getLatestRequestReason()).isEqualTo(RequestReason.HOST_REQUESTED);
   }
 
   @Test
   public void testGetSharedState() {
     FeedSessionManager sessionManager = getInitializedSessionManager();
     String sharedStateId = idGenerators.createSharedStateContentId(0);
-
-    populateSession(sessionManager, 3, 1, true, sharedStateId);
-    when(protocolAdapter.getStreamContentId(SHARED_STATE_ID)).thenReturn(sharedStateId);
-    assertThat(sessionManager.getSharedState(SHARED_STATE_ID)).isNotNull();
-
-    // test the null condition
     ContentId undefinedSharedStateId =
         ContentId.newBuilder()
             .setContentDomain("shared-state")
@@ -376,8 +365,14 @@ public class FeedSessionManagerTest {
             .build();
     String undefinedStreamSharedStateId =
         idGenerators.createSharedStateContentId(undefinedSharedStateId.getId());
-    when(protocolAdapter.getStreamContentId(undefinedSharedStateId))
-        .thenReturn(undefinedStreamSharedStateId);
+    fakeProtocolAdapter
+        .addContentId(sharedStateId, SHARED_STATE_ID)
+        .addContentId(undefinedStreamSharedStateId, undefinedSharedStateId);
+
+    populateSession(sessionManager, 3, 1, true, sharedStateId);
+    assertThat(sessionManager.getSharedState(SHARED_STATE_ID)).isNotNull();
+
+    // test the null condition
     assertThat(sessionManager.getSharedState(undefinedSharedStateId)).isNull();
   }
 
@@ -432,8 +427,8 @@ public class FeedSessionManagerTest {
                 fakeStore,
                 timingUtils,
                 fakeThreadUtils,
-                protocolAdapter,
-                requestManager,
+                fakeProtocolAdapter,
+                fakeRequestManager,
                 fakeActionUploadRequestManager,
                 schedulerApi,
                 configuration,
@@ -474,8 +469,8 @@ public class FeedSessionManagerTest {
                 fakeStore,
                 timingUtils,
                 fakeThreadUtils,
-                protocolAdapter,
-                requestManager,
+                fakeProtocolAdapter,
+                fakeRequestManager,
                 fakeActionUploadRequestManager,
                 schedulerApi,
                 configuration,
@@ -686,8 +681,8 @@ public class FeedSessionManagerTest {
                 fakeStore,
                 timingUtils,
                 fakeThreadUtils,
-                protocolAdapter,
-                requestManager,
+                fakeProtocolAdapter,
+                fakeRequestManager,
                 fakeActionUploadRequestManager,
                 schedulerApi,
                 config,
@@ -704,8 +699,8 @@ public class FeedSessionManagerTest {
             fakeStore,
             timingUtils,
             fakeThreadUtils,
-            protocolAdapter,
-            requestManager,
+            fakeProtocolAdapter,
+            fakeRequestManager,
             fakeActionUploadRequestManager,
             schedulerApi,
             configuration,

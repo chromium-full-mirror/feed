@@ -39,6 +39,8 @@ public class FakeRequestManager implements RequestManager {
   private final ProtocolAdapter protocolAdapter;
   private final long requestDelayMs;
   private final Queue<Response> responses = new ArrayDeque<>();
+  /*@Nullable*/ private StreamToken latestStreamToken = null;
+  @RequestReason private int latestRequestReason = RequestReason.UNKNOWN;
 
   /*@Nullable*/
   private Supplier<Consumer<Result<List<StreamDataOperation>>>>
@@ -64,6 +66,7 @@ public class FakeRequestManager implements RequestManager {
       ConsistencyToken token,
       Consumer<Result<List<StreamDataOperation>>> consumer) {
     fakeThreadUtils.checkNotMainThread();
+    latestStreamToken = streamToken;
     Response response = responses.remove();
     Result<List<StreamDataOperation>> result = protocolAdapter.createModel(response);
 
@@ -84,6 +87,7 @@ public class FakeRequestManager implements RequestManager {
       @RequestReason int reason,
       ConsistencyToken token,
       Consumer<Result<List<StreamDataOperation>>> consumer) {
+    latestRequestReason = reason;
     Response response = responses.remove();
     Result<List<StreamDataOperation>> result = protocolAdapter.createModel(response);
 
@@ -118,4 +122,18 @@ public class FakeRequestManager implements RequestManager {
     this.defaultTriggerRefreshConsumerSupplier = consumerSupplier;
   }
 
+  /** Returns the latest {@link StreamToken} passed in to the {@link RequestManager}. */
+  /*@Nullable*/
+  public StreamToken getLatestStreamToken() {
+    return latestStreamToken;
+  }
+
+  /**
+   * Returns the latest {@link RequestReason} passed in to the {@link RequestManager}. Returns
+   * {@literal RequestReason.UNKNOWN} if the request manager has not been invoked.
+   */
+  @RequestReason
+  public int getLatestRequestReason() {
+    return latestRequestReason;
+  }
 }
