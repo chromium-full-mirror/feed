@@ -16,7 +16,6 @@ package com.google.android.libraries.feed.feedrequestmanager;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.extensions.proto.LiteProtoTruth.assertThat;
-import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -32,7 +31,6 @@ import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeTaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
-import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.locale.LocaleUtils;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.testing.FakeBasicLoggingApi;
@@ -47,8 +45,9 @@ import com.google.android.libraries.feed.host.network.HttpRequest;
 import com.google.android.libraries.feed.host.network.HttpRequest.HttpMethod;
 import com.google.android.libraries.feed.host.network.HttpResponse;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
-import com.google.android.libraries.feed.host.stream.TooltipSupportedApi;
+import com.google.android.libraries.feed.host.stream.TooltipInfo.FeatureName;
 import com.google.android.libraries.feed.testing.actionmanager.FakeActionReader;
+import com.google.android.libraries.feed.testing.host.stream.FakeTooltipSupportedApi;
 import com.google.android.libraries.feed.testing.network.FakeNetworkClient;
 import com.google.android.libraries.feed.testing.protocoladapter.FakeProtocolAdapter;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -89,8 +88,6 @@ import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mock;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
@@ -117,8 +114,6 @@ public class FeedRequestManagerTest {
   @Mock private SchedulerApi scheduler;
   @Mock private Clock clock;
   @Mock private ApplicationInfo applicationInfo;
-  @Mock private TooltipSupportedApi tooltipSupportedApi;
-  @Captor private ArgumentCaptor<Consumer<Boolean>> tooltipSupportedConsumerCapture;
 
   private Context context;
   private ExtensionRegistryLite registry;
@@ -130,10 +125,10 @@ public class FeedRequestManagerTest {
   private FakeTaskQueue fakeTaskQueue;
   private FakeBasicLoggingApi fakeBasicLoggingApi;
   private FakeNetworkClient fakeNetworkClient;
+  private FakeTooltipSupportedApi fakeTooltipSupportedApi;
   private RequiredConsumer<Result<List<StreamDataOperation>>> consumer;
   private Result<List<StreamDataOperation>> consumedResult = Result.failure();
   private HttpResponse failingResponse;
-  private boolean cardMenuTooltipWouldTrigger;
 
   @Before
   public void setUp() throws Exception {
@@ -154,6 +149,7 @@ public class FeedRequestManagerTest {
         createHttpResponse(/* responseCode= */ 200, Response.getDefaultInstance()));
     fakeTaskQueue = new FakeTaskQueue(MoreExecutors.directExecutor(), clock, fakeThreadUtils);
     fakeTaskQueue.initialize(() -> {});
+    fakeTooltipSupportedApi = new FakeTooltipSupportedApi(fakeThreadUtils);
     failingResponse =
         createHttpResponse(/* responseCode= */ NOT_FOUND, Response.getDefaultInstance());
     consumer =
@@ -184,14 +180,14 @@ public class FeedRequestManagerTest {
             applicationInfo,
             fakeMainThreadRunner,
             fakeBasicLoggingApi,
-            tooltipSupportedApi);
+            fakeTooltipSupportedApi);
   }
 
   @Test
   public void testTriggerRefresh() throws Exception {
     requestManager.triggerRefresh(RequestReason.HOST_REQUESTED, input -> {});
 
-    verify(tooltipSupportedApi, never()).wouldTriggerHelpUi(any(), any());
+    assertThat(fakeTooltipSupportedApi.getLatestFeatureName()).isNull();
 
     HttpRequest httpRequest = fakeNetworkClient.getLatestRequest();
     assertHttpRequestFormattedCorrectly(httpRequest);
@@ -228,7 +224,6 @@ public class FeedRequestManagerTest {
 
   @Test
   public void testTriggerRefresh_tooltipCapabilityAddedWhenFlagIsOn() throws Exception {
-    cardMenuTooltipWouldTrigger = true;
     testCapabilityAdded(ConfigKey.CARD_MENU_TOOLTIP_ELIGIBLE, Capability.CARD_MENU_TOOLTIP);
   }
 
@@ -237,7 +232,7 @@ public class FeedRequestManagerTest {
     // If the config key for card menu tool tip is set but the
     // TooltipSupportedApi.wouldTriggerHelpUi() returns false, then the capability should not be
     // added and only the BASE_UI should be present.
-    cardMenuTooltipWouldTrigger = false;
+    fakeTooltipSupportedApi.addUnsupportedFeature(FeatureName.CARD_MENU_TOOLTIP);
     testCapabilityAdded(ConfigKey.CARD_MENU_TOOLTIP_ELIGIBLE, /* capability= */ null);
   }
 
@@ -886,14 +881,8 @@ public class FeedRequestManagerTest {
             applicationInfo,
             fakeMainThreadRunner,
             fakeBasicLoggingApi,
-            tooltipSupportedApi);
+            fakeTooltipSupportedApi);
     requestManager.triggerRefresh(RequestReason.HOST_REQUESTED, input -> {});
-
-    if (ConfigKey.CARD_MENU_TOOLTIP_ELIGIBLE.equals(configKey)) {
-      verify(tooltipSupportedApi)
-          .wouldTriggerHelpUi(any(), tooltipSupportedConsumerCapture.capture());
-      tooltipSupportedConsumerCapture.getValue().accept(cardMenuTooltipWouldTrigger);
-    }
 
     HttpRequest httpRequest = fakeNetworkClient.getLatestRequest();
     assertHttpRequestFormattedCorrectly(httpRequest);
@@ -905,6 +894,6 @@ public class FeedRequestManagerTest {
 
     Request request = getRequestFromHttpRequest(httpRequest);
     assertThat(request.getExtension(FeedRequest.feedRequest).getClientCapabilityList())
-        .containsAllIn(expectedCap);
+        .containsExactlyElementsIn(expectedCap);
   }
 }
