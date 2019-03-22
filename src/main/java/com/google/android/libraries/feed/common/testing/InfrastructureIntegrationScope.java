@@ -43,6 +43,7 @@ import com.google.android.libraries.feed.host.storage.JournalStorageDirect;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
 import com.google.android.libraries.feed.testing.requestmanager.FakeActionUploadRequestManager;
+import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
 import com.google.protobuf.GeneratedMessageLite.GeneratedExtension;
 import java.util.ArrayList;
 import java.util.List;
@@ -124,7 +125,11 @@ public class InfrastructureIntegrationScope {
             fakeBasicLoggingApi,
             mainThreadRunner);
     feedProtocolAdapter = new FeedProtocolAdapter(timingUtils);
-    fakeRequestManager = new FakeRequestManager(feedProtocolAdapter, requestDelayMs);
+    fakeRequestManager =
+        new FakeRequestManager(
+            new FakeThreadUtils(/* enforceThreadChecks= */ false),
+            feedProtocolAdapter,
+            requestDelayMs);
     fakeActionUploadRequestManager = new FakeActionUploadRequestManager(new FakeThreadUtils());
     feedSessionManager =
         new FeedSessionManagerFactory(

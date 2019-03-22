@@ -36,7 +36,6 @@ import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.functional.Consumer;
-import com.google.android.libraries.feed.common.testing.FakeRequestManager;
 import com.google.android.libraries.feed.common.testing.InfrastructureIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
 import com.google.android.libraries.feed.common.testing.PagingState;
@@ -44,6 +43,7 @@ import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuil
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.logging.RequestReason;
+import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;

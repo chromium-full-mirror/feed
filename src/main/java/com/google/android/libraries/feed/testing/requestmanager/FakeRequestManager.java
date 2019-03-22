@@ -12,11 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.common.testing;
+package com.google.android.libraries.feed.testing.requestmanager;
 
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.common.Result;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.host.logging.RequestReason;
@@ -34,6 +35,7 @@ import java.util.Queue;
  * then returned as a {@link Result} to the {@link Consumer}.
  */
 public class FakeRequestManager implements RequestManager {
+  private final FakeThreadUtils fakeThreadUtils;
   private final ProtocolAdapter protocolAdapter;
   private final long requestDelayMs;
   private final Queue<Response> responses = new ArrayDeque<>();
@@ -42,15 +44,18 @@ public class FakeRequestManager implements RequestManager {
   private Supplier<Consumer<Result<List<StreamDataOperation>>>>
       defaultTriggerRefreshConsumerSupplier;
 
-  public FakeRequestManager(ProtocolAdapter protocolAdapter, long requestDelayMs) {
+  public FakeRequestManager(
+      FakeThreadUtils fakeThreadUtils, ProtocolAdapter protocolAdapter, long requestDelayMs) {
+    this.fakeThreadUtils = fakeThreadUtils;
     this.protocolAdapter = protocolAdapter;
     this.requestDelayMs = requestDelayMs;
   }
 
   // TODO: queue responses for action uploads
   /** Adds a Response to the Queue. */
-  public void queueResponse(Response response) {
+  public FakeRequestManager queueResponse(Response response) {
     responses.add(response);
+    return this;
   }
 
   @Override
@@ -58,15 +63,14 @@ public class FakeRequestManager implements RequestManager {
       StreamToken streamToken,
       ConsistencyToken token,
       Consumer<Result<List<StreamDataOperation>>> consumer) {
+    fakeThreadUtils.checkNotMainThread();
     Response response = responses.remove();
     Result<List<StreamDataOperation>> result = protocolAdapter.createModel(response);
-    Result<List<StreamDataOperation>> contextResult;
-    if (result.isSuccessful()) {
-      contextResult = Result.success(result.getValue());
-    } else {
-      contextResult = Result.failure();
-    }
-    consumer.accept(contextResult);
+
+    // Call the consumer on the main thread.
+    boolean policy = fakeThreadUtils.enforceMainThread(true);
+    consumer.accept(result);
+    fakeThreadUtils.enforceMainThread(policy);
   }
 
   @Override
@@ -82,12 +86,7 @@ public class FakeRequestManager implements RequestManager {
       Consumer<Result<List<StreamDataOperation>>> consumer) {
     Response response = responses.remove();
     Result<List<StreamDataOperation>> result = protocolAdapter.createModel(response);
-    Result<List<StreamDataOperation>> contextResult;
-    if (result.isSuccessful()) {
-      contextResult = Result.success(result.getValue());
-    } else {
-      contextResult = Result.failure();
-    }
+
     if (requestDelayMs > 0) {
       try {
         // slightly delay the results.
@@ -96,14 +95,19 @@ public class FakeRequestManager implements RequestManager {
         throw new IllegalStateException(e);
       }
     }
-    consumer.accept(contextResult);
+
+    // Call the consumer on the main thread.
+    boolean policy = fakeThreadUtils.enforceMainThread(true);
+    consumer.accept(result);
+    fakeThreadUtils.enforceMainThread(policy);
   }
 
   @Override
   public void triggerRefresh(@RequestReason int reason) {
     if (defaultTriggerRefreshConsumerSupplier == null) {
       throw new IllegalStateException(
-          "Must set defaultTriggerRefreshConsumerSupplier before calling triggerRefresh(RequestReason).");
+          "Must set defaultTriggerRefreshConsumerSupplier before calling"
+              + " triggerRefresh(RequestReason).");
     }
     triggerRefresh(reason, defaultTriggerRefreshConsumerSupplier.get());
   }
