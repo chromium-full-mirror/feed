@@ -15,6 +15,11 @@
 package com.google.android.libraries.feed.piet.ui;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 import android.app.Activity;
 import android.content.Context;
@@ -22,6 +27,8 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.functional.Suppliers;
+import com.google.android.libraries.feed.piet.ui.RoundedCornerMaskCache.Corner;
+import com.google.android.libraries.feed.piet.ui.RoundedCornerMaskCache.RoundedCornerBitmaps;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
 import com.google.search.now.ui.piet.StylesProto.Borders;
 import org.junit.Before;
@@ -41,12 +48,14 @@ public class RoundedCornerWrapperViewTest {
   private Context context;
   private Canvas canvas;
   private Bitmap bitmap;
+  private RoundedCornerMaskCache maskCache;
 
   @Before
   public void setUp() {
     context = Robolectric.buildActivity(Activity.class).get();
     bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888);
     canvas = new Canvas(bitmap);
+    maskCache = new RoundedCornerMaskCache();
   }
 
   @Test
@@ -55,6 +64,7 @@ public class RoundedCornerWrapperViewTest {
         new RoundedCornerWrapperView(
             context,
             RoundedCorners.getDefaultInstance(),
+            maskCache,
             LEFT_TO_RIGHT,
             /*radiusOverride= */ 0,
             Borders.getDefaultInstance());
@@ -84,6 +94,7 @@ public class RoundedCornerWrapperViewTest {
         new RoundedCornerWrapperView(
             context,
             roundedCorners,
+            maskCache,
             LEFT_TO_RIGHT,
             /*radiusOverride= */ 0,
             Borders.getDefaultInstance());
@@ -113,7 +124,8 @@ public class RoundedCornerWrapperViewTest {
 
     RoundedCorners roundedCorners = RoundedCorners.newBuilder().setRadiusDp(10).build();
     RoundedCornerWrapperView view =
-        new RoundedCornerWrapperView(context, roundedCorners, Suppliers.of(false), 0, borders);
+        new RoundedCornerWrapperView(
+            context, roundedCorners, maskCache, Suppliers.of(false), 0, borders);
 
     view.layout(0, 0, 100, 100);
     view.draw(canvas);
@@ -130,7 +142,8 @@ public class RoundedCornerWrapperViewTest {
 
     RoundedCorners roundedCorners = RoundedCorners.newBuilder().setRadiusDp(10).build();
     RoundedCornerWrapperView view =
-        new RoundedCornerWrapperView(context, roundedCorners, Suppliers.of(false), 0, borders);
+        new RoundedCornerWrapperView(
+            context, roundedCorners, maskCache, Suppliers.of(false), 0, borders);
 
     // Set a width and height on the view so that the only thing stopping borders from being created
     // is the border width of 0.
@@ -152,6 +165,7 @@ public class RoundedCornerWrapperViewTest {
         new RoundedCornerWrapperView(
             context,
             roundedCorners,
+            maskCache,
             Suppliers.of(false),
             radiusOverride,
             Borders.getDefaultInstance());
@@ -172,6 +186,7 @@ public class RoundedCornerWrapperViewTest {
         new RoundedCornerWrapperView(
             context,
             roundedCorners,
+            maskCache,
             Suppliers.of(false),
             /*radiusOverride= */ 0,
             Borders.getDefaultInstance());
@@ -192,6 +207,7 @@ public class RoundedCornerWrapperViewTest {
         new RoundedCornerWrapperView(
             context,
             roundedCorners,
+            maskCache,
             Suppliers.of(false),
             /*radiusOverride= */ 0,
             Borders.getDefaultInstance());
@@ -213,6 +229,7 @@ public class RoundedCornerWrapperViewTest {
         new RoundedCornerWrapperView(
             context,
             roundedCorners,
+            maskCache,
             Suppliers.of(false),
             /*radiusOverride= */ 0,
             Borders.getDefaultInstance());
@@ -233,6 +250,7 @@ public class RoundedCornerWrapperViewTest {
         new RoundedCornerWrapperView(
             context,
             roundedCorners,
+            maskCache,
             Suppliers.of(false),
             /*radiusOverride= */ 0,
             Borders.getDefaultInstance());
@@ -258,6 +276,7 @@ public class RoundedCornerWrapperViewTest {
         new RoundedCornerWrapperView(
             context,
             roundedCorners,
+            maskCache,
             Suppliers.of(false),
             /*radiusOverride= */ 0,
             Borders.getDefaultInstance());
@@ -279,6 +298,7 @@ public class RoundedCornerWrapperViewTest {
         new RoundedCornerWrapperView(
             context,
             roundedCorners,
+            maskCache,
             Suppliers.of(false),
             /*radiusOverride= */ 0,
             Borders.getDefaultInstance());
@@ -304,6 +324,7 @@ public class RoundedCornerWrapperViewTest {
         new RoundedCornerWrapperView(
             context,
             roundedCorners,
+            maskCache,
             Suppliers.of(false),
             /*radiusOverride= */ 0,
             Borders.getDefaultInstance());
@@ -326,6 +347,7 @@ public class RoundedCornerWrapperViewTest {
         new RoundedCornerWrapperView(
             context,
             roundedCorners,
+            maskCache,
             Suppliers.of(false),
             /*radiusOverride= */ 0,
             Borders.getDefaultInstance());
@@ -350,6 +372,7 @@ public class RoundedCornerWrapperViewTest {
         new RoundedCornerWrapperView(
             context,
             roundedCorners,
+            maskCache,
             Suppliers.of(false),
             /*radiusOverride= */ 0,
             Borders.getDefaultInstance());
@@ -375,6 +398,7 @@ public class RoundedCornerWrapperViewTest {
         new RoundedCornerWrapperView(
             context,
             roundedCorners,
+            maskCache,
             Suppliers.of(false),
             /*radiusOverride= */ 0,
             Borders.getDefaultInstance());
@@ -397,6 +421,7 @@ public class RoundedCornerWrapperViewTest {
         new RoundedCornerWrapperView(
             context,
             roundedCorners,
+            maskCache,
             Suppliers.of(false),
             /*radiusOverride= */ 0,
             Borders.getDefaultInstance());
@@ -422,6 +447,7 @@ public class RoundedCornerWrapperViewTest {
         new RoundedCornerWrapperView(
             context,
             roundedCorners,
+            maskCache,
             Suppliers.of(false),
             /*radiusOverride= */ 0,
             Borders.getDefaultInstance());
@@ -447,6 +473,7 @@ public class RoundedCornerWrapperViewTest {
         new RoundedCornerWrapperView(
             context,
             roundedCorners,
+            maskCache,
             Suppliers.of(false),
             /*radiusOverride= */ 0,
             Borders.getDefaultInstance());
@@ -456,5 +483,34 @@ public class RoundedCornerWrapperViewTest {
     // Only left corners are rounded, and 40*2=80 is still less than the height (100), so we don't
     // need to shrink the radius.
     assertThat(calculatedRadius).isEqualTo(40);
+  }
+
+  @Test
+  public void testGetsMasksFromCache() {
+    RoundedCorners roundedCorners =
+        RoundedCorners.newBuilder().setBitmask(LEFT_CORNERS_BITMASK).setRadiusDp(16).build();
+    RoundedCornerMaskCache mockMaskCache = mock(RoundedCornerMaskCache.class);
+    RoundedCornerBitmaps mockBitmaps = mock(RoundedCornerBitmaps.class);
+    Bitmap maskBitmap = maskCache.getMasks(16).get(Corner.TOP_LEFT);
+    when(mockMaskCache.getPaint()).thenReturn(maskCache.getPaint());
+    when(mockMaskCache.getMaskPaint()).thenReturn(maskCache.getMaskPaint());
+    when(mockMaskCache.getMasks(16)).thenReturn(mockBitmaps);
+    when(mockBitmaps.get(anyInt())).thenReturn(maskBitmap);
+    RoundedCornerWrapperView view =
+        new RoundedCornerWrapperView(
+            context,
+            roundedCorners,
+            mockMaskCache,
+            Suppliers.of(false),
+            /*radiusOverride= */ 0,
+            Borders.getDefaultInstance());
+
+    view.layout(0, 0, 100, 100);
+
+    verify(mockMaskCache).getMasks(16);
+
+    verify(mockBitmaps).get(Corner.TOP_LEFT);
+    verify(mockBitmaps).get(Corner.BOTTOM_LEFT);
+    verifyNoMoreInteractions(mockBitmaps);
   }
 }

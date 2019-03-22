@@ -30,6 +30,7 @@ import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.ui.BorderDrawable;
 import com.google.android.libraries.feed.piet.ui.GradientDrawable;
+import com.google.android.libraries.feed.piet.ui.RoundedCornerMaskCache;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerViewHelper;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerWrapperView;
 import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
@@ -407,14 +408,19 @@ class StyleProvider {
     }
   }
 
-  FrameLayout createWrapperView(Context context) {
+  FrameLayout createWrapperView(Context context, RoundedCornerMaskCache maskCache) {
     if (!hasRoundedCorners()) {
       return new FrameLayout(context);
     }
     int radiusOverride =
         getRoundedCorners().getUseHostRadiusOverride() ? assetProvider.getDefaultCornerRadius() : 0;
     return new RoundedCornerWrapperView(
-        context, getRoundedCorners(), assetProvider.isRtLSupplier(), radiusOverride, getBorders());
+        context,
+        getRoundedCorners(),
+        maskCache,
+        assetProvider.isRtLSupplier(),
+        radiusOverride,
+        getBorders());
   }
 
   /**

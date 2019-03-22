@@ -43,6 +43,7 @@ import com.google.android.libraries.feed.piet.host.ImageLoader;
 import com.google.android.libraries.feed.piet.host.StringFormatter;
 import com.google.android.libraries.feed.piet.host.ThrowingCustomElementProvider;
 import com.google.android.libraries.feed.piet.host.TypefaceProvider;
+import com.google.android.libraries.feed.piet.ui.RoundedCornerMaskCache;
 import com.google.search.now.ui.piet.ImagesProto.Image;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import java.util.Collections;
@@ -223,6 +224,7 @@ public class PietManagerImplTest {
     ElementAdapterFactory mockFactory = mock(ElementAdapterFactory.class);
     TemplateBinder mockTemplateBinder = mock(TemplateBinder.class);
     HostProviders hostProviders = mock(HostProviders.class);
+    RoundedCornerMaskCache maskCache = mock(RoundedCornerMaskCache.class);
     pietManager.adapterParameters =
         new AdapterParameters(
             context,
@@ -232,9 +234,11 @@ public class PietManagerImplTest {
             mockFactory,
             mockTemplateBinder,
             new FakeClock(),
-            stylesHelpers);
+            stylesHelpers,
+            maskCache);
     pietManager.purgeRecyclerPools();
     verify(mockFactory).purgeRecyclerPools();
     verify(stylesHelpers).purge();
+    verify(maskCache).purge();
   }
 }

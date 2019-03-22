@@ -39,7 +39,9 @@ import android.widget.ImageView.ScaleType;
 import com.google.android.libraries.feed.common.functional.Suppliers;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
+import com.google.android.libraries.feed.piet.PietStylesHelper.PietStylesHelperFactory;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
+import com.google.android.libraries.feed.piet.ui.RoundedCornerMaskCache;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerWrapperView;
 import com.google.search.now.ui.piet.BindingRefsProto.ImageBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
@@ -91,6 +93,7 @@ public class ImageElementAdapterTest {
   private int widthPx;
   private ImageView imageView;
   private final FakeClock clock = new FakeClock();
+  private RoundedCornerMaskCache maskCache;
 
   private ImageElementAdapterForTest adapter;
 
@@ -100,9 +103,18 @@ public class ImageElementAdapterTest {
     context = Robolectric.buildActivity(Activity.class).get();
     heightPx = (int) LayoutUtils.dpToPx(HEIGHT_DP, context);
     widthPx = (int) LayoutUtils.dpToPx(WIDTH_DP, context);
+    maskCache = new RoundedCornerMaskCache();
     AdapterParameters parameters =
         new AdapterParameters(
-            context, null, hostProviders, null, adapterFactory, templateBinder, clock);
+            context,
+            null,
+            hostProviders,
+            null,
+            adapterFactory,
+            templateBinder,
+            clock,
+            new PietStylesHelperFactory(),
+            maskCache);
 
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(styleProvider);
     when(frameContext.filterImageSourcesByMediaQueryCondition(any(Image.class)))
@@ -112,11 +124,12 @@ public class ImageElementAdapterTest {
     when(styleProvider.hasRoundedCorners()).thenReturn(true);
     when(styleProvider.getRoundedCorners()).thenReturn(CORNERS);
     when(styleProvider.getScaleType()).thenReturn(ScaleType.FIT_CENTER);
-    when(styleProvider.createWrapperView(context))
+    when(styleProvider.createWrapperView(context, maskCache))
         .thenReturn(
             new RoundedCornerWrapperView(
                 context,
                 CORNERS,
+                maskCache,
                 Suppliers.of(false),
                 /*radiusOverride= */ 0,
                 /* borders= */ null));

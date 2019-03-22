@@ -21,6 +21,7 @@ import android.view.ViewGroup;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.piet.PietStylesHelper.PietStylesHelperFactory;
+import com.google.android.libraries.feed.piet.ui.RoundedCornerMaskCache;
 
 /**
  * A state shared by instances of Cards and Slices. The state is accessed directly from the instance
@@ -41,8 +42,8 @@ class AdapterParameters {
   final TemplateBinder templateBinder;
   final StyleProvider defaultStyleProvider;
   final Clock clock;
-
   final PietStylesHelperFactory pietStylesHelperFactory;
+  final RoundedCornerMaskCache roundedCornerMaskCache;
 
   // Doesn't like passing "this" to the new ElementAdapterFactory; however, nothing in the factory's
   // construction will reference the elementAdapterFactory member of this, so should be safe.
@@ -67,6 +68,7 @@ class AdapterParameters {
     this.defaultStyleProvider = new StyleProvider(hostProviders.getAssetProvider());
 
     this.pietStylesHelperFactory = new PietStylesHelperFactory();
+    this.roundedCornerMaskCache = new RoundedCornerMaskCache();
   }
 
   /** Testing-only constructor for mocking the internally-constructed objects. */
@@ -87,7 +89,8 @@ class AdapterParameters {
         elementAdapterFactory,
         templateBinder,
         clock,
-        new PietStylesHelperFactory());
+        new PietStylesHelperFactory(),
+        new RoundedCornerMaskCache());
   }
 
   /** Testing-only constructor for mocking the internally-constructed objects. */
@@ -100,7 +103,8 @@ class AdapterParameters {
       ElementAdapterFactory elementAdapterFactory,
       TemplateBinder templateBinder,
       Clock clock,
-      PietStylesHelperFactory pietStylesHelperFactory) {
+      PietStylesHelperFactory pietStylesHelperFactory,
+      RoundedCornerMaskCache maskCache) {
     this.context = context;
     this.parentViewSupplier = parentViewSupplier;
     this.hostProviders = hostProviders;
@@ -111,5 +115,6 @@ class AdapterParameters {
     this.defaultStyleProvider = new StyleProvider(hostProviders.getAssetProvider());
     this.clock = clock;
     this.pietStylesHelperFactory = pietStylesHelperFactory;
+    this.roundedCornerMaskCache = maskCache;
   }
 }

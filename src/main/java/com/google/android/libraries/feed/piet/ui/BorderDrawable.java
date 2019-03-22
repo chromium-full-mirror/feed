@@ -99,7 +99,6 @@ public class BorderDrawable extends ShapeDrawable {
   @Override
   public void setBounds(int left, int top, int right, int bottom) {
     super.setBounds(
-
         left + offsetToHideLeft,
         top + offsetToHideTop,
         right + offsetToHideRight,

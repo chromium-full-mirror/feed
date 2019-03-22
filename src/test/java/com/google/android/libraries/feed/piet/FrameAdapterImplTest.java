@@ -47,6 +47,7 @@ import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.host.EventLogger;
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
+import com.google.android.libraries.feed.piet.ui.RoundedCornerMaskCache;
 import com.google.search.now.ui.piet.ActionsProto.Action;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.ActionsProto.VisibilityAction;
@@ -116,6 +117,7 @@ public class FrameAdapterImplTest {
   @Mock private HostProviders hostProviders;
   @Mock private EventLogger eventLogger;
   @Mock private PietStylesHelperFactory stylesHelpers;
+  @Mock private RoundedCornerMaskCache maskCache;
 
   @Captor private ArgumentCaptor<LayoutParams> layoutParamsCaptor;
 
@@ -138,7 +140,8 @@ public class FrameAdapterImplTest {
             adapterFactory,
             templateBinder,
             new FakeClock(),
-            stylesHelpers);
+            stylesHelpers,
+            maskCache);
     when(elementAdapter.getView()).thenReturn(new LinearLayout(context));
     when(templateAdapter.getView()).thenReturn(new LinearLayout(context));
     doReturn(elementAdapter)

@@ -102,6 +102,22 @@ android_local_test(
 )
 
 android_local_test(
+    name = "RoundedCornerMaskCacheTest",
+    size = "small",
+    timeout = "moderate",
+    srcs = ["RoundedCornerMaskCacheTest.java"],
+    aapt_version = "aapt2",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
+    deps = [
+        "//src/main/java/com/google/android/libraries/feed/common/testing",
+        "//src/main/java/com/google/android/libraries/feed/piet/ui",
+        "@com_google_protobuf_javalite//:protobuf_java_lite",
+        "@maven//:com_google_truth_truth",
+        "@robolectric//bazel:robolectric",
+    ],
+)
+
+android_local_test(
     name = "RoundedCornerWrapperViewTest",
     size = "small",
     timeout = "moderate",
@@ -114,6 +130,7 @@ android_local_test(
         "//src/main/proto/search/now/ui/piet:piet_java_proto_lite",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_truth_truth",
+        "@maven//:org_mockito_mockito_all",
         "@robolectric//bazel:robolectric",
     ],
 )

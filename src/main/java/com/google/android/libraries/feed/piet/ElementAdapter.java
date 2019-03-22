@@ -173,7 +173,8 @@ abstract class ElementAdapter<V extends View, M> {
       return;
     }
 
-    FrameLayout wrapper = elementStyle.createWrapperView(context);
+    FrameLayout wrapper =
+        elementStyle.createWrapperView(context, parameters.roundedCornerMaskCache);
     wrapper.addView(getBaseView());
 
     if (baseElement.getOverlaysCount() > 0) {

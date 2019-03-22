@@ -98,4 +98,7 @@ public class RoundedCornerViewHelper {
         || (roundedCorners.hasRadius() && (roundedCorners.getRadius() > 0))
         || (radiusOverride > 0));
   }
+
+  // Prevent instantiation
+  private RoundedCornerViewHelper() {}
 }

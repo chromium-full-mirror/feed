@@ -84,6 +84,7 @@ class PietManagerImpl implements PietManager {
       AdapterParameters adapterParametersNonNull = adapterParameters;
       adapterParametersNonNull.elementAdapterFactory.purgeRecyclerPools();
       adapterParametersNonNull.pietStylesHelperFactory.purge();
+      adapterParametersNonNull.roundedCornerMaskCache.purge();
     }
   }
 }

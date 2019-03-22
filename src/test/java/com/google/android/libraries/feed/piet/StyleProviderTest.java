@@ -39,6 +39,7 @@ import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.ui.BorderDrawable;
 import com.google.android.libraries.feed.piet.ui.GradientDrawable;
+import com.google.android.libraries.feed.piet.ui.RoundedCornerMaskCache;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerWrapperView;
 import com.google.search.now.ui.piet.GradientsProto.ColorStop;
 import com.google.search.now.ui.piet.GradientsProto.Fill;
@@ -73,6 +74,7 @@ public class StyleProviderTest {
   @Mock private AssetProvider mockAssetProvider;
   @Mock private ElementAdapter<View, ?> adapter;
   @Mock private TextElementAdapter textAdapter;
+  @Mock private RoundedCornerMaskCache maskCache;
 
   private View view;
   private View baseView;
@@ -397,7 +399,7 @@ public class StyleProviderTest {
                 .build(),
             mockAssetProvider);
 
-    assertThat(styleProvider.createWrapperView(context))
+    assertThat(styleProvider.createWrapperView(context, maskCache))
         .isNotInstanceOf(RoundedCornerWrapperView.class);
   }
 
@@ -410,7 +412,7 @@ public class StyleProviderTest {
                 .build(),
             mockAssetProvider);
 
-    assertThat(styleProvider.createWrapperView(context))
+    assertThat(styleProvider.createWrapperView(context, maskCache))
         .isInstanceOf(RoundedCornerWrapperView.class);
   }
 
