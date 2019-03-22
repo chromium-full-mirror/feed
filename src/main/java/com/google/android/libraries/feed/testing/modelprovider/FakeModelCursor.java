@@ -20,6 +20,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.common.collect.ImmutableList;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
+import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.ui.stream.StreamStructureProto.Card;
 import com.google.search.now.ui.stream.StreamStructureProto.Cluster;
 import com.google.search.now.ui.stream.StreamStructureProto.Content;
@@ -142,6 +143,19 @@ public class FakeModelCursor implements ModelCursor {
 
       cursorChildren.add(tokenChild);
 
+      return this;
+    }
+
+    public Builder addToken(String contentId) {
+      ModelChild tokenChild =
+          FakeModelChild.newBuilder()
+              .setModelToken(
+                  FakeModelToken.newBuilder()
+                      .setStreamToken(StreamToken.getDefaultInstance())
+                      .build())
+              .setContentId(contentId)
+              .build();
+      cursorChildren.add(tokenChild);
       return this;
     }
 
