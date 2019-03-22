@@ -39,6 +39,14 @@
     <item name="android:minHeight">@dimen/feed_suggestion_card_action_min_height</item>
   </style>
 
+  <style name="FeedMoreButtonContainer">
+    <item name="android:layout_width">match_parent</item>
+    <item name="android:layout_height">wrap_content</item>
+    <item name="android:paddingLeft">@dimen/more_button_padding</item>
+    <item name="android:paddingRight">@dimen/more_button_padding</item>
+    <item name="android:paddingBottom">@dimen/more_button_padding</item>
+  </style>
+
   <!-- Used by Content -->
   <style name="FeedRobotoMediumStyle">
     <item name="android:fontFamily">sans-serif</item>

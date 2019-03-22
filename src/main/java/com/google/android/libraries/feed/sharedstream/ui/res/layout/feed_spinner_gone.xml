@@ -18,5 +18,6 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/loading_spinner"
     android:layout_width="match_parent"
+    android:visibility="gone"
     android:layout_height="@dimen/feed_suggestion_card_action_min_height"
     android:layout_gravity="center" />

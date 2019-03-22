@@ -25,6 +25,7 @@
 
   <!-- More button dimensions -->
   <dimen name="more_button_padding">8dp</dimen>
+  <dimen name="feed_more_button_container_top_margins">-20dp</dimen>
 
   <!-- No content dimensions -->
   <dimen name="no_content_text_size">16sp</dimen>

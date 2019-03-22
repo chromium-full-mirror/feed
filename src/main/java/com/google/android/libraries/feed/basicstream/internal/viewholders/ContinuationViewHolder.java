@@ -38,6 +38,7 @@ public class ContinuationViewHolder extends FeedViewHolder {
   private final View spinner;
   private final VisibilityMonitor visibilityMonitor;
   private final CardConfiguration cardConfiguration;
+  private final Context context;
 
   public ContinuationViewHolder(
       Configuration configuration,
@@ -51,6 +52,7 @@ public class ContinuationViewHolder extends FeedViewHolder {
     spinner = checkNotNull(frameLayout.findViewById(R.id.loading_spinner));
     visibilityMonitor = createVisibilityMonitor(containerView, configuration);
     this.cardConfiguration = cardConfiguration;
+    this.context = context;
   }
 
   public void bind(
@@ -66,7 +68,7 @@ public class ContinuationViewHolder extends FeedViewHolder {
     LayoutUtils.setMarginsRelative(
         (MarginLayoutParams) layoutParams,
         cardConfiguration.getCardStartMargin(),
-        0,
+        (int) context.getResources().getDimension(R.dimen.feed_more_button_container_top_margins),
         cardConfiguration.getCardEndMargin(),
         cardConfiguration.getCardBottomMargin());
 
