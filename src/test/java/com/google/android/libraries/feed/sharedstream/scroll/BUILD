@@ -35,7 +35,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/sharedstream/scroll",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_android_support_recyclerview_v7",
-        "@maven//:org_mockito_mockito_all",
+        "@maven//:org_mockito_mockito_core",
         "@robolectric//bazel:robolectric",
     ],
 )

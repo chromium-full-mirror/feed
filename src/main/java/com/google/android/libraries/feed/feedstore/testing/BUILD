@@ -24,6 +24,6 @@ android_library(
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@junit_junit//jar",
         "@maven//:com_google_truth_truth",
-        "@maven//:org_mockito_mockito_all",
+        "@maven//:org_mockito_mockito_core",
     ],
 )

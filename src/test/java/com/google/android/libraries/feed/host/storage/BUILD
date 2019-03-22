@@ -13,7 +13,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/host/storage",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_truth_truth",
-        "@maven//:org_mockito_mockito_all",
+        "@maven//:org_mockito_mockito_core",
         "@robolectric//bazel:robolectric",
     ],
 )

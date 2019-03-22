@@ -32,7 +32,7 @@ maven_install(
         "com.android.support:support-core-ui:" + ANDROID_SUPPORT_LIBRARY_VERSION,
         "com.android.support:swiperefreshlayout:" + ANDROID_SUPPORT_LIBRARY_VERSION,
         "com.google.truth:truth:0.42",
-        "org.mockito:mockito-all:1.9.5",
+        "org.mockito:mockito-core:2.24.0",
     ],
     repositories = [
         "http://central.maven.org/maven2/",

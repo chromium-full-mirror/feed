@@ -21,7 +21,7 @@ android_local_test(
         "@com_google_guava_guava_android//jar",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_truth_truth",
-        "@maven//:org_mockito_mockito_all",
+        "@maven//:org_mockito_mockito_core",
         "@robolectric//bazel:robolectric",
     ],
 )
@@ -43,7 +43,7 @@ android_local_test(
         "@com_google_guava_guava_android//jar",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_truth_truth",
-        "@maven//:org_mockito_mockito_all",
+        "@maven//:org_mockito_mockito_core",
         "@robolectric//bazel:robolectric",
     ],
 )
@@ -66,7 +66,7 @@ android_local_test(
         "@com_google_guava_guava_android//jar",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_truth_truth",
-        "@maven//:org_mockito_mockito_all",
+        "@maven//:org_mockito_mockito_core",
         "@robolectric//bazel:robolectric",
     ],
 )
@@ -89,7 +89,7 @@ android_local_test(
         "//src/main/proto/search/now/wire/feed:feed_java_proto_lite",
         "@com_google_guava_guava_android//jar",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
-        "@maven//:org_mockito_mockito_all",
+        "@maven//:org_mockito_mockito_core",
         "@robolectric//bazel:robolectric",
     ],
 )
@@ -111,7 +111,7 @@ android_local_test(
         "@com_google_guava_guava_android//jar",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_truth_truth",
-        "@maven//:org_mockito_mockito_all",
+        "@maven//:org_mockito_mockito_core",
         "@robolectric//bazel:robolectric",
     ],
 )
@@ -133,7 +133,7 @@ android_local_test(
         "@com_google_guava_guava_android//jar",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_truth_truth",
-        "@maven//:org_mockito_mockito_all",
+        "@maven//:org_mockito_mockito_core",
         "@robolectric//bazel:robolectric",
     ],
 )
@@ -157,7 +157,7 @@ android_local_test(
         "@com_google_guava_guava_android//jar",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_truth_truth",
-        "@maven//:org_mockito_mockito_all",
+        "@maven//:org_mockito_mockito_core",
         "@robolectric//bazel:robolectric",
     ],
 )
@@ -179,7 +179,7 @@ android_local_test(
         "//src/main/proto/search/now/wire/feed:feed_java_proto_lite",
         "@com_google_guava_guava_android//jar",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
-        "@maven//:org_mockito_mockito_all",
+        "@maven//:org_mockito_mockito_core",
         "@robolectric//bazel:robolectric",
     ],
 )
@@ -202,7 +202,7 @@ android_local_test(
         "@com_google_guava_guava_android//jar",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_truth_truth",
-        "@maven//:org_mockito_mockito_all",
+        "@maven//:org_mockito_mockito_core",
         "@robolectric//bazel:robolectric",
     ],
 )
@@ -229,7 +229,7 @@ android_local_test(
         "@com_google_guava_guava_android//jar",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_truth_truth",
-        "@maven//:org_mockito_mockito_all",
+        "@maven//:org_mockito_mockito_core",
         "@robolectric//bazel:robolectric",
     ],
 )
@@ -252,7 +252,7 @@ android_local_test(
         "@com_google_guava_guava_android//jar",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_truth_truth",
-        "@maven//:org_mockito_mockito_all",
+        "@maven//:org_mockito_mockito_core",
         "@robolectric//bazel:robolectric",
     ],
 )
@@ -276,7 +276,7 @@ android_local_test(
         "@com_google_guava_guava_android//jar",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_truth_truth",
-        "@maven//:org_mockito_mockito_all",
+        "@maven//:org_mockito_mockito_core",
         "@robolectric//bazel:robolectric",
     ],
 )
@@ -299,7 +299,7 @@ android_local_test(
         "@com_google_guava_guava_android//jar",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_truth_truth",
-        "@maven//:org_mockito_mockito_all",
+        "@maven//:org_mockito_mockito_core",
         "@robolectric//bazel:robolectric",
     ],
 )
@@ -322,7 +322,7 @@ android_local_test(
         "@com_google_guava_guava_android//jar",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_truth_truth",
-        "@maven//:org_mockito_mockito_all",
+        "@maven//:org_mockito_mockito_core",
         "@robolectric//bazel:robolectric",
     ],
 )
@@ -345,7 +345,7 @@ android_local_test(
         "@com_google_guava_guava_android//jar",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_truth_truth",
-        "@maven//:org_mockito_mockito_all",
+        "@maven//:org_mockito_mockito_core",
         "@robolectric//bazel:robolectric",
     ],
 )
@@ -368,7 +368,7 @@ android_local_test(
         "@com_google_guava_guava_android//jar",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_truth_truth",
-        "@maven//:org_mockito_mockito_all",
+        "@maven//:org_mockito_mockito_core",
         "@robolectric//bazel:robolectric",
     ],
 )
@@ -396,7 +396,7 @@ android_local_test(
         "@com_google_guava_guava_android//jar",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_truth_truth",
-        "@maven//:org_mockito_mockito_all",
+        "@maven//:org_mockito_mockito_core",
         "@robolectric//bazel:robolectric",
     ],
 )
@@ -420,7 +420,7 @@ android_local_test(
         "//src/main/proto/search/now/wire/feed:feed_java_proto_lite",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_truth_truth",
-        "@maven//:org_mockito_mockito_all",
+        "@maven//:org_mockito_mockito_core",
         "@robolectric//bazel:robolectric",
     ],
 )
@@ -443,7 +443,7 @@ android_local_test(
         "//src/main/proto/search/now/wire/feed:feed_java_proto_lite",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_truth_truth",
-        "@maven//:org_mockito_mockito_all",
+        "@maven//:org_mockito_mockito_core",
         "@robolectric//bazel:robolectric",
     ],
 )
@@ -469,7 +469,7 @@ android_local_test(
         "@com_google_code_findbugs_jsr305//jar",
         "@com_google_guava_guava_android//jar",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
-        "@maven//:org_mockito_mockito_all",
+        "@maven//:org_mockito_mockito_core",
         "@robolectric//bazel:robolectric",
     ],
 )
