@@ -36,7 +36,7 @@
   </style>
 
   <style name="FeedSuggestionCardAction" parent="FeedTextButton">
-    <item name="android:minHeight">48dp</item>
+    <item name="android:minHeight">@dimen/feed_suggestion_card_action_min_height</item>
   </style>
 
   <!-- Used by Content -->

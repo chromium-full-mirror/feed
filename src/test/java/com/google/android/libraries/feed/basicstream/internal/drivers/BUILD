@@ -214,7 +214,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/sharedstream/offlinemonitor",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/pendingdismiss",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/removetrackingfactory",
-        "//src/main/java/com/google/android/libraries/feed/sharedstream/ui:resources",
+        "//src/main/java/com/google/android/libraries/feed/sharedstream/ui",
         "//src/main/java/com/google/android/libraries/feed/testing/modelprovider",
         "//src/main/proto/com/google/android/libraries/feed/api/proto:client_feed_java_proto_lite",
         "//src/main/proto/com/google/android/libraries/feed/sharedstream/proto:ui_refresh_reason_java_proto_lite",

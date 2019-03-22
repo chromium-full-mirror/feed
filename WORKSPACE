@@ -23,12 +23,14 @@ load("@rules_jvm_external//:defs.bzl", "maven_install")
 maven_install(
     artifacts = [
         "androidx.test:monitor:1.1.1",
+        "com.android.support:appcompat-v7:" + ANDROID_SUPPORT_LIBRARY_VERSION,
         "com.android.support:collections:" + ANDROID_SUPPORT_LIBRARY_VERSION,
         "com.android.support:interpolator:" + ANDROID_SUPPORT_LIBRARY_VERSION,
         "com.android.support:recyclerview-v7:" + ANDROID_SUPPORT_LIBRARY_VERSION,
         "com.android.support:support-annotations:" + ANDROID_SUPPORT_LIBRARY_VERSION,
         "com.android.support:support-compat:" + ANDROID_SUPPORT_LIBRARY_VERSION,
         "com.android.support:support-core-ui:" + ANDROID_SUPPORT_LIBRARY_VERSION,
+        "com.android.support:swiperefreshlayout:" + ANDROID_SUPPORT_LIBRARY_VERSION,
         "com.google.truth:truth:0.42",
         "org.mockito:mockito-all:1.9.5",
     ],

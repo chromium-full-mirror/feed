@@ -33,7 +33,7 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/sharedstream/offlinemonitor",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/pendingdismiss",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/removetrackingfactory",
-        "//src/main/java/com/google/android/libraries/feed/sharedstream/ui:resources",
+        "//src/main/java/com/google/android/libraries/feed/sharedstream/ui",
         "//src/main/proto/com/google/android/libraries/feed/api/proto:client_feed_java_proto_lite",
         "//src/main/proto/com/google/android/libraries/feed/sharedstream/proto:ui_refresh_reason_java_proto_lite",
         "//src/main/proto/search/now/ui/action:feed_action_java_proto_lite",
