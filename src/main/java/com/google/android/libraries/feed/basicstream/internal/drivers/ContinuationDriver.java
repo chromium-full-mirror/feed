@@ -218,6 +218,11 @@ public class ContinuationDriver extends LeafFeatureDriver
       return;
     }
 
+    // Spinner wouldn't be active if we are automatically consuming a synthetic token on restore.
+    if (spinnerLogger.isSpinnerActive()) {
+      spinnerLogger.spinnerFinished();
+    }
+
     ModelCursor cursor = tokenCompleted.getCursor();
     List<ModelChild> modelChildren = extractModelChildrenFromCursor(cursor);
 

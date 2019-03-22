@@ -553,7 +553,8 @@ public class ContinuationDriverTest {
   public void testOnTokenCompleted_extractsModelChildren() {
     FakeModelCursor cursor = FakeModelCursor.newBuilder().addCard().addCluster().addToken().build();
 
-    continuationDriver.onTokenCompleted(new TokenCompleted(cursor));
+    continuationDriver.bind(continuationViewHolder);
+    clickWithTokenCompleted(new TokenCompleted(cursor));
 
     verify(cursorChangedListener)
         .onNewChildren(modelChild, cursor.getModelChildren(), /* wasSynthetic= */ false);
@@ -584,7 +585,18 @@ public class ContinuationDriverTest {
   }
 
   @Test
-  public void testOnTokenCompleted_doesNotCreateSnackbar_whenSpinnerNotShown() {
+  public void testOnTokenCompleted_logsSpinnerFinished() {
+    FakeModelCursor cursor = FakeModelCursor.newBuilder().addToken().build();
+
+    continuationDriver.bind(continuationViewHolder);
+    clickWithTokenCompleted(new TokenCompleted(cursor));
+
+    verify(basicLoggingApi)
+        .onSpinnerFinished(/* timeShownMs= */ anyInt(), /* spinnerType= */ anyInt());
+  }
+
+  @Test
+  public void testOnTokenCompleted_doesNotCreateSnackbar_whenTokenFromOthertab() {
     FakeModelCursor cursor = FakeModelCursor.newBuilder().addToken().build();
     continuationDriver.onTokenCompleted(new TokenCompleted(cursor));
 
