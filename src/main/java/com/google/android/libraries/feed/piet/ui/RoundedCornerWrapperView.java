@@ -115,6 +115,9 @@ public class RoundedCornerWrapperView extends FrameLayout {
   }
 
   private void initCornerMasks(int radius, boolean isRtL) {
+    if (radius < 1) {
+      return;
+    }
     RoundedCornerBitmaps masks = maskCache.getMasks(radius);
 
     if ((shouldRoundCorner(Corners.TOP_START) && !isRtL)
@@ -152,7 +155,7 @@ public class RoundedCornerWrapperView extends FrameLayout {
    * the view and the LtR remain the same, it will only create the masks and borders once.
    */
   private void setupCornerMasksAndBorders(int radius) {
-    if (!hasRoundedCorners()) {
+    if (!hasRoundedCorners() || radius == 0) {
       return;
     }
     boolean isRtL = isRtLSupplier.get();
@@ -220,7 +223,7 @@ public class RoundedCornerWrapperView extends FrameLayout {
   @Override
   protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
     super.onLayout(changed, left, top, right, bottom);
-    if (!changed) {
+    if (!changed || !hasRoundedCorners()) {
       return;
     }
 
@@ -283,7 +286,7 @@ public class RoundedCornerWrapperView extends FrameLayout {
    * height, and to make sure that the radius isn't too big for the size of the view.
    */
   public int getRadius(int width, int height) {
-    if (!hasRoundedCorners()) {
+    if (!hasRoundedCorners() || width == 0 || height == 0) {
       return 0;
     }
     if (radiusOverride > 0) {
