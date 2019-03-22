@@ -78,11 +78,9 @@ android_local_test(
     aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
-        "//src/main/java/com/google/android/libraries/feed/api/actionmanager",
-        "//src/main/java/com/google/android/libraries/feed/api/common",
-        "//src/main/java/com/google/android/libraries/feed/api/protocoladapter",
-        "//src/main/java/com/google/android/libraries/feed/common",
         "//src/main/java/com/google/android/libraries/feed/feedrequestmanager",
+        "//src/main/java/com/google/android/libraries/feed/testing/actionmanager",
+        "//src/main/java/com/google/android/libraries/feed/testing/protocoladapter",
         "//src/main/proto/com/google/android/libraries/feed/api/proto:client_feed_java_proto_lite",
         "//src/main/proto/search/now/ui/action:feed_action_java_proto_lite",
         "//src/main/proto/search/now/wire/feed:feed_java_proto_lite",

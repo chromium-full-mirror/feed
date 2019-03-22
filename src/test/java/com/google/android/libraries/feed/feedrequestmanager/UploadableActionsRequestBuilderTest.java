@@ -1,4 +1,4 @@
-// Copyright 2018 The Feed Authors.
+// Copyright 2019 The Feed Authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,13 +15,10 @@
 package com.google.android.libraries.feed.feedrequestmanager;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.api.actionmanager.ActionReader;
-import com.google.android.libraries.feed.api.common.ActionPropertiesWithId;
-import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
-import com.google.android.libraries.feed.common.Result;
+import com.google.android.libraries.feed.testing.actionmanager.FakeActionReader;
+import com.google.android.libraries.feed.testing.protocoladapter.FakeProtocolAdapter;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
 import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.Type;
@@ -34,21 +31,17 @@ import com.google.search.now.wire.feed.FeedActionRequestProto.FeedActionRequest;
 import com.google.search.now.wire.feed.OpaqueActionDataForTestProto.OpaqueActionDataForTest;
 import com.google.search.now.wire.feed.OpaqueActionDataProto.OpaqueActionData;
 import com.google.search.now.wire.feed.UploadActionTypeProto.UploadActionType;
-import java.util.Collections;
 import java.util.HashSet;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
 
 /** Test of the {@link UploadableActionsRequestBuilder} class. */
 @RunWith(RobolectricTestRunner.class)
 public class UploadableActionsRequestBuilderTest {
-
-  @Mock private ProtocolAdapter protocolAdapter;
-  @Mock private ActionReader actionReader;
   private static final String CONTENT_ID = "contentId";
+
   private UploadableActionsRequestBuilder builder;
   private HashSet<StreamUploadableAction> actionSet = new HashSet<>();
   private ConsistencyToken token =
@@ -56,23 +49,23 @@ public class UploadableActionsRequestBuilderTest {
   private ActionRequest.Builder requestBuilder;
   private FeedActionRequest.Builder feedActionRequestBuilder;
   private OpaqueActionData data;
+  private FakeProtocolAdapter fakeProtocolAdapter;
+  private FakeActionReader fakeActionReader;
 
   @Before
   public void setUp() {
     initMocks(this);
+    fakeProtocolAdapter = new FakeProtocolAdapter();
+    fakeActionReader = new FakeActionReader();
     data =
         OpaqueActionData.newBuilder()
             .setExtension(
                 OpaqueActionDataForTest.opaqueActionDataForTestExtension,
                 OpaqueActionDataForTest.newBuilder().setId(CONTENT_ID).build())
             .build();
-    when(actionReader.getActionProperties(Collections.singletonList(CONTENT_ID)))
-        .thenReturn(
-            Result.success(
-                Collections.singletonList(new ActionPropertiesWithId(CONTENT_ID, data))));
-    when(protocolAdapter.getWireContentId(CONTENT_ID))
-        .thenReturn(Result.success(ContentId.getDefaultInstance()));
-    builder = new UploadableActionsRequestBuilder(actionReader, protocolAdapter);
+    fakeActionReader.addActionProperties(CONTENT_ID, data);
+    fakeProtocolAdapter.addContentId(CONTENT_ID, ContentId.getDefaultInstance());
+    builder = new UploadableActionsRequestBuilder(fakeActionReader, fakeProtocolAdapter);
     actionSet.add(
         StreamUploadableAction.newBuilder()
             .setFeatureContentId(CONTENT_ID)
