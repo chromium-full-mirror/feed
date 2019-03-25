@@ -26,6 +26,8 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionImpl;
+import com.google.android.libraries.feed.testing.modelprovider.FakeModelMutation;
+import com.google.android.libraries.feed.testing.modelprovider.FakeModelProvider;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import java.util.ArrayList;
@@ -37,22 +39,19 @@ import org.mockito.Mock;
 public abstract class AbstractSessionImplTest {
   protected static final String TEST_SESSION_ID = "TEST$1";
 
-  @Mock protected Store store;
-  @Mock protected ModelProvider modelProvider;
-
-  private Boolean sessionMutationResults = true;
-
   protected final ContentIdGenerators contentIdGenerators = new ContentIdGenerators();
 
+  @Mock protected Store store;
   protected FakeSessionMutation fakeSessionMutation;
-  protected FakeModelMutation fakeModelMutator;
+  protected FakeModelProvider fakeModelProvider;
+
+  private Boolean sessionMutationResults = true;
 
   protected void setUp() {
     initMocks(this);
     fakeSessionMutation = new FakeSessionMutation();
+    fakeModelProvider = new FakeModelProvider();
     when(store.editSession(TEST_SESSION_ID)).thenReturn(fakeSessionMutation);
-    fakeModelMutator = new FakeModelMutation();
-    when(modelProvider.edit()).thenReturn(fakeModelMutator);
   }
 
   protected abstract SessionImpl getSessionImpl();
@@ -69,8 +68,9 @@ public abstract class AbstractSessionImplTest {
     assertThat(streamStructures).hasSize(featureCnt);
     session.setSessionId(TEST_SESSION_ID);
     session.populateModelProvider(streamStructures, false, false);
-    assertThat(fakeModelMutator.addedChildren).hasSize(featureCnt);
-    assertThat(fakeModelMutator.commitCalled).isTrue();
+    FakeModelMutation fakeModelMutation = fakeModelProvider.getLatestModelMutation();
+    assertThat(fakeModelMutation.addedChildren).hasSize(featureCnt);
+    assertThat(fakeModelMutation.isCommitted()).isTrue();
     assertThat(session.getContentInSession()).hasSize(featureCnt);
     assertThat(session.getContentInSession())
         .contains(contentIdGenerators.createFeatureContentId(1));
@@ -97,7 +97,8 @@ public abstract class AbstractSessionImplTest {
     assertThat(streamStructures).hasSize(4);
     session.updateSession(false, streamStructures, null);
     assertThat(fakeSessionMutation.streamStructures).hasSize(featureCnt);
-    assertThat(fakeModelMutator.addedChildren).hasSize(featureCnt);
+    FakeModelMutation fakeModelMutation = fakeModelProvider.getLatestModelMutation();
+    assertThat(fakeModelMutation.addedChildren).hasSize(featureCnt);
     assertThat(session.getContentInSession()).hasSize(featureCnt);
     assertThat(session.getContentInSession())
         .contains(contentIdGenerators.createFeatureContentId(1));
@@ -129,7 +130,8 @@ public abstract class AbstractSessionImplTest {
     session.bindModelProvider(modelProvider, null);
 
     session.updateSession(false, streamStructures, context);
-    assertThat(fakeModelMutator.mutationContext).isEqualTo(context);
+    FakeModelMutation fakeModelMutation = fakeModelProvider.getLatestModelMutation();
+    assertThat(fakeModelMutation.mutationContext).isEqualTo(context);
   }
 
   @Test
@@ -162,9 +164,9 @@ public abstract class AbstractSessionImplTest {
     List<StreamStructure> streamStructures = protocolBuilder.buildAsStreamStructure();
 
     sessionMutationResults = false;
-    fakeModelMutator.clearCommit();
     session.updateSession(false, streamStructures, null);
-    assertThat(fakeModelMutator.commitCalled).isTrue(); // Optimistic write will still call this
+    FakeModelMutation fakeModelMutation = fakeModelProvider.getLatestModelMutation();
+    assertThat(fakeModelMutation.isCommitted()).isTrue(); // Optimistic write will still call this
   }
 
   @Test
@@ -179,7 +181,8 @@ public abstract class AbstractSessionImplTest {
         contentIdGenerators.createFeatureContentId(1), contentIdGenerators.createRootContentId(0));
     List<StreamStructure> streamStructures = protocolBuilder.buildAsStreamStructure();
     session.updateSession(false, streamStructures, null);
-    assertThat(fakeModelMutator.removedChildren).hasSize(1);
+    FakeModelMutation fakeModelMutation = fakeModelProvider.getLatestModelMutation();
+    assertThat(fakeModelMutation.removedChildren).hasSize(1);
     assertThat(session.getContentInSession()).hasSize(1);
   }
 

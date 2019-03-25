@@ -15,8 +15,6 @@
 package com.google.android.libraries.feed.feedsessionmanager.internal;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.android.libraries.feed.api.common.MutationContext;
@@ -29,10 +27,14 @@ import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThrea
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedsessionmanager.internal.testing.AbstractSessionImplTest;
+import com.google.android.libraries.feed.testing.modelprovider.FakeModelChild;
+import com.google.android.libraries.feed.testing.modelprovider.FakeModelCursor;
+import com.google.android.libraries.feed.testing.modelprovider.FakeModelFeature;
+import com.google.android.libraries.feed.testing.modelprovider.FakeModelMutation;
+import com.google.android.libraries.feed.testing.modelprovider.FakeModelToken;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
-import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Before;
@@ -77,7 +79,8 @@ public class TimeoutSessionImplTest extends AbstractSessionImplTest {
     assertThat(streamStructures).hasSize(4);
     session.updateSession(true, streamStructures, null);
     assertThat(fakeSessionMutation.streamStructures).hasSize(featureCnt);
-    assertThat(fakeModelMutator.addedChildren).hasSize(featureCnt);
+    FakeModelMutation fakeModelMutation = fakeModelProvider.getLatestModelMutation();
+    assertThat(fakeModelMutation.addedChildren).hasSize(featureCnt);
     assertThat(session.getContentInSession()).hasSize(featureCnt);
     assertThat(session.getContentInSession())
         .contains(contentIdGenerators.createFeatureContentId(featureId));
@@ -94,7 +97,7 @@ public class TimeoutSessionImplTest extends AbstractSessionImplTest {
     addFeatures(protocolBuilder, featureCnt, featureId);
     List<StreamStructure> streamStructures = protocolBuilder.buildAsStreamStructure();
 
-    session.bindModelProvider(modelProvider, viewDepthProvider);
+    session.bindModelProvider(fakeModelProvider, viewDepthProvider);
     session.populateModelProvider(new ArrayList<>(), false, false);
     session.updateSession(
         true,
@@ -103,7 +106,7 @@ public class TimeoutSessionImplTest extends AbstractSessionImplTest {
             .setRequestingSessionId(TEST_SESSION_ID)
             .setContinuationToken(StreamToken.newBuilder().setContentId("token").build())
             .build());
-    verify(modelProvider).invalidate(UiContext.getDefaultInstance());
+    assertThat(fakeModelProvider.isInvalidated()).isTrue();
   }
 
   @Test
@@ -113,7 +116,7 @@ public class TimeoutSessionImplTest extends AbstractSessionImplTest {
     assertThat(session.viewDepthProvider).isNull();
 
     session.setSessionId(TEST_SESSION_ID);
-    session.bindModelProvider(modelProvider, viewDepthProvider);
+    session.bindModelProvider(fakeModelProvider, viewDepthProvider);
     session.populateModelProvider(new ArrayList<>(), false, true);
     assertThat(session.legacyHeadContent).isTrue();
     assertThat(session.viewDepthProvider).isEqualTo(viewDepthProvider);
@@ -170,12 +173,13 @@ public class TimeoutSessionImplTest extends AbstractSessionImplTest {
 
     // Items below the lowest child should be removed.
     session.updateSession(/* clearHead= */ true, new ArrayList<>(), /* mutationContext= */ null);
-    assertThat(fakeModelMutator.removedChildren).hasSize(3);
-    assertThat(fakeModelMutator.removedChildren.get(0).getContentId())
+    FakeModelMutation fakeModelMutation = fakeModelProvider.getLatestModelMutation();
+    assertThat(fakeModelMutation.removedChildren).hasSize(3);
+    assertThat(fakeModelMutation.removedChildren.get(0).getContentId())
         .isEqualTo(contentIdGenerators.createFeatureContentId(7));
-    assertThat(fakeModelMutator.removedChildren.get(1).getContentId())
+    assertThat(fakeModelMutation.removedChildren.get(1).getContentId())
         .isEqualTo(contentIdGenerators.createFeatureContentId(8));
-    assertThat(fakeModelMutator.removedChildren.get(2).getContentId())
+    assertThat(fakeModelMutation.removedChildren.get(2).getContentId())
         .isEqualTo(contentIdGenerators.createFeatureContentId(9));
   }
 
@@ -189,8 +193,9 @@ public class TimeoutSessionImplTest extends AbstractSessionImplTest {
 
     // Because the lowest child is a token it should also be removed.
     session.updateSession(/* clearHead= */ true, new ArrayList<>(), /* mutationContext= */ null);
-    assertThat(fakeModelMutator.removedChildren).hasSize(1);
-    assertThat(fakeModelMutator.removedChildren.get(0).getContentId()).isEqualTo(tokenContentId);
+    FakeModelMutation fakeModelMutation = fakeModelProvider.getLatestModelMutation();
+    assertThat(fakeModelMutation.removedChildren).hasSize(1);
+    assertThat(fakeModelMutation.removedChildren.get(0).getContentId()).isEqualTo(tokenContentId);
   }
 
   @Test
@@ -205,22 +210,36 @@ public class TimeoutSessionImplTest extends AbstractSessionImplTest {
 
     // The token should be removed even when there is a null lowest child.
     session.updateSession(/* clearHead= */ true, new ArrayList<>(), /* mutationContext= */ null);
-    assertThat(fakeModelMutator.removedChildren).hasSize(1);
-    assertThat(fakeModelMutator.removedChildren.get(0).getContentId())
+    FakeModelMutation fakeModelMutation = fakeModelProvider.getLatestModelMutation();
+    assertThat(fakeModelMutation.removedChildren).hasSize(1);
+    assertThat(fakeModelMutation.removedChildren.get(0).getContentId())
         .isEqualTo(contentIdGenerators.createFeatureContentId(11));
   }
 
   private ModelChild createModelChild(long id, @ModelChild.Type int type) {
-    ModelChild child = mock(ModelChild.class);
-    when(child.getContentId()).thenReturn(contentIdGenerators.createFeatureContentId(id));
-    when(child.getType()).thenReturn(type);
-    return child;
+    String contentId = contentIdGenerators.createFeatureContentId(id);
+    switch (type) {
+      case ModelChild.Type.FEATURE:
+        return FakeModelChild.newBuilder()
+            .setContentId(contentId)
+            .setModelFeature(FakeModelFeature.newBuilder().build())
+            .build();
+      case ModelChild.Type.TOKEN:
+        return FakeModelChild.newBuilder()
+            .setContentId(contentId)
+            .setModelToken(FakeModelToken.newBuilder().build())
+            .build();
+      default:
+        return FakeModelChild.newBuilder().setContentId(contentId).build();
+    }
   }
 
   private void setupModelProviderRoot() {
-    List<ModelChild> cursorChildren = new ArrayList<>();
-    cursorChildren.add(mock(ModelChild.class));
-    when(modelProvider.getAllRootChildren()).thenReturn(cursorChildren);
+    fakeModelProvider.triggerOnSessionStart(
+        FakeModelFeature.newBuilder()
+            .setModelCursor(
+                FakeModelCursor.newBuilder().addChild(FakeModelChild.newBuilder().build()).build())
+            .build());
   }
 
   @Override
@@ -234,16 +253,19 @@ public class TimeoutSessionImplTest extends AbstractSessionImplTest {
     taskQueue.initialize(() -> {});
     TimeoutSessionImpl session =
         new TimeoutSessionImpl(store, false, taskQueue, timingUtils, threadUtils);
-    session.bindModelProvider(modelProvider, /* viewDepthProvider= */ null);
+    session.bindModelProvider(fakeModelProvider, /* viewDepthProvider= */ null);
     return session;
   }
 
   private void setupForViewDepthProvider(
       TimeoutSessionImpl session, String lowestChild, List<ModelChild> modelChildren) {
     when(viewDepthProvider.getChildViewDepth()).thenReturn(lowestChild);
-    when(modelProvider.getAllRootChildren()).thenReturn(modelChildren);
+    fakeModelProvider.triggerOnSessionStart(
+        FakeModelFeature.newBuilder()
+            .setModelCursor(FakeModelCursor.newBuilder().addChildren(modelChildren).build())
+            .build());
     session.setSessionId(TEST_SESSION_ID);
-    session.bindModelProvider(modelProvider, viewDepthProvider);
+    session.bindModelProvider(fakeModelProvider, viewDepthProvider);
     session.populateModelProvider(
         new ArrayList<>(), /* cachedBindings= */ false, /* legacyHeadContent= */ true);
   }

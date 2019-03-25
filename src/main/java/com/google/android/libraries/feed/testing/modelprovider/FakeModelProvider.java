@@ -45,17 +45,24 @@ public class FakeModelProvider implements ModelProvider {
   @RequestReason private int lastRequestReason = RequestReason.UNKNOWN;
   /*@Nullable*/ private ModelFeature immediateSessionStartModel;
   /*@Nullable*/ private UiContext unusedTriggerRefreshUiContext;
+  private FakeModelMutation latestModelMutation = new FakeModelMutation();
+  private boolean isInvalidated = false;
 
   @Override
   public ModelMutation edit() {
-    throw new UnsupportedOperationException("Edit is currently unsupported.");
+    latestModelMutation = new FakeModelMutation();
+    return latestModelMutation;
   }
 
   @Override
-  public void invalidate() {}
+  public void invalidate() {
+    isInvalidated = true;
+  }
 
   @Override
-  public void invalidate(UiContext uiContext) {}
+  public void invalidate(UiContext uiContext) {
+    isInvalidated = true;
+  }
 
   @Override
   public void detachModelProvider() {}
@@ -113,6 +120,9 @@ public class FakeModelProvider implements ModelProvider {
   @Override
   public List<ModelChild> getAllRootChildren() {
     ImmutableList.Builder<ModelChild> listBuilder = ImmutableList.builder();
+    if (rootFeature == null) {
+      return listBuilder.build();
+    }
 
     ModelCursor cursor = rootFeature.getCursor();
     ModelChild child;
@@ -186,5 +196,15 @@ public class FakeModelProvider implements ModelProvider {
 
   public void setTokensEnabled(boolean value) {
     tokensEnabled = value;
+  }
+
+  /** Returns the last {@link FakeModelMutation} returned from the {@link edit()} method. */
+  public FakeModelMutation getLatestModelMutation() {
+    return latestModelMutation;
+  }
+
+  /** Returns whether this {@link ModelProvider} has been invalidated. */
+  public boolean isInvalidated() {
+    return isInvalidated;
   }
 }

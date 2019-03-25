@@ -87,6 +87,13 @@ public class FakeModelCursor implements ModelCursor {
       return this;
     }
 
+    public Builder addChildren(List<ModelChild> children) {
+      for (ModelChild child : children) {
+        addChild(child);
+      }
+      return this;
+    }
+
     public Builder addCluster() {
       final FakeModelCursor cursor = new FakeModelCursor(new ArrayList<>());
       return addChildWithModelFeature(getClusterModelFeatureWithCursor(cursor));

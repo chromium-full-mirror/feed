@@ -16,7 +16,6 @@ package com.google.android.libraries.feed.feedsessionmanager.internal;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
@@ -27,6 +26,7 @@ import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThrea
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedsessionmanager.internal.testing.AbstractSessionImplTest;
+import com.google.android.libraries.feed.testing.modelprovider.FakeModelMutation;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
@@ -72,7 +72,8 @@ public class SessionImplTest extends AbstractSessionImplTest {
     assertThat(streamStructures).hasSize(4);
     session.updateSession(true, streamStructures, null);
     assertThat(fakeSessionMutation.streamStructures).isEmpty();
-    assertThat(fakeModelMutator.addedChildren).isEmpty();
+    FakeModelMutation fakeModelMutation = fakeModelProvider.getLatestModelMutation();
+    assertThat(fakeModelMutation.addedChildren).isEmpty();
     assertThat(session.getContentInSession()).isEmpty();
   }
 
@@ -81,7 +82,7 @@ public class SessionImplTest extends AbstractSessionImplTest {
     SessionImpl session = getSessionImpl();
     ViewDepthProvider mockDepthProvider = mock(ViewDepthProvider.class);
     session.setSessionId(TEST_SESSION_ID);
-    session.bindModelProvider(modelProvider, mockDepthProvider);
+    session.bindModelProvider(fakeModelProvider, mockDepthProvider);
     session.populateModelProvider(new ArrayList<>(), false, false);
     int featureCnt = 3;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder().addClearOperation();
@@ -95,15 +96,15 @@ public class SessionImplTest extends AbstractSessionImplTest {
             .setRequestingSessionId(TEST_SESSION_ID)
             .build());
 
-    verify(modelProvider).invalidate();
+    assertThat(fakeModelProvider.isInvalidated()).isTrue();
   }
 
   @Test
   public void testModelProviderBinding_withDetach() {
     SessionImpl session = getSessionImpl();
     ViewDepthProvider mockDepthProvider = mock(ViewDepthProvider.class);
-    session.bindModelProvider(modelProvider, mockDepthProvider);
-    assertThat(session.modelProvider).isEqualTo(modelProvider);
+    session.bindModelProvider(fakeModelProvider, mockDepthProvider);
+    assertThat(session.modelProvider).isEqualTo(fakeModelProvider);
     assertThat(session.viewDepthProvider).isEqualTo(mockDepthProvider);
 
     session.bindModelProvider(null, null);
@@ -121,7 +122,7 @@ public class SessionImplTest extends AbstractSessionImplTest {
             false);
     taskQueue.initialize(() -> {});
     SessionImpl session = new SessionImpl(store, false, taskQueue, timingUtils, threadUtils);
-    session.bindModelProvider(modelProvider, null);
+    session.bindModelProvider(fakeModelProvider, null);
     return session;
   }
 }

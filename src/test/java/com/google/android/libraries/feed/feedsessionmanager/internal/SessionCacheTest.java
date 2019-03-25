@@ -26,7 +26,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
-import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.ViewDepthProvider;
 import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.Store;
@@ -36,7 +35,6 @@ import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThrea
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
-import com.google.android.libraries.feed.feedsessionmanager.internal.testing.FakeModelMutation;
 import com.google.android.libraries.feed.feedstore.FeedStore;
 import com.google.android.libraries.feed.feedstore.testing.DelegatingStore;
 import com.google.android.libraries.feed.host.config.Configuration;
@@ -44,6 +42,7 @@ import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.storage.ContentStorageDirect;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
+import com.google.android.libraries.feed.testing.modelprovider.FakeModelProvider;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.search.now.feed.client.StreamDataProto.SessionMetadata;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
@@ -66,14 +65,13 @@ public class SessionCacheTest {
   @Mock private BasicLoggingApi basicLoggingApi;
   @Mock private ThreadUtils threadUtils;
   @Mock private Clock clock;
-  @Mock protected ModelProvider modelProvider;
+  protected FakeModelProvider fakeModelProvider;
 
   private final TimingUtils timingUtils = new TimingUtils();
   private final Configuration configuration = new Configuration.Builder().build();
   private final ContentIdGenerators idGenerators = new ContentIdGenerators();
   private final FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(ArrayList::new);
   private final ContentStorageDirect contentStorage = new InMemoryContentStorage();
-  private final FakeModelMutation fakeModelMutation = new FakeModelMutation();
 
   private SessionFactory sessionFactory;
   private Store storeSpy;
@@ -82,7 +80,7 @@ public class SessionCacheTest {
   @Before
   public void setUp() {
     initMocks(this);
-    when(modelProvider.edit()).thenReturn(fakeModelMutation);
+    fakeModelProvider = new FakeModelProvider();
     sessionCache = getSessionCache();
   }
 
@@ -452,7 +450,7 @@ public class SessionCacheTest {
               .build());
     }
     session.setSessionId("stream:" + id);
-    session.bindModelProvider(modelProvider, mock(ViewDepthProvider.class));
+    session.bindModelProvider(fakeModelProvider, mock(ViewDepthProvider.class));
     session.populateModelProvider(head, true, false);
 
     if (commitToStore) {

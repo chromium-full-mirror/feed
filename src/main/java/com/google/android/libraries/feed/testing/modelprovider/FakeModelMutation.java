@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.feedsessionmanager.internal.testing;
+package com.google.android.libraries.feed.testing.modelprovider;
 
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.modelprovider.ModelMutation;
@@ -25,7 +25,7 @@ public final class FakeModelMutation implements ModelMutation {
   public final List<StreamStructure> addedChildren = new ArrayList<>();
   public final List<StreamStructure> removedChildren = new ArrayList<>();
   public final List<StreamStructure> updateChildren = new ArrayList<>();
-  MutationContext mutationContext;
+  public MutationContext mutationContext;
   boolean commitCalled = false;
 
   @Override
@@ -67,7 +67,17 @@ public final class FakeModelMutation implements ModelMutation {
     commitCalled = true;
   }
 
-  void clearCommit() {
+  /** Clears the commit. */
+  public FakeModelMutation clearCommit() {
     commitCalled = false;
+    addedChildren.clear();
+    removedChildren.clear();
+    updateChildren.clear();
+    return this;
+  }
+
+  /** Returns whether this mutation was committed. */
+  public boolean isCommitted() {
+    return commitCalled;
   }
 }

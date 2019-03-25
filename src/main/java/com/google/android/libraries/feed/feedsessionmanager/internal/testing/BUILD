@@ -13,6 +13,7 @@ java_library(
         "//src/main/java/com/google/android/libraries/feed/api/store",
         "//src/main/java/com/google/android/libraries/feed/common/testing",
         "//src/main/java/com/google/android/libraries/feed/feedsessionmanager/internal",
+        "//src/main/java/com/google/android/libraries/feed/testing/modelprovider",
         "//src/main/proto/com/google/android/libraries/feed/api/proto:client_feed_java_proto_lite",
         "@junit_junit//jar",
         "@maven//:com_google_truth_truth",
