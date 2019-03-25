@@ -31,6 +31,8 @@ maven_install(
         "com.android.support:support-compat:" + ANDROID_SUPPORT_LIBRARY_VERSION,
         "com.android.support:support-core-ui:" + ANDROID_SUPPORT_LIBRARY_VERSION,
         "com.android.support:swiperefreshlayout:" + ANDROID_SUPPORT_LIBRARY_VERSION,
+        "com.google.guava:guava:27.0.1-android",
+        "com.google.guava:guava-testlib:27.0.1-android",
         "com.google.truth:truth:0.42",
         "org.mockito:mockito-core:2.24.0",
     ],
@@ -84,16 +86,6 @@ maven_jar(
 maven_jar(
     name = "com_google_dagger_dagger",
     artifact = "com.google.dagger:dagger:2.17",
-)
-
-maven_jar(
-    name = "com_google_guava_guava_android",
-    artifact = "com.google.guava:guava:27.0.1-android",
-)
-
-maven_jar(
-    name = "com_google_guava_guava_testlib",
-    artifact = "com.google.guava:guava-testlib:27.0.1-android",
 )
 
 maven_jar(
