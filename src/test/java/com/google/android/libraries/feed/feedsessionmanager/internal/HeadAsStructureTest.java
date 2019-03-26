@@ -1,4 +1,4 @@
-// Copyright 2018 The Feed Authors.
+// Copyright 2019 The Feed Authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,17 +16,19 @@ package com.google.android.libraries.feed.feedsessionmanager.internal;
 
 import static com.google.android.libraries.feed.api.common.testing.ContentIdGenerators.ROOT_PREFIX;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.common.testing.InternalProtocolBuilder;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeTaskQueue;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
+import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedsessionmanager.internal.HeadAsStructure.TreeNode;
+import com.google.android.libraries.feed.testing.store.FakeStore;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import java.util.List;
@@ -40,21 +42,28 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class HeadAsStructureTest {
 
-  @Mock private Store store;
-  @Mock private ThreadUtils threadUtils;
-
-  private final TimingUtils timingUtils = new TimingUtils();
   private final ContentIdGenerators idGenerators = new ContentIdGenerators();
+  private final FakeThreadUtils fakeThreadUtils = new FakeThreadUtils();
   private final String rootContentId = idGenerators.createRootContentId(0);
+  private final TimingUtils timingUtils = new TimingUtils();
+
+  @Mock private Clock clock;
+  private FakeStore fakeStore;
 
   @Before
   public void setUp() {
     initMocks(this);
+    fakeStore =
+        new FakeStore(
+            fakeThreadUtils,
+            new FakeTaskQueue(MoreExecutors.directExecutor(), clock, fakeThreadUtils),
+            clock);
+    fakeThreadUtils.enforceMainThread(false);
   }
 
   @Test
   public void testUninitialized() {
-    HeadAsStructure headAsStructure = new HeadAsStructure(store, timingUtils, threadUtils);
+    HeadAsStructure headAsStructure = new HeadAsStructure(fakeStore, timingUtils, fakeThreadUtils);
     Result<List<Void>> result = headAsStructure.filter(payload -> null);
     assertThat(result.isSuccessful()).isFalse();
   }
@@ -67,12 +76,11 @@ public class HeadAsStructureTest {
       String contentId = idGenerators.createFeatureContentId(i);
       protocolBuilder.addFeature(contentId, rootContentId);
     }
-    when(store.getStreamStructures(Store.HEAD_SESSION_ID))
-        .thenReturn(Result.success(protocolBuilder.buildAsStreamStructure()));
-    when(store.getPayloads(any()))
-        .thenReturn(Result.success(protocolBuilder.buildAsPayloadWithId()));
+    fakeStore
+        .setStreamStructures(Store.HEAD_SESSION_ID, protocolBuilder.buildAsStreamStructure())
+        .setContent(protocolBuilder.buildAsPayloadWithId());
 
-    HeadAsStructure headAsStructure = new HeadAsStructure(store, timingUtils, threadUtils);
+    HeadAsStructure headAsStructure = new HeadAsStructure(fakeStore, timingUtils, fakeThreadUtils);
     headAsStructure.initialize(result -> assertThat(result.isSuccessful()).isTrue());
     assertThat(headAsStructure.root).isNotNull();
     assertThat(headAsStructure.content).hasSize(4);
@@ -95,12 +103,11 @@ public class HeadAsStructureTest {
     }
     String contentId = idGenerators.createFeatureContentId(2);
     protocolBuilder.removeFeature(contentId, rootContentId);
-    when(store.getStreamStructures(Store.HEAD_SESSION_ID))
-        .thenReturn(Result.success(protocolBuilder.buildAsStreamStructure()));
-    when(store.getPayloads(any()))
-        .thenReturn(Result.success(protocolBuilder.buildAsPayloadWithId()));
+    fakeStore
+        .setStreamStructures(Store.HEAD_SESSION_ID, protocolBuilder.buildAsStreamStructure())
+        .setContent(protocolBuilder.buildAsPayloadWithId());
 
-    HeadAsStructure headAsStructure = new HeadAsStructure(store, timingUtils, threadUtils);
+    HeadAsStructure headAsStructure = new HeadAsStructure(fakeStore, timingUtils, fakeThreadUtils);
     headAsStructure.initialize(result -> assertThat(result.isSuccessful()).isTrue());
     assertThat(headAsStructure.root).isNotNull();
     assertThat(headAsStructure.content).hasSize(3);
@@ -118,12 +125,11 @@ public class HeadAsStructureTest {
       String contentId = idGenerators.createFeatureContentId(i);
       protocolBuilder.addFeature(contentId, rootContentId);
     }
-    when(store.getStreamStructures(Store.HEAD_SESSION_ID))
-        .thenReturn(Result.success(protocolBuilder.buildAsStreamStructure()));
-    when(store.getPayloads(any()))
-        .thenReturn(Result.success(protocolBuilder.buildAsPayloadWithId()));
+    fakeStore
+        .setStreamStructures(Store.HEAD_SESSION_ID, protocolBuilder.buildAsStreamStructure())
+        .setContent(protocolBuilder.buildAsPayloadWithId());
 
-    HeadAsStructure headAsStructure = new HeadAsStructure(store, timingUtils, threadUtils);
+    HeadAsStructure headAsStructure = new HeadAsStructure(fakeStore, timingUtils, fakeThreadUtils);
     headAsStructure.initialize(result -> assertThat(result.isSuccessful()).isTrue());
     headAsStructure.initialize(result -> assertThat(result.isSuccessful()).isFalse());
   }
@@ -136,11 +142,9 @@ public class HeadAsStructureTest {
       String contentId = idGenerators.createFeatureContentId(i);
       protocolBuilder.addFeature(contentId, rootContentId);
     }
-    when(store.getStreamStructures(Store.HEAD_SESSION_ID)).thenReturn(Result.failure());
-    when(store.getPayloads(any()))
-        .thenReturn(Result.success(protocolBuilder.buildAsPayloadWithId()));
+    fakeStore.setAllowGetStreamStructures(false).setContent(protocolBuilder.buildAsPayloadWithId());
 
-    HeadAsStructure headAsStructure = new HeadAsStructure(store, timingUtils, threadUtils);
+    HeadAsStructure headAsStructure = new HeadAsStructure(fakeStore, timingUtils, fakeThreadUtils);
     headAsStructure.initialize(result -> assertThat(result.isSuccessful()).isFalse());
   }
 
@@ -152,11 +156,11 @@ public class HeadAsStructureTest {
       String contentId = idGenerators.createFeatureContentId(i);
       protocolBuilder.addFeature(contentId, rootContentId);
     }
-    when(store.getStreamStructures(Store.HEAD_SESSION_ID))
-        .thenReturn(Result.success(protocolBuilder.buildAsStreamStructure()));
-    when(store.getPayloads(any())).thenReturn(Result.failure());
+    fakeStore
+        .setStreamStructures(Store.HEAD_SESSION_ID, protocolBuilder.buildAsStreamStructure())
+        .setAllowGetPayloads(false);
 
-    HeadAsStructure headAsStructure = new HeadAsStructure(store, timingUtils, threadUtils);
+    HeadAsStructure headAsStructure = new HeadAsStructure(fakeStore, timingUtils, fakeThreadUtils);
     headAsStructure.initialize(result -> assertThat(result.isSuccessful()).isFalse());
   }
 
@@ -168,12 +172,11 @@ public class HeadAsStructureTest {
       String contentId = idGenerators.createFeatureContentId(i);
       protocolBuilder.addFeature(contentId, rootContentId);
     }
-    when(store.getStreamStructures(Store.HEAD_SESSION_ID))
-        .thenReturn(Result.success(protocolBuilder.buildAsStreamStructure()));
-    when(store.getPayloads(any()))
-        .thenReturn(Result.success(protocolBuilder.buildAsPayloadWithId()));
+    fakeStore
+        .setStreamStructures(Store.HEAD_SESSION_ID, protocolBuilder.buildAsStreamStructure())
+        .setContent(protocolBuilder.buildAsPayloadWithId());
 
-    HeadAsStructure headAsStructure = new HeadAsStructure(store, timingUtils, threadUtils);
+    HeadAsStructure headAsStructure = new HeadAsStructure(fakeStore, timingUtils, fakeThreadUtils);
     headAsStructure.initialize(result -> assertThat(result.isSuccessful()).isTrue());
     Result<List<StreamFeature>> results =
         headAsStructure.filter(
@@ -198,12 +201,11 @@ public class HeadAsStructureTest {
       String contentId = idGenerators.createFeatureContentId(i);
       protocolBuilder.addFeature(contentId, rootContentId);
     }
-    when(store.getStreamStructures(Store.HEAD_SESSION_ID))
-        .thenReturn(Result.success(protocolBuilder.buildAsStreamStructure()));
-    when(store.getPayloads(any()))
-        .thenReturn(Result.success(protocolBuilder.buildAsPayloadWithId()));
+    fakeStore
+        .setStreamStructures(Store.HEAD_SESSION_ID, protocolBuilder.buildAsStreamStructure())
+        .setContent(protocolBuilder.buildAsPayloadWithId());
 
-    HeadAsStructure headAsStructure = new HeadAsStructure(store, timingUtils, threadUtils);
+    HeadAsStructure headAsStructure = new HeadAsStructure(fakeStore, timingUtils, fakeThreadUtils);
     headAsStructure.initialize(result -> assertThat(result.isSuccessful()).isTrue());
     Result<List<String>> results =
         headAsStructure.filter(
@@ -225,12 +227,11 @@ public class HeadAsStructureTest {
     }
     String contentId = idGenerators.createFeatureContentId(2);
     protocolBuilder.removeFeature(contentId, rootContentId);
-    when(store.getStreamStructures(Store.HEAD_SESSION_ID))
-        .thenReturn(Result.success(protocolBuilder.buildAsStreamStructure()));
-    when(store.getPayloads(any()))
-        .thenReturn(Result.success(protocolBuilder.buildAsPayloadWithId()));
+    fakeStore
+        .setStreamStructures(Store.HEAD_SESSION_ID, protocolBuilder.buildAsStreamStructure())
+        .setContent(protocolBuilder.buildAsPayloadWithId());
 
-    HeadAsStructure headAsStructure = new HeadAsStructure(store, timingUtils, threadUtils);
+    HeadAsStructure headAsStructure = new HeadAsStructure(fakeStore, timingUtils, fakeThreadUtils);
     headAsStructure.initialize(result -> assertThat(result.isSuccessful()).isTrue());
     Result<List<StreamFeature>> results =
         headAsStructure.filter(

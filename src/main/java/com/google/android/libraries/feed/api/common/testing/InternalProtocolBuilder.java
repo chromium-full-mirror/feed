@@ -150,6 +150,10 @@ public class InternalProtocolBuilder {
       if (operation.getStreamPayload().hasStreamSharedState()) {
         continue;
       }
+      // Only include payloads with UPDATE_OR_APPEND.
+      if (operation.getStreamStructure().getOperation() != Operation.UPDATE_OR_APPEND) {
+        continue;
+      }
       payloads.add(
           new PayloadWithId(
               operation.getStreamStructure().getContentId(), operation.getStreamPayload()));

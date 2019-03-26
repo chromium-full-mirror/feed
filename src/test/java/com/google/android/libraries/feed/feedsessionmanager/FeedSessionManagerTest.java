@@ -28,7 +28,6 @@ import com.google.android.libraries.feed.api.common.testing.InternalProtocolBuil
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.modelprovider.ModelError;
 import com.google.android.libraries.feed.api.modelprovider.ModelError.ErrorType;
-import com.google.android.libraries.feed.api.modelprovider.ModelMutation;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.common.Result;
@@ -109,8 +108,6 @@ public class FeedSessionManagerTest {
   private FakeThreadUtils fakeThreadUtils;
   private FakeStore fakeStore;
   @Mock private SchedulerApi schedulerApi;
-  @Mock private ModelProvider modelProvider;
-  @Mock private ModelMutation modelMutation;
   @Mock private Clock clock;
 
   private final ContentIdGenerators contentIdGenerators = new ContentIdGenerators();
@@ -132,7 +129,6 @@ public class FeedSessionManagerTest {
     fakeRequestManager =
         new FakeRequestManager(fakeThreadUtils, fakeProtocolAdapter, /* requestDelayMs= */ 0);
     fakeRequestManager.queueResponse(Response.getDefaultInstance());
-    when(modelProvider.edit()).thenReturn(modelMutation);
     when(schedulerApi.shouldSessionRequestData(any(SessionManagerState.class)))
         .thenReturn(RequestBehavior.NO_REQUEST_WITH_CONTENT);
   }

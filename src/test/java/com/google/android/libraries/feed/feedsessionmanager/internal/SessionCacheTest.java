@@ -15,34 +15,20 @@
 package com.google.android.libraries.feed.feedsessionmanager.internal;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.api.common.PayloadWithId;
-import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.ViewDepthProvider;
-import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.Store;
-import com.google.android.libraries.feed.common.Result;
-import com.google.android.libraries.feed.common.concurrent.TaskQueue;
-import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
-import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeTaskQueue;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
-import com.google.android.libraries.feed.feedstore.FeedStore;
-import com.google.android.libraries.feed.feedstore.testing.DelegatingStore;
 import com.google.android.libraries.feed.host.config.Configuration;
-import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
-import com.google.android.libraries.feed.host.storage.ContentStorageDirect;
-import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
-import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelProvider;
+import com.google.android.libraries.feed.testing.store.FakeStore;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.search.now.feed.client.StreamDataProto.SessionMetadata;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
@@ -62,25 +48,27 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class SessionCacheTest {
   private static final long DEFAULT_LIFETIME_MS = 10;
-  @Mock private BasicLoggingApi basicLoggingApi;
-  @Mock private ThreadUtils threadUtils;
-  @Mock private Clock clock;
-  protected FakeModelProvider fakeModelProvider;
 
-  private final TimingUtils timingUtils = new TimingUtils();
   private final Configuration configuration = new Configuration.Builder().build();
   private final ContentIdGenerators idGenerators = new ContentIdGenerators();
-  private final FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(ArrayList::new);
-  private final ContentStorageDirect contentStorage = new InMemoryContentStorage();
+  private final FakeThreadUtils fakeThreadUtils = new FakeThreadUtils();
+  private final TimingUtils timingUtils = new TimingUtils();
 
+  @Mock private Clock clock;
+  private FakeStore fakeStore;
+  private FakeTaskQueue fakeTaskQueue;
   private SessionFactory sessionFactory;
-  private Store storeSpy;
   private SessionCache sessionCache;
+
+  protected final FakeModelProvider fakeModelProvider = new FakeModelProvider();
 
   @Before
   public void setUp() {
     initMocks(this);
-    fakeModelProvider = new FakeModelProvider();
+    fakeTaskQueue = new FakeTaskQueue(MoreExecutors.directExecutor(), clock, fakeThreadUtils);
+    fakeStore = new FakeStore(fakeThreadUtils, fakeTaskQueue, clock);
+    fakeThreadUtils.enforceMainThread(false);
+    fakeTaskQueue.initialize(() -> {});
     sessionCache = getSessionCache();
   }
 
@@ -255,14 +243,8 @@ public class SessionCacheTest {
 
   @Test
   public void testGetPersistedSessions() {
-    List<PayloadWithId> persistedSessions = new ArrayList<>();
     StreamSession streamSession = StreamSession.getDefaultInstance();
-    StreamSessions streamSessions =
-        StreamSessions.newBuilder().addStreamSession(streamSession).build();
-    StreamPayload payload = StreamPayload.newBuilder().setStreamSessions(streamSessions).build();
-    persistedSessions.add(new PayloadWithId(SessionCache.STREAM_SESSION_CONTENT_ID, payload));
-
-    doReturn(Result.success(persistedSessions)).when(storeSpy).getPayloads(any());
+    mockStreamSessions(StreamSessions.newBuilder().addStreamSession(streamSession).build());
 
     List<StreamSession> sessionList = sessionCache.getPersistedSessions();
     assertThat(sessionList).containsExactly(streamSession);
@@ -270,19 +252,17 @@ public class SessionCacheTest {
 
   @Test
   public void testCleanupJournals() {
-    List<String> storedSessions = new ArrayList<>();
     String sessionId1 = "stream:1";
     String sessionId2 = "stream:2";
-    storedSessions.add(sessionId1);
-    storedSessions.add(sessionId2);
-
-    doReturn(Result.success(storedSessions)).when(storeSpy).getAllSessions();
+    fakeStore
+        .setStreamStructures(sessionId1, StreamStructure.getDefaultInstance())
+        .setStreamStructures(sessionId2, StreamStructure.getDefaultInstance());
 
     Session s2 = mock(Session.class);
     when(s2.getSessionId()).thenReturn(sessionId2);
     setSessions(s2);
     sessionCache.cleanupSessionJournals();
-    verify(storeSpy).removeSession(sessionId1);
+    assertThat(fakeStore.getAllSessions().getValue()).containsExactly(sessionId2);
     assertThat(sessionCache.getAttached(sessionId2)).isEqualTo(s2);
   }
 
@@ -387,45 +367,21 @@ public class SessionCacheTest {
     sessionCache.initialize();
     sessionCache.updatePersistedSessionsMetadata();
 
-    doReturn(Result.failure()).when(storeSpy).getPayloads(any());
+    fakeStore.setAllowGetPayloads(false);
     assertThat(sessionCache.getPersistedSessions()).isEmpty();
   }
 
   private SessionCache getSessionCache() {
-    TaskQueue taskQueue =
-        new TaskQueue(
-            MoreExecutors.directExecutor(),
-            FakeMainThreadRunner.runTasksImmediately(),
-            clock,
-            false);
-    taskQueue.initialize(() -> {});
-    Store store =
-        new DelegatingStore(
-            new FeedStore(
-                timingUtils,
-                extensionRegistry,
-                contentStorage,
-                new InMemoryJournalStorage(),
-                threadUtils,
-                taskQueue,
-                clock,
-                basicLoggingApi,
-                FakeMainThreadRunner.runTasksImmediately()));
-    storeSpy = spy(store);
     sessionFactory =
-        new SessionFactory(storeSpy, taskQueue, timingUtils, threadUtils, configuration);
+        new SessionFactory(fakeStore, fakeTaskQueue, timingUtils, fakeThreadUtils, configuration);
     return new SessionCache(
-        storeSpy, taskQueue, sessionFactory, 10, timingUtils, threadUtils, clock);
+        fakeStore, fakeTaskQueue, sessionFactory, 10, timingUtils, fakeThreadUtils, clock);
   }
 
   private void mockStreamSessions(StreamSessions streamSessions) {
-    List<PayloadWithId> persistedSessions = new ArrayList<>();
-    persistedSessions.add(
-        new PayloadWithId(
-            SessionCache.STREAM_SESSION_CONTENT_ID,
-            StreamPayload.newBuilder().setStreamSessions(streamSessions).build()));
-
-    doReturn(Result.success(persistedSessions)).when(storeSpy).getPayloads(any());
+    fakeStore.setContent(
+        SessionCache.STREAM_SESSION_CONTENT_ID,
+        StreamPayload.newBuilder().setStreamSessions(streamSessions).build());
   }
 
   private Session populateSession(int id, int featureCnt) {
@@ -454,25 +410,19 @@ public class SessionCacheTest {
     session.populateModelProvider(head, true, false);
 
     if (commitToStore) {
-      SessionMutation sessionMutation = storeSpy.editSession(session.getSessionId());
-      for (StreamStructure streamStructure : head) {
-        sessionMutation.add(streamStructure);
-      }
-      sessionMutation.commit();
+      fakeStore.setStreamStructures(session.getSessionId(), head);
     }
 
     return session;
   }
 
   private void populateHead() {
-    SessionMutation sessionMutation = storeSpy.editSession(Store.HEAD_SESSION_ID);
-    String rootId = idGenerators.createRootContentId(1);
-    sessionMutation.add(
+    fakeStore.setStreamStructures(
+        Store.HEAD_SESSION_ID,
         StreamStructure.newBuilder()
             .setOperation(Operation.UPDATE_OR_APPEND)
-            .setContentId(rootId)
+            .setContentId(idGenerators.createRootContentId(1))
             .build());
-    sessionMutation.commit();
   }
 
   private void setSessions(Session... testSessions) {

@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.testing.store;
 
+import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.store.ContentMutation;
 import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.UploadableActionMutation;
@@ -33,12 +34,14 @@ import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /** Fake implementation of {@link com.google.android.libraries.feed.api.store.Store}. */
 public final class FakeStore extends FeedStore {
   private final FakeThreadUtils fakeThreadUtils;
   private boolean allowCreateNewSession = true;
+  private boolean allowGetPayloads = true;
   private boolean allowGetStreamStructures = true;
   private boolean allowGetSharedStates = true;
 
@@ -54,6 +57,15 @@ public final class FakeStore extends FeedStore {
         new FakeBasicLoggingApi(),
         FakeMainThreadRunner.runTasksImmediately());
     this.fakeThreadUtils = fakeThreadUtils;
+  }
+
+  @Override
+  public Result<List<PayloadWithId>> getPayloads(List<String> contentIds) {
+    if (!allowGetPayloads) {
+      return Result.failure();
+    }
+
+    return super.getPayloads(contentIds);
   }
 
   @Override
@@ -95,9 +107,35 @@ public final class FakeStore extends FeedStore {
     return this;
   }
 
+  /** Sets whether to fail on calls to {@link getPayloads(List)}. */
+  public FakeStore setAllowGetPayloads(boolean value) {
+    allowGetPayloads = value;
+    return this;
+  }
+
   /** Sets whether to fail on calls to {@link getSharedStates()}. */
   public FakeStore setAllowGetSharedStates(boolean value) {
     allowGetSharedStates = value;
+    return this;
+  }
+
+  /** Adds the {@code payload} to the store. */
+  public FakeStore setContent(String contentId, StreamPayload payload) {
+    boolean policy = fakeThreadUtils.enforceMainThread(false);
+    editContent().add(contentId, payload).commit();
+    fakeThreadUtils.enforceMainThread(policy);
+    return this;
+  }
+
+  /** Adds the {@code payloads} to the store. */
+  public FakeStore setContent(List<PayloadWithId> payloads) {
+    boolean policy = fakeThreadUtils.enforceMainThread(false);
+    ContentMutation mutation = editContent();
+    for (PayloadWithId payload : payloads) {
+      mutation.add(payload.contentId, payload.payload);
+    }
+    mutation.commit();
+    fakeThreadUtils.enforceMainThread(policy);
     return this;
   }
 
@@ -117,6 +155,11 @@ public final class FakeStore extends FeedStore {
 
   /** Adds the {@code structures} to the store for the specified {@code sessionId}. */
   public FakeStore setStreamStructures(String sessionId, StreamStructure... structures) {
+    return setStreamStructures(sessionId, Arrays.asList(structures));
+  }
+
+  /** Adds the {@code structures} to the store for the specified {@code sessionId}. */
+  public FakeStore setStreamStructures(String sessionId, List<StreamStructure> structures) {
     boolean policy = fakeThreadUtils.enforceMainThread(false);
     SessionMutation mutation = editSession(sessionId);
     for (StreamStructure structure : structures) {
