@@ -35,12 +35,14 @@ import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThrea
 import com.google.android.libraries.feed.common.concurrent.testing.FakeTaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.functional.Consumer;
+import com.google.android.libraries.feed.common.intern.Interner;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedapplifecyclelistener.FeedAppLifecycleListener;
 import com.google.android.libraries.feed.feedapplifecyclelistener.FeedLifecycleListener.LifecycleEvent;
 import com.google.android.libraries.feed.feedmodelprovider.FeedModelProviderFactory;
 import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManager.SessionMutationTracker;
+import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManager.StreamSharedStateInterner;
 import com.google.android.libraries.feed.feedsessionmanager.internal.HeadSessionImpl;
 import com.google.android.libraries.feed.feedsessionmanager.internal.Session;
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionCache;
@@ -64,6 +66,9 @@ import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operati
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
 import com.google.search.now.feed.client.StreamDataProto.UiContext;
+import com.google.search.now.ui.piet.PietProto.PietSharedState;
+import com.google.search.now.ui.piet.PietProto.Stylesheet;
+import com.google.search.now.ui.piet.PietProto.Template;
 import com.google.search.now.wire.feed.ConsistencyTokenProto.ConsistencyToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.OpaqueActionDataForTestProto.OpaqueActionDataForTest;
@@ -175,6 +180,79 @@ public class FeedSessionManagerTest {
     Set<String> content = head.getContentInSession();
     assertThat(content).contains(itemKey);
     assertThat(content).hasSize(1);
+  }
+
+  // This is testing a condition similar to the one that caused [INTERNAL LINK].
+  @Test
+  public void testInitialization_equalSharedStatesDifferentContentIds() throws Exception {
+    StreamSharedState sharedState1 =
+        StreamSharedState.newBuilder()
+            .setContentId("shared-state-1")
+            .setPietSharedStateItem(
+                PietSharedStateItem.newBuilder()
+                    .setPietSharedState(
+                        PietSharedState.newBuilder()
+                            .addStylesheets(
+                                Stylesheet.newBuilder().setStylesheetId("shared-stylesheet"))))
+            .build();
+    StreamSharedState sharedState2 =
+        StreamSharedState.newBuilder()
+            .setContentId("shared-state-2") //  Different ContentId
+            .setPietSharedStateItem( // Equal PietSharedStateItem
+                PietSharedStateItem.parseFrom(sharedState1.getPietSharedStateItem().toByteString()))
+            .build();
+    assertThat(sharedState1).isNotEqualTo(sharedState2);
+
+    // Initial PietSharedStateItem messages are equal but not the same between the 2 shared states.
+    assertThat(sharedState1.getPietSharedStateItem())
+        .isEqualTo(sharedState2.getPietSharedStateItem());
+    assertThat(sharedState1.getPietSharedStateItem())
+        .isNotSameAs(sharedState2.getPietSharedStateItem());
+
+    StreamStructure operation =
+        StreamStructure.newBuilder()
+            .setContentId(idGenerators.createFeatureContentId(0))
+            .setOperation(StreamStructure.Operation.UPDATE_OR_APPEND)
+            .build();
+    fakeStore
+        .setSharedStates(sharedState1, sharedState2)
+        .setStreamStructures(HEAD_SESSION_ID, operation);
+
+    ContentId contentId1 = SHARED_STATE_ID.toBuilder().setId(1).build();
+    ContentId contentId2 = SHARED_STATE_ID.toBuilder().setId(2).build();
+    fakeProtocolAdapter
+        .addContentId("shared-state-1", contentId1)
+        .addContentId("shared-state-2", contentId2);
+
+    FeedSessionManager sessionManager =
+        new FeedSessionManagerFactory(
+                fakeTaskQueue,
+                fakeStore,
+                timingUtils,
+                fakeThreadUtils,
+                fakeProtocolAdapter,
+                fakeRequestManager,
+                fakeActionUploadRequestManager,
+                schedulerApi,
+                configuration,
+                clock,
+                appLifecycleListener)
+            .create();
+    assertThat(sessionManager.initialized.get()).isFalse();
+    sessionManager.initialize();
+    assertThat(sessionManager.initialized.get()).isTrue();
+
+    Map<String, StreamSharedState> sharedStateCache = sessionManager.getSharedStateCacheForTest();
+    assertThat(sharedStateCache).hasSize(2);
+
+    StreamSharedState cachedSharedState1 = sessionManager.getSharedState(contentId1);
+    StreamSharedState cachedSharedState2 = sessionManager.getSharedState(contentId2);
+    assertThat(cachedSharedState1).isEqualTo(sharedState1);
+    assertThat(cachedSharedState2).isEqualTo(sharedState2);
+
+    // Cached PietSharedStateItem messages the same between the 2 shared states (memoized).
+    assertThat(cachedSharedState1.getPietSharedStateItem())
+        .isSameAs(cachedSharedState2.getPietSharedStateItem());
   }
 
   @Test
@@ -620,6 +698,61 @@ public class FeedSessionManagerTest {
     sessionManager.getConsistencyTokenConsumer().accept(Result.success(token));
     sessionManager.fetchActionsAndUpload(consumer);
     assertThat(fakeActionUploadRequestManager.getLatestActions()).isNotNull();
+  }
+
+  @Test
+  public void testStreamSharedStateInterner() {
+    Interner<StreamSharedState> interner = new StreamSharedStateInterner();
+    StreamSharedState first =
+        StreamSharedState.newBuilder()
+            .setContentId("foo")
+            .setPietSharedStateItem(
+                PietSharedStateItem.newBuilder()
+                    .setPietSharedState(
+                        PietSharedState.newBuilder()
+                            .addTemplates(Template.newBuilder().setTemplateId("equal"))))
+            .build();
+    StreamSharedState second =
+        StreamSharedState.newBuilder()
+            .setContentId("baz")
+            .setPietSharedStateItem(
+                PietSharedStateItem.newBuilder()
+                    .setPietSharedState(
+                        PietSharedState.newBuilder()
+                            .addTemplates(Template.newBuilder().setTemplateId("equal"))))
+            .build();
+    StreamSharedState third =
+        StreamSharedState.newBuilder()
+            .setContentId("bar")
+            .setPietSharedStateItem(
+                PietSharedStateItem.newBuilder()
+                    .setPietSharedState(
+                        PietSharedState.newBuilder()
+                            .addTemplates(Template.newBuilder().setTemplateId("different"))))
+            .build();
+    assertThat(first).isNotSameAs(second);
+    assertThat(first.getPietSharedStateItem()).isEqualTo(second.getPietSharedStateItem());
+    assertThat(first).isNotEqualTo(third);
+    assertThat(first.getPietSharedStateItem()).isNotEqualTo(third.getPietSharedStateItem());
+
+    // Pool is empty so first is added/returned.
+    StreamSharedState internedFirst = interner.intern(first);
+    assertThat(interner.size()).isEqualTo(1);
+    assertThat(internedFirst).isSameAs(first);
+
+    // Pool already has an identical inner PietSharedStateItem proto, which is used.
+    StreamSharedState internedSecond = interner.intern(second);
+    assertThat(interner.size()).isEqualTo(1);
+    // The returned proto is equal to second, but its internal PietSharedStateItem is the same as
+    // the one in first (memoized).
+    assertThat(internedSecond).isNotSameAs(second);
+    assertThat(internedSecond).isEqualTo(second);
+    assertThat(internedSecond.getPietSharedStateItem()).isSameAs(first.getPietSharedStateItem());
+
+    // Third has a new PietSharedStateItem (not equal with any previous) so it is added to the pool.
+    StreamSharedState internedThird = interner.intern(third);
+    assertThat(interner.size()).isEqualTo(2);
+    assertThat(internedThird).isSameAs(third);
   }
 
   private int populateSession(

@@ -42,6 +42,10 @@ import com.google.android.libraries.feed.common.feedobservable.FeedObservable;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.functional.Function;
 import com.google.android.libraries.feed.common.functional.Supplier;
+import com.google.android.libraries.feed.common.intern.HashPoolInterner;
+import com.google.android.libraries.feed.common.intern.InternedMap;
+import com.google.android.libraries.feed.common.intern.Interner;
+import com.google.android.libraries.feed.common.intern.InternerWithStats;
 import com.google.android.libraries.feed.common.logging.Dumpable;
 import com.google.android.libraries.feed.common.logging.Dumper;
 import com.google.android.libraries.feed.common.logging.Logger;
@@ -75,6 +79,7 @@ import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
 import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import com.google.search.now.wire.feed.ConsistencyTokenProto.ConsistencyToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
+import com.google.search.now.wire.feed.PietSharedStateItemProto.PietSharedStateItem;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -96,7 +101,10 @@ public final class FeedSessionManager
 
   // For the Shared State we will always cache them in the Session Manager
   // Accessed on main thread, updated on Executor task
-  private final Map<String, StreamSharedState> sharedStateCache = new HashMap<>();
+  private final InternerWithStats<StreamSharedState> sharedStateInterner =
+      new InternerWithStats<>(new StreamSharedStateInterner());
+  private final Map<String, StreamSharedState> sharedStateCache =
+      new InternedMap<>(new HashMap<>(), sharedStateInterner);
 
   // All writes are done on background threads, there are accesses on the main thread.  Leaving
   // the lock back accessibleContentSupplier may eventually run on a background task and not
@@ -762,10 +770,15 @@ public final class FeedSessionManager
   @Override
   public void dump(Dumper dumper) {
     dumper.title(TAG);
-    dumper.forKey("newSessionCount").value(newSessionCount).compactPrevious();
+    dumper.forKey("newSessionCount").value(newSessionCount);
     dumper.forKey("existingSessionCount").value(existingSessionCount).compactPrevious();
     dumper.forKey("handleTokenCount").value(handleTokenCount).compactPrevious();
-    dumper.forKey("sharedStateCount").value(sharedStateCache.size());
+    dumper.forKey("sharedStateSize").value(sharedStateCache.size()).compactPrevious();
+    dumper.forKey("sharedStateInternerSize").value(sharedStateInterner.size()).compactPrevious();
+    dumper
+        .forKey("sharedStateInternerStats")
+        .value(sharedStateInterner.getStats())
+        .compactPrevious();
     dumper.dump(contentCache);
     dumper.dump(taskQueue);
     dumper.dump(sessionCache);
@@ -871,6 +884,39 @@ public final class FeedSessionManager
           sharedStateCache.put(contentId, payload.getStreamSharedState());
         }
       }
+    }
+  }
+
+  // Interner that caches the inner PietSharedStateItem from a StreamSharedState, which may
+  // sometimes be identical, only the inner content_id differing (see [INTERNAL LINK]).
+  @VisibleForTesting
+  static class StreamSharedStateInterner implements Interner<StreamSharedState> {
+
+    private final Interner<PietSharedStateItem> interner = new HashPoolInterner<>();
+
+    @SuppressWarnings("ReferenceEquality") // Intentional reference comparison for interned != orig
+    @Override
+    public StreamSharedState intern(StreamSharedState input) {
+      PietSharedStateItem orig = input.getPietSharedStateItem();
+      PietSharedStateItem interned = interner.intern(orig);
+      if (interned != orig) {
+        /*
+         * If interned != orig we have a memoized item and we need to replace the proto with
+         * the modified version.
+         */
+        return input.toBuilder().setPietSharedStateItem(interned).build();
+      }
+      return input;
+    }
+
+    @Override
+    public void clear() {
+      interner.clear();
+    }
+
+    @Override
+    public int size() {
+      return interner.size();
     }
   }
 }
