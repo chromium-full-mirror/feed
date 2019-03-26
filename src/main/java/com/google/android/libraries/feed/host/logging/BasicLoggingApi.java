@@ -232,4 +232,12 @@ public interface BasicLoggingApi {
    */
   void onInitialSessionEvent(
       @SessionEvent int sessionEvent, int timeFromRegisteringMs, int sessionCount);
+
+  /**
+   * Called when a client scrolls in the feed
+   *
+   * @param scrollType describes the type of scroll which is being performed by user.
+   * @param distanceScrolled distance in px the user scrolled for this particular scroll.
+   */
+  void onScroll(@ScrollType int scrollType, int distanceScrolled);
 }

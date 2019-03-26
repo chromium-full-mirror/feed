@@ -21,6 +21,7 @@ import com.google.android.libraries.feed.host.logging.ElementLoggingData;
 import com.google.android.libraries.feed.host.logging.ElementType;
 import com.google.android.libraries.feed.host.logging.InternalFeedError;
 import com.google.android.libraries.feed.host.logging.RequestReason;
+import com.google.android.libraries.feed.host.logging.ScrollType;
 import com.google.android.libraries.feed.host.logging.SessionEvent;
 import com.google.android.libraries.feed.host.logging.SpinnerType;
 import com.google.android.libraries.feed.host.logging.ZeroStateShowReason;
@@ -113,4 +114,7 @@ public class FakeBasicLoggingApi implements BasicLoggingApi {
 
   @Override
   public void onZeroStateShown(@ZeroStateShowReason int zeroStateShowReason) {}
+
+  @Override
+  public void onScroll(@ScrollType int scrollType, int distanceScrolled) {}
 }
