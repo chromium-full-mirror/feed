@@ -54,7 +54,6 @@ import com.google.android.libraries.feed.piet.host.EventLogger;
 import com.google.android.libraries.feed.sharedstream.deepestcontenttracker.DeepestContentTracker;
 import com.google.android.libraries.feed.sharedstream.piet.PietEventLogger;
 import com.google.android.libraries.feed.sharedstream.scroll.StreamScrollMonitor;
-import com.google.android.libraries.feed.sharedstream.ui.R;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import java.util.Collections;
@@ -107,7 +106,6 @@ public class StreamRecyclerViewAdapterTest {
     initMocks(this);
 
     context = Robolectric.buildActivity(Activity.class).get();
-    context.setTheme(R.style.Theme_Light);
     frameContainer = new LinearLayout(context);
 
     when(pietManager.createPietFrameAdapter(

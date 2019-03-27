@@ -123,7 +123,6 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
   private final ViewLoggingUpdater viewLoggingUpdater;
   private final TooltipApi tooltipApi;
   private final UiSessionRequestLogger uiSessionRequestLogger;
-  private final boolean isBackgroundDark;
 
   private RecyclerView recyclerView;
   private ContextMenuManager contextMenuManager;
@@ -200,7 +199,6 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
     viewLoggingUpdater = createViewLoggingUpdater();
     this.uiSessionRequestLogger = new UiSessionRequestLogger(clock, basicLoggingApi);
     this.tooltipApi = tooltipApi;
-    this.isBackgroundDark = isBackgroundDark;
     this.pietManager =
         createPietManager(
             context,
@@ -256,7 +254,6 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
   @Override
   public void onCreate(/*@Nullable*/ String savedInstanceState) {
     checkState(recyclerView == null, "Can't call onCreate() multiple times.");
-    context.setTheme(isBackgroundDark ? R.style.Theme_Dark : R.style.Theme_Light);
     setupRecyclerView();
 
     if (savedInstanceState == null) {
