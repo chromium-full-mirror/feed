@@ -22,9 +22,7 @@ import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Consumer;
-import com.google.android.libraries.feed.common.functional.Function;
 import com.google.android.libraries.feed.common.logging.Logger;
-import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.ui.stream.StreamStructureProto.Content;
 import java.util.HashSet;
 import java.util.List;
@@ -79,17 +77,16 @@ public final class FeedKnownContentApi implements KnownContentApi {
   @Override
   public void getKnownContent(Consumer<List<ContentMetadata>> knownContentConsumer) {
     sessionManager.getStreamFeaturesFromHead(
-        (Function<StreamPayload, /*@Nullable*/ ContentMetadata>)
-            streamPayload -> {
-              if (!streamPayload.getStreamFeature().hasContent()) {
-                return null;
-              }
+        streamPayload -> {
+          if (!streamPayload.getStreamFeature().hasContent()) {
+            return null;
+          }
 
-              Content content = streamPayload.getStreamFeature().getContent();
+          Content content = streamPayload.getStreamFeature().getContent();
 
-              return ContentMetadata.maybeCreateContentMetadata(
-                  content.getOfflineMetadata(), content.getRepresentationData());
-            },
+          return ContentMetadata.maybeCreateContentMetadata(
+              content.getOfflineMetadata(), content.getRepresentationData());
+        },
         (Result<List<ContentMetadata>> result) -> {
           runOnMainThread(
               TAG + " getKnownContentAccept",

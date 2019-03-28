@@ -40,7 +40,7 @@ import java.util.Set;
  */
 public interface Store {
   /** The session id representing $HEAD */
-  final String HEAD_SESSION_ID = "$HEAD";
+  String HEAD_SESSION_ID = "$HEAD";
 
   /**
    * Returns an {@code List} of the {@link PayloadWithId}s for the ContentId Strings passed in

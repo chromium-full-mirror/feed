@@ -276,7 +276,7 @@ public final class FeedProcessScope implements Dumpable {
 
     // Required fields.
     private final Configuration configuration;
-    ExecutorService singleThreadExecutor;
+    final ExecutorService singleThreadExecutor;
     private final LoggingApi loggingApi;
     private final BasicLoggingApi basicLoggingApi;
     private final TooltipSupportedApi tooltipSupportedApi;

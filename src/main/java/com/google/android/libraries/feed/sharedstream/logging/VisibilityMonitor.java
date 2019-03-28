@@ -54,8 +54,10 @@ public class VisibilityMonitor
       @SuppressWarnings("argument.type.incompatible")
       boolean childVisibleRectNotEmpty = parent.getChildVisibleRect(view, rect, null);
       if (childVisibleRectNotEmpty && rect.height() >= viewLogThreshold * view.getHeight()) {
-        notifyListener(true);
-        visible = true;
+        if (!visible) {
+          notifyListenerOnVisible();
+          visible = true;
+        }
       } else {
         visible = false;
       }
@@ -100,12 +102,8 @@ public class VisibilityMonitor
     }
   }
 
-  private void notifyListener(boolean newVisibility) {
-    if (visibilityListener == null) {
-      return;
-    }
-
-    if (newVisibility && newVisibility != visible) {
+  private void notifyListenerOnVisible() {
+    if (visibilityListener != null) {
       visibilityListener.onViewVisible();
     }
   }

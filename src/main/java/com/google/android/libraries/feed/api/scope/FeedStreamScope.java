@@ -192,8 +192,8 @@ public final class FeedStreamScope {
     private final MainThreadRunner mainThreadRunner;
     private final Clock clock;
     private final ActionManager actionManager;
-    private CardConfiguration cardConfiguration;
-    private StreamConfiguration streamConfiguration;
+    private final CardConfiguration cardConfiguration;
+    private final StreamConfiguration streamConfiguration;
     private final DebugBehavior debugBehavior;
     private final Configuration config;
     private final SnackbarApi snackbarApi;

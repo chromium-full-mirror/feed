@@ -41,7 +41,7 @@ public abstract class JournalStorageDirectConformanceTest {
   protected JournalStorageDirect journalStorage;
 
   @Test
-  public void readOfEmptyJournalReturnsEmptyData() throws Exception {
+  public void readOfEmptyJournalReturnsEmptyData() {
     // Try to read some blobs from an empty journal store.
     Result<List<byte[]>> result = journalStorage.read(JOURNAL_NAME);
     List<byte[]> input = result.getValue();
@@ -52,7 +52,7 @@ public abstract class JournalStorageDirectConformanceTest {
   }
 
   @Test
-  public void appendToJournal() throws Exception {
+  public void appendToJournal() {
     // Write some data
     CommitResult commitResult =
         journalStorage.commit(
@@ -70,7 +70,7 @@ public abstract class JournalStorageDirectConformanceTest {
   }
 
   @Test
-  public void copyJournal() throws Exception {
+  public void copyJournal() {
     // Write some data.
     CommitResult commitResult =
         journalStorage.commit(
@@ -94,7 +94,7 @@ public abstract class JournalStorageDirectConformanceTest {
   }
 
   @Test
-  public void deleteJournal() throws Exception {
+  public void deleteJournal() {
     // Write some data.
     CommitResult commitResult =
         journalStorage.commit(
@@ -116,7 +116,7 @@ public abstract class JournalStorageDirectConformanceTest {
   }
 
   @Test
-  public void deleteAllJournals() throws Exception {
+  public void deleteAllJournals() {
     // Write some data, then copy into two journals.
     CommitResult commitResult =
         journalStorage.commit(
@@ -142,7 +142,7 @@ public abstract class JournalStorageDirectConformanceTest {
   }
 
   @Test
-  public void exists() throws Exception {
+  public void exists() {
     // Write some data.
     CommitResult commitResult =
         journalStorage.commit(
@@ -155,14 +155,14 @@ public abstract class JournalStorageDirectConformanceTest {
   }
 
   @Test
-  public void exists_doesNotExist() throws Exception {
+  public void exists_doesNotExist() {
     Result<Boolean> result = journalStorage.exists(JOURNAL_NAME);
     Boolean input = result.getValue();
     assertThat(input).isFalse();
   }
 
   @Test
-  public void getAllJournals_singleJournal() throws Exception {
+  public void getAllJournals_singleJournal() {
     // Write some data.
     CommitResult commitResult =
         journalStorage.commit(
@@ -176,7 +176,7 @@ public abstract class JournalStorageDirectConformanceTest {
   }
 
   @Test
-  public void getAllJournals_multipleJournals() throws Exception {
+  public void getAllJournals_multipleJournals() {
     // Write some data.
     CommitResult commitResult =
         journalStorage.commit(
@@ -195,7 +195,7 @@ public abstract class JournalStorageDirectConformanceTest {
   }
 
   @Test
-  public void StreamLocalAction_roundTrip() throws Exception {
+  public void StreamLocalAction_roundTrip() {
     // Write a Stream action with known breaking data ([INTERNAL LINK])
     StreamLocalAction action =
         StreamLocalAction.newBuilder()

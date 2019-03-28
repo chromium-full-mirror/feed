@@ -84,7 +84,7 @@ public abstract class AbstractFeedStoreTest {
           .setStreamStructure(STREAM_STRUCTURE)
           .setStreamPayload(STREAM_PAYLOAD)
           .build();
-  private MainThreadRunner mainThreadRunner = FakeMainThreadRunner.runTasksImmediately();
+  private final MainThreadRunner mainThreadRunner = FakeMainThreadRunner.runTasksImmediately();
 
   /**
    * Provides an instance of the store
@@ -109,7 +109,7 @@ public abstract class AbstractFeedStoreTest {
   }
 
   @Test
-  public void addStructureOperationToSession() throws Exception {
+  public void addStructureOperationToSession() {
     Store store = getStore(mainThreadRunner);
     SessionMutation mutation = store.editSession(Store.HEAD_SESSION_ID);
     mutation.add(STREAM_DATA_OPERATION.getStreamStructure());
@@ -125,7 +125,7 @@ public abstract class AbstractFeedStoreTest {
   }
 
   @Test
-  public void addContentOperationToSession() throws Exception {
+  public void addContentOperationToSession() {
     Store store = getStore(mainThreadRunner);
     ContentMutation mutation = store.editContent();
     mutation.add(PAYLOAD_CONTENT_ID, STREAM_DATA_OPERATION.getStreamPayload());
@@ -135,7 +135,7 @@ public abstract class AbstractFeedStoreTest {
   }
 
   @Test
-  public void createNewSession() throws Exception {
+  public void createNewSession() {
     Store store = getStore(mainThreadRunner);
     SessionMutation mutation = store.editSession(Store.HEAD_SESSION_ID);
     mutation.add(STREAM_STRUCTURE);
@@ -155,7 +155,7 @@ public abstract class AbstractFeedStoreTest {
   }
 
   @Test
-  public void removeSession() throws Exception {
+  public void removeSession() {
     Store store = getStore(mainThreadRunner);
     SessionMutation mutation = store.editSession(Store.HEAD_SESSION_ID);
     mutation.add(STREAM_STRUCTURE);
@@ -174,7 +174,7 @@ public abstract class AbstractFeedStoreTest {
   }
 
   @Test
-  public void clearHead() throws Exception {
+  public void clearHead() {
     Store store = getStore(mainThreadRunner);
     SessionMutation mutation = store.editSession(Store.HEAD_SESSION_ID);
     mutation.add(STREAM_STRUCTURE);
@@ -190,7 +190,7 @@ public abstract class AbstractFeedStoreTest {
   }
 
   @Test
-  public void getSessions() throws Exception {
+  public void getSessions() {
     Store store = getStore(mainThreadRunner);
     SessionMutation mutation = store.editSession(Store.HEAD_SESSION_ID);
     mutation.add(STREAM_STRUCTURE);
@@ -221,7 +221,7 @@ public abstract class AbstractFeedStoreTest {
   }
 
   @Test
-  public void editContent() throws Exception {
+  public void editContent() {
     StreamPayload streamPayload =
         StreamPayload.newBuilder()
             .setStreamFeature(StreamFeature.newBuilder().setContentId(PAYLOAD_CONTENT_ID))
@@ -240,10 +240,7 @@ public abstract class AbstractFeedStoreTest {
   }
 
   @Test
-  public void getStreamFeatures() throws Exception {}
-
-  @Test
-  public void getSharedStates() throws Exception {
+  public void getSharedStates() {
     StreamSharedState streamSharedState =
         StreamSharedState.newBuilder().setContentId(PAYLOAD_CONTENT_ID).build();
     Store store = getStore(mainThreadRunner);
@@ -261,7 +258,7 @@ public abstract class AbstractFeedStoreTest {
   }
 
   @Test
-  public void getPayloads_noPayload() throws Exception {
+  public void getPayloads_noPayload() {
     List<String> contentIds = new ArrayList<>();
     contentIds.add(PAYLOAD_CONTENT_ID);
 
@@ -273,7 +270,7 @@ public abstract class AbstractFeedStoreTest {
   }
 
   @Test
-  public void deleteHead_notAllowed() throws Exception {
+  public void deleteHead_notAllowed() {
     RunnableSubject.assertThatRunnable(
             () -> {
               Store store = getStore(mainThreadRunner);

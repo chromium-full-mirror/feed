@@ -29,7 +29,7 @@ import java.util.List;
 public class InternalProtocolBuilder {
 
   private final ContentIdGenerators idGenerators = new ContentIdGenerators();
-  private List<StreamDataOperation> dataOperations = new ArrayList<>();
+  private final List<StreamDataOperation> dataOperations = new ArrayList<>();
 
   /** This adds a Root Feature into the Stream of data operations */
   public InternalProtocolBuilder addRootFeature() {

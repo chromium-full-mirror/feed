@@ -108,7 +108,7 @@ class AdapterFactory<A extends ElementAdapter<?, M>, M> {
 
   /** Basic statistics about hits, creations, etc. used to track how get/release are being used. */
   static class Statistics {
-    String factoryName;
+    final String factoryName;
     int adapterCreation = 0;
     int poolHit = 0;
     int releaseCalls = 0;

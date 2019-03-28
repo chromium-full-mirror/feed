@@ -137,10 +137,7 @@ public class BorderDrawable extends ShapeDrawable {
     if (radius == 0) {
       return false;
     }
-    if (radius > (initialWidth / 2) || radius > (initialHeight / 2)) {
-      return true;
-    }
-    return false;
+    return radius > (initialWidth / 2) || radius > (initialHeight / 2);
   }
 
   /**

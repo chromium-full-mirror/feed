@@ -21,7 +21,7 @@ public interface TooltipInfo {
 
   /** The list of features that the tooltip can highlight. */
   @StringDef({FeatureName.UNKNOWN, FeatureName.CARD_MENU_TOOLTIP})
-  public @interface FeatureName {
+  @interface FeatureName {
     String UNKNOWN = "unknown";
     String CARD_MENU_TOOLTIP = "card_menu_tooltip";
   }

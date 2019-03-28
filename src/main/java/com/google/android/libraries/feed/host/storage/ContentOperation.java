@@ -160,19 +160,9 @@ public abstract class ContentOperation {
 
   // TODO: replace these comments with better details
   /** A {@link ContentOperation} created by calling {@link ContentMutation.Builder#deleteAll()} */
-  public static final class DeleteAll extends ContentOperation {
+  static final class DeleteAll extends ContentOperation {
     DeleteAll() {
       super(Type.DELETE_ALL);
-    }
-
-    @Override
-    public boolean equals(/*@Nullable*/ Object o) {
-      return super.equals(o);
-    }
-
-    @Override
-    public int hashCode() {
-      return super.hashCode();
     }
   }
 

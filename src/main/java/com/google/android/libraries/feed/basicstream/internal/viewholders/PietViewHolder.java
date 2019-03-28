@@ -40,7 +40,6 @@ import com.google.android.libraries.feed.sharedstream.logging.VisibilityMonitor;
 import com.google.android.libraries.feed.sharedstream.piet.PietEventLogger;
 import com.google.android.libraries.feed.sharedstream.scroll.StreamScrollMonitor;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
-import com.google.search.now.ui.piet.PietAndroidSupport.ShardingControl;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import java.util.List;
@@ -147,7 +146,7 @@ public class PietViewHolder extends FeedViewHolder implements SwipeableViewHolde
     frameAdapter.bindModel(
         frame,
         0, // TODO: set the frame width here
-        (ShardingControl) null,
+        null,
         pietSharedStates);
     if (scrollListener != null) {
       streamScrollMonitor.addScrollListener(scrollListener);

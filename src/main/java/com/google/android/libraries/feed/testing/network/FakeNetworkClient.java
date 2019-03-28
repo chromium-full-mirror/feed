@@ -49,7 +49,7 @@ public final class FakeNetworkClient implements NetworkClient {
   }
 
   @Override
-  public void close() throws Exception {}
+  public void close() {}
 
   /** Adds a response to the {@link FakeNetworkClient} to be returned in order. */
   public FakeNetworkClient addResponse(HttpResponse response) {

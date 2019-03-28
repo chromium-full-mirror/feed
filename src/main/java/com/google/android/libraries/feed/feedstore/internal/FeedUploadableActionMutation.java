@@ -66,8 +66,8 @@ public final class FeedUploadableActionMutation implements UploadableActionMutat
   }
 
   public static class FeedUploadableActionChanges {
-    private Set<StreamUploadableAction> upsertActions;
-    private Set<StreamUploadableAction> removeActions;
+    private final Set<StreamUploadableAction> upsertActions;
+    private final Set<StreamUploadableAction> removeActions;
 
     FeedUploadableActionChanges() {
       this.upsertActions = new HashSet<>();

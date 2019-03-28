@@ -39,12 +39,9 @@ public class TooltipInfoImpl implements TooltipInfo {
   /** Converts the type in {@link TooltipData#FeatureName} to {@link TooltipInfo#FeatureName}. */
   @FeatureName
   private static String convert(TooltipData.FeatureName featureName) {
-    switch (featureName) {
-      case CARD_MENU:
-        return FeatureName.CARD_MENU_TOOLTIP;
-      default:
-        return FeatureName.UNKNOWN;
-    }
+    return (featureName == TooltipData.FeatureName.CARD_MENU)
+        ? FeatureName.CARD_MENU_TOOLTIP
+        : FeatureName.UNKNOWN;
   }
 
   @Override

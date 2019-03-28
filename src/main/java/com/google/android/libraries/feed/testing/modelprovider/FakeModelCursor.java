@@ -69,7 +69,7 @@ public class FakeModelCursor implements ModelCursor {
   }
 
   public static class Builder {
-    List<ModelChild> cursorChildren = new ArrayList<>();
+    final List<ModelChild> cursorChildren = new ArrayList<>();
 
     private Builder() {}
 

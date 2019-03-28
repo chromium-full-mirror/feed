@@ -60,5 +60,5 @@ public abstract class LeafFeatureDriver implements FeatureDriver {
   /*@Nullable*/
   public String getContentId() {
     return null;
-  };
+  }
 }

@@ -44,14 +44,13 @@ public final class HeadAsStructure {
   private final Store store;
   private final TimingUtils timingUtils;
   private final ThreadUtils threadUtils;
-
   private final Object lock = new Object();
+  @VisibleForTesting final Map<String, List<TreeNode>> tree = new HashMap<>();
+  @VisibleForTesting final Map<String, TreeNode> content = new HashMap<>();
 
   @GuardedBy("lock")
   private boolean initalized;
 
-  @VisibleForTesting Map<String, List<TreeNode>> tree = new HashMap<>();
-  @VisibleForTesting Map<String, TreeNode> content = new HashMap<>();
   @VisibleForTesting TreeNode root;
 
   /**

@@ -44,14 +44,14 @@ public abstract class ContentStorageDirectConformanceTest {
   protected ContentStorageDirect storage;
 
   @Test
-  public void missingKey() throws Exception {
+  public void missingKey() {
     Result<Map<String, byte[]>> result = storage.get(Collections.singletonList(KEY_0));
     Map<String, byte[]> valueMap = result.getValue();
     assertThat(valueMap.get(KEY_0)).isNull();
   }
 
   @Test
-  public void missingKey_multipleKeys() throws Exception {
+  public void missingKey_multipleKeys() {
     Result<Map<String, byte[]>> result = storage.get(Arrays.asList(KEY_0, KEY_1));
     Map<String, byte[]> valueMap = result.getValue();
     assertThat(valueMap.get(KEY_0)).isNull();
@@ -59,7 +59,7 @@ public abstract class ContentStorageDirectConformanceTest {
   }
 
   @Test
-  public void storeAndRetrieve() throws Exception {
+  public void storeAndRetrieve() {
     CommitResult commitResult =
         storage.commit(new ContentMutation.Builder().upsert(KEY_0, DATA_0).build());
     assertThat(commitResult).isEqualTo(CommitResult.SUCCESS);
@@ -70,7 +70,7 @@ public abstract class ContentStorageDirectConformanceTest {
   }
 
   @Test
-  public void storeAndRetrieve_multipleKeys() throws Exception {
+  public void storeAndRetrieve_multipleKeys() {
     CommitResult commitResult =
         storage.commit(
             new ContentMutation.Builder().upsert(KEY_0, DATA_0).upsert(KEY_1, DATA_1).build());
@@ -83,7 +83,7 @@ public abstract class ContentStorageDirectConformanceTest {
   }
 
   @Test
-  public void storeAndOverwrite_chained() throws Exception {
+  public void storeAndOverwrite_chained() {
     CommitResult commitResult =
         storage.commit(
             new ContentMutation.Builder().upsert(KEY_0, DATA_0).upsert(KEY_0, DATA_1).build());
@@ -95,7 +95,7 @@ public abstract class ContentStorageDirectConformanceTest {
   }
 
   @Test
-  public void storeAndOverwrite_separate() throws Exception {
+  public void storeAndOverwrite_separate() {
     CommitResult commitResult =
         storage.commit(new ContentMutation.Builder().upsert(KEY_0, DATA_0).build());
     assertThat(commitResult).isEqualTo(CommitResult.SUCCESS);
@@ -113,7 +113,7 @@ public abstract class ContentStorageDirectConformanceTest {
   }
 
   @Test
-  public void storeAndDelete() throws Exception {
+  public void storeAndDelete() {
     CommitResult commitResult =
         storage.commit(
             new ContentMutation.Builder().upsert(KEY_0, DATA_0).upsert(KEY_1, DATA_1).build());
@@ -136,7 +136,7 @@ public abstract class ContentStorageDirectConformanceTest {
   }
 
   @Test
-  public void storeAndDeleteByPrefix() throws Exception {
+  public void storeAndDeleteByPrefix() {
     CommitResult commitResult =
         storage.commit(
             new ContentMutation.Builder()
@@ -166,7 +166,7 @@ public abstract class ContentStorageDirectConformanceTest {
   }
 
   @Test
-  public void storeAndDeleteAll() throws Exception {
+  public void storeAndDeleteAll() {
     CommitResult commitResult =
         storage.commit(
             new ContentMutation.Builder()
@@ -196,7 +196,7 @@ public abstract class ContentStorageDirectConformanceTest {
   }
 
   @Test
-  public void multipleValues_getAll() throws Exception {
+  public void multipleValues_getAll() {
     CommitResult commitResult =
         storage.commit(
             new ContentMutation.Builder().upsert(KEY_0, DATA_0).upsert(KEY_1, DATA_1).build());
@@ -209,7 +209,7 @@ public abstract class ContentStorageDirectConformanceTest {
   }
 
   @Test
-  public void multipleValues_getAllKeys() throws Exception {
+  public void multipleValues_getAllKeys() {
     CommitResult commitResult =
         storage.commit(
             new ContentMutation.Builder().upsert(KEY_0, DATA_0).upsert(KEY_1, DATA_1).build());

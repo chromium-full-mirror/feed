@@ -125,7 +125,7 @@ public abstract class ContentStorageConformanceTest {
   }
 
   @Test
-  public void missingKey() throws Exception {
+  public void missingKey() {
     RequiredConsumer<Result<Map<String, byte[]>>> consumer =
         new RequiredConsumer<>(isKey0EmptyData);
     storage.get(Collections.singletonList(KEY_0), consumer);
@@ -133,7 +133,7 @@ public abstract class ContentStorageConformanceTest {
   }
 
   @Test
-  public void missingKey_multipleKeys() throws Exception {
+  public void missingKey_multipleKeys() {
     RequiredConsumer<Result<Map<String, byte[]>>> consumer =
         new RequiredConsumer<>(isKey0EmptyDataKey1EmptyData);
     storage.get(Arrays.asList(KEY_0, KEY_1), consumer);
@@ -141,7 +141,7 @@ public abstract class ContentStorageConformanceTest {
   }
 
   @Test
-  public void storeAndRetrieve() throws Exception {
+  public void storeAndRetrieve() {
     storage.commit(
         new ContentMutation.Builder().upsert(KEY_0, DATA_0).build(), assertSuccessConsumer);
     assertThat(assertSuccessConsumer.isCalled()).isTrue();
@@ -152,7 +152,7 @@ public abstract class ContentStorageConformanceTest {
   }
 
   @Test
-  public void storeAndRetrieve_multipleKeys() throws Exception {
+  public void storeAndRetrieve_multipleKeys() {
     storage.commit(
         new ContentMutation.Builder().upsert(KEY_0, DATA_0).upsert(KEY_1, DATA_1).build(),
         assertSuccessConsumer);
@@ -164,7 +164,7 @@ public abstract class ContentStorageConformanceTest {
   }
 
   @Test
-  public void storeAndOverwrite_chained() throws Exception {
+  public void storeAndOverwrite_chained() {
     storage.commit(
         new ContentMutation.Builder().upsert(KEY_0, DATA_0).upsert(KEY_0, DATA_1).build(),
         assertSuccessConsumer);
@@ -176,7 +176,7 @@ public abstract class ContentStorageConformanceTest {
   }
 
   @Test
-  public void storeAndOverwrite_separate() throws Exception {
+  public void storeAndOverwrite_separate() {
     storage.commit(
         new ContentMutation.Builder().upsert(KEY_0, DATA_0).build(), assertSuccessConsumer);
     assertThat(assertSuccessConsumer.isCalled()).isTrue();
@@ -203,7 +203,7 @@ public abstract class ContentStorageConformanceTest {
   }
 
   @Test
-  public void storeAndDelete() throws Exception {
+  public void storeAndDelete() {
     storage.commit(
         new ContentMutation.Builder().upsert(KEY_0, DATA_0).upsert(KEY_1, DATA_1).build(),
         assertSuccessConsumer);
@@ -227,7 +227,7 @@ public abstract class ContentStorageConformanceTest {
   }
 
   @Test
-  public void storeAndDeleteByPrefix() throws Exception {
+  public void storeAndDeleteByPrefix() {
     storage.commit(
         new ContentMutation.Builder()
             .upsert(KEY_0, DATA_0)
@@ -254,7 +254,7 @@ public abstract class ContentStorageConformanceTest {
   }
 
   @Test
-  public void storeAndDeleteAll() throws Exception {
+  public void storeAndDeleteAll() {
     storage.commit(
         new ContentMutation.Builder()
             .upsert(KEY_0, DATA_0)
@@ -281,7 +281,7 @@ public abstract class ContentStorageConformanceTest {
   }
 
   @Test
-  public void multipleValues_getAll() throws Exception {
+  public void multipleValues_getAll() {
     storage.commit(
         new ContentMutation.Builder().upsert(KEY_0, DATA_0).upsert(KEY_1, DATA_1).build(),
         assertSuccessConsumer);
@@ -294,13 +294,7 @@ public abstract class ContentStorageConformanceTest {
   }
 
   @Test
-  public void multipleValues_getAllKeys() throws Exception {
-    RequiredConsumer<CommitResult> commitResultConsumer =
-        new RequiredConsumer<>(
-            input -> {
-              assertThat(input).isEqualTo(CommitResult.SUCCESS);
-
-            });
+  public void multipleValues_getAllKeys() {
     storage.commit(
         new ContentMutation.Builder().upsert(KEY_0, DATA_0).upsert(KEY_1, DATA_1).build(),
         assertSuccessConsumer);

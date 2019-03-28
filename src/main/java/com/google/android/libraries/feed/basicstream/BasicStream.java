@@ -123,12 +123,12 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
   private final ViewLoggingUpdater viewLoggingUpdater;
   private final TooltipApi tooltipApi;
   private final UiSessionRequestLogger uiSessionRequestLogger;
+  private final Context context;
+  private final StreamConfiguration streamConfiguration;
 
   private RecyclerView recyclerView;
   private ContextMenuManager contextMenuManager;
-  private Context context;
   private List<Header> headers;
-  private StreamConfiguration streamConfiguration;
   private StreamItemTouchCallbacks itemTouchCallbacks;
   private StreamRecyclerViewAdapter adapter;
   private StreamScrollMonitor streamScrollMonitor;
@@ -439,11 +439,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
       return false;
     }
 
-    if (position < firstItemPosition || position > lastItemPosition) {
-      return false;
-    }
-
-    return true;
+    return position >= firstItemPosition && position <= lastItemPosition;
   }
 
   @Override
@@ -852,8 +848,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
 
   @VisibleForTesting
   StreamScrollMonitor createStreamScrollMonitor(
-      ContentChangedListener contentChangedListener,
-      MainThreadRunner mainThreadRunner) {
+      ContentChangedListener contentChangedListener, MainThreadRunner mainThreadRunner) {
     return new StreamScrollMonitor(contentChangedListener, mainThreadRunner);
   }
 

@@ -227,9 +227,9 @@ public class WireProtocolResponseBuilder {
 
   /** Captures information about the wire protocol that was created. */
   public static class WireProtocolInfo {
+    public final List<ContentId> featuresAdded = new ArrayList<>();
     public boolean hasClearOperation = false;
     public boolean hasToken = false;
-    public List<ContentId> featuresAdded = new ArrayList<>();
   }
 
   private ContentId createNewContentId(ContentId contentId, int idIncrement) {

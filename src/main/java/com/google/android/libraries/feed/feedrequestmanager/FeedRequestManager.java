@@ -91,7 +91,7 @@ public final class FeedRequestManager implements RequestManager {
   private final MainThreadRunner mainThreadRunner;
   private final BasicLoggingApi basicLoggingApi;
   private final TooltipSupportedApi tooltipSupportedApi;
-  private ApplicationInfo applicationInfo;
+  private final ApplicationInfo applicationInfo;
 
   /*@Nullable*/
   private Supplier<Consumer<Result<List<StreamDataOperation>>>>
@@ -381,7 +381,7 @@ public final class FeedRequestManager implements RequestManager {
       return this;
     }
 
-    public RequestBuilder setCardMenuTooltipWouldTrigger(boolean wouldTrigger) {
+    RequestBuilder setCardMenuTooltipWouldTrigger(boolean wouldTrigger) {
       cardMenuTooltipWouldTrigger = wouldTrigger;
       return this;
     }

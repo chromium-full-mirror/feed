@@ -171,7 +171,7 @@ public final class Dumper {
 
     /** Append an int to the current content of this value */
     public DumperValue value(int value) {
-      this.content.append(Integer.toString(value));
+      this.content.append(value);
       return this;
     }
 
@@ -183,7 +183,7 @@ public final class Dumper {
 
     /** Append an boolean to the current content of this value */
     public DumperValue value(boolean value) {
-      this.content.append(Boolean.toString(value));
+      this.content.append(value);
       return this;
     }
 
@@ -233,7 +233,7 @@ public final class Dumper {
       } else if (!TextUtils.isEmpty(name)) {
         return name + ":";
       } else if (!TextUtils.isEmpty(value)) {
-        return String.valueOf(value);
+        return value;
       } else {
         return "";
       }

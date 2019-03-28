@@ -214,9 +214,8 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
     // extraPaddingForLineHeightBottom needs to be negative.
     if (VERSION.SDK_INT < VERSION_CODES.LOLLIPOP) {
       if (font.hasLineHeight()) {
-        int currentBottomPixelsAdded = extraLineHeightBetweenLines;
         extraPaddingForLineHeightBottom =
-            -(currentBottomPixelsAdded - extraPaddingForLineHeightBottom);
+            -(extraLineHeightBetweenLines - extraPaddingForLineHeightBottom);
       } else if (font.hasLineHeightRatio()) {
         // TODO Remove this code once transition to line height is complete.
         extraPaddingForLineHeightBottom = -extraPaddingForLineHeightBottom;

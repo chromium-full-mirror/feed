@@ -93,7 +93,7 @@ public abstract class JournalStorageConformanceTest {
   protected JournalStorage journalStorage;
 
   @Test
-  public void readOfEmptyJournalReturnsEmptyData() throws Exception {
+  public void readOfEmptyJournalReturnsEmptyData() {
     // Try to read some blobs from an empty journal store.
     RequiredConsumer<Result<List<byte[]>>> readConsumer = new RequiredConsumer<>(isEmptyList);
     journalStorage.read(JOURNAL_NAME, readConsumer);
@@ -101,7 +101,7 @@ public abstract class JournalStorageConformanceTest {
   }
 
   @Test
-  public void appendToJournal() throws Exception {
+  public void appendToJournal() {
     // Write some data and put the result from the callback into commitResult.
     RequiredConsumer<CommitResult> commitConsumer = new RequiredConsumer<>(isSuccess);
     journalStorage.commit(
@@ -116,7 +116,7 @@ public abstract class JournalStorageConformanceTest {
   }
 
   @Test
-  public void copyJournal() throws Exception {
+  public void copyJournal() {
     // Write some data.
     RequiredConsumer<CommitResult> commitConsumer = new RequiredConsumer<>(isSuccess);
     journalStorage.commit(
@@ -137,7 +137,7 @@ public abstract class JournalStorageConformanceTest {
   }
 
   @Test
-  public void deleteJournal() throws Exception {
+  public void deleteJournal() {
     // Write some data.
     RequiredConsumer<CommitResult> commitConsumer = new RequiredConsumer<>(isSuccess);
     journalStorage.commit(
@@ -158,7 +158,7 @@ public abstract class JournalStorageConformanceTest {
   }
 
   @Test
-  public void deleteAllJournals() throws Exception {
+  public void deleteAllJournals() {
     // Write some data, then copy into two journals.
     RequiredConsumer<CommitResult> commitConsumer = new RequiredConsumer<>(isSuccess);
     journalStorage.commit(
@@ -185,7 +185,7 @@ public abstract class JournalStorageConformanceTest {
   }
 
   @Test
-  public void exists() throws Exception {
+  public void exists() {
     // Write some data.
     RequiredConsumer<CommitResult> commitConsumer = new RequiredConsumer<>(isSuccess);
     journalStorage.commit(
@@ -199,14 +199,14 @@ public abstract class JournalStorageConformanceTest {
   }
 
   @Test
-  public void exists_doesNotExist() throws Exception {
+  public void exists_doesNotExist() {
     RequiredConsumer<Result<Boolean>> existsConsumer = new RequiredConsumer<>(isFalse);
     journalStorage.exists(JOURNAL_NAME, existsConsumer);
     assertThat(existsConsumer.isCalled()).isTrue();
   }
 
   @Test
-  public void getAllJournals_singleJournal() throws Exception {
+  public void getAllJournals_singleJournal() {
     // Write some data.
     RequiredConsumer<CommitResult> commitConsumer = new RequiredConsumer<>(isSuccess);
     journalStorage.commit(
@@ -221,7 +221,7 @@ public abstract class JournalStorageConformanceTest {
   }
 
   @Test
-  public void getAllJournals_multipleJournals() throws Exception {
+  public void getAllJournals_multipleJournals() {
     // Write some data.
     RequiredConsumer<CommitResult> commitConsumer = new RequiredConsumer<>(isSuccess);
     journalStorage.commit(
@@ -240,7 +240,7 @@ public abstract class JournalStorageConformanceTest {
   }
 
   @Test
-  public void StreamLocalAction_roundTrip() throws Exception {
+  public void StreamLocalAction_roundTrip() {
     // Write a Stream action with known breaking data ([INTERNAL LINK])
     StreamLocalAction action =
         StreamLocalAction.newBuilder()

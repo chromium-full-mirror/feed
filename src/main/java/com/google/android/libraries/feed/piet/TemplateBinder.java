@@ -177,13 +177,9 @@ class TemplateBinder {
       if (that.mediaQueryBasedStylesheets.isEmpty() ^ this.mediaQueryBasedStylesheets.isEmpty()) {
         return false;
       }
-      if (this.mediaQueryBasedStylesheets != that.mediaQueryBasedStylesheets
-          && this.mediaQueryBasedStylesheets.hashCode()
-              != that.mediaQueryBasedStylesheets.hashCode()) {
-        return false;
-      }
-
-      return true;
+      return this.mediaQueryBasedStylesheets == that.mediaQueryBasedStylesheets
+          || this.mediaQueryBasedStylesheets.hashCode()
+              == that.mediaQueryBasedStylesheets.hashCode();
     }
 
     @Override

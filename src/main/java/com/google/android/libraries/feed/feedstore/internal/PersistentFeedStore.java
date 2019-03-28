@@ -64,7 +64,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -628,18 +627,7 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
    * @return {@code true} when the clear succeeded
    */
   public boolean clearNonActionContent() {
-    try {
-      if (!clearContentStorage()) {
-        return false;
-      }
-      if (!clearJournalStorage()) {
-        return false;
-      }
-    } catch (InterruptedException | ExecutionException e) {
-      Logger.e(TAG, e, "Error clearing all contents.");
-      return false;
-    }
-    return true;
+    return clearContentStorage() && clearJournalStorage();
   }
 
   /**
@@ -647,7 +635,7 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
    *
    * @return whether the clear succeeded
    */
-  private boolean clearJournalStorage() throws InterruptedException, ExecutionException {
+  private boolean clearJournalStorage() {
     Result<List<String>> allJournalsResult = journalStorageDirect.getAllJournals();
     if (!allJournalsResult.isSuccessful()) {
       Logger.e(TAG, "Error clearing all contents. Could not fetch all journals.");

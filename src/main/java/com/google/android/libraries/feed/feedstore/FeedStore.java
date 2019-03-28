@@ -260,15 +260,8 @@ public class FeedStore extends FeedObservable<StoreListener>
 
   @Override
   public void onLifecycleEvent(@LifecycleEvent String event) {
-    switch (event) {
-      case LifecycleEvent.ENTER_BACKGROUND:
-        if (isEphemeralMode) {
-          taskQueue.execute(
-              "dumpEphemeralActions", TaskType.BACKGROUND, this::dumpEphemeralActions);
-        }
-        break;
-      default:
-        // Do nothing
+    if (LifecycleEvent.ENTER_BACKGROUND.equals(event) && isEphemeralMode) {
+      taskQueue.execute("dumpEphemeralActions", TaskType.BACKGROUND, this::dumpEphemeralActions);
     }
   }
 
