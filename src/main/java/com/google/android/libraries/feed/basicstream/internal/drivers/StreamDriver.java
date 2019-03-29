@@ -33,6 +33,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider.State;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.drivers.ContinuationDriver.CursorChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.pendingdismiss.PendingDismissHandler;
+import com.google.android.libraries.feed.basicstream.internal.scroll.BasicStreamScrollTracker;
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
 import com.google.android.libraries.feed.basicstream.internal.viewloggingupdater.ViewLoggingUpdater;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
@@ -52,6 +53,9 @@ import com.google.android.libraries.feed.sharedstream.pendingdismiss.PendingDism
 import com.google.android.libraries.feed.sharedstream.proto.UiRefreshReasonProto.UiRefreshReason;
 import com.google.android.libraries.feed.sharedstream.proto.UiRefreshReasonProto.UiRefreshReason.Reason;
 import com.google.android.libraries.feed.sharedstream.removetrackingfactory.StreamRemoveTrackingFactory;
+import com.google.android.libraries.feed.sharedstream.scroll.ScrollLogger;
+import com.google.android.libraries.feed.sharedstream.scroll.ScrollTracker;
+import com.google.android.libraries.feed.sharedstream.scroll.StreamScrollMonitor;
 import com.google.search.now.ui.action.FeedActionProto.UndoAction;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -86,11 +90,11 @@ public class StreamDriver
   private final ViewLoggingUpdater viewLoggingUpdater;
   private final TooltipApi tooltipApi;
   private final UiRefreshReason uiRefreshReason;
+  private final ScrollTracker scrollTracker;
 
   private boolean restoring;
   private boolean rootFeatureConsumed;
   private boolean modelFeatureChangeObserverRegistered;
-
   /*@Nullable*/ private StreamContentListener contentListener;
 
   public StreamDriver(
@@ -114,7 +118,8 @@ public class StreamDriver
       MainThreadRunner mainThreadRunner,
       ViewLoggingUpdater viewLoggingUpdater,
       TooltipApi tooltipApi,
-      UiRefreshReason uiRefreshReason) {
+      UiRefreshReason uiRefreshReason,
+      StreamScrollMonitor scrollMonitor) {
     this.actionApi = actionApi;
     this.actionManager = actionManager;
     this.actionParserFactory = actionParserFactory;
@@ -137,6 +142,9 @@ public class StreamDriver
     this.viewLoggingUpdater = viewLoggingUpdater;
     this.tooltipApi = tooltipApi;
     this.uiRefreshReason = uiRefreshReason;
+    scrollTracker =
+        new BasicStreamScrollTracker(
+            mainThreadRunner, new ScrollLogger(basicLoggingApi), clock, scrollMonitor);
 
     modelProvider.enableRemoveTracking(
         new StreamRemoveTrackingFactory(modelProvider, knownContentApi));
@@ -399,6 +407,7 @@ public class StreamDriver
     }
     featureDrivers.clear();
     modelChildFeatureDriverMap.clear();
+    scrollTracker.onUnbind();
   }
 
   public boolean hasContent() {

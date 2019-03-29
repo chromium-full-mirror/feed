@@ -63,6 +63,7 @@ import com.google.android.libraries.feed.sharedstream.pendingdismiss.PendingDism
 import com.google.android.libraries.feed.sharedstream.proto.UiRefreshReasonProto.UiRefreshReason;
 import com.google.android.libraries.feed.sharedstream.proto.UiRefreshReasonProto.UiRefreshReason.Reason;
 import com.google.android.libraries.feed.sharedstream.removetrackingfactory.StreamRemoveTrackingFactory;
+import com.google.android.libraries.feed.sharedstream.scroll.StreamScrollMonitor;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelChild;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelCursor;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelFeature;
@@ -129,6 +130,7 @@ public class StreamDriverTest {
   @Mock private StreamOfflineMonitor streamOfflineMonitor;
   @Mock private PendingDismissCallback pendingDismissCallback;
   @Mock private TooltipApi tooltipApi;
+  @Mock private StreamScrollMonitor scrollMonitor;
 
   @Captor private ArgumentCaptor<List<LeafFeatureDriver>> featureDriversCaptor;
 
@@ -996,7 +998,8 @@ public class StreamDriverTest {
           mainThreadRunner,
           viewLoggingUpdater,
           tooltipApi,
-          uiRefreshReason);
+          uiRefreshReason,
+          scrollMonitor);
       childrenCreated = new ArrayList<>();
     }
 

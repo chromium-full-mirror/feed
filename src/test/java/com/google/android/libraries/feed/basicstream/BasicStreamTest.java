@@ -1211,7 +1211,8 @@ public class BasicStreamTest {
         boolean isInitialLoad,
         MainThreadRunner mainThreadRunner,
         TooltipApi tooltipApi,
-        UiRefreshReason uiRefreshReason) {
+        UiRefreshReason uiRefreshReason,
+        StreamScrollMonitor streamScrollMonitor) {
       streamDriverScrollRestorer = scrollRestorer;
       streamDriverRestoring = restoring;
       this.streamDriverUiRefreshReason = uiRefreshReason;

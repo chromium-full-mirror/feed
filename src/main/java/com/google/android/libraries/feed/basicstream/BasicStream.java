@@ -566,7 +566,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
             /* isInitialLoad= */ false,
             mainThreadRunner,
             tooltipApi,
-            uiRefreshReason);
+            uiRefreshReason,
+            streamScrollMonitor);
 
     uiRefreshReason = UiRefreshReason.getDefaultInstance();
 
@@ -750,7 +751,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
               isInitialLoad,
               mainThreadRunner,
               tooltipApi,
-              UiRefreshReason.getDefaultInstance());
+              UiRefreshReason.getDefaultInstance(),
+              streamScrollMonitor);
       if (isInitialLoad && !isRestoring) {
         mainThreadRunner.executeWithDelay(
             TAG + " onShow",
@@ -799,7 +801,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
       boolean isInitialLoad,
       MainThreadRunner mainThreadRunner,
       TooltipApi tooltipApi,
-      UiRefreshReason uiRefreshReason) {
+      UiRefreshReason uiRefreshReason,
+      StreamScrollMonitor streamScrollMonitor) {
     return new StreamDriver(
         actionApi,
         actionManager,
@@ -821,7 +824,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
         mainThreadRunner,
         viewLoggingUpdater,
         tooltipApi,
-        uiRefreshReason);
+        uiRefreshReason,
+        streamScrollMonitor);
   }
 
   @VisibleForTesting

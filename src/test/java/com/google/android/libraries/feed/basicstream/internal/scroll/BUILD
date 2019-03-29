@@ -3,6 +3,26 @@ load("//src/main/java/com/google/android/libraries/feed/buildtools/testing:andro
 licenses(["notice"])  # Apache 2
 
 android_local_test(
+    name = "BasicStreamScrollTrackerTest",
+    size = "small",
+    timeout = "moderate",
+    srcs = ["BasicStreamScrollTrackerTest.java"],
+    aapt_version = "aapt2",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
+    deps = [
+        "//src/main/java/com/google/android/libraries/feed/api/stream",
+        "//src/main/java/com/google/android/libraries/feed/basicstream/internal/scroll",
+        "//src/main/java/com/google/android/libraries/feed/common/concurrent/testing",
+        "//src/main/java/com/google/android/libraries/feed/common/time/testing",
+        "//src/main/java/com/google/android/libraries/feed/host/logging",
+        "//src/main/java/com/google/android/libraries/feed/sharedstream/scroll",
+        "@com_google_protobuf_javalite//:protobuf_java_lite",
+        "@maven//:org_mockito_mockito_core",
+        "@robolectric//bazel:robolectric",
+    ],
+)
+
+android_local_test(
     name = "ScrollRestorerTest",
     size = "small",
     timeout = "moderate",
