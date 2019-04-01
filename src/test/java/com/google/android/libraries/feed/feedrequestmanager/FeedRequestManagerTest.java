@@ -63,6 +63,7 @@ import com.google.search.now.wire.feed.ClientInfoProto.ClientInfo.AppType;
 import com.google.search.now.wire.feed.ClientInfoProto.ClientInfo.PlatformType;
 import com.google.search.now.wire.feed.ConsistencyTokenProto.ConsistencyToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
+import com.google.search.now.wire.feed.DisplayInfoProto.DisplayInfo;
 import com.google.search.now.wire.feed.FeedActionQueryDataProto.Action;
 import com.google.search.now.wire.feed.FeedActionQueryDataProto.FeedActionQueryData;
 import com.google.search.now.wire.feed.FeedActionQueryDataProto.FeedActionQueryDataItem;
@@ -782,6 +783,11 @@ public class FeedRequestManagerTest {
                                     .setArchitecture(Architecture.ARM64)
                                     .setBuildType(BuildType.RELEASE)
                                     .build())
+                            .addDisplayInfo(
+                                DisplayInfo.newBuilder()
+                                    .setScreenDensity(1.0f)
+                                    .setScreenWidthInPixels(320)
+                                    .setScreenHeightInPixels(470))
                             .build())
                     .addClientCapability(Capability.BASE_UI)
                     .build())
@@ -861,6 +867,11 @@ public class FeedRequestManagerTest {
                         .setArchitecture(Architecture.ARM)
                         .setBuildType(BuildType.DEV)
                         .build())
+                .addDisplayInfo(
+                    DisplayInfo.newBuilder()
+                        .setScreenDensity(1.0f)
+                        .setScreenWidthInPixels(320)
+                        .setScreenHeightInPixels(470))
                 .build());
   }
 

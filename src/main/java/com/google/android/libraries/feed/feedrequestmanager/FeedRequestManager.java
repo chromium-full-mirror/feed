@@ -16,6 +16,7 @@ package com.google.android.libraries.feed.feedrequestmanager;
 
 import android.content.Context;
 import android.os.Build;
+import android.util.DisplayMetrics;
 import com.google.android.libraries.feed.api.actionmanager.ActionReader;
 import com.google.android.libraries.feed.api.common.DismissActionWithSemanticProperties;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
@@ -54,6 +55,7 @@ import com.google.search.now.wire.feed.ClientInfoProto.ClientInfo;
 import com.google.search.now.wire.feed.ClientInfoProto.ClientInfo.PlatformType;
 import com.google.search.now.wire.feed.ConsistencyTokenProto.ConsistencyToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
+import com.google.search.now.wire.feed.DisplayInfoProto.DisplayInfo;
 import com.google.search.now.wire.feed.FeedActionQueryDataProto.Action;
 import com.google.search.now.wire.feed.FeedActionQueryDataProto.FeedActionQueryData;
 import com.google.search.now.wire.feed.FeedActionQueryDataProto.FeedActionQueryDataItem;
@@ -499,6 +501,12 @@ public final class FeedRequestManager implements RequestManager {
       clientInfoBuilder.setLocale(LocaleUtils.getLanguageTag(context));
       clientInfoBuilder.setAppType(Utils.convertAppType(applicationInfo.getAppType()));
       clientInfoBuilder.setAppVersion(getAppVersion());
+      DisplayMetrics metrics = context.getResources().getDisplayMetrics();
+      clientInfoBuilder.addDisplayInfo(
+          DisplayInfo.newBuilder()
+              .setScreenDensity(metrics.density)
+              .setScreenWidthInPixels(metrics.widthPixels)
+              .setScreenHeightInPixels(metrics.heightPixels));
       return clientInfoBuilder.build();
     }
 
