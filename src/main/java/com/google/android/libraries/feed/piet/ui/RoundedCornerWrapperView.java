@@ -14,12 +14,10 @@
 
 package com.google.android.libraries.feed.piet.ui;
 
-import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Outline;
 import android.graphics.Paint;
 import android.graphics.Rect;
@@ -51,7 +49,6 @@ public class RoundedCornerWrapperView extends FrameLayout {
   private final RoundedCornerMaskCache maskCache;
   private final Canvas offscreenCanvas;
 
-  /*@Nullable*/ private Bitmap offscreenBitmap = null;
   /*@Nullable*/ private RoundRectShape outlineShape = null;
   private int roundedCornerRadius;
 
@@ -234,17 +231,6 @@ public class RoundedCornerWrapperView extends FrameLayout {
       return;
     }
 
-    if (offscreenBitmap == null
-        || offscreenBitmap.getHeight() != height
-        || offscreenBitmap.getWidth() != width) {
-      // We need to use an offscreen bitmap because the default canvas doesn't have transparency (?)
-      if (offscreenBitmap != null) {
-        offscreenBitmap.recycle();
-      }
-      offscreenBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-      offscreenCanvas.setBitmap(offscreenBitmap);
-    }
-
     int radius = getRadius(width, height);
 
     // Set up the corner masks and borders, both of which require knowing the radius.
@@ -268,8 +254,8 @@ public class RoundedCornerWrapperView extends FrameLayout {
     int radius = getRadius(width, height);
 
     // Draw the view without rounded corners on the offscreen canvas.
-    Bitmap localOffscreenBitmap = checkNotNull(offscreenBitmap);
-    localOffscreenBitmap.eraseColor(Color.TRANSPARENT);
+    Bitmap localOffscreenBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+    offscreenCanvas.setBitmap(localOffscreenBitmap);
     super.draw(offscreenCanvas);
 
     // Crop the corners off using masks
