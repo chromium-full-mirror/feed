@@ -124,4 +124,14 @@ public class ModelCursorImplTest {
     assertThat(cursorIterator.next()).isEqualTo(modelChildren.get(0));
     assertThat(cursorIterator.getPosition()).isEqualTo(1);
   }
+
+  @Test
+  public void testCopiesList() {
+    UpdatableModelChild child1 = new UpdatableModelChild("content id", null);
+    modelChildren.add(child1);
+    ModelCursorImpl modelCursor = new ModelCursorImpl(parentContentId, modelChildren);
+    UpdatableModelChild child2 = new UpdatableModelChild("content id 2", null);
+    modelChildren.add(child2);
+    assertThat(modelCursor.getChildListForTesting()).containsExactly(child1);
+  }
 }

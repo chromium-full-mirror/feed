@@ -58,7 +58,7 @@ public final class ModelCursorImpl implements ModelCursor, Dumpable {
    */
   public ModelCursorImpl(String parentContentId, List<UpdatableModelChild> childList) {
     this.parentContentId = parentContentId;
-    this.childList = childList;
+    this.childList = new ArrayList<>(childList);
     this.iterator = new CursorIterator();
   }
 
