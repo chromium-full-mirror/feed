@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.testing.modelprovider;
 
+import com.google.android.libraries.feed.api.modelprovider.FeatureChange;
 import com.google.android.libraries.feed.api.modelprovider.FeatureChangeObserver;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
@@ -39,6 +40,12 @@ public class FakeModelFeature implements ModelFeature {
 
   public HashSet<FeatureChangeObserver> getObservers() {
     return observers;
+  }
+
+  public void triggerOnChange(FeatureChange change) {
+    for (FeatureChangeObserver observer : observers) {
+      observer.onChange(change);
+    }
   }
 
   @Override
