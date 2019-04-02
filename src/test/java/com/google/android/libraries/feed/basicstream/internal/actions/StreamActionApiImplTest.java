@@ -38,7 +38,6 @@ import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.logging.ActionType;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.ContentLoggingData;
-import com.google.android.libraries.feed.host.logging.ElementType;
 import com.google.android.libraries.feed.host.stream.TooltipApi;
 import com.google.android.libraries.feed.host.stream.TooltipCallbackApi;
 import com.google.android.libraries.feed.host.stream.TooltipCallbackApi.TooltipDismissType;
@@ -51,6 +50,7 @@ import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
 import com.google.search.now.ui.action.FeedActionProto.FeedAction;
 import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata;
+import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.ElementType;
 import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.Type;
 import com.google.search.now.ui.action.FeedActionProto.LabelledFeedActionData;
 import com.google.search.now.ui.action.FeedActionProto.OpenContextMenuData;
@@ -260,23 +260,24 @@ public class StreamActionApiImplTest {
 
   @Test
   public void testOnElementClick_logsElementClicked() {
-    streamActionApi.onElementClick(ElementType.INTEREST_HEADER);
+    streamActionApi.onElementClick(ElementType.INTEREST_HEADER.getNumber());
 
-    verify(basicLoggingApi).onVisualElementClicked(contentLoggingData, ElementType.INTEREST_HEADER);
+    verify(basicLoggingApi)
+        .onVisualElementClicked(contentLoggingData, ElementType.INTEREST_HEADER.getNumber());
   }
 
   @Test
   public void testOnElementView() {
-    streamActionApi.onElementView(ElementType.INTEREST_HEADER);
+    streamActionApi.onElementView(ElementType.INTEREST_HEADER.getNumber());
 
-    verify(viewElementActionHandler).onElementView(ElementType.INTEREST_HEADER);
+    verify(viewElementActionHandler).onElementView(ElementType.INTEREST_HEADER.getNumber());
   }
 
   @Test
   public void testOnElementHide() {
-    streamActionApi.onElementHide(ElementType.INTEREST_HEADER);
+    streamActionApi.onElementHide(ElementType.INTEREST_HEADER.getNumber());
 
-    verify(viewElementActionHandler).onElementHide(ElementType.INTEREST_HEADER);
+    verify(viewElementActionHandler).onElementHide(ElementType.INTEREST_HEADER.getNumber());
   }
 
   @Test
@@ -504,10 +505,10 @@ public class StreamActionApiImplTest {
     verify(tooltipApi).maybeShowHelpUi(eq(info), eq(view), callbackCaptor.capture());
 
     callbackCaptor.getValue().onShow();
-    verify(viewElementActionHandler).onElementView(ElementType.TOOLTIP);
+    verify(viewElementActionHandler).onElementView(ElementType.TOOLTIP.getNumber());
 
     callbackCaptor.getValue().onHide(TooltipDismissType.TIMEOUT);
-    verify(viewElementActionHandler).onElementHide(ElementType.TOOLTIP);
+    verify(viewElementActionHandler).onElementHide(ElementType.TOOLTIP.getNumber());
   }
 
   private void testCommittedDismissWithSnackbar(Type actionType) {

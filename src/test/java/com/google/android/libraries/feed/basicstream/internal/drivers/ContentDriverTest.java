@@ -49,7 +49,6 @@ import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.ContentLoggingData;
-import com.google.android.libraries.feed.host.logging.ElementType;
 import com.google.android.libraries.feed.host.logging.InternalFeedError;
 import com.google.android.libraries.feed.host.stream.TooltipApi;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
@@ -61,6 +60,7 @@ import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
 import com.google.search.now.ui.action.FeedActionProto.FeedAction;
+import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.ElementType;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.ui.piet.PietProto.Template;
@@ -178,7 +178,7 @@ public class ContentDriverTest {
   @Before
   public void setup() {
     initMocks(this);
-    
+
     when(modelFeature.getStreamFeature())
         .thenReturn(StreamFeature.newBuilder().setContent(CONTENT).build());
     when(modelProvider.getSharedState(CONTENT_ID_1)).thenReturn(STREAM_SHARED_STATE_1);
@@ -540,92 +540,102 @@ public class ContentDriverTest {
 
   @Test
   public void testOnElementView_logsElementViewed() {
-    contentDriver.onElementView(ElementType.INTEREST_HEADER);
+    contentDriver.onElementView(ElementType.INTEREST_HEADER.getNumber());
     clock.advance(VIEW_MIN_TIME_MS);
 
     verify(basicLoggingApi)
-        .onVisualElementViewed(any(ContentLoggingData.class), eq(ElementType.INTEREST_HEADER));
+        .onVisualElementViewed(
+            any(ContentLoggingData.class), eq(ElementType.INTEREST_HEADER.getNumber()));
   }
 
   @Test
   public void testOnElementView_logsElementViewed_beforeTimeout() {
-    contentDriver.onElementView(ElementType.INTEREST_HEADER);
+    contentDriver.onElementView(ElementType.INTEREST_HEADER.getNumber());
     clock.advance(VIEW_MIN_TIME_MS - 1);
 
     verify(basicLoggingApi, never())
-        .onVisualElementViewed(any(ContentLoggingData.class), eq(ElementType.INTEREST_HEADER));
+        .onVisualElementViewed(
+            any(ContentLoggingData.class), eq(ElementType.INTEREST_HEADER.getNumber()));
   }
 
   @Test
   public void testOnElementView_logsElementViewedThenHidden() {
-    contentDriver.onElementView(ElementType.INTEREST_HEADER);
-    contentDriver.onElementHide(ElementType.INTEREST_HEADER);
+    contentDriver.onElementView(ElementType.INTEREST_HEADER.getNumber());
+    contentDriver.onElementHide(ElementType.INTEREST_HEADER.getNumber());
     clock.advance(VIEW_MIN_TIME_MS);
 
     verify(basicLoggingApi, never())
-        .onVisualElementViewed(any(ContentLoggingData.class), eq(ElementType.INTEREST_HEADER));
+        .onVisualElementViewed(
+            any(ContentLoggingData.class), eq(ElementType.INTEREST_HEADER.getNumber()));
   }
 
   @Test
   public void testOnElementView_logsElementViewedThenHiddenThenViewed() {
-    contentDriver.onElementView(ElementType.INTEREST_HEADER);
-    contentDriver.onElementHide(ElementType.INTEREST_HEADER);
+    contentDriver.onElementView(ElementType.INTEREST_HEADER.getNumber());
+    contentDriver.onElementHide(ElementType.INTEREST_HEADER.getNumber());
     clock.advance(VIEW_MIN_TIME_MS - 1);
-    contentDriver.onElementView(ElementType.INTEREST_HEADER);
+    contentDriver.onElementView(ElementType.INTEREST_HEADER.getNumber());
     clock.advance(VIEW_MIN_TIME_MS);
     // Check that it only gets recorded once.
     verify(basicLoggingApi)
-        .onVisualElementViewed(any(ContentLoggingData.class), eq(ElementType.INTEREST_HEADER));
+        .onVisualElementViewed(
+            any(ContentLoggingData.class), eq(ElementType.INTEREST_HEADER.getNumber()));
   }
 
   @Test
   public void testOnElementView_logsElementViewedMultiple_differentTypes() {
-    contentDriver.onElementView(ElementType.INTEREST_HEADER);
-    contentDriver.onElementView(ElementType.CARD_LARGE_IMAGE);
+    contentDriver.onElementView(ElementType.INTEREST_HEADER.getNumber());
+    contentDriver.onElementView(ElementType.CARD_LARGE_IMAGE.getNumber());
     clock.advance(VIEW_MIN_TIME_MS);
 
     verify(basicLoggingApi)
-        .onVisualElementViewed(any(ContentLoggingData.class), eq(ElementType.INTEREST_HEADER));
+        .onVisualElementViewed(
+            any(ContentLoggingData.class), eq(ElementType.INTEREST_HEADER.getNumber()));
     verify(basicLoggingApi)
-        .onVisualElementViewed(any(ContentLoggingData.class), eq(ElementType.CARD_LARGE_IMAGE));
+        .onVisualElementViewed(
+            any(ContentLoggingData.class), eq(ElementType.CARD_LARGE_IMAGE.getNumber()));
   }
 
   @Test
   public void testOnElementView_logsElementViewedMultiple_sameTypes() {
-    contentDriver.onElementView(ElementType.INTEREST_HEADER);
-    contentDriver.onElementView(ElementType.INTEREST_HEADER);
+    contentDriver.onElementView(ElementType.INTEREST_HEADER.getNumber());
+    contentDriver.onElementView(ElementType.INTEREST_HEADER.getNumber());
     clock.advance(VIEW_MIN_TIME_MS);
 
     // Make sure it only logs one view.
     verify(basicLoggingApi)
-        .onVisualElementViewed(any(ContentLoggingData.class), eq(ElementType.INTEREST_HEADER));
+        .onVisualElementViewed(
+            any(ContentLoggingData.class), eq(ElementType.INTEREST_HEADER.getNumber()));
   }
 
   @Test
   public void testOnScrollStateChanged() {
-    contentDriver.onElementView(ElementType.INTEREST_HEADER);
+    contentDriver.onElementView(ElementType.INTEREST_HEADER.getNumber());
     contentDriver.onScrollStateChanged(RecyclerView.SCROLL_STATE_DRAGGING);
     clock.advance(VIEW_MIN_TIME_MS);
     verify(basicLoggingApi, never())
-        .onVisualElementViewed(any(ContentLoggingData.class), eq(ElementType.INTEREST_HEADER));
+        .onVisualElementViewed(
+            any(ContentLoggingData.class), eq(ElementType.INTEREST_HEADER.getNumber()));
   }
 
   @Test
   public void testOnScrollStateChanged_idle() {
-    contentDriver.onElementView(ElementType.INTEREST_HEADER);
+    contentDriver.onElementView(ElementType.INTEREST_HEADER.getNumber());
     contentDriver.onScrollStateChanged(RecyclerView.SCROLL_STATE_IDLE);
     clock.advance(VIEW_MIN_TIME_MS);
     verify(basicLoggingApi)
-        .onVisualElementViewed(any(ContentLoggingData.class), eq(ElementType.INTEREST_HEADER));
+        .onVisualElementViewed(
+            any(ContentLoggingData.class), eq(ElementType.INTEREST_HEADER.getNumber()));
   }
 
   @Test
   public void testOnDestroy_cancelsTasks() {
-    contentDriver.onElementView(ElementType.INTEREST_HEADER);
+    contentDriver.onElementView(ElementType.INTEREST_HEADER.getNumber());
     contentDriver.onDestroy();
     clock.advance(VIEW_MIN_TIME_MS);
     verify(basicLoggingApi, never())
-        .onVisualElementViewed(any(ContentLoggingData.class), eq(ElementType.INTEREST_HEADER));
+        .onVisualElementViewed(
+            any(ContentLoggingData.class), eq(ElementType.INTEREST_HEADER.getNumber()));
   }
 
   /** For Captor of generic. */

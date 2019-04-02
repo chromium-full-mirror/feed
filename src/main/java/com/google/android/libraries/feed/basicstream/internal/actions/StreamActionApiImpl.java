@@ -25,7 +25,6 @@ import com.google.android.libraries.feed.host.action.StreamActionApi;
 import com.google.android.libraries.feed.host.logging.ActionType;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.ContentLoggingData;
-import com.google.android.libraries.feed.host.logging.ElementType;
 import com.google.android.libraries.feed.host.stream.TooltipApi;
 import com.google.android.libraries.feed.host.stream.TooltipCallbackApi;
 import com.google.android.libraries.feed.host.stream.TooltipInfo;
@@ -33,6 +32,7 @@ import com.google.android.libraries.feed.sharedstream.contextmenumanager.Context
 import com.google.android.libraries.feed.sharedstream.pendingdismiss.PendingDismissCallback;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
+import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.ElementType;
 import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.Type;
 import com.google.search.now.ui.action.FeedActionProto.LabelledFeedActionData;
 import com.google.search.now.ui.action.FeedActionProto.OpenContextMenuData;
@@ -363,17 +363,17 @@ public class StreamActionApiImpl implements StreamActionApi {
   }
 
   @Override
-  public void onElementView(@ElementType int elementType) {
+  public void onElementView(int elementType) {
     viewElementActionHandler.onElementView(elementType);
   }
 
   @Override
-  public void onElementHide(@ElementType int elementType) {
+  public void onElementHide(int elementType) {
     viewElementActionHandler.onElementHide(elementType);
   }
 
   @Override
-  public void onElementClick(@ElementType int elementType) {
+  public void onElementClick(int elementType) {
     basicLoggingApi.onVisualElementClicked(contentLoggingData, elementType);
   }
 
@@ -390,12 +390,12 @@ public class StreamActionApiImpl implements StreamActionApi {
         new TooltipCallbackApi() {
           @Override
           public void onShow() {
-            onElementView(ElementType.TOOLTIP);
+            onElementView(ElementType.TOOLTIP.getNumber());
           }
 
           @Override
           public void onHide(int dismissType) {
-            onElementHide(ElementType.TOOLTIP);
+            onElementHide(ElementType.TOOLTIP.getNumber());
           }
         });
   }

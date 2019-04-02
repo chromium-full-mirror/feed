@@ -43,7 +43,6 @@ import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.ContentLoggingData;
-import com.google.android.libraries.feed.host.logging.ElementType;
 import com.google.android.libraries.feed.host.logging.InternalFeedError;
 import com.google.android.libraries.feed.host.stream.TooltipApi;
 import com.google.android.libraries.feed.sharedstream.constants.Constants;
@@ -304,7 +303,7 @@ public class ContentDriver extends LeafFeatureDriver
     viewActionTaskMap.clear();
   }
 
-  private void removePendingViewActionTaskForElement(@ElementType int elementType) {
+  private void removePendingViewActionTaskForElement(int elementType) {
     CancelableTask cancelable = viewActionTaskMap.remove(elementType);
     if (cancelable != null) {
       cancelable.cancel();
@@ -348,7 +347,7 @@ public class ContentDriver extends LeafFeatureDriver
   }
 
   @Override
-  public void onElementView(@ElementType int elementType) {
+  public void onElementView(int elementType) {
     removePendingViewActionTaskForElement(elementType);
     CancelableTask cancelableTask =
         mainThreadRunner.executeWithDelay(
@@ -359,7 +358,7 @@ public class ContentDriver extends LeafFeatureDriver
   }
 
   @Override
-  public void onElementHide(@ElementType int elementType) {
+  public void onElementHide(int elementType) {
     removePendingViewActionTaskForElement(elementType);
   }
 

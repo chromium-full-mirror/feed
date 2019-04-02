@@ -157,9 +157,11 @@ public interface BasicLoggingApi {
    * the specific elementType that was clicked.
    *
    * @param data data for content on which action was performed.
-   * @param elementType describes the type of element which was clicked.
+   * @param elementType describes the server-defined type of element which was clicked. Corresponds
+   *     to the int numbers of the server-defined {@link
+   *     com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.ElementType} value.
    */
-  void onVisualElementClicked(ElementLoggingData data, @ElementType int elementType);
+  void onVisualElementClicked(ElementLoggingData data, int elementType);
 
   /**
    * Called when a user has viewed an element. This is similar to onContentViewed, but records the
@@ -168,7 +170,7 @@ public interface BasicLoggingApi {
    * @param data data for content on which action was performed.
    * @param elementType describes the type of element which was clicked.
    */
-  void onVisualElementViewed(ElementLoggingData data, @ElementType int elementType);
+  void onVisualElementViewed(ElementLoggingData data, int elementType);
 
   /**
    * Reports an internal error. This error should be logged by hosts, but not handled. In

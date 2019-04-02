@@ -16,7 +16,6 @@ package com.google.android.libraries.feed.host.action;
 
 import android.view.View;
 import com.google.android.libraries.feed.host.logging.ActionType;
-import com.google.android.libraries.feed.host.logging.ElementType;
 import com.google.android.libraries.feed.host.stream.TooltipInfo;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.ui.action.FeedActionProto.OpenContextMenuData;
@@ -65,14 +64,23 @@ public interface StreamActionApi extends ActionApi {
   /** Whether or not the not click actions can be handled. */
   boolean canHandleElementClick();
 
-  /** Called when a view action has been performed. */
-  void onElementView(@ElementType int elementType);
+  /**
+   * Called when a view action has been performed on a server-defined {@link
+   * com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.ElementType} value.
+   */
+  void onElementView(int elementType);
 
-  /** Called when a hide action has been performed. */
-  void onElementHide(@ElementType int elementType);
+  /**
+   * Called when a hide action has been performed on a server-defined {@link
+   * com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.ElementType} value.
+   */
+  void onElementHide(int elementType);
 
-  /** Called when a click action has been performed. */
-  void onElementClick(@ElementType int elementType);
+  /**
+   * Called when a click action has been performed on a server-defined {@link
+   * com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.ElementType} value.
+   */
+  void onElementClick(int elementType);
 
   /** Whether or not show tooltip actions can be handled. */
   boolean canShowTooltip();

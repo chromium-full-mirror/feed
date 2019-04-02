@@ -31,7 +31,6 @@ import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.feedactionparser.internal.ActionTypeConverter;
-import com.google.android.libraries.feed.feedactionparser.internal.ElementTypeConverter;
 import com.google.android.libraries.feed.feedactionparser.internal.PietFeedActionPayloadRetriever;
 import com.google.android.libraries.feed.feedactionparser.internal.TooltipInfoImpl;
 import com.google.android.libraries.feed.host.action.StreamActionApi;
@@ -146,7 +145,8 @@ public final class FeedActionParser implements ActionParser {
         if (!streamActionApi.canHandleNotInterestedInSource()) {
           Logger.e(
               TAG,
-              "Cannot preform action not interested in topic action: StreamActionApi does not support it.");
+              "Cannot preform action not interested in topic action: StreamActionApi does not"
+                  + " support it.");
           return;
         }
 
@@ -157,7 +157,8 @@ public final class FeedActionParser implements ActionParser {
         if (!streamDataOperationResult.isSuccessful()) {
           Logger.e(
               TAG,
-              "Cannot preform action not interested in topic action: conversion to StreamDataOperation failed.");
+              "Cannot preform action not interested in topic action: conversion to"
+                  + " StreamDataOperation failed.");
           return;
         }
 
@@ -169,7 +170,8 @@ public final class FeedActionParser implements ActionParser {
         if (!streamActionApi.canHandleNotInterestedInTopic()) {
           Logger.e(
               TAG,
-              "Cannot preform action not interested in topic action: StreamActionApi does not support it.");
+              "Cannot preform action not interested in topic action: StreamActionApi does not"
+                  + " support it.");
           return;
         }
 
@@ -180,7 +182,8 @@ public final class FeedActionParser implements ActionParser {
         if (!dataOperationResult.isSuccessful()) {
           Logger.e(
               TAG,
-              "Cannot preform action not interested in topic action: conversion to StreamDataOperation failed.");
+              "Cannot preform action not interested in topic action: conversion to"
+                  + " StreamDataOperation failed.");
           return;
         }
 
@@ -219,8 +222,7 @@ public final class FeedActionParser implements ActionParser {
           Logger.e(TAG, "Cannot log ElementView : no Element Type");
           break;
         }
-        streamActionApi.onElementView(
-            ElementTypeConverter.convert(feedActionMetadata.getElementType()));
+        streamActionApi.onElementView(feedActionMetadata.getElementType().getNumber());
         break;
       case HIDE_ELEMENT:
         if (!streamActionApi.canHandleElementHide()) {
@@ -230,8 +232,7 @@ public final class FeedActionParser implements ActionParser {
           Logger.e(TAG, "Cannot log Element Hide : no Element Type");
           break;
         }
-        streamActionApi.onElementHide(
-            ElementTypeConverter.convert(feedActionMetadata.getElementType()));
+        streamActionApi.onElementHide(feedActionMetadata.getElementType().getNumber());
         break;
       case SHOW_TOOLTIP:
         if (!streamActionApi.canShowTooltip()) {
@@ -250,8 +251,7 @@ public final class FeedActionParser implements ActionParser {
       } else if (!feedActionMetadata.hasElementType()) {
         Logger.e(TAG, "Cannot log Element Click: no Element Type");
       } else {
-        streamActionApi.onElementClick(
-            ElementTypeConverter.convert(feedActionMetadata.getElementType()));
+        streamActionApi.onElementClick(feedActionMetadata.getElementType().getNumber());
       }
     }
   }

@@ -13,13 +13,17 @@
 // limitations under the License.
 package com.google.android.libraries.feed.basicstream.internal.actions;
 
-import com.google.android.libraries.feed.host.logging.ElementType;
-
 /** Interface used for communicating view and hide events */
 public interface ViewElementActionHandler {
-  /** Called when a hide action has been performed. */
-  void onElementHide(@ElementType int elementType);
+  /**
+   * Called when a hide action has been performed on a {@link
+   * com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.ElementType} value.
+   */
+  void onElementHide(int elementType);
 
-  /** Called when a view action has been performed. */
-  void onElementView(@ElementType int elementType);
+  /**
+   * Called when a view action has been performed on a {@link
+   * com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.ElementType} value.
+   */
+  void onElementView(int elementType);
 }

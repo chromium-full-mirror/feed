@@ -18,7 +18,6 @@ import com.google.android.libraries.feed.host.logging.ActionType;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.ContentLoggingData;
 import com.google.android.libraries.feed.host.logging.ElementLoggingData;
-import com.google.android.libraries.feed.host.logging.ElementType;
 import com.google.android.libraries.feed.host.logging.InternalFeedError;
 import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.android.libraries.feed.host.logging.ScrollType;
@@ -101,10 +100,10 @@ public class FakeBasicLoggingApi implements BasicLoggingApi {
   public void onPietFrameRenderingEvent(List<Integer> pietErrorCodes) {}
 
   @Override
-  public void onVisualElementClicked(ElementLoggingData data, @ElementType int elementType) {}
+  public void onVisualElementClicked(ElementLoggingData data, int elementType) {}
 
   @Override
-  public void onVisualElementViewed(ElementLoggingData data, @ElementType int elementType) {}
+  public void onVisualElementViewed(ElementLoggingData data, int elementType) {}
 
   @Override
   public void onInternalError(@InternalFeedError int internalError) {}

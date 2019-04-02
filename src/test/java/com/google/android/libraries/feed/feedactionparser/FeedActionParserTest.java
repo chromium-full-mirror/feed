@@ -32,7 +32,6 @@ import com.google.android.libraries.feed.api.actionparser.ActionSource;
 import com.google.android.libraries.feed.api.knowncontent.ContentMetadata;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.common.Result;
-import com.google.android.libraries.feed.feedactionparser.internal.ElementTypeConverter;
 import com.google.android.libraries.feed.feedactionparser.internal.PietFeedActionPayloadRetriever;
 import com.google.android.libraries.feed.host.action.StreamActionApi;
 import com.google.android.libraries.feed.host.logging.ActionType;
@@ -838,11 +837,9 @@ public class FeedActionParserTest {
     feedActionParser.parseFeedActionPayload(
         HIDE_ELEMENT, streamActionApi, /* view= */ null, ActionSource.VIEW);
 
-    verify(streamActionApi)
-        .onElementHide(ElementTypeConverter.convert(ElementType.INTEREST_HEADER));
+    verify(streamActionApi).onElementHide(ElementType.INTEREST_HEADER.getNumber());
 
-    verify(streamActionApi, never())
-        .onElementClick(ElementTypeConverter.convert(ElementType.INTEREST_HEADER));
+    verify(streamActionApi, never()).onElementClick(ElementType.INTEREST_HEADER.getNumber());
   }
 
   @Test
@@ -851,11 +848,9 @@ public class FeedActionParserTest {
     feedActionParser.parseFeedActionPayload(
         VIEW_ELEMENT, streamActionApi, /* view= */ null, ActionSource.VIEW);
 
-    verify(streamActionApi)
-        .onElementView(ElementTypeConverter.convert(ElementType.INTEREST_HEADER));
+    verify(streamActionApi).onElementView(ElementType.INTEREST_HEADER.getNumber());
 
-    verify(streamActionApi, never())
-        .onElementClick(ElementTypeConverter.convert(ElementType.INTEREST_HEADER));
+    verify(streamActionApi, never()).onElementClick(ElementType.INTEREST_HEADER.getNumber());
   }
 
   @Test
@@ -864,8 +859,7 @@ public class FeedActionParserTest {
     feedActionParser.parseFeedActionPayload(
         CLICK_ELEMENT, streamActionApi, /* view= */ null, ActionSource.CLICK);
 
-    verify(streamActionApi)
-        .onElementClick(ElementTypeConverter.convert(ElementType.INTEREST_HEADER));
+    verify(streamActionApi).onElementClick(ElementType.INTEREST_HEADER.getNumber());
   }
 
   @Test
@@ -874,8 +868,7 @@ public class FeedActionParserTest {
     feedActionParser.parseFeedActionPayload(
         VIEW_ELEMENT, streamActionApi, /* view= */ null, ActionSource.VIEW);
 
-    verify(streamActionApi, never())
-        .onElementClick(ElementTypeConverter.convert(ElementType.INTEREST_HEADER));
+    verify(streamActionApi, never()).onElementClick(ElementType.INTEREST_HEADER.getNumber());
   }
 
   @Test
