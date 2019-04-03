@@ -30,7 +30,6 @@ import com.google.search.now.wire.feed.FeedActionProto.FeedAction;
 import com.google.search.now.wire.feed.FeedActionRequestProto.FeedActionRequest;
 import com.google.search.now.wire.feed.OpaqueActionDataForTestProto.OpaqueActionDataForTest;
 import com.google.search.now.wire.feed.OpaqueActionDataProto.OpaqueActionData;
-import com.google.search.now.wire.feed.UploadActionTypeProto.UploadActionType;
 import java.util.HashSet;
 import org.junit.Before;
 import org.junit.Test;
@@ -82,8 +81,7 @@ public class UploadableActionsRequestBuilderTest {
 
     FeedAction.Builder feedAction =
         FeedAction.newBuilder()
-            .setActionProperties(ActionProperties.newBuilder().setActionData(data).build())
-            .setActionType(UploadActionType.DISMISS_UPLOAD);
+            .setActionProperties(ActionProperties.newBuilder().setActionData(data).build());
     feedAction.setContentId(ContentId.getDefaultInstance());
     feedActionRequestBuilder.addFeedAction(feedAction);
     requestBuilder.setExtension(
@@ -109,8 +107,7 @@ public class UploadableActionsRequestBuilderTest {
   public void testUploadableActionsRequest() throws Exception {
     FeedAction.Builder feedAction =
         FeedAction.newBuilder()
-            .setActionProperties(ActionProperties.newBuilder().setActionData(data).build())
-            .setActionType(UploadActionType.DISMISS_UPLOAD);
+            .setActionProperties(ActionProperties.newBuilder().setActionData(data).build());
     feedAction.setContentId(ContentId.getDefaultInstance());
     feedActionRequestBuilder.addFeedAction(feedAction);
     feedActionRequestBuilder.setConsistencyToken(token);

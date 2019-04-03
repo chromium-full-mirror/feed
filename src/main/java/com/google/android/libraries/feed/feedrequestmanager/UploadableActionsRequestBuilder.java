@@ -19,14 +19,12 @@ import com.google.android.libraries.feed.api.common.ActionPropertiesWithId;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.common.Result;
 import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
-import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.Type;
 import com.google.search.now.wire.feed.ActionPropertiesProto.ActionProperties;
 import com.google.search.now.wire.feed.ActionRequestProto.ActionRequest;
 import com.google.search.now.wire.feed.ConsistencyTokenProto.ConsistencyToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.FeedActionProto.FeedAction;
 import com.google.search.now.wire.feed.FeedActionRequestProto.FeedActionRequest;
-import com.google.search.now.wire.feed.UploadActionTypeProto.UploadActionType;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -83,7 +81,6 @@ final class UploadableActionsRequestBuilder {
         if (properties != null) {
           feedAction.setActionProperties(properties);
         }
-        feedAction.setActionType(convertActionType(action.getActionType()));
         Result<ContentId> contentIdResult = protocolAdapter.getWireContentId(contentId);
         if (contentIdResult.isSuccessful()) {
           feedAction.setContentId(contentIdResult.getValue());
@@ -98,29 +95,6 @@ final class UploadableActionsRequestBuilder {
         FeedActionRequest.feedActionRequest, feedActionRequestBuilder.build());
 
     return requestBuilder.build();
-  }
-
-  private UploadActionType convertActionType(Type actionType) {
-    switch (actionType) {
-      case DISMISS:
-        return UploadActionType.DISMISS_UPLOAD;
-      case NOT_INTERESTED_IN_SOURCE:
-        return UploadActionType.NOT_INTERESTED_IN_SOURCE;
-      case NOT_INTERESTED_IN_TOPIC:
-        return UploadActionType.NOT_INTERESTED_IN_TOPIC;
-      case OPEN_URL:
-      case OPEN_URL_NEW_WINDOW:
-      case OPEN_URL_INCOGNITO:
-      case OPEN_URL_NEW_TAB:
-      case OPEN_CONTEXT_MENU:
-      case DISMISS_LOCAL:
-      case DOWNLOAD:
-      case LEARN_MORE:
-      case VIEW_ELEMENT:
-      case HIDE_ELEMENT:
-      default:
-        return UploadActionType.UNKNOWN_UPLOAD_ACTION_TYPE;
-    }
   }
 
   private List<ActionPropertiesWithId> getActionPropertiesForIds(List<String> ids) {

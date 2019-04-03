@@ -18,9 +18,9 @@ package search.now.wire.feed;
 
 option optimize_for=LITE_RUNTIME;
 
+import "src/main/proto/search/now/wire/feed/action_payload.proto";
 import "src/main/proto/search/now/wire/feed/action_properties.proto";
 import "src/main/proto/search/now/wire/feed/content_id.proto";
-import "src/main/proto/search/now/wire/feed/upload_action_type.proto";
 
 option java_package = "com.google.search.now.wire.feed";
 option java_outer_classname = "FeedActionProto";
@@ -28,8 +28,10 @@ option java_outer_classname = "FeedActionProto";
 message FeedAction {
   // The Id for the content that this action was triggered on.
   optional ContentId content_id = 1;
-  // The Type of action to be recorded.
-  optional UploadActionType action_type = 2;
   // Additional logging data that is roundtripped from the server
   optional ActionProperties action_properties = 3;
+  // Additional logging data that is on a per-action level
+  optional ActionPayload action_payload = 4;
+  // Next Id: 5
+  reserved 2;
 }
