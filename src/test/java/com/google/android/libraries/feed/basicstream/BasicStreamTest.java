@@ -1088,6 +1088,26 @@ public class BasicStreamTest {
     assertThat(basicStream.streamDriverUiRefreshReason).isEqualTo(uiRefreshReason);
   }
 
+  @Test
+  public void onShow_whileStreamContentNotVisible_logsOpenedWithNoContent() {
+    basicStream.setStreamContentVisibility(false);
+
+    basicStream.onShow();
+
+    verify(basicLoggingApi).onOpenedWithNoContent();
+  }
+
+  @Test
+  public void onShow_whileStreamContentNotVisible_twice_logsOpenedWithNoContentOnce() {
+    basicStream.setStreamContentVisibility(false);
+
+    basicStream.onShow();
+    basicStream.onHide();
+    basicStream.onShow();
+
+    verify(basicLoggingApi).onOpenedWithNoContent();
+  }
+
   private byte[] decodeSavedInstanceStateString(String savedInstanceState) {
     return Base64.decode(savedInstanceState, Base64.DEFAULT);
   }

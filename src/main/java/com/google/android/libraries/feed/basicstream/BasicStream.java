@@ -287,6 +287,11 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
     if (isStreamContentVisible) {
       createModelProviderAndStreamDriver();
     } else {
+      if (loggingState == LoggingState.STARTING) {
+        basicLoggingApi.onOpenedWithNoContent();
+        loggingState = LoggingState.LOGGED_NO_CONTENT;
+      }
+
       // If Stream content is not visible, we will not create the StreamDriver and restore the
       // scroll position automatically. So we try to restore the scroll position before.
       scrollRestorer.maybeRestoreScroll();
