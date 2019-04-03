@@ -61,7 +61,7 @@ public class RoundedCornerWrapperViewTest {
   @Test
   public void testZeroDimensions_notRounded() {
     RoundedCornerWrapperView view =
-        new RoundedCornerWrapperView(
+        new BitmapMaskingRoundedCornerWrapperView(
             context,
             RoundedCorners.getDefaultInstance(),
             maskCache,
@@ -91,7 +91,7 @@ public class RoundedCornerWrapperViewTest {
     RoundedCorners roundedCorners =
         RoundedCorners.newBuilder().setBitmask(7).setRadiusDp(10).build();
     RoundedCornerWrapperView view =
-        new RoundedCornerWrapperView(
+        new BitmapMaskingRoundedCornerWrapperView(
             context,
             roundedCorners,
             maskCache,
@@ -124,7 +124,7 @@ public class RoundedCornerWrapperViewTest {
 
     RoundedCorners roundedCorners = RoundedCorners.newBuilder().setRadiusDp(10).build();
     RoundedCornerWrapperView view =
-        new RoundedCornerWrapperView(
+        new BitmapMaskingRoundedCornerWrapperView(
             context, roundedCorners, maskCache, Suppliers.of(false), 0, borders);
 
     view.layout(0, 0, 100, 100);
@@ -142,7 +142,7 @@ public class RoundedCornerWrapperViewTest {
 
     RoundedCorners roundedCorners = RoundedCorners.newBuilder().setRadiusDp(10).build();
     RoundedCornerWrapperView view =
-        new RoundedCornerWrapperView(
+        new BitmapMaskingRoundedCornerWrapperView(
             context, roundedCorners, maskCache, Suppliers.of(false), 0, borders);
 
     // Set a width and height on the view so that the only thing stopping borders from being created
@@ -162,10 +162,9 @@ public class RoundedCornerWrapperViewTest {
     int radiusOverride = 20;
     RoundedCorners roundedCorners = RoundedCorners.newBuilder().setRadiusDp(radiusToSet).build();
     RoundedCornerWrapperView view =
-        new RoundedCornerWrapperView(
+        new CommonRoundedCornerWrapperView(
             context,
             roundedCorners,
-            maskCache,
             Suppliers.of(false),
             radiusOverride,
             Borders.getDefaultInstance());
@@ -183,10 +182,9 @@ public class RoundedCornerWrapperViewTest {
     int radiusToSet = 10;
     RoundedCorners roundedCorners = RoundedCorners.newBuilder().setRadiusDp(radiusToSet).build();
     RoundedCornerWrapperView view =
-        new RoundedCornerWrapperView(
+        new CommonRoundedCornerWrapperView(
             context,
             roundedCorners,
-            maskCache,
             Suppliers.of(false),
             /*radiusOverride= */ 0,
             Borders.getDefaultInstance());
@@ -204,10 +202,9 @@ public class RoundedCornerWrapperViewTest {
     RoundedCorners roundedCorners =
         RoundedCorners.newBuilder().setRadiusPercentageOfHeight(radiusPercentageOfHeight).build();
     RoundedCornerWrapperView view =
-        new RoundedCornerWrapperView(
+        new CommonRoundedCornerWrapperView(
             context,
             roundedCorners,
-            maskCache,
             Suppliers.of(false),
             /*radiusOverride= */ 0,
             Borders.getDefaultInstance());
@@ -226,10 +223,9 @@ public class RoundedCornerWrapperViewTest {
     RoundedCorners roundedCorners =
         RoundedCorners.newBuilder().setRadiusPercentageOfWidth(radiusPercentageOfWidth).build();
     RoundedCornerWrapperView view =
-        new RoundedCornerWrapperView(
+        new CommonRoundedCornerWrapperView(
             context,
             roundedCorners,
-            maskCache,
             Suppliers.of(false),
             /*radiusOverride= */ 0,
             Borders.getDefaultInstance());
@@ -247,10 +243,9 @@ public class RoundedCornerWrapperViewTest {
     int radiusToSet = 20;
     RoundedCorners roundedCorners = RoundedCorners.newBuilder().setRadiusDp(radiusToSet).build();
     RoundedCornerWrapperView view =
-        new RoundedCornerWrapperView(
+        new CommonRoundedCornerWrapperView(
             context,
             roundedCorners,
-            maskCache,
             Suppliers.of(false),
             /*radiusOverride= */ 0,
             Borders.getDefaultInstance());
@@ -273,10 +268,9 @@ public class RoundedCornerWrapperViewTest {
             .setRadiusDp(radiusToSet)
             .build();
     RoundedCornerWrapperView view =
-        new RoundedCornerWrapperView(
+        new CommonRoundedCornerWrapperView(
             context,
             roundedCorners,
-            maskCache,
             Suppliers.of(false),
             /*radiusOverride= */ 0,
             Borders.getDefaultInstance());
@@ -295,10 +289,9 @@ public class RoundedCornerWrapperViewTest {
     int radiusToSet = 20;
     RoundedCorners roundedCorners = RoundedCorners.newBuilder().setRadiusDp(radiusToSet).build();
     RoundedCornerWrapperView view =
-        new RoundedCornerWrapperView(
+        new CommonRoundedCornerWrapperView(
             context,
             roundedCorners,
-            maskCache,
             Suppliers.of(false),
             /*radiusOverride= */ 0,
             Borders.getDefaultInstance());
@@ -321,10 +314,9 @@ public class RoundedCornerWrapperViewTest {
             .setRadiusDp(radiusToSet)
             .build();
     RoundedCornerWrapperView view =
-        new RoundedCornerWrapperView(
+        new CommonRoundedCornerWrapperView(
             context,
             roundedCorners,
-            maskCache,
             Suppliers.of(false),
             /*radiusOverride= */ 0,
             Borders.getDefaultInstance());
@@ -344,10 +336,9 @@ public class RoundedCornerWrapperViewTest {
     RoundedCorners roundedCorners =
         RoundedCorners.newBuilder().setRadiusPercentageOfHeight(radiusPercentageOfHeight).build();
     RoundedCornerWrapperView view =
-        new RoundedCornerWrapperView(
+        new CommonRoundedCornerWrapperView(
             context,
             roundedCorners,
-            maskCache,
             Suppliers.of(false),
             /*radiusOverride= */ 0,
             Borders.getDefaultInstance());
@@ -369,10 +360,9 @@ public class RoundedCornerWrapperViewTest {
             .setRadiusPercentageOfHeight(radiusPercentageOfHeight)
             .build();
     RoundedCornerWrapperView view =
-        new RoundedCornerWrapperView(
+        new CommonRoundedCornerWrapperView(
             context,
             roundedCorners,
-            maskCache,
             Suppliers.of(false),
             /*radiusOverride= */ 0,
             Borders.getDefaultInstance());
@@ -395,10 +385,9 @@ public class RoundedCornerWrapperViewTest {
             .setRadiusPercentageOfHeight(radiusPercentageOfHeight)
             .build();
     RoundedCornerWrapperView view =
-        new RoundedCornerWrapperView(
+        new CommonRoundedCornerWrapperView(
             context,
             roundedCorners,
-            maskCache,
             Suppliers.of(false),
             /*radiusOverride= */ 0,
             Borders.getDefaultInstance());
@@ -418,10 +407,9 @@ public class RoundedCornerWrapperViewTest {
     RoundedCorners roundedCorners =
         RoundedCorners.newBuilder().setRadiusPercentageOfWidth(radiusPercentageOfWidth).build();
     RoundedCornerWrapperView view =
-        new RoundedCornerWrapperView(
+        new CommonRoundedCornerWrapperView(
             context,
             roundedCorners,
-            maskCache,
             Suppliers.of(false),
             /*radiusOverride= */ 0,
             Borders.getDefaultInstance());
@@ -444,10 +432,9 @@ public class RoundedCornerWrapperViewTest {
             .setRadiusPercentageOfWidth(radiusPercentageOfWidth)
             .build();
     RoundedCornerWrapperView view =
-        new RoundedCornerWrapperView(
+        new CommonRoundedCornerWrapperView(
             context,
             roundedCorners,
-            maskCache,
             Suppliers.of(false),
             /*radiusOverride= */ 0,
             Borders.getDefaultInstance());
@@ -470,10 +457,9 @@ public class RoundedCornerWrapperViewTest {
             .setRadiusPercentageOfWidth(radiusPercentageOfWidth)
             .build();
     RoundedCornerWrapperView view =
-        new RoundedCornerWrapperView(
+        new CommonRoundedCornerWrapperView(
             context,
             roundedCorners,
-            maskCache,
             Suppliers.of(false),
             /*radiusOverride= */ 0,
             Borders.getDefaultInstance());
@@ -497,7 +483,7 @@ public class RoundedCornerWrapperViewTest {
     when(mockMaskCache.getMasks(16)).thenReturn(mockBitmaps);
     when(mockBitmaps.get(anyInt())).thenReturn(maskBitmap);
     RoundedCornerWrapperView view =
-        new RoundedCornerWrapperView(
+        new BitmapMaskingRoundedCornerWrapperView(
             context,
             roundedCorners,
             mockMaskCache,
@@ -512,5 +498,16 @@ public class RoundedCornerWrapperViewTest {
     verify(mockBitmaps).get(Corner.TOP_LEFT);
     verify(mockBitmaps).get(Corner.BOTTOM_LEFT);
     verifyNoMoreInteractions(mockBitmaps);
+  }
+
+  static class CommonRoundedCornerWrapperView extends RoundedCornerWrapperView {
+    CommonRoundedCornerWrapperView(
+        Context context,
+        RoundedCorners roundedCorners,
+        Supplier<Boolean> isRtLSupplier,
+        int radiusOverride,
+        Borders borders) {
+      super(context, roundedCorners, isRtLSupplier, radiusOverride, borders);
+    }
   }
 }

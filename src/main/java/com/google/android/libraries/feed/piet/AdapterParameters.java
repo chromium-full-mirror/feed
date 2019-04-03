@@ -44,6 +44,7 @@ class AdapterParameters {
   final Clock clock;
   final PietStylesHelperFactory pietStylesHelperFactory;
   final RoundedCornerMaskCache roundedCornerMaskCache;
+  final boolean useLegacyRoundedCornerImpl;
 
   // Doesn't like passing "this" to the new ElementAdapterFactory; however, nothing in the factory's
   // construction will reference the elementAdapterFactory member of this, so should be safe.
@@ -52,7 +53,8 @@ class AdapterParameters {
       Context context,
       Supplier</*@Nullable*/ ViewGroup> parentViewSupplier,
       HostProviders hostProviders,
-      Clock clock) {
+      Clock clock,
+      boolean useLegacyRoundedCornerImpl) {
     this.context = context;
     this.parentViewSupplier = parentViewSupplier;
     this.hostProviders = hostProviders;
@@ -69,6 +71,8 @@ class AdapterParameters {
 
     this.pietStylesHelperFactory = new PietStylesHelperFactory();
     this.roundedCornerMaskCache = new RoundedCornerMaskCache();
+
+    this.useLegacyRoundedCornerImpl = useLegacyRoundedCornerImpl;
   }
 
   /** Testing-only constructor for mocking the internally-constructed objects. */
@@ -90,7 +94,8 @@ class AdapterParameters {
         templateBinder,
         clock,
         new PietStylesHelperFactory(),
-        new RoundedCornerMaskCache());
+        new RoundedCornerMaskCache(),
+        true);
   }
 
   /** Testing-only constructor for mocking the internally-constructed objects. */
@@ -104,7 +109,8 @@ class AdapterParameters {
       TemplateBinder templateBinder,
       Clock clock,
       PietStylesHelperFactory pietStylesHelperFactory,
-      RoundedCornerMaskCache maskCache) {
+      RoundedCornerMaskCache maskCache,
+      boolean useLegacyRoundedCornerImpl) {
     this.context = context;
     this.parentViewSupplier = parentViewSupplier;
     this.hostProviders = hostProviders;
@@ -116,5 +122,6 @@ class AdapterParameters {
     this.clock = clock;
     this.pietStylesHelperFactory = pietStylesHelperFactory;
     this.roundedCornerMaskCache = maskCache;
+    this.useLegacyRoundedCornerImpl = useLegacyRoundedCornerImpl;
   }
 }

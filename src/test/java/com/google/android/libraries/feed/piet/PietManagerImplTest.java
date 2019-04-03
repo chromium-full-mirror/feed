@@ -235,7 +235,8 @@ public class PietManagerImplTest {
             mockTemplateBinder,
             new FakeClock(),
             stylesHelpers,
-            maskCache);
+            maskCache,
+            false);
     pietManager.purgeRecyclerPools();
     verify(mockFactory).purgeRecyclerPools();
     verify(stylesHelpers).purge();

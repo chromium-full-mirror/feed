@@ -18,21 +18,24 @@ import android.content.Context;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
+import android.os.Build.VERSION_CODES;
 import android.support.v4.view.ViewCompat;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.view.ViewGroup.MarginLayoutParams;
+import android.view.ViewOutlineProvider;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
+import com.google.android.libraries.feed.piet.ui.BitmapMaskingRoundedCornerWrapperView;
 import com.google.android.libraries.feed.piet.ui.BorderDrawable;
 import com.google.android.libraries.feed.piet.ui.GradientDrawable;
+import com.google.android.libraries.feed.piet.ui.LegacyRoundedCornerWrapperView;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerMaskCache;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerViewHelper;
-import com.google.android.libraries.feed.piet.ui.RoundedCornerWrapperView;
 import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
 import com.google.search.now.ui.piet.GradientsProto.Fill;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
@@ -329,14 +332,13 @@ class StyleProvider {
     }
 
     // Apply appearance styles
-    view.setBackground(createBackground());
+    baseView.setBackground(createBackground());
     if (style.getShadow().hasElevationShadow()) {
       ViewCompat.setElevation(view, style.getShadow().getElevationShadow().getElevation());
     } else {
       ViewCompat.setElevation(view, 0.0f);
     }
     if (view != baseView) {
-      baseView.setBackground(null);
       ViewCompat.setElevation(baseView, 0.0f);
     }
 
@@ -408,19 +410,34 @@ class StyleProvider {
     }
   }
 
-  FrameLayout createWrapperView(Context context, RoundedCornerMaskCache maskCache) {
+  FrameLayout createWrapperView(
+      Context context, RoundedCornerMaskCache maskCache, boolean useLegacyImpl) {
     if (!hasRoundedCorners()) {
-      return new FrameLayout(context);
+      FrameLayout view = new FrameLayout(context);
+      if (Build.VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
+        // The wrapper view gets elevation; set an outline so it can cast a shadow.
+        view.setOutlineProvider(ViewOutlineProvider.BOUNDS);
+      }
+      return view;
     }
     int radiusOverride =
         getRoundedCorners().getUseHostRadiusOverride() ? assetProvider.getDefaultCornerRadius() : 0;
-    return new RoundedCornerWrapperView(
-        context,
-        getRoundedCorners(),
-        maskCache,
-        assetProvider.isRtLSupplier(),
-        radiusOverride,
-        getBorders());
+    if (Build.VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP || !useLegacyImpl) {
+      return new BitmapMaskingRoundedCornerWrapperView(
+          context,
+          getRoundedCorners(),
+          maskCache,
+          assetProvider.isRtLSupplier(),
+          radiusOverride,
+          getBorders());
+    } else {
+      return new LegacyRoundedCornerWrapperView(
+          context,
+          getRoundedCorners(),
+          assetProvider.isRtLSupplier(),
+          radiusOverride,
+          getBorders());
+    }
   }
 
   /**

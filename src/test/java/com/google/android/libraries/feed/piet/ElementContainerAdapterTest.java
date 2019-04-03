@@ -143,7 +143,7 @@ public class ElementContainerAdapterTest {
 
     when(hostProviders.getAssetProvider()).thenReturn(assetProvider);
     AdapterParameters adapterParameters =
-        new AdapterParameters(context, Suppliers.of(null), hostProviders, new FakeClock());
+        new AdapterParameters(context, Suppliers.of(null), hostProviders, new FakeClock(), false);
 
     when(frameContext.createTemplateContext(eq(DEFAULT_TEMPLATE), any(BindingContext.class)))
         .thenReturn(frameContext);

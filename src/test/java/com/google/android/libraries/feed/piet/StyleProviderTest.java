@@ -26,19 +26,23 @@ import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.ShapeDrawable;
+import android.os.Build;
 import android.os.Build.VERSION_CODES;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.view.ViewGroup.MarginLayoutParams;
+import android.view.ViewOutlineProvider;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 import com.google.android.libraries.feed.common.functional.Suppliers;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
+import com.google.android.libraries.feed.piet.ui.BitmapMaskingRoundedCornerWrapperView;
 import com.google.android.libraries.feed.piet.ui.BorderDrawable;
 import com.google.android.libraries.feed.piet.ui.GradientDrawable;
+import com.google.android.libraries.feed.piet.ui.LegacyRoundedCornerWrapperView;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerMaskCache;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerWrapperView;
 import com.google.search.now.ui.piet.GradientsProto.ColorStop;
@@ -399,8 +403,9 @@ public class StyleProviderTest {
                 .build(),
             mockAssetProvider);
 
-    assertThat(styleProvider.createWrapperView(context, maskCache))
-        .isNotInstanceOf(RoundedCornerWrapperView.class);
+    FrameLayout wrapperView = styleProvider.createWrapperView(context, maskCache, false);
+    assertThat(wrapperView).isNotInstanceOf(RoundedCornerWrapperView.class);
+    assertThat(wrapperView.getOutlineProvider()).isEqualTo(ViewOutlineProvider.BOUNDS);
   }
 
   @Test
@@ -412,8 +417,37 @@ public class StyleProviderTest {
                 .build(),
             mockAssetProvider);
 
-    assertThat(styleProvider.createWrapperView(context, maskCache))
-        .isInstanceOf(RoundedCornerWrapperView.class);
+    FrameLayout wrapperView = styleProvider.createWrapperView(context, maskCache, false);
+    assertThat(wrapperView).isInstanceOf(RoundedCornerWrapperView.class);
+    assertThat(wrapperView.getOutlineProvider()).isNotNull();
+  }
+
+  @Test
+  @Config(sdk = {Build.VERSION_CODES.KITKAT})
+  public void testCreateWrapperView_legacyButFlagOff() {
+    StyleProvider styleProvider =
+        new StyleProvider(
+            Style.newBuilder()
+                .setRoundedCorners(RoundedCorners.newBuilder().setRadius(9).setBitmask(4))
+                .build(),
+            mockAssetProvider);
+
+    assertThat(styleProvider.createWrapperView(context, maskCache, false))
+        .isInstanceOf(BitmapMaskingRoundedCornerWrapperView.class);
+  }
+
+  @Test
+  @Config(sdk = {Build.VERSION_CODES.KITKAT})
+  public void testCreateWrapperView_legacyWithFlagOn() {
+    StyleProvider styleProvider =
+        new StyleProvider(
+            Style.newBuilder()
+                .setRoundedCorners(RoundedCorners.newBuilder().setRadius(9).setBitmask(4))
+                .build(),
+            mockAssetProvider);
+
+    assertThat(styleProvider.createWrapperView(context, maskCache, true))
+        .isInstanceOf(LegacyRoundedCornerWrapperView.class);
   }
 
   @Test
@@ -455,32 +489,32 @@ public class StyleProviderTest {
     StyleProvider styleProvider = new StyleProvider(style, mockAssetProvider);
     styleProvider.applyElementStyles(adapter);
 
-    ColorDrawable colorDrawable = (ColorDrawable) view.getBackground();
+    ColorDrawable colorDrawable = (ColorDrawable) baseView.getBackground();
     assertThat(colorDrawable.getColor()).isEqualTo(color);
   }
 
   @Test
   public void testElementStyles_noBackgroundInStyle() {
-    view.setBackground(new ColorDrawable(0xffff0000));
+    baseView.setBackground(new ColorDrawable(0xffff0000));
 
     new StyleProvider(Style.getDefaultInstance(), mockAssetProvider).applyElementStyles(adapter);
-    assertThat(view.getBackground()).isNull();
+    assertThat(baseView.getBackground()).isNull();
   }
 
   @Test
   public void testElementStyles_noColorInFill() {
-    view.setBackground(new ColorDrawable(0xffff0000));
+    baseView.setBackground(new ColorDrawable(0xffff0000));
 
     Style style = Style.newBuilder().setBackground(Fill.getDefaultInstance()).build();
 
     new StyleProvider(style, mockAssetProvider).applyElementStyles(adapter);
 
-    assertThat(view.getBackground()).isNull();
+    assertThat(baseView.getBackground()).isNull();
   }
 
   @Test
   public void testElementStyles_gradientBackground() {
-    view.setBackground(new ColorDrawable(0xffff0000));
+    baseView.setBackground(new ColorDrawable(0xffff0000));
 
     Style style =
         Style.newBuilder()
@@ -505,13 +539,13 @@ public class StyleProviderTest {
 
     new StyleProvider(style, mockAssetProvider).applyElementStyles(adapter);
 
-    Drawable background = view.getBackground();
+    Drawable background = baseView.getBackground();
     assertThat(background).isInstanceOf(GradientDrawable.class);
   }
 
   @Test
   public void testElementStyles_gradientBackground_badAngle_doesntCrash() {
-    view.setBackground(new ColorDrawable(0xffff0000));
+    baseView.setBackground(new ColorDrawable(0xffff0000));
 
     Style style =
         Style.newBuilder()
@@ -530,13 +564,13 @@ public class StyleProviderTest {
 
     new StyleProvider(style, mockAssetProvider).applyElementStyles(adapter);
 
-    Drawable background = view.getBackground();
+    Drawable background = baseView.getBackground();
     assertThat(background).isInstanceOf(GradientDrawable.class);
   }
 
   @Test
   public void testElementStyles_gradientBackground_badPercent_doesntCrash() {
-    view.setBackground(new ColorDrawable(0xffff0000));
+    baseView.setBackground(new ColorDrawable(0xffff0000));
 
     Style style =
         Style.newBuilder()
@@ -555,7 +589,7 @@ public class StyleProviderTest {
 
     new StyleProvider(style, mockAssetProvider).applyElementStyles(adapter);
 
-    Drawable background = view.getBackground();
+    Drawable background = baseView.getBackground();
     assertThat(background).isInstanceOf(GradientDrawable.class);
   }
 
@@ -677,8 +711,8 @@ public class StyleProviderTest {
     assertThat(baseView.getElevation()).isWithin(0.1f).of(0.0f);
     assertThat(view.getElevation()).isWithin(0.1f).of(5.0f);
 
-    assertThat(baseView.getBackground()).isNull();
-    assertThat(view.getBackground()).isInstanceOf(ColorDrawable.class);
+    assertThat(view.getBackground()).isNull();
+    assertThat(baseView.getBackground()).isInstanceOf(ColorDrawable.class);
   }
 
   @Test

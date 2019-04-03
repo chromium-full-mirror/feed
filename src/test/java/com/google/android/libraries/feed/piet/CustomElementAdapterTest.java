@@ -78,7 +78,7 @@ public class CustomElementAdapterTest {
         .thenAnswer(invocation -> invocation.getArguments()[2]);
 
     adapterParameters =
-        new AdapterParameters(context, Suppliers.of(null), hostProviders, new FakeClock());
+        new AdapterParameters(context, Suppliers.of(null), hostProviders, new FakeClock(), false);
 
     when(frameContext.makeStyleFor(any(StyleIdsStack.class)))
         .thenReturn(adapterParameters.defaultStyleProvider);

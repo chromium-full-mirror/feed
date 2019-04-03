@@ -15,16 +15,10 @@
 package com.google.android.libraries.feed.piet.ui;
 
 import android.content.Context;
-import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.graphics.Path;
 import android.graphics.Rect;
-import android.graphics.RectF;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RoundRectShape;
-import android.graphics.drawable.shapes.Shape;
-import android.os.Build;
-import android.os.Build.VERSION_CODES;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.search.now.ui.piet.StylesProto.Borders;
 import com.google.search.now.ui.piet.StylesProto.Borders.Edges;
@@ -34,9 +28,6 @@ import com.google.search.now.ui.piet.StylesProto.Borders.Edges;
  * not specified.
  */
 public class BorderDrawable extends ShapeDrawable {
-  private final float[] cornerRadii;
-  private final int initialWidth;
-  private final int initialHeight;
   private final boolean hasLeftBorder;
   private final boolean hasRightBorder;
   private final boolean hasTopBorder;
@@ -56,9 +47,6 @@ public class BorderDrawable extends ShapeDrawable {
   public BorderDrawable(
       Context context, Borders borders, float[] cornerRadii, boolean isRtL, int width, int height) {
     super(new RoundRectShape(cornerRadii, null, null));
-    this.cornerRadii = cornerRadii;
-    this.initialWidth = width;
-    this.initialHeight = height;
 
     borderWidth = (int) LayoutUtils.dpToPx(borders.getWidth(), context);
 
@@ -108,148 +96,5 @@ public class BorderDrawable extends ShapeDrawable {
   @Override
   public void setBounds(Rect bounds) {
     setBounds(bounds.left, bounds.top, bounds.right, bounds.bottom);
-  }
-
-  @Override
-  protected void onDraw(Shape shape, Canvas canvas, Paint paint) {
-    if (Build.VERSION.SDK_INT < VERSION_CODES.KITKAT && hasLargeRadius()) {
-      drawBorderWithPath(canvas, paint);
-    } else {
-      super.onDraw(shape, canvas, paint);
-    }
-  }
-
-  /**
-   * Checks if the radius is larger than half the width or height. Only applies to elements with
-   * rounded corners.
-   */
-  private boolean hasLargeRadius() {
-    if (initialWidth == 0 || initialHeight == 0) {
-      return false;
-    }
-    int radius = 0;
-    for (float cornerRadius : cornerRadii) {
-      if (cornerRadius != 0) {
-        radius = (int) cornerRadius;
-        break;
-      }
-    }
-    if (radius == 0) {
-      return false;
-    }
-    return radius > (initialWidth / 2) || radius > (initialHeight / 2);
-  }
-
-  /**
-   * Draws the border with a {@link Path} instead of a {@link RoundRectShape}. This is used because
-   * in JellyBean, RoundRectShape clamps the rounded corner radius to half the length of the side of
-   * the shape. When the adjacent corner is not rounded, we want to allow radii that are more than
-   * 50% of that side.
-   */
-  private void drawBorderWithPath(Canvas canvas, Paint paint) {
-    Path path = new Path();
-    int height = initialHeight;
-    int width = initialWidth;
-    // This is necessary because of extra height/width added for borders.
-    if (!hasTopBorder) {
-      height += borderWidth;
-    }
-    if (!hasLeftBorder) {
-      width += borderWidth;
-    }
-    if (hasTopBorder) {
-      if (cornerRadii[0] != 0) {
-        // Add second half of top left corner.
-        float radius = cornerRadii[0];
-        path.addArc(topLeftBoundingBox(radius), 225, 45);
-      }
-      if (cornerRadii[2] != 0) {
-        // If the top right corner is rounded, add the top border and half the top right corner.
-        float radius = cornerRadii[2];
-        path.lineTo(width - radius, 0);
-        path.addArc(topRightBoundingBox(width, radius), 270, 46);
-      } else {
-        // Add border across top.
-        path.lineTo(width, 0);
-      }
-    } else {
-      // If there is no top border, jump to the top right corner.
-      path.moveTo(width, 0);
-    }
-
-    if (hasRightBorder) {
-      if (cornerRadii[2] != 0) {
-        // Add second half of top right corner.
-        float radius = cornerRadii[2];
-        path.addArc(topRightBoundingBox(width, radius), 315, 45);
-      }
-      if (cornerRadii[4] != 0) {
-        // If the bottom right corner is rounded, add right border and half the bottom right corner.
-        float radius = cornerRadii[4];
-        path.lineTo(width, height - radius);
-        path.addArc(bottomRightBoundingBox(width, height, radius), 0, 46);
-      } else {
-        // Add right border, no rounded corner at bottom.
-        path.lineTo(width, height);
-      }
-    } else {
-      // If there is no right border, jump to the bottom right corner.
-      path.moveTo(width, height);
-    }
-
-    if (hasBottomBorder) {
-      if (cornerRadii[4] != 0) {
-        // Add second half of bottom right corner.
-        float radius = cornerRadii[4];
-        path.addArc(bottomRightBoundingBox(width, height, radius), 45, 45);
-      }
-      if (cornerRadii[6] != 0) {
-        // Add bottom border with rounded corner at bottom left.
-        float radius = cornerRadii[6];
-        path.lineTo(radius, height);
-        path.addArc(bottomLeftBoundingBox(height, radius), 90, 46);
-      } else {
-        path.lineTo(0, height);
-      }
-    } else {
-      // If there is no bottom border, jump to the bottom left corner.
-      path.moveTo(0, height);
-    }
-
-    if (hasLeftBorder) {
-      if (cornerRadii[6] != 0) {
-        // Add second half of bottom left corner.
-        float radius = cornerRadii[6];
-        path.addArc(bottomLeftBoundingBox(height, radius), 135, 45);
-      }
-      if (cornerRadii[0] != 0) {
-        // Add left border with rounded corner at top left.
-        float radius = cornerRadii[0];
-        path.lineTo(0, radius);
-        path.addArc(topLeftBoundingBox(radius), 180, 46);
-      } else {
-        // Add left border.
-        path.lineTo(0, 0);
-      }
-    }
-
-    // Actually draw the path that was just built. The paint defines the width/color of the border.
-    canvas.drawPath(path, paint);
-  }
-
-  private RectF topLeftBoundingBox(float radius) {
-    return new RectF(0, 0, radius * 2, radius * 2);
-  }
-
-  private RectF topRightBoundingBox(float width, float radius) {
-    return new RectF(width - (radius * 2), 0, width, radius * 2);
-  }
-
-  private RectF bottomRightBoundingBox(float width, float height, float radius) {
-    return new RectF(width - (radius * 2), height - (radius * 2), width, height);
-  }
-
-  private RectF bottomLeftBoundingBox(float height, float radius) {
-    return new RectF(0, height - (radius * 2), radius * 2, height);
   }
 }

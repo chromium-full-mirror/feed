@@ -112,7 +112,7 @@ public class ElementListAdapterTest {
     when(styleProvider.getRoundedCorners()).thenReturn(RoundedCorners.getDefaultInstance());
 
     adapterParameters =
-        new AdapterParameters(context, Suppliers.of(null), hostProviders, new FakeClock());
+        new AdapterParameters(context, Suppliers.of(null), hostProviders, new FakeClock(), false);
 
     when(frameContext.makeStyleFor(StyleIdsStack.getDefaultInstance()))
         .thenReturn(adapterParameters.defaultStyleProvider);

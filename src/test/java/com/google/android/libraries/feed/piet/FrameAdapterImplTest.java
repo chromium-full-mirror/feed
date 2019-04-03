@@ -141,7 +141,8 @@ public class FrameAdapterImplTest {
             templateBinder,
             new FakeClock(),
             stylesHelpers,
-            maskCache);
+            maskCache,
+            false);
     when(elementAdapter.getView()).thenReturn(new LinearLayout(context));
     when(templateAdapter.getView()).thenReturn(new LinearLayout(context));
     doReturn(elementAdapter)
@@ -269,7 +270,11 @@ public class FrameAdapterImplTest {
             .build();
     AdapterParameters adapterParameters =
         new AdapterParameters(
-            context, Suppliers.of(new LinearLayout(context)), hostProviders, new FakeClock());
+            context,
+            Suppliers.of(new LinearLayout(context)),
+            hostProviders,
+            new FakeClock(),
+            false);
     PietSharedState pietSharedState =
         PietSharedState.newBuilder()
             .addTemplates(
@@ -332,7 +337,11 @@ public class FrameAdapterImplTest {
   public void testBindAndUnbind_resetsStylesWhenWrapperViewIsAdded() {
     AdapterParameters adapterParameters =
         new AdapterParameters(
-            context, Suppliers.of(new LinearLayout(context)), hostProviders, new FakeClock());
+            context,
+            Suppliers.of(new LinearLayout(context)),
+            hostProviders,
+            new FakeClock(),
+            false);
     PietSharedState pietSharedState =
         PietSharedState.newBuilder()
             .addStylesheets(
@@ -537,7 +546,11 @@ public class FrameAdapterImplTest {
   public void testCreateFrameContext_recyclesPietStylesHelper() {
     AdapterParameters adapterParameters =
         new AdapterParameters(
-            context, Suppliers.of(new LinearLayout(context)), hostProviders, new FakeClock());
+            context,
+            Suppliers.of(new LinearLayout(context)),
+            hostProviders,
+            new FakeClock(),
+            false);
     PietSharedState pietSharedState =
         PietSharedState.newBuilder()
             .addStylesheets(
@@ -607,7 +620,7 @@ public class FrameAdapterImplTest {
     pietSharedStates.add(pietSharedState);
 
     AdapterParameters parameters =
-        new AdapterParameters(context, Suppliers.of(null), hostProviders, new FakeClock());
+        new AdapterParameters(context, Suppliers.of(null), hostProviders, new FakeClock(), false);
     FrameAdapterImpl frameAdapter =
         new FrameAdapterImpl(context, parameters, actionHandler, eventLogger, debugBehavior);
 

@@ -88,7 +88,8 @@ public class ElementStackAdapterTest {
     when(mockStyleProvider.getRoundedCorners()).thenReturn(RoundedCorners.getDefaultInstance());
 
     adapterParameters =
-        new AdapterParameters(context, Suppliers.of(null), mockHostProviders, new FakeClock());
+        new AdapterParameters(
+            context, Suppliers.of(null), mockHostProviders, new FakeClock(), false);
 
     adapter = new ElementStackAdapter.KeySupplier().getAdapter(context, adapterParameters);
   }

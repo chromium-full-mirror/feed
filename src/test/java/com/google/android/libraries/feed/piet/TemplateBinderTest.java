@@ -307,7 +307,8 @@ public class TemplateBinderTest {
             mockHostProviders,
             new FrameLayout(context));
     AdapterParameters adapterParameters =
-        new AdapterParameters(context, Suppliers.of(null), mockHostProviders, new FakeClock());
+        new AdapterParameters(
+            context, Suppliers.of(null), mockHostProviders, new FakeClock(), false);
     TemplateBinder templateBinder = adapterParameters.templateBinder;
 
     // Create and bind adapter

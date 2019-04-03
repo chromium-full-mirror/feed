@@ -72,6 +72,7 @@ public interface PietManager {
     /*@MonotonicNonNull*/ private CustomElementProvider customElementProvider = null;
     /*@MonotonicNonNull*/ private HostBindingProvider hostBindingProvider = null;
     /*@MonotonicNonNull*/ private Clock clock = null;
+    private boolean useLegacyRoundedCornerImpl = false;
 
     private Builder() {}
 
@@ -92,6 +93,15 @@ public interface PietManager {
 
     public Builder setClock(Clock clock) {
       this.clock = clock;
+      return this;
+    }
+
+    /**
+     * Use the rounded corner optimizations on JB/KK for better performance at the expense of
+     * antialiasing.
+     */
+    public Builder setUseLegacyRoundedCornerImpl(boolean useLegacyRoundedCornerImpl) {
+      this.useLegacyRoundedCornerImpl = useLegacyRoundedCornerImpl;
       return this;
     }
 
@@ -152,7 +162,12 @@ public interface PietManager {
               typefaceProvider);
 
       return new PietManagerImpl(
-          debugBehavior, assetProvider, customElementProvider, hostBindingProvider, clock);
+          debugBehavior,
+          assetProvider,
+          customElementProvider,
+          hostBindingProvider,
+          clock,
+          useLegacyRoundedCornerImpl);
     }
   }
 

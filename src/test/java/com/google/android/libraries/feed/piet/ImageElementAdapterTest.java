@@ -41,8 +41,8 @@ import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.PietStylesHelper.PietStylesHelperFactory;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
+import com.google.android.libraries.feed.piet.ui.BitmapMaskingRoundedCornerWrapperView;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerMaskCache;
-import com.google.android.libraries.feed.piet.ui.RoundedCornerWrapperView;
 import com.google.search.now.ui.piet.BindingRefsProto.ImageBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
@@ -79,6 +79,7 @@ public class ImageElementAdapterTest {
       Image.newBuilder().addSources(ImageSource.newBuilder().setUrl("icanhas.chz")).build();
   private static final Element DEFAULT_MODEL =
       asElement(ImageElement.newBuilder().setImage(DEFAULT_IMAGE).build());
+  private static final boolean LEGACY_CORNERS_FLAG = false;
 
   @Mock private ElementAdapterFactory adapterFactory;
   @Mock private TemplateBinder templateBinder;
@@ -114,7 +115,8 @@ public class ImageElementAdapterTest {
             templateBinder,
             clock,
             new PietStylesHelperFactory(),
-            maskCache);
+            maskCache,
+            LEGACY_CORNERS_FLAG);
 
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(styleProvider);
     when(frameContext.filterImageSourcesByMediaQueryCondition(any(Image.class)))
@@ -124,9 +126,9 @@ public class ImageElementAdapterTest {
     when(styleProvider.hasRoundedCorners()).thenReturn(true);
     when(styleProvider.getRoundedCorners()).thenReturn(CORNERS);
     when(styleProvider.getScaleType()).thenReturn(ScaleType.FIT_CENTER);
-    when(styleProvider.createWrapperView(context, maskCache))
+    when(styleProvider.createWrapperView(context, maskCache, LEGACY_CORNERS_FLAG))
         .thenReturn(
-            new RoundedCornerWrapperView(
+            new BitmapMaskingRoundedCornerWrapperView(
                 context,
                 CORNERS,
                 maskCache,

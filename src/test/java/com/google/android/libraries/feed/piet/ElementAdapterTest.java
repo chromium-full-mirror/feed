@@ -41,6 +41,7 @@ import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.ActionHandler.ActionType;
+import com.google.android.libraries.feed.piet.ui.BitmapMaskingRoundedCornerWrapperView;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerMaskCache;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerWrapperView;
 import com.google.android.libraries.feed.testing.shadows.ExtendedShadowView;
@@ -81,6 +82,7 @@ import org.robolectric.shadow.api.Shadow;
 public class ElementAdapterTest {
   private static final int WIDTH = 123;
   private static final int HEIGHT = 456;
+  private static final boolean LEGACY_CORNERS_FLAG = false;
 
   @Mock private FrameContext frameContext;
   @Mock private HostProviders hostProviders;
@@ -100,13 +102,18 @@ public class ElementAdapterTest {
     context = Robolectric.buildActivity(Activity.class).get();
     parameters =
         new AdapterParameters(
-            context, Suppliers.of((ViewGroup) null), hostProviders, new FakeClock());
+            context,
+            Suppliers.of((ViewGroup) null),
+            hostProviders,
+            new FakeClock(),
+            LEGACY_CORNERS_FLAG);
     maskCache = parameters.roundedCornerMaskCache;
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(styleProvider);
     when(frameContext.getActionHandler()).thenReturn(actionHandler);
     when(styleProvider.hasRoundedCorners()).thenReturn(false);
     when(styleProvider.getRoundedCorners()).thenReturn(RoundedCorners.getDefaultInstance());
-    when(styleProvider.createWrapperView(context, maskCache)).thenReturn(new FrameLayout(context));
+    when(styleProvider.createWrapperView(context, maskCache, LEGACY_CORNERS_FLAG))
+        .thenReturn(new FrameLayout(context));
 
     view = new View(context);
     adapter = new TestElementAdapter(context, parameters, view);
@@ -308,7 +315,8 @@ public class ElementAdapterTest {
             mockFactory,
             mock(TemplateBinder.class),
             new FakeClock());
-    when(styleProvider.createWrapperView(context, parameters.roundedCornerMaskCache))
+    when(styleProvider.createWrapperView(
+            context, parameters.roundedCornerMaskCache, parameters.useLegacyRoundedCornerImpl))
         .thenReturn(new FrameLayout(context));
     adapter = new TestElementAdapter(context, parameters, view);
 
@@ -1274,7 +1282,7 @@ public class ElementAdapterTest {
   public void testRoundedCorners() {
     RoundedCorners roundedCorners = RoundedCorners.newBuilder().setRadiusDp(10).build();
     RoundedCornerWrapperView roundedCornerWrapperView =
-        new RoundedCornerWrapperView(
+        new BitmapMaskingRoundedCornerWrapperView(
             context,
             roundedCorners,
             maskCache,
@@ -1282,7 +1290,8 @@ public class ElementAdapterTest {
             /*radiusOverride= */ 0,
             Borders.getDefaultInstance());
     when(styleProvider.hasRoundedCorners()).thenReturn(true);
-    when(styleProvider.createWrapperView(context, maskCache)).thenReturn(roundedCornerWrapperView);
+    when(styleProvider.createWrapperView(context, maskCache, LEGACY_CORNERS_FLAG))
+        .thenReturn(roundedCornerWrapperView);
 
     adapter.createAdapter(Element.getDefaultInstance(), frameContext);
 
@@ -1293,7 +1302,7 @@ public class ElementAdapterTest {
   public void testRoundedCornersWithVisibility() {
     RoundedCorners roundedCorners = RoundedCorners.newBuilder().setRadiusDp(10).build();
     RoundedCornerWrapperView roundedCornerWrapperView =
-        new RoundedCornerWrapperView(
+        new BitmapMaskingRoundedCornerWrapperView(
             context,
             roundedCorners,
             maskCache,
@@ -1301,7 +1310,8 @@ public class ElementAdapterTest {
             /*radiusOverride= */ 0,
             Borders.getDefaultInstance());
     when(styleProvider.hasRoundedCorners()).thenReturn(true);
-    when(styleProvider.createWrapperView(context, maskCache)).thenReturn(roundedCornerWrapperView);
+    when(styleProvider.createWrapperView(context, maskCache, LEGACY_CORNERS_FLAG))
+        .thenReturn(roundedCornerWrapperView);
 
     VisibilityBindingRef visibilityBinding =
         VisibilityBindingRef.newBuilder().setBindingId("visibility").build();
