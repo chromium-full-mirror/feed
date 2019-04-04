@@ -134,7 +134,8 @@ public class GridRowAdapterTest {
     when(styleProvider.getRoundedCorners()).thenReturn(RoundedCorners.getDefaultInstance());
 
     adapterParameters =
-        new AdapterParameters(context, Suppliers.of(null), hostProviders, new FakeClock(), false);
+        new AdapterParameters(
+            context, Suppliers.of(null), hostProviders, new FakeClock(), false, false);
 
     when(frameContext.makeStyleFor(StyleIdsStack.getDefaultInstance()))
         .thenReturn(adapterParameters.defaultStyleProvider);

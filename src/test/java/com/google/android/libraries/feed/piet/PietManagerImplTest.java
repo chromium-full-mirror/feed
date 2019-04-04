@@ -236,6 +236,7 @@ public class PietManagerImplTest {
             new FakeClock(),
             stylesHelpers,
             maskCache,
+            false,
             false);
     pietManager.purgeRecyclerPools();
     verify(mockFactory).purgeRecyclerPools();

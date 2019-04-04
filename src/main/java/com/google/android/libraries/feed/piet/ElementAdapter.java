@@ -175,7 +175,10 @@ abstract class ElementAdapter<V extends View, M> {
 
     FrameLayout wrapper =
         elementStyle.createWrapperView(
-            context, parameters.roundedCornerMaskCache, parameters.useLegacyRoundedCornerImpl);
+            context,
+            parameters.roundedCornerMaskCache,
+            parameters.useLegacyRoundedCornerImpl,
+            parameters.useOutlineRoundedCornerImpl);
     wrapper.addView(getBaseView());
 
     if (baseElement.getOverlaysCount() > 0) {

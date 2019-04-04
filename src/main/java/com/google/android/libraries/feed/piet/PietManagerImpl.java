@@ -35,6 +35,7 @@ class PietManagerImpl implements PietManager {
   private final HostBindingProvider hostBindingProvider;
   private final Clock clock;
   private final boolean useLegacyRoundedCornerImpl;
+  private final boolean useOutlineRoundedCornerImpl;
   @VisibleForTesting /*@Nullable*/ AdapterParameters adapterParameters = null;
 
   PietManagerImpl(
@@ -43,13 +44,15 @@ class PietManagerImpl implements PietManager {
       CustomElementProvider customElementProvider,
       HostBindingProvider hostBindingProvider,
       Clock clock,
-      boolean useLegacyRoundedCornerImpl) {
+      boolean useLegacyRoundedCornerImpl,
+      boolean useOutlineRoundedCornerImpl) {
     this.debugBehavior = debugBehavior;
     this.assetProvider = assetProvider;
     this.customElementProvider = customElementProvider;
     this.hostBindingProvider = hostBindingProvider;
     this.clock = clock;
     this.useLegacyRoundedCornerImpl = useLegacyRoundedCornerImpl;
+    this.useOutlineRoundedCornerImpl = useOutlineRoundedCornerImpl;
   }
 
   @Override
@@ -77,7 +80,8 @@ class PietManagerImpl implements PietManager {
               cardViewProducer,
               new HostProviders(assetProvider, customElementProvider, hostBindingProvider),
               clock,
-              useLegacyRoundedCornerImpl);
+              useLegacyRoundedCornerImpl,
+              useOutlineRoundedCornerImpl);
     }
     return adapterParameters;
   }

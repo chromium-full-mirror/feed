@@ -34,6 +34,7 @@ import com.google.android.libraries.feed.piet.ui.BitmapMaskingRoundedCornerWrapp
 import com.google.android.libraries.feed.piet.ui.BorderDrawable;
 import com.google.android.libraries.feed.piet.ui.GradientDrawable;
 import com.google.android.libraries.feed.piet.ui.LegacyRoundedCornerWrapperView;
+import com.google.android.libraries.feed.piet.ui.OutlineRoundedCornerWrapperView;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerMaskCache;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerViewHelper;
 import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
@@ -411,7 +412,10 @@ class StyleProvider {
   }
 
   FrameLayout createWrapperView(
-      Context context, RoundedCornerMaskCache maskCache, boolean useLegacyImpl) {
+      Context context,
+      RoundedCornerMaskCache maskCache,
+      boolean useLegacyImpl,
+      boolean useOutlineImpl) {
     if (!hasRoundedCorners()) {
       FrameLayout view = new FrameLayout(context);
       if (Build.VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
@@ -422,18 +426,30 @@ class StyleProvider {
     }
     int radiusOverride =
         getRoundedCorners().getUseHostRadiusOverride() ? assetProvider.getDefaultCornerRadius() : 0;
-    if (Build.VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP || !useLegacyImpl) {
-      return new BitmapMaskingRoundedCornerWrapperView(
+
+    boolean allFourCornersRounded =
+        getRoundedCorners().getBitmask() == 0 || getRoundedCorners().getBitmask() == 15;
+    if (Build.VERSION.SDK_INT < VERSION_CODES.LOLLIPOP && useLegacyImpl) {
+      return new LegacyRoundedCornerWrapperView(
           context,
           getRoundedCorners(),
-          maskCache,
+          assetProvider.isRtLSupplier(),
+          radiusOverride,
+          getBorders());
+    } else if (Build.VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP
+        && useOutlineImpl
+        && allFourCornersRounded) {
+      return new OutlineRoundedCornerWrapperView(
+          context,
+          getRoundedCorners(),
           assetProvider.isRtLSupplier(),
           radiusOverride,
           getBorders());
     } else {
-      return new LegacyRoundedCornerWrapperView(
+      return new BitmapMaskingRoundedCornerWrapperView(
           context,
           getRoundedCorners(),
+          maskCache,
           assetProvider.isRtLSupplier(),
           radiusOverride,
           getBorders());

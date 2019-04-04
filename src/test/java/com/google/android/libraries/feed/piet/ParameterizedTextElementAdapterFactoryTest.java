@@ -65,6 +65,7 @@ public class ParameterizedTextElementAdapterFactoryTest {
             null,
             new HostProviders(mock(AssetProvider.class), null, null),
             new FakeClock(),
+            false,
             false);
     when(keySupplier.getAdapter(context, adapterParameters))
         .thenReturn(adapter)

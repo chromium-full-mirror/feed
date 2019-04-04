@@ -73,6 +73,7 @@ public interface PietManager {
     /*@MonotonicNonNull*/ private HostBindingProvider hostBindingProvider = null;
     /*@MonotonicNonNull*/ private Clock clock = null;
     private boolean useLegacyRoundedCornerImpl = false;
+    private boolean useOutlineRoundedCornerImpl = false;
 
     private Builder() {}
 
@@ -102,6 +103,15 @@ public interface PietManager {
      */
     public Builder setUseLegacyRoundedCornerImpl(boolean useLegacyRoundedCornerImpl) {
       this.useLegacyRoundedCornerImpl = useLegacyRoundedCornerImpl;
+      return this;
+    }
+
+    /**
+     * Use the clipToOutline rounded corner optimizations on L+ when all four corners are rounded
+     * for better performance.
+     */
+    public Builder setUseOutlineRoundedCornerImpl(boolean useOutlineRoundedCornerImpl) {
+      this.useOutlineRoundedCornerImpl = useOutlineRoundedCornerImpl;
       return this;
     }
 
@@ -167,7 +177,8 @@ public interface PietManager {
           customElementProvider,
           hostBindingProvider,
           clock,
-          useLegacyRoundedCornerImpl);
+          useLegacyRoundedCornerImpl,
+          useOutlineRoundedCornerImpl);
     }
   }
 

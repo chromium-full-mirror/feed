@@ -142,6 +142,7 @@ public class FrameAdapterImplTest {
             new FakeClock(),
             stylesHelpers,
             maskCache,
+            false,
             false);
     when(elementAdapter.getView()).thenReturn(new LinearLayout(context));
     when(templateAdapter.getView()).thenReturn(new LinearLayout(context));
@@ -274,6 +275,7 @@ public class FrameAdapterImplTest {
             Suppliers.of(new LinearLayout(context)),
             hostProviders,
             new FakeClock(),
+            false,
             false);
     PietSharedState pietSharedState =
         PietSharedState.newBuilder()
@@ -341,6 +343,7 @@ public class FrameAdapterImplTest {
             Suppliers.of(new LinearLayout(context)),
             hostProviders,
             new FakeClock(),
+            false,
             false);
     PietSharedState pietSharedState =
         PietSharedState.newBuilder()
@@ -550,6 +553,7 @@ public class FrameAdapterImplTest {
             Suppliers.of(new LinearLayout(context)),
             hostProviders,
             new FakeClock(),
+            false,
             false);
     PietSharedState pietSharedState =
         PietSharedState.newBuilder()
@@ -620,7 +624,8 @@ public class FrameAdapterImplTest {
     pietSharedStates.add(pietSharedState);
 
     AdapterParameters parameters =
-        new AdapterParameters(context, Suppliers.of(null), hostProviders, new FakeClock(), false);
+        new AdapterParameters(
+            context, Suppliers.of(null), hostProviders, new FakeClock(), false, false);
     FrameAdapterImpl frameAdapter =
         new FrameAdapterImpl(context, parameters, actionHandler, eventLogger, debugBehavior);
 

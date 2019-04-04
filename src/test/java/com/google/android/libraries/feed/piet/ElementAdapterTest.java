@@ -83,6 +83,7 @@ public class ElementAdapterTest {
   private static final int WIDTH = 123;
   private static final int HEIGHT = 456;
   private static final boolean LEGACY_CORNERS_FLAG = false;
+  private static final boolean OUTLINE_CORNERS_FLAG = false;
 
   @Mock private FrameContext frameContext;
   @Mock private HostProviders hostProviders;
@@ -106,13 +107,15 @@ public class ElementAdapterTest {
             Suppliers.of((ViewGroup) null),
             hostProviders,
             new FakeClock(),
-            LEGACY_CORNERS_FLAG);
+            LEGACY_CORNERS_FLAG,
+            OUTLINE_CORNERS_FLAG);
     maskCache = parameters.roundedCornerMaskCache;
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(styleProvider);
     when(frameContext.getActionHandler()).thenReturn(actionHandler);
     when(styleProvider.hasRoundedCorners()).thenReturn(false);
     when(styleProvider.getRoundedCorners()).thenReturn(RoundedCorners.getDefaultInstance());
-    when(styleProvider.createWrapperView(context, maskCache, LEGACY_CORNERS_FLAG))
+    when(styleProvider.createWrapperView(
+            context, maskCache, LEGACY_CORNERS_FLAG, OUTLINE_CORNERS_FLAG))
         .thenReturn(new FrameLayout(context));
 
     view = new View(context);
@@ -316,7 +319,10 @@ public class ElementAdapterTest {
             mock(TemplateBinder.class),
             new FakeClock());
     when(styleProvider.createWrapperView(
-            context, parameters.roundedCornerMaskCache, parameters.useLegacyRoundedCornerImpl))
+            context,
+            parameters.roundedCornerMaskCache,
+            parameters.useLegacyRoundedCornerImpl,
+            parameters.useOutlineRoundedCornerImpl))
         .thenReturn(new FrameLayout(context));
     adapter = new TestElementAdapter(context, parameters, view);
 
@@ -1290,7 +1296,8 @@ public class ElementAdapterTest {
             /*radiusOverride= */ 0,
             Borders.getDefaultInstance());
     when(styleProvider.hasRoundedCorners()).thenReturn(true);
-    when(styleProvider.createWrapperView(context, maskCache, LEGACY_CORNERS_FLAG))
+    when(styleProvider.createWrapperView(
+            context, maskCache, LEGACY_CORNERS_FLAG, OUTLINE_CORNERS_FLAG))
         .thenReturn(roundedCornerWrapperView);
 
     adapter.createAdapter(Element.getDefaultInstance(), frameContext);
@@ -1310,7 +1317,8 @@ public class ElementAdapterTest {
             /*radiusOverride= */ 0,
             Borders.getDefaultInstance());
     when(styleProvider.hasRoundedCorners()).thenReturn(true);
-    when(styleProvider.createWrapperView(context, maskCache, LEGACY_CORNERS_FLAG))
+    when(styleProvider.createWrapperView(
+            context, maskCache, LEGACY_CORNERS_FLAG, OUTLINE_CORNERS_FLAG))
         .thenReturn(roundedCornerWrapperView);
 
     VisibilityBindingRef visibilityBinding =

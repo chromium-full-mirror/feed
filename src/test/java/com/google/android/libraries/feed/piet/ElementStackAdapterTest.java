@@ -89,7 +89,7 @@ public class ElementStackAdapterTest {
 
     adapterParameters =
         new AdapterParameters(
-            context, Suppliers.of(null), mockHostProviders, new FakeClock(), false);
+            context, Suppliers.of(null), mockHostProviders, new FakeClock(), false, false);
 
     adapter = new ElementStackAdapter.KeySupplier().getAdapter(context, adapterParameters);
   }

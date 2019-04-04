@@ -45,6 +45,7 @@ class AdapterParameters {
   final PietStylesHelperFactory pietStylesHelperFactory;
   final RoundedCornerMaskCache roundedCornerMaskCache;
   final boolean useLegacyRoundedCornerImpl;
+  final boolean useOutlineRoundedCornerImpl;
 
   // Doesn't like passing "this" to the new ElementAdapterFactory; however, nothing in the factory's
   // construction will reference the elementAdapterFactory member of this, so should be safe.
@@ -54,7 +55,8 @@ class AdapterParameters {
       Supplier</*@Nullable*/ ViewGroup> parentViewSupplier,
       HostProviders hostProviders,
       Clock clock,
-      boolean useLegacyRoundedCornerImpl) {
+      boolean useLegacyRoundedCornerImpl,
+      boolean useOutlineRoundedCornerImpl) {
     this.context = context;
     this.parentViewSupplier = parentViewSupplier;
     this.hostProviders = hostProviders;
@@ -73,6 +75,7 @@ class AdapterParameters {
     this.roundedCornerMaskCache = new RoundedCornerMaskCache();
 
     this.useLegacyRoundedCornerImpl = useLegacyRoundedCornerImpl;
+    this.useOutlineRoundedCornerImpl = useOutlineRoundedCornerImpl;
   }
 
   /** Testing-only constructor for mocking the internally-constructed objects. */
@@ -95,6 +98,7 @@ class AdapterParameters {
         clock,
         new PietStylesHelperFactory(),
         new RoundedCornerMaskCache(),
+        true,
         true);
   }
 
@@ -110,7 +114,8 @@ class AdapterParameters {
       Clock clock,
       PietStylesHelperFactory pietStylesHelperFactory,
       RoundedCornerMaskCache maskCache,
-      boolean useLegacyRoundedCornerImpl) {
+      boolean useLegacyRoundedCornerImpl,
+      boolean useOutlineRoundedCornerImpl) {
     this.context = context;
     this.parentViewSupplier = parentViewSupplier;
     this.hostProviders = hostProviders;
@@ -123,5 +128,6 @@ class AdapterParameters {
     this.pietStylesHelperFactory = pietStylesHelperFactory;
     this.roundedCornerMaskCache = maskCache;
     this.useLegacyRoundedCornerImpl = useLegacyRoundedCornerImpl;
+    this.useOutlineRoundedCornerImpl = useOutlineRoundedCornerImpl;
   }
 }
