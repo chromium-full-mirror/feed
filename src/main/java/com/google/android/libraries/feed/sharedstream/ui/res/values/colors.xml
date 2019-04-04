@@ -29,6 +29,8 @@
   <!-- Text colors -->
   <color name="feed_default_text_color">@color/feed_modern_grey_900</color>
   <color name="feed_default_text_color_secondary">@color/feed_modern_grey_700</color>
+  <color name="feed_default_text_color_dark">@android:color/white</color>
+  <color name="feed_default_text_color_secondary_dark">@color/feed_modern_grey_500</color>
 
   <!-- Modern color palette -->
   <color name="feed_modern_grey_500">#9AA0A6</color>

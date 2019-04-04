@@ -25,13 +25,13 @@
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
       android:paddingBottom="@dimen/no_content_text_padding"
-      android:textColor="@color/feed_default_text_color"
+      android:textColor="?feedPrimaryTextColor"
       android:textSize="@dimen/no_content_text_size"
       android:text="@string/no_suggestions" />
   <TextView
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:textColor="@color/feed_default_text_color_secondary"
+      android:textColor="?feedSecondaryTextColor"
       android:textSize="@dimen/no_content_text_size"
       android:text="@string/suggestions_section_empty" />
 </LinearLayout>

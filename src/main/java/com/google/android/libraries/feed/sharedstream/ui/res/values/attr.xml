@@ -21,4 +21,10 @@
   <attr name="feedTouchNonPressed" format="reference" />
   <!-- Sets the color of the context menu text. -->
   <attr name="feedContextMenuTextColor" format="reference" />
+  <!-- Sets the color of the no content card title text. -->
+  <attr name="feedPrimaryTextColor" format="reference" />
+  <!-- Sets the color of the no content card subtitle text. -->
+  <attr name="feedSecondaryTextColor" format="reference" />
 </resources>
+
+
