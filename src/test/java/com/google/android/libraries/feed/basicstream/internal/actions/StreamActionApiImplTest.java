@@ -555,23 +555,12 @@ public class StreamActionApiImplTest {
         verify(basicLoggingApi).onContentDismissed(contentLoggingData, /*wasCommitted =*/ true);
         break;
       case NOT_INTERESTED_IN_SOURCE:
-        verify(actionManager).dismiss(streamDataOperations, SESSION_ID);
-        verify(basicLoggingApi)
-            .onNotInterestedInSource(contentLoggingData, /*wasCommitted =*/ true);
-        actionSet.add(
-            StreamUploadableAction.newBuilder()
-                .setFeatureContentId(CONTENT_ID)
-                .setActionType(FeedActionMetadata.Type.NOT_INTERESTED_IN_SOURCE)
-                .build());
-        verify(actionManager).uploadActions(actionSet);
-        break;
       case NOT_INTERESTED_IN_TOPIC:
         verify(actionManager).dismiss(streamDataOperations, SESSION_ID);
-        verify(basicLoggingApi).onNotInterestedInTopic(contentLoggingData, /*wasCommitted =*/ true);
+        verify(basicLoggingApi).onNotInterestedIn(0, contentLoggingData, /*wasCommitted =*/ true);
         actionSet.add(
             StreamUploadableAction.newBuilder()
                 .setFeatureContentId(CONTENT_ID)
-                .setActionType(FeedActionMetadata.Type.NOT_INTERESTED_IN_TOPIC)
                 .build());
         verify(actionManager).uploadActions(actionSet);
         break;
@@ -615,12 +604,8 @@ public class StreamActionApiImplTest {
         verify(basicLoggingApi).onContentDismissed(contentLoggingData, /*wasCommitted =*/ false);
         break;
       case NOT_INTERESTED_IN_SOURCE:
-        verify(basicLoggingApi)
-            .onNotInterestedInSource(contentLoggingData, /*wasCommitted =*/ false);
-        break;
       case NOT_INTERESTED_IN_TOPIC:
-        verify(basicLoggingApi)
-            .onNotInterestedInTopic(contentLoggingData, /*wasCommitted =*/ false);
+        verify(basicLoggingApi).onNotInterestedIn(0, contentLoggingData, /*wasCommitted =*/ false);
         break;
       default:
         break;
@@ -657,13 +642,9 @@ public class StreamActionApiImplTest {
         verify(basicLoggingApi).onContentDismissed(contentLoggingData, /*wasCommitted =*/ true);
         break;
       case NOT_INTERESTED_IN_SOURCE:
-        verify(actionManager).dismiss(streamDataOperations, SESSION_ID);
-        verify(basicLoggingApi)
-            .onNotInterestedInSource(contentLoggingData, /*wasCommitted =*/ true);
-        break;
       case NOT_INTERESTED_IN_TOPIC:
         verify(actionManager).dismiss(streamDataOperations, SESSION_ID);
-        verify(basicLoggingApi).onNotInterestedInTopic(contentLoggingData, /*wasCommitted =*/ true);
+        verify(basicLoggingApi).onNotInterestedIn(0, contentLoggingData, /*wasCommitted =*/ true);
         break;
       default:
         break;

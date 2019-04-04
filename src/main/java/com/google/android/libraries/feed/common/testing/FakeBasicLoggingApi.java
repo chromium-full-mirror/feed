@@ -62,10 +62,7 @@ public class FakeBasicLoggingApi implements BasicLoggingApi {
   public void onMoreButtonClicked(int position) {}
 
   @Override
-  public void onNotInterestedInSource(ContentLoggingData data, boolean wasCommitted) {}
-
-  @Override
-  public void onNotInterestedInTopic(ContentLoggingData data, boolean wasCommitted) {}
+  public void onNotInterestedIn(int type, ContentLoggingData data, boolean wasCommitted) {}
 
   @Override
   public void onOpenedWithContent(int timeToPopulateMs, int contentCount) {}

@@ -80,22 +80,14 @@ public interface BasicLoggingApi {
   void onMoreButtonClicked(int position);
 
   /**
-   * Called when the user has indicated they aren't interested in the story's source.
-   *
-   * @param data data for content on which swipe was performed.
-   * @param wasCommitted true if the action was committed and thus important to the user model false
-   *     if the action was undone.
-   */
-  void onNotInterestedInSource(ContentLoggingData data, boolean wasCommitted);
-
-  /**
    * Called when the user has indicated they aren't interested in the story's topic.
    *
+   * @param interestType type of content a user is not interested in
    * @param data data for content on which swipe was performed.
    * @param wasCommitted true if the action was committed and thus important to the user model false
    *     if the action was undone.
    */
-  void onNotInterestedInTopic(ContentLoggingData data, boolean wasCommitted);
+  void onNotInterestedIn(int interestType, ContentLoggingData data, boolean wasCommitted);
 
   /**
    * Called when Stream is shown and content was shown to the user. Content could have been cached

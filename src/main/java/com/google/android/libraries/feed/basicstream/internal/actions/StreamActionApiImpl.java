@@ -133,15 +133,16 @@ public class StreamActionApiImpl implements StreamActionApi {
       List<StreamDataOperation> dataOperations, UndoAction undoAction) {
     if (!undoAction.hasConfirmationLabel()) {
       dismiss(dataOperations);
-      basicLoggingApi.onNotInterestedInTopic(contentLoggingData, /* wasCommitted = */ true);
+
+      // TODO: use correct value
+      basicLoggingApi.onNotInterestedIn(0, contentLoggingData, /* wasCommitted = */ true);
     } else {
       dismissWithSnackbar(
           undoAction,
           new PendingDismissCallback() {
             @Override
             public void onDismissReverted() {
-              basicLoggingApi.onNotInterestedInTopic(
-                  contentLoggingData, /* wasCommitted = */ false);
+              basicLoggingApi.onNotInterestedIn(0, contentLoggingData, /* wasCommitted = */ false);
             }
 
             @Override
@@ -149,12 +150,9 @@ public class StreamActionApiImpl implements StreamActionApi {
               dismiss(dataOperations);
               HashSet<StreamUploadableAction> actionSet = new HashSet<>();
               actionSet.add(
-                  StreamUploadableAction.newBuilder()
-                      .setFeatureContentId(contentId)
-                      .setActionType(Type.NOT_INTERESTED_IN_TOPIC)
-                      .build());
+                  StreamUploadableAction.newBuilder().setFeatureContentId(contentId).build());
               actionManager.uploadActions(actionSet);
-              basicLoggingApi.onNotInterestedInTopic(contentLoggingData, /* wasCommitted = */ true);
+              basicLoggingApi.onNotInterestedIn(0, contentLoggingData, /* wasCommitted = */ true);
             }
           });
     }
@@ -170,15 +168,14 @@ public class StreamActionApiImpl implements StreamActionApi {
       List<StreamDataOperation> dataOperations, UndoAction undoAction) {
     if (!undoAction.hasConfirmationLabel()) {
       dismiss(dataOperations);
-      basicLoggingApi.onNotInterestedInSource(contentLoggingData, /* wasCommitted = */ true);
+      basicLoggingApi.onNotInterestedIn(0, contentLoggingData, /* wasCommitted = */ true);
     } else {
       dismissWithSnackbar(
           undoAction,
           new PendingDismissCallback() {
             @Override
             public void onDismissReverted() {
-              basicLoggingApi.onNotInterestedInSource(
-                  contentLoggingData, /* wasCommitted = */ false);
+              basicLoggingApi.onNotInterestedIn(0, contentLoggingData, /* wasCommitted = */ false);
             }
 
             @Override
@@ -186,13 +183,9 @@ public class StreamActionApiImpl implements StreamActionApi {
               dismiss(dataOperations);
               HashSet<StreamUploadableAction> actionSet = new HashSet<>();
               actionSet.add(
-                  StreamUploadableAction.newBuilder()
-                      .setFeatureContentId(contentId)
-                      .setActionType(Type.NOT_INTERESTED_IN_SOURCE)
-                      .build());
+                  StreamUploadableAction.newBuilder().setFeatureContentId(contentId).build());
               actionManager.uploadActions(actionSet);
-              basicLoggingApi.onNotInterestedInSource(
-                  contentLoggingData, /* wasCommitted = */ true);
+              basicLoggingApi.onNotInterestedIn(0, contentLoggingData, /* wasCommitted = */ true);
             }
           });
     }
