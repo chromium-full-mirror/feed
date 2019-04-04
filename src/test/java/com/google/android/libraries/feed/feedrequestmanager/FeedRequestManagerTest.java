@@ -33,7 +33,6 @@ import com.google.android.libraries.feed.common.concurrent.testing.FakeTaskQueue
 import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.locale.LocaleUtils;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
-import com.google.android.libraries.feed.common.testing.FakeBasicLoggingApi;
 import com.google.android.libraries.feed.common.testing.RequiredConsumer;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
@@ -47,6 +46,7 @@ import com.google.android.libraries.feed.host.network.HttpResponse;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.host.stream.TooltipInfo.FeatureName;
 import com.google.android.libraries.feed.testing.actionmanager.FakeActionReader;
+import com.google.android.libraries.feed.testing.host.logging.FakeBasicLoggingApi;
 import com.google.android.libraries.feed.testing.host.stream.FakeTooltipSupportedApi;
 import com.google.android.libraries.feed.testing.network.FakeNetworkClient;
 import com.google.android.libraries.feed.testing.protocoladapter.FakeProtocolAdapter;

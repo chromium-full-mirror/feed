@@ -56,6 +56,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/host/scheduler",
         "//src/main/java/com/google/android/libraries/feed/host/stream",
         "//src/main/java/com/google/android/libraries/feed/testing/actionmanager",
+        "//src/main/java/com/google/android/libraries/feed/testing/host/logging",
         "//src/main/java/com/google/android/libraries/feed/testing/host/stream",
         "//src/main/java/com/google/android/libraries/feed/testing/network",
         "//src/main/java/com/google/android/libraries/feed/testing/protocoladapter",

@@ -42,6 +42,7 @@ import com.google.android.libraries.feed.host.storage.ContentStorageDirect;
 import com.google.android.libraries.feed.host.storage.JournalStorageDirect;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
+import com.google.android.libraries.feed.testing.host.logging.FakeBasicLoggingApi;
 import com.google.android.libraries.feed.testing.requestmanager.FakeActionUploadRequestManager;
 import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
 import com.google.protobuf.GeneratedMessageLite.GeneratedExtension;
