@@ -23,8 +23,8 @@ import com.google.android.libraries.feed.api.common.testing.InternalProtocolBuil
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.ViewDepthProvider;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
-import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
+import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.feedsessionmanager.internal.testing.AbstractSessionImplTest;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelMutation;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -41,10 +41,10 @@ import org.robolectric.RobolectricTestRunner;
 /** Tests of the {@link SessionImpl} class. */
 @RunWith(RobolectricTestRunner.class)
 public class SessionImplTest extends AbstractSessionImplTest {
-  @Mock private ThreadUtils threadUtils;
-  @Mock private Clock clock;
-
+  private final FakeClock fakeClock = new FakeClock();
   private final TimingUtils timingUtils = new TimingUtils();
+
+  @Mock private ThreadUtils threadUtils;
 
   @Before
   @Override
@@ -118,7 +118,7 @@ public class SessionImplTest extends AbstractSessionImplTest {
         new TaskQueue(
             MoreExecutors.directExecutor(),
             FakeMainThreadRunner.runTasksImmediately(),
-            clock,
+            fakeClock,
             false);
     taskQueue.initialize(() -> {});
     SessionImpl session = new SessionImpl(store, false, taskQueue, timingUtils, threadUtils);

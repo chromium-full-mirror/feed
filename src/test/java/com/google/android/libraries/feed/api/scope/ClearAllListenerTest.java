@@ -24,7 +24,7 @@ import com.google.android.libraries.feed.api.lifecycle.Resettable;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
-import com.google.android.libraries.feed.common.time.Clock;
+import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.feedapplifecyclelistener.FeedAppLifecycleListener;
 import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -38,12 +38,12 @@ import org.robolectric.RobolectricTestRunner;
 /** Tests of the {@link ClearAllListener} class. */
 @RunWith(RobolectricTestRunner.class)
 public class ClearAllListenerTest {
-  @Mock SessionManager sessionManager;
-  @Mock Resettable store;
-  @Mock ThreadUtils threadUtils;
+  private final FakeClock fakeClock = new FakeClock();
 
-  @Mock private Clock clock;
+  @Mock private Resettable store;
+  @Mock private SessionManager sessionManager;
   @Mock private TaskQueue taskQueue;
+  @Mock private ThreadUtils threadUtils;
   private FeedAppLifecycleListener appLifecycleListener;
 
   @Before
@@ -53,7 +53,7 @@ public class ClearAllListenerTest {
         new TaskQueue(
             MoreExecutors.directExecutor(),
             FakeMainThreadRunner.runTasksImmediately(),
-            clock,
+            fakeClock,
             false);
     taskQueue.initialize(() -> {});
     appLifecycleListener = new FeedAppLifecycleListener(threadUtils);

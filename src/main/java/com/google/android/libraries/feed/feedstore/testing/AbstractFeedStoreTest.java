@@ -15,7 +15,6 @@
 package com.google.android.libraries.feed.feedstore.testing;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.when;
 
 import com.google.android.libraries.feed.api.common.ActionPropertiesWithId;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
@@ -29,8 +28,8 @@ import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.testing.RunnableSubject;
-import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
+import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
@@ -48,11 +47,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.junit.Test;
-import org.mockito.Mock;
 
 /** Tests of the {@link FeedStore} classes. */
 public abstract class AbstractFeedStoreTest {
-  @Mock protected Clock clock;
+  protected final FakeClock fakeClock = new FakeClock();
   protected final TimingUtils timingUtils = new TimingUtils();
 
   private static final long START_TIME = 50;
@@ -374,7 +372,7 @@ public abstract class AbstractFeedStoreTest {
 
   @Test
   public void getDismissActions() {
-    when(clock.currentTimeMillis()).thenReturn(START_TIME_MILLIS);
+    fakeClock.set(START_TIME_MILLIS);
     Store store = getStore(mainThreadRunner);
     store.editLocalActions().add(ActionType.DISMISS, OPERATION_CONTENT_ID).commit();
     Result<List<StreamLocalAction>> dismissActionsResult = store.getAllDismissLocalActions();
@@ -388,7 +386,7 @@ public abstract class AbstractFeedStoreTest {
 
   @Test
   public void getDismissActions_notIncludedInSessions() {
-    when(clock.currentTimeMillis()).thenReturn(START_TIME_MILLIS);
+    fakeClock.set(START_TIME_MILLIS);
     Store store = getStore(mainThreadRunner);
     store.editLocalActions().add(ActionType.DISMISS, OPERATION_CONTENT_ID).commit();
     Result<List<String>> allSessionsResult = store.getAllSessions();
@@ -399,7 +397,7 @@ public abstract class AbstractFeedStoreTest {
 
   @Test
   public void getDismissActions_multipleDismisses() {
-    when(clock.currentTimeMillis()).thenReturn(START_TIME_MILLIS);
+    fakeClock.set(START_TIME_MILLIS);
     Store store = getStore(mainThreadRunner);
     store
         .editLocalActions()
@@ -420,10 +418,10 @@ public abstract class AbstractFeedStoreTest {
 
   @Test
   public void getDismissActions_expired() {
-    when(clock.currentTimeMillis()).thenReturn(START_TIME_MILLIS);
+    fakeClock.set(START_TIME_MILLIS);
     Store store = getStore(mainThreadRunner);
     store.editLocalActions().add(ActionType.DISMISS, OPERATION_CONTENT_ID).commit();
-    when(clock.currentTimeMillis()).thenReturn(THREE_DAYS_AFTER_START_TIME_MILLIS);
+    fakeClock.set(THREE_DAYS_AFTER_START_TIME_MILLIS);
     Result<List<StreamLocalAction>> dismissActionsResult = store.getAllDismissLocalActions();
     assertThat(dismissActionsResult.isSuccessful()).isTrue();
     List<StreamLocalAction> dismissActions = dismissActionsResult.getValue();

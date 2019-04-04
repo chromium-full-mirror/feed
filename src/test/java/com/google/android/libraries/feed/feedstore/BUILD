@@ -41,7 +41,6 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/common/concurrent",
         "//src/main/java/com/google/android/libraries/feed/common/concurrent/testing",
         "//src/main/java/com/google/android/libraries/feed/common/protoextensions",
-        "//src/main/java/com/google/android/libraries/feed/common/time",
         "//src/main/java/com/google/android/libraries/feed/feedapplifecyclelistener",
         "//src/main/java/com/google/android/libraries/feed/feedstore",
         "//src/main/java/com/google/android/libraries/feed/feedstore/internal",

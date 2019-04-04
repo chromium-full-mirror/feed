@@ -42,8 +42,8 @@ import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
-import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
+import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionManagerMutation.MutationCommitter;
 import com.google.android.libraries.feed.feedstore.FeedStore;
 import com.google.android.libraries.feed.feedstore.testing.DelegatingStore;
@@ -78,26 +78,24 @@ import org.robolectric.RobolectricTestRunner;
  */
 @RunWith(RobolectricTestRunner.class)
 public class SessionManagerMutationTest {
-  @Mock private BasicLoggingApi basicLoggingApi;
-  @Mock private ThreadUtils threadUtils;
-  @Mock private SchedulerApi schedulerApi;
-  @Mock private Clock clock;
-  @Mock private KnownContentListener knownContentListener;
-
-  private final FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(ArrayList::new);
-  private final ContentStorageDirect contentStorage = new InMemoryContentStorage();
-  private final TimingUtils timingUtils = new TimingUtils();
   private final Configuration configuration = new Configuration.Builder().build();
   private final ContentIdGenerators idGenerators = new ContentIdGenerators();
-
+  private final ContentStorageDirect contentStorage = new InMemoryContentStorage();
+  private final FakeClock fakeClock = new FakeClock();
+  private final FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(ArrayList::new);
   private final String rootContentId = idGenerators.createRootContentId(0);
+  private final TimingUtils timingUtils = new TimingUtils();
 
+  @Mock private BasicLoggingApi basicLoggingApi;
+  @Mock private KnownContentListener knownContentListener;
+  @Mock private SchedulerApi schedulerApi;
+  @Mock private ThreadUtils threadUtils;
+  private ContentCache contentCache;
+  private ModelError notifyError;
+  private Session notifySession;
+  private SessionCache sessionCache;
   private Store storeSpy;
   private TaskQueue taskQueue;
-  private SessionCache sessionCache;
-  private Session notifySession;
-  private ModelError notifyError;
-  private ContentCache contentCache;
 
   @Before
   public void setUp() {
@@ -108,7 +106,7 @@ public class SessionManagerMutationTest {
         new TaskQueue(
             MoreExecutors.directExecutor(),
             FakeMainThreadRunner.runTasksImmediately(),
-            clock,
+            fakeClock,
             false);
     taskQueue.initialize(() -> {});
     Store store =
@@ -119,14 +117,15 @@ public class SessionManagerMutationTest {
             new InMemoryJournalStorage(),
             threadUtils,
             taskQueue,
-            clock,
+            fakeClock,
             basicLoggingApi,
             FakeMainThreadRunner.runTasksImmediately());
     storeSpy = spy(new DelegatingStore(store));
     SessionFactory sessionFactory =
         new SessionFactory(storeSpy, taskQueue, timingUtils, threadUtils, configuration);
     sessionCache =
-        new SessionCache(storeSpy, taskQueue, sessionFactory, 10L, timingUtils, threadUtils, clock);
+        new SessionCache(
+            storeSpy, taskQueue, sessionFactory, 10L, timingUtils, threadUtils, fakeClock);
     sessionCache.initialize();
     contentCache = new ContentCache();
   }
@@ -157,7 +156,7 @@ public class SessionManagerMutationTest {
 
   @Test
   public void testResetHead() {
-    when(clock.currentTimeMillis()).thenReturn(5L);
+    fakeClock.set(5L);
     List<StreamDataOperation> dataOperations = new ArrayList<>();
     dataOperations.add(
         getStreamDataOperation(
@@ -175,7 +174,7 @@ public class SessionManagerMutationTest {
 
   @Test
   public void testUpdateContent() {
-    when(clock.currentTimeMillis()).thenReturn(8L);
+    fakeClock.set(8L);
     List<String> contentIds = getContentIds(3);
     List<Pair<StreamStructure, StreamPayload>> features =
         getFeatures(
@@ -354,7 +353,7 @@ public class SessionManagerMutationTest {
             schedulerApi,
             threadUtils,
             timingUtils,
-            clock);
+            fakeClock);
     return (MutationCommitter)
         mutation.createCommitter(
             "task", mutationContext, this::notifySessionError, knownContentListener);

@@ -15,7 +15,6 @@
 package com.google.android.libraries.feed.feedrequestmanager;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.os.Build;
@@ -27,7 +26,7 @@ import com.google.android.libraries.feed.common.concurrent.testing.FakeTaskQueue
 import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.testing.RequiredConsumer;
-import com.google.android.libraries.feed.common.time.Clock;
+import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.network.HttpRequest;
@@ -58,7 +57,6 @@ import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.util.ReflectionHelpers;
 
@@ -88,19 +86,19 @@ public class FeedActionUploadRequestManagerTest {
               FeedActionResponse.newBuilder().setConsistencyToken(TOKEN_3).build())
           .build();
 
-  @Mock private Clock clock;
+  private final Configuration configuration = new Configuration.Builder().build();
+  private final FakeClock fakeClock = new FakeClock();
 
   private ExtensionRegistryLite registry;
-  private FeedActionUploadRequestManager requestManager;
   private FakeActionReader fakeActionReader;
   private FakeMainThreadRunner fakeMainThreadRunner;
-  private FakeProtocolAdapter fakeProtocolAdapter;
   private FakeNetworkClient fakeNetworkClient;
+  private FakeProtocolAdapter fakeProtocolAdapter;
+  private FakeStore fakeStore;
   private FakeTaskQueue fakeTaskQueue;
   private FakeThreadUtils fakeThreadUtils;
-  private FakeStore fakeStore;
+  private FeedActionUploadRequestManager requestManager;
   private RequiredConsumer<Result<ConsistencyToken>> consumer;
-  private final Configuration configuration = new Configuration.Builder().build();
 
   @Before
   public void setUp() {
@@ -112,9 +110,9 @@ public class FeedActionUploadRequestManagerTest {
     fakeMainThreadRunner =
         FakeMainThreadRunner.runTasksImmediatelyWithThreadChecks(fakeThreadUtils);
     fakeNetworkClient = new FakeNetworkClient(fakeThreadUtils);
-    fakeTaskQueue = new FakeTaskQueue(MoreExecutors.directExecutor(), clock, fakeThreadUtils);
+    fakeTaskQueue = new FakeTaskQueue(MoreExecutors.directExecutor(), fakeClock, fakeThreadUtils);
     fakeProtocolAdapter = new FakeProtocolAdapter();
-    fakeStore = new FakeStore(fakeThreadUtils, fakeTaskQueue, clock);
+    fakeStore = new FakeStore(fakeThreadUtils, fakeTaskQueue, fakeClock);
     consumer =
         new RequiredConsumer<>(
             input -> {
@@ -147,7 +145,7 @@ public class FeedActionUploadRequestManagerTest {
             .build();
     fakeActionReader.addActionProperties(CONTENT_ID, createOpaqueActionData(CONTENT_ID));
     fakeStore.setStreamUploadableActions(action);
-    when(clock.currentTimeMillis()).thenReturn(5000L);
+    fakeClock.set(5000L);
     fakeNetworkClient.addResponse(
         createHttpResponse(/* responseCode= */ 200, Response.getDefaultInstance()));
     requestManager.triggerUploadActions(
@@ -413,7 +411,7 @@ public class FeedActionUploadRequestManagerTest {
         fakeThreadUtils,
         fakeActionReader,
         fakeStore,
-        clock,
+        fakeClock,
         fakeMainThreadRunner);
   }
 

@@ -35,8 +35,8 @@ import com.google.android.libraries.feed.common.locale.LocaleUtils;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.testing.FakeBasicLoggingApi;
 import com.google.android.libraries.feed.common.testing.RequiredConsumer;
-import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
+import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.host.config.ApplicationInfo;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
@@ -109,11 +109,11 @@ public class FeedRequestManagerTest {
   private static final long ID_2 = 2;
   private static final String APP_VERSION_STRING = "5.7";
 
+  private final FakeClock fakeClock = new FakeClock();
   private final TimingUtils timingUtils = new TimingUtils();
   private final Configuration configuration = new Configuration.Builder().build();
 
   @Mock private SchedulerApi scheduler;
-  @Mock private Clock clock;
   @Mock private ApplicationInfo applicationInfo;
 
   private Context context;
@@ -148,7 +148,7 @@ public class FeedRequestManagerTest {
     fakeNetworkClient = new FakeNetworkClient(fakeThreadUtils);
     fakeNetworkClient.setDefaultResponse(
         createHttpResponse(/* responseCode= */ 200, Response.getDefaultInstance()));
-    fakeTaskQueue = new FakeTaskQueue(MoreExecutors.directExecutor(), clock, fakeThreadUtils);
+    fakeTaskQueue = new FakeTaskQueue(MoreExecutors.directExecutor(), fakeClock, fakeThreadUtils);
     fakeTaskQueue.initialize(() -> {});
     fakeTooltipSupportedApi = new FakeTooltipSupportedApi(fakeThreadUtils);
     failingResponse =

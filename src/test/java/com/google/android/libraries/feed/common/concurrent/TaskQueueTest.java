@@ -22,22 +22,20 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
-import com.google.android.libraries.feed.common.time.Clock;
+import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.common.util.concurrent.MoreExecutors;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
 
 /** Tests of the {@link TaskQueue} class. */
 @RunWith(RobolectricTestRunner.class)
 public class TaskQueueTest {
   private final List<Integer> callOrder = new ArrayList<>();
-
-  @Mock Clock clock;
+  private final FakeClock fakeClock = new FakeClock();
 
   @Before
   public void setUp() {
@@ -220,6 +218,9 @@ public class TaskQueueTest {
 
   private TaskQueue getTaskQueue() {
     return new TaskQueue(
-        MoreExecutors.directExecutor(), FakeMainThreadRunner.runTasksImmediately(), clock, false);
+        MoreExecutors.directExecutor(),
+        FakeMainThreadRunner.runTasksImmediately(),
+        fakeClock,
+        false);
   }
 }

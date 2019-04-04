@@ -33,8 +33,8 @@ import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThrea
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.testing.FakeBasicLoggingApi;
-import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
+import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.feedrequestmanager.FeedRequestManager;
 import com.google.android.libraries.feed.host.config.ApplicationInfo;
 import com.google.android.libraries.feed.host.config.Configuration;
@@ -69,23 +69,21 @@ import org.robolectric.RobolectricTestRunner;
 /** Tests of the {@link MockServerNetworkClient} class. */
 @RunWith(RobolectricTestRunner.class)
 public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
+  private final Configuration configuration = new Configuration.Builder().build();
+  private final FakeClock fakeClock = new FakeClock();
+  private final FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(ArrayList::new);
+  private final TimingUtils timingUtils = new TimingUtils();
 
+  @Mock private ActionReader actionReader;
   @Mock private ProtocolAdapter protocolAdapter;
   @Mock private SchedulerApi scheduler;
   @Mock private ThreadUtils threadUtils;
-  @Mock private ActionReader actionReader;
-  @Mock private Clock clock;
   @Mock private TooltipSupportedApi tooltipSupportedApi;
-
   @Captor private ArgumentCaptor<Response> responseCaptor;
-
-  private final FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(ArrayList::new);
-  private final Configuration configuration = new Configuration.Builder().build();
-  private final TimingUtils timingUtils = new TimingUtils();
-  private Context context;
   private ApplicationInfo applicationInfo;
-  private MainThreadRunner mainThreadRunner;
+  private Context context;
   private FakeBasicLoggingApi basicLoggingApi;
+  private MainThreadRunner mainThreadRunner;
 
   @Override
   protected Uri getValidUri(@HttpMethod String method) {
@@ -250,7 +248,7 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
 
   private TaskQueue getTaskQueue() {
     TaskQueue taskQueue =
-        new TaskQueue(MoreExecutors.directExecutor(), mainThreadRunner, clock, false);
+        new TaskQueue(MoreExecutors.directExecutor(), mainThreadRunner, fakeClock, false);
     taskQueue.initialize(() -> {});
     return taskQueue;
   }

@@ -35,7 +35,7 @@ import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
-import com.google.android.libraries.feed.common.time.Clock;
+import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -64,8 +64,9 @@ public class FeedActionReaderTest {
   private static final String CONTENT_ID_STRING_2 = ID_GENERATOR.createContentId(CONTENT_ID_2);
   private static final long DEFAULT_TIME = TimeUnit.DAYS.toSeconds(42);
 
+  private final FakeClock fakeClock = new FakeClock();
+
   @Mock private Store store;
-  @Mock private Clock clock;
   @Mock private ProtocolAdapter protocolAdapter;
   @Mock private Configuration configuration;
 
@@ -84,7 +85,7 @@ public class FeedActionReaderTest {
         .thenReturn(() -> {});
 
     actionReader =
-        new FeedActionReader(store, clock, protocolAdapter, getTaskQueue(), configuration);
+        new FeedActionReader(store, fakeClock, protocolAdapter, getTaskQueue(), configuration);
 
     when(protocolAdapter.getWireContentId(CONTENT_ID_STRING))
         .thenReturn(Result.success(CONTENT_ID));
@@ -94,7 +95,7 @@ public class FeedActionReaderTest {
 
   @Test
   public void getAllDismissedActions() {
-    when(clock.currentTimeMillis()).thenReturn(DEFAULT_TIME);
+    fakeClock.set(DEFAULT_TIME);
 
     StreamLocalAction dismissAction = buildDismissAction(CONTENT_ID_STRING);
     mockStoreCalls(Collections.singletonList(dismissAction), Collections.emptyList());
@@ -109,7 +110,7 @@ public class FeedActionReaderTest {
 
   @Test
   public void getAllDismissedActions_empty() {
-    when(clock.currentTimeMillis()).thenReturn(DEFAULT_TIME);
+    fakeClock.set(DEFAULT_TIME);
 
     mockStoreCalls(Collections.emptyList(), Collections.emptyList());
 
@@ -124,7 +125,7 @@ public class FeedActionReaderTest {
 
   @Test
   public void getAllDismissedActions_storeError_getAllDismissActions() {
-    when(clock.currentTimeMillis()).thenReturn(DEFAULT_TIME);
+    fakeClock.set(DEFAULT_TIME);
     when(store.getAllDismissLocalActions()).thenReturn(Result.failure());
 
     Result<List<DismissActionWithSemanticProperties>> dismissActionsResult =
@@ -136,7 +137,7 @@ public class FeedActionReaderTest {
 
   @Test
   public void getAllDismissedActions_storeError_getSemanticProperties() {
-    when(clock.currentTimeMillis()).thenReturn(DEFAULT_TIME);
+    fakeClock.set(DEFAULT_TIME);
     StreamLocalAction dismissAction = buildDismissAction(CONTENT_ID_STRING);
     when(store.getAllDismissLocalActions())
         .thenReturn(Result.success(Collections.singletonList(dismissAction)));
@@ -151,8 +152,7 @@ public class FeedActionReaderTest {
 
   @Test
   public void getAllDismissedActions_expired() {
-    when(clock.currentTimeMillis())
-        .thenReturn(TimeUnit.SECONDS.toMillis(DEFAULT_TIME) + TimeUnit.DAYS.toMillis(3));
+    fakeClock.set(TimeUnit.SECONDS.toMillis(DEFAULT_TIME) + TimeUnit.DAYS.toMillis(3));
 
     StreamLocalAction dismissAction = buildDismissAction(CONTENT_ID_STRING);
     List<StreamLocalAction> dismissActions = Collections.singletonList(dismissAction);
@@ -167,7 +167,7 @@ public class FeedActionReaderTest {
 
   @Test
   public void getAllDismissedActions_semanticProperties() {
-    when(clock.currentTimeMillis()).thenReturn(DEFAULT_TIME);
+    fakeClock.set(DEFAULT_TIME);
 
     StreamLocalAction dismissAction = buildDismissAction(CONTENT_ID_STRING);
     byte[] semanticData = {12, 41};
@@ -187,7 +187,7 @@ public class FeedActionReaderTest {
 
   @Test
   public void getAllDismissedActions_multipleActions() {
-    when(clock.currentTimeMillis()).thenReturn(DEFAULT_TIME);
+    fakeClock.set(DEFAULT_TIME);
 
     StreamLocalAction dismissAction = buildDismissAction(CONTENT_ID_STRING);
     StreamLocalAction dismissAction2 = buildDismissAction(CONTENT_ID_STRING_2);
@@ -208,7 +208,7 @@ public class FeedActionReaderTest {
 
   @Test
   public void getAllDismissedActions_multipleActions_semanticProperties() {
-    when(clock.currentTimeMillis()).thenReturn(DEFAULT_TIME);
+    fakeClock.set(DEFAULT_TIME);
 
     StreamLocalAction dismissAction = buildDismissAction(CONTENT_ID_STRING);
     StreamLocalAction dismissAction2 = buildDismissAction(CONTENT_ID_STRING_2);
@@ -235,8 +235,7 @@ public class FeedActionReaderTest {
 
   @Test
   public void getAllDismissedActions_multipleActions_someExpired() {
-    when(clock.currentTimeMillis())
-        .thenReturn(TimeUnit.SECONDS.toMillis(DEFAULT_TIME) + TimeUnit.DAYS.toMillis(3));
+    fakeClock.set(TimeUnit.SECONDS.toMillis(DEFAULT_TIME) + TimeUnit.DAYS.toMillis(3));
 
     StreamLocalAction dismissAction = buildDismissAction(CONTENT_ID_STRING);
     StreamLocalAction dismissAction2 =
@@ -261,7 +260,7 @@ public class FeedActionReaderTest {
 
   @Test
   public void getAllDismissedActions_duplicateActions() {
-    when(clock.currentTimeMillis()).thenReturn(DEFAULT_TIME);
+    fakeClock.set(DEFAULT_TIME);
 
     StreamLocalAction dismissAction = buildDismissAction(CONTENT_ID_STRING);
     StreamLocalAction dismissAction2 = buildDismissAction(CONTENT_ID_STRING);
@@ -296,7 +295,7 @@ public class FeedActionReaderTest {
         new TaskQueue(
             MoreExecutors.directExecutor(),
             FakeMainThreadRunner.runTasksImmediately(),
-            clock,
+            fakeClock,
             false);
     taskQueue.initialize(() -> {});
     return taskQueue;

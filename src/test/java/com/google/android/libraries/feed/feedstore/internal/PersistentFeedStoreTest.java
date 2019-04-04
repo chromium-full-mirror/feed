@@ -85,7 +85,7 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
         contentStorage,
         journalStorage,
         threadUtils,
-        clock,
+        fakeClock,
         new FeedStoreHelper());
   }
 
@@ -99,7 +99,7 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
             contentStorageSpy,
             journalStorage,
             threadUtils,
-            clock,
+            fakeClock,
             new FeedStoreHelper());
     doAnswer(ans -> Result.failure()).when(contentStorageSpy).getAllKeys();
 
@@ -117,7 +117,7 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
             contentStorageSpy,
             journalStorage,
             threadUtils,
-            clock,
+            fakeClock,
             new FeedStoreHelper());
 
     CommitResult commitResult = store.editContent().add(CONTENT_ID, STREAM_PAYLOAD).commit();
@@ -147,7 +147,7 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
             contentStorage,
             journalStorageSpy,
             threadUtils,
-            clock,
+            fakeClock,
             new FeedStoreHelper());
 
     boolean commitResult =
@@ -180,7 +180,7 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
             contentStorage,
             journalStorageSpy,
             threadUtils,
-            clock,
+            fakeClock,
             new FeedStoreHelper());
     doAnswer(ans -> Result.failure()).when(journalStorageSpy).getAllJournals();
 

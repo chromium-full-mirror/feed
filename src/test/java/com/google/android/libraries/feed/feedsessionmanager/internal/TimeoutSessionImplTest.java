@@ -24,8 +24,8 @@ import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.ViewDepthProvider;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
-import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
+import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.feedsessionmanager.internal.testing.AbstractSessionImplTest;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelChild;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelCursor;
@@ -46,9 +46,9 @@ import org.robolectric.RobolectricTestRunner;
 /** Tests of the {@link TimeoutSessionImpl} class. */
 @RunWith(RobolectricTestRunner.class)
 public class TimeoutSessionImplTest extends AbstractSessionImplTest {
+  private final FakeClock fakeClock = new FakeClock();
   private final TimingUtils timingUtils = new TimingUtils();
 
-  @Mock private Clock clock;
   @Mock private ThreadUtils threadUtils;
   @Mock private ViewDepthProvider viewDepthProvider;
 
@@ -248,7 +248,7 @@ public class TimeoutSessionImplTest extends AbstractSessionImplTest {
         new TaskQueue(
             MoreExecutors.directExecutor(),
             FakeMainThreadRunner.runTasksImmediately(),
-            clock,
+            fakeClock,
             false);
     taskQueue.initialize(() -> {});
     TimeoutSessionImpl session =

@@ -27,7 +27,7 @@ import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.scope.FeedProcessScope.Builder;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
-import com.google.android.libraries.feed.common.time.Clock;
+import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.host.config.ApplicationInfo;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
@@ -113,7 +113,7 @@ public class FeedProcessScopeTest {
 
   @Test
   public void testComplexBuild() {
-    Clock mockClock = mock(Clock.class);
+    FakeClock fakeClock = new FakeClock();
     // No crash should happen.
     FeedProcessScope processScope =
         new FeedProcessScope.Builder(
@@ -131,13 +131,13 @@ public class FeedProcessScopeTest {
             .setRequestManager(requestManager)
             .setSessionManager(sessionManager)
             .setProtoExtensionProvider(protoExtensionProvider)
-            .setClock(mockClock)
+            .setClock(fakeClock)
             .build();
 
     assertThat(processScope.getProtocolAdapter()).isEqualTo(protocolAdapter);
     assertThat(processScope.getRequestManager()).isEqualTo(requestManager);
     assertThat(processScope.getSessionManager()).isEqualTo(sessionManager);
-    assertThat(processScope.getClock()).isEqualTo(mockClock);
+    assertThat(processScope.getClock()).isEqualTo(fakeClock);
     assertThat(processScope.getAppLifecycleListener()).isNotNull();
     assertThat(processScope.getActionManager()).isNotNull();
     assertThat(processScope.getAppLifecycleListener()).isNotNull();

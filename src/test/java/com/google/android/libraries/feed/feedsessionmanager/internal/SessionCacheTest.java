@@ -24,8 +24,8 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider.ViewDep
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeTaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
-import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
+import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelProvider;
 import com.google.android.libraries.feed.testing.store.FakeStore;
@@ -41,7 +41,6 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
 
 /** Tests of the {@link SessionCache} class. */
@@ -51,10 +50,10 @@ public class SessionCacheTest {
 
   private final Configuration configuration = new Configuration.Builder().build();
   private final ContentIdGenerators idGenerators = new ContentIdGenerators();
+  private final FakeClock fakeClock = new FakeClock();
   private final FakeThreadUtils fakeThreadUtils = new FakeThreadUtils();
   private final TimingUtils timingUtils = new TimingUtils();
 
-  @Mock private Clock clock;
   private FakeStore fakeStore;
   private FakeTaskQueue fakeTaskQueue;
   private SessionFactory sessionFactory;
@@ -65,8 +64,8 @@ public class SessionCacheTest {
   @Before
   public void setUp() {
     initMocks(this);
-    fakeTaskQueue = new FakeTaskQueue(MoreExecutors.directExecutor(), clock, fakeThreadUtils);
-    fakeStore = new FakeStore(fakeThreadUtils, fakeTaskQueue, clock);
+    fakeTaskQueue = new FakeTaskQueue(MoreExecutors.directExecutor(), fakeClock, fakeThreadUtils);
+    fakeStore = new FakeStore(fakeThreadUtils, fakeTaskQueue, fakeClock);
     fakeThreadUtils.enforceMainThread(false);
     fakeTaskQueue.initialize(() -> {});
     sessionCache = getSessionCache();
@@ -225,7 +224,7 @@ public class SessionCacheTest {
   @Test
   public void testIsSessionAlive() {
     sessionCache.initialize();
-    when(clock.currentTimeMillis()).thenReturn(DEFAULT_LIFETIME_MS + 2);
+    fakeClock.set(DEFAULT_LIFETIME_MS + 2);
     assertThat(sessionCache.isSessionAlive("stream:1", SessionMetadata.getDefaultInstance()))
         .isFalse();
     assertThat(
@@ -268,7 +267,7 @@ public class SessionCacheTest {
 
   @Test
   public void testInitializePersistedSessions_emptyStreamSessions() {
-    when(clock.currentTimeMillis()).thenReturn(DEFAULT_LIFETIME_MS + 2);
+    fakeClock.set(DEFAULT_LIFETIME_MS + 2);
 
     mockStreamSessions(StreamSessions.getDefaultInstance());
     sessionCache.initialize();
@@ -292,7 +291,7 @@ public class SessionCacheTest {
                     .setLegacyTimeMillis(1))
             .build();
 
-    when(clock.currentTimeMillis()).thenReturn(DEFAULT_LIFETIME_MS + 2);
+    fakeClock.set(DEFAULT_LIFETIME_MS + 2);
 
     mockStreamSessions(streamSessions);
     sessionCache.initialize();
@@ -319,7 +318,7 @@ public class SessionCacheTest {
                             .setCreationTimeMillis(DEFAULT_LIFETIME_MS - 1)))
             .build();
 
-    when(clock.currentTimeMillis()).thenReturn(DEFAULT_LIFETIME_MS + 2);
+    fakeClock.set(DEFAULT_LIFETIME_MS + 2);
 
     mockStreamSessions(streamSessions);
     sessionCache.initialize();
@@ -375,7 +374,7 @@ public class SessionCacheTest {
     sessionFactory =
         new SessionFactory(fakeStore, fakeTaskQueue, timingUtils, fakeThreadUtils, configuration);
     return new SessionCache(
-        fakeStore, fakeTaskQueue, sessionFactory, 10, timingUtils, fakeThreadUtils, clock);
+        fakeStore, fakeTaskQueue, sessionFactory, 10, timingUtils, fakeThreadUtils, fakeClock);
   }
 
   private void mockStreamSessions(StreamSessions streamSessions) {

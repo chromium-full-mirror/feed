@@ -33,6 +33,6 @@ public class EphemeralFeedStoreTest extends AbstractClearableFeedStoreTest {
 
   @Override
   protected Store getStore(MainThreadRunner mainThreadRunner) {
-    return new EphemeralFeedStore(clock, timingUtils, new FeedStoreHelper());
+    return new EphemeralFeedStore(fakeClock, timingUtils, new FeedStoreHelper());
   }
 }

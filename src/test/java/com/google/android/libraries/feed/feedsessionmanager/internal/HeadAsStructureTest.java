@@ -24,8 +24,8 @@ import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeTaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
-import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
+import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.feedsessionmanager.internal.HeadAsStructure.TreeNode;
 import com.google.android.libraries.feed.testing.store.FakeStore;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -35,7 +35,6 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
 
 /** Tests of the {@link HeadAsStructure}. */
@@ -46,8 +45,8 @@ public class HeadAsStructureTest {
   private final FakeThreadUtils fakeThreadUtils = new FakeThreadUtils();
   private final String rootContentId = idGenerators.createRootContentId(0);
   private final TimingUtils timingUtils = new TimingUtils();
+  private final FakeClock fakeClock = new FakeClock();
 
-  @Mock private Clock clock;
   private FakeStore fakeStore;
 
   @Before
@@ -56,8 +55,8 @@ public class HeadAsStructureTest {
     fakeStore =
         new FakeStore(
             fakeThreadUtils,
-            new FakeTaskQueue(MoreExecutors.directExecutor(), clock, fakeThreadUtils),
-            clock);
+            new FakeTaskQueue(MoreExecutors.directExecutor(), fakeClock, fakeThreadUtils),
+            fakeClock);
     fakeThreadUtils.enforceMainThread(false);
   }
 

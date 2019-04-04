@@ -14,12 +14,14 @@
 
 package com.google.android.libraries.feed.common.time;
 
+
 /**
  * Interface of SystemClock; real instances should just delegate the calls to the static methods,
  * while mock instances return values set manually; see {@link android.os.SystemClock}. In addition,
  * this interface also has an instance method for {@link System#currentTimeMillis}, so it can be
  * mocked if needed
  */
+/*@DoNotMock("Use com.google.android.libraries.feed.common.time.testing.FakeClock instead")*/
 public interface Clock {
   /** Number of nanoseconds in a single millisecond. */
   long NS_IN_MS = 1_000_000;

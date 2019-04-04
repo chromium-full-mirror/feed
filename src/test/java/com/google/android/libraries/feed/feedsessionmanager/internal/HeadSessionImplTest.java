@@ -23,8 +23,8 @@ import com.google.android.libraries.feed.api.common.testing.InternalProtocolBuil
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeTaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
-import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
+import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.testing.store.FakeStore;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
@@ -34,18 +34,17 @@ import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
 
 /** Tests of the {@link HeadSessionImpl} class. */
 @RunWith(RobolectricTestRunner.class)
 public class HeadSessionImplTest {
   private final ContentIdGenerators contentIdGenerators = new ContentIdGenerators();
+  private final FakeClock fakeClock = new FakeClock();
   private final FakeThreadUtils fakeThreadUtils =
       new FakeThreadUtils(/* enforceThreadChecks= */ false);
   private final TimingUtils timingUtils = new TimingUtils();
 
-  @Mock private Clock clock;
   private FakeStore fakeStore;
 
   @Before
@@ -54,8 +53,8 @@ public class HeadSessionImplTest {
     fakeStore =
         new FakeStore(
             fakeThreadUtils,
-            new FakeTaskQueue(MoreExecutors.directExecutor(), clock, fakeThreadUtils),
-            clock);
+            new FakeTaskQueue(MoreExecutors.directExecutor(), fakeClock, fakeThreadUtils),
+            fakeClock);
   }
 
   @Test

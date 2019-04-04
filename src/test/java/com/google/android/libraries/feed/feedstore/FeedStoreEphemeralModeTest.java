@@ -60,7 +60,7 @@ public class FeedStoreEphemeralModeTest extends AbstractFeedStoreTest {
         new TaskQueue(
             MoreExecutors.directExecutor(),
             FakeMainThreadRunner.runTasksImmediately(),
-            clock,
+            fakeClock,
             false);
     taskQueue.initialize(() -> {});
     FeedStore feedStore =
@@ -71,7 +71,7 @@ public class FeedStoreEphemeralModeTest extends AbstractFeedStoreTest {
             new InMemoryJournalStorage(),
             threadUtils,
             taskQueue,
-            clock,
+            fakeClock,
             basicLoggingApi,
             mainThreadRunner);
     feedStore.switchToEphemeralMode();

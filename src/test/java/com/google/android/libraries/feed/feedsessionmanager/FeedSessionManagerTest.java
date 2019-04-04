@@ -36,8 +36,8 @@ import com.google.android.libraries.feed.common.concurrent.testing.FakeTaskQueue
 import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.intern.Interner;
-import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
+import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.feedapplifecyclelistener.FeedAppLifecycleListener;
 import com.google.android.libraries.feed.feedapplifecyclelistener.FeedLifecycleListener.LifecycleEvent;
 import com.google.android.libraries.feed.feedmodelprovider.FeedModelProviderFactory;
@@ -101,24 +101,23 @@ public class FeedSessionManagerTest {
           .build();
   private static final String SESSION_ID = "session:1";
 
-  private final ContentIdGenerators idGenerators = new ContentIdGenerators();
-  private final String rootContentId = idGenerators.createRootContentId(0);
-
-  private FeedAppLifecycleListener appLifecycleListener;
-  private FakeActionUploadRequestManager fakeActionUploadRequestManager;
-  private FakeMainThreadRunner fakeMainThreadRunner;
-  private FakeRequestManager fakeRequestManager;
-  private FakeProtocolAdapter fakeProtocolAdapter;
-  private FakeTaskQueue fakeTaskQueue;
-  private FakeThreadUtils fakeThreadUtils;
-  private FakeStore fakeStore;
-  @Mock private SchedulerApi schedulerApi;
-  @Mock private Clock clock;
-
-  private final ContentIdGenerators contentIdGenerators = new ContentIdGenerators();
-  private final TimingUtils timingUtils = new TimingUtils();
   private final Configuration configuration =
       new Configuration.Builder().put(ConfigKey.UNDOABLE_ACTIONS_ENABLED, true).build();
+  private final ContentIdGenerators contentIdGenerators = new ContentIdGenerators();
+  private final ContentIdGenerators idGenerators = new ContentIdGenerators();
+  private final FakeClock fakeClock = new FakeClock();
+  private final String rootContentId = idGenerators.createRootContentId(0);
+  private final TimingUtils timingUtils = new TimingUtils();
+
+  private FakeActionUploadRequestManager fakeActionUploadRequestManager;
+  private FakeMainThreadRunner fakeMainThreadRunner;
+  private FakeProtocolAdapter fakeProtocolAdapter;
+  private FakeRequestManager fakeRequestManager;
+  private FakeStore fakeStore;
+  private FakeTaskQueue fakeTaskQueue;
+  private FakeThreadUtils fakeThreadUtils;
+  private FeedAppLifecycleListener appLifecycleListener;
+  @Mock private SchedulerApi schedulerApi;
 
   @Before
   public void setUp() {
@@ -126,10 +125,10 @@ public class FeedSessionManagerTest {
     fakeThreadUtils = new FakeThreadUtils();
     fakeMainThreadRunner =
         FakeMainThreadRunner.runTasksImmediatelyWithThreadChecks(fakeThreadUtils);
-    fakeTaskQueue = new FakeTaskQueue(MoreExecutors.directExecutor(), clock, fakeThreadUtils);
+    fakeTaskQueue = new FakeTaskQueue(MoreExecutors.directExecutor(), fakeClock, fakeThreadUtils);
     appLifecycleListener = new FeedAppLifecycleListener(fakeThreadUtils);
     fakeActionUploadRequestManager = new FakeActionUploadRequestManager(fakeThreadUtils);
-    fakeStore = new FakeStore(fakeThreadUtils, fakeTaskQueue, clock);
+    fakeStore = new FakeStore(fakeThreadUtils, fakeTaskQueue, fakeClock);
     fakeProtocolAdapter = new FakeProtocolAdapter();
     fakeRequestManager =
         new FakeRequestManager(fakeThreadUtils, fakeProtocolAdapter, /* requestDelayMs= */ 0);
@@ -163,7 +162,7 @@ public class FeedSessionManagerTest {
                 fakeActionUploadRequestManager,
                 schedulerApi,
                 configuration,
-                clock,
+                fakeClock,
                 appLifecycleListener)
             .create();
     assertThat(sessionManager.initialized.get()).isFalse();
@@ -235,7 +234,7 @@ public class FeedSessionManagerTest {
                 fakeActionUploadRequestManager,
                 schedulerApi,
                 configuration,
-                clock,
+                fakeClock,
                 appLifecycleListener)
             .create();
     assertThat(sessionManager.initialized.get()).isFalse();
@@ -268,7 +267,7 @@ public class FeedSessionManagerTest {
                 fakeActionUploadRequestManager,
                 schedulerApi,
                 configuration,
-                clock,
+                fakeClock,
                 appLifecycleListener)
             .create();
     assertThat(sessionManager.initialized.get()).isFalse();
@@ -506,7 +505,7 @@ public class FeedSessionManagerTest {
                 fakeActionUploadRequestManager,
                 schedulerApi,
                 configuration,
-                clock,
+                fakeClock,
                 appLifecycleListener)
             .create();
     sessionManager.initialize();
@@ -548,7 +547,7 @@ public class FeedSessionManagerTest {
                 fakeActionUploadRequestManager,
                 schedulerApi,
                 configuration,
-                clock,
+                fakeClock,
                 appLifecycleListener)
             .create();
     sessionManager.initialize();
@@ -815,7 +814,7 @@ public class FeedSessionManagerTest {
                 fakeActionUploadRequestManager,
                 schedulerApi,
                 config,
-                clock,
+                fakeClock,
                 appLifecycleListener)
             .create();
     fsm.initialize();
@@ -833,7 +832,7 @@ public class FeedSessionManagerTest {
             fakeActionUploadRequestManager,
             schedulerApi,
             configuration,
-            clock,
+            fakeClock,
             appLifecycleListener)
         .create();
   }

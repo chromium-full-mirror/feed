@@ -32,7 +32,7 @@ import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Consumer;
-import com.google.android.libraries.feed.common.time.Clock;
+import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
@@ -58,12 +58,13 @@ public class FeedActionManagerImplTest {
   private static final String CONTENT_ID_STRING = "contentIdString";
   private static final String SESSION_ID = "session";
 
-  private FakeMainThreadRunner fakeMainThreadRunner = FakeMainThreadRunner.runTasksImmediately();
-  ;
+  private final FakeClock fakeClock = new FakeClock();
+  private final FakeMainThreadRunner fakeMainThreadRunner =
+      FakeMainThreadRunner.runTasksImmediately();
+
   @Mock private SessionManager sessionManager;
   @Mock private Store store;
   @Mock private ThreadUtils threadUtils;
-  @Mock private Clock clock;
   @Mock private LocalActionMutation localActionMutation;
   @Mock private Consumer<Result<List<StreamDataOperation>>> streamDataOperationsConsumer;
   @Captor private ArgumentCaptor<Integer> actionTypeCaptor;
@@ -215,7 +216,7 @@ public class FeedActionManagerImplTest {
         new TaskQueue(
             MoreExecutors.directExecutor(),
             FakeMainThreadRunner.runTasksImmediately(),
-            clock,
+            fakeClock,
             false);
     taskQueue.initialize(() -> {});
     return taskQueue;

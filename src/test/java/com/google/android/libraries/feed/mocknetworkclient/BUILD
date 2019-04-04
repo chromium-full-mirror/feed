@@ -20,6 +20,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/common/protoextensions",
         "//src/main/java/com/google/android/libraries/feed/common/testing",
         "//src/main/java/com/google/android/libraries/feed/common/time",
+        "//src/main/java/com/google/android/libraries/feed/common/time/testing",
         "//src/main/java/com/google/android/libraries/feed/feedrequestmanager",
         "//src/main/java/com/google/android/libraries/feed/host/config",
         "//src/main/java/com/google/android/libraries/feed/host/network",
