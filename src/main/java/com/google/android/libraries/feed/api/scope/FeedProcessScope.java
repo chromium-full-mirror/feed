@@ -466,7 +466,8 @@ public final class FeedProcessScope implements Dumpable {
       }
       TimingUtils timingUtils = new TimingUtils();
       TaskQueue taskQueue =
-          new TaskQueue(singleThreadExecutor, getOrCreateMainThreadRunner(), clock, true);
+          new TaskQueue(
+              basicLoggingApi, singleThreadExecutor, getOrCreateMainThreadRunner(), clock, true);
       FeedStore store =
           new FeedStore(
               timingUtils,

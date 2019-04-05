@@ -29,7 +29,6 @@ import com.google.android.libraries.feed.api.common.ActionPropertiesWithId;
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.SemanticPropertiesWithId;
-import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.knowncontent.KnownContentApi.KnownContentListener;
 import com.google.android.libraries.feed.api.modelprovider.ModelError;
@@ -38,8 +37,9 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.State;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
-import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeTaskQueue;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.time.TimingUtils;
@@ -48,11 +48,11 @@ import com.google.android.libraries.feed.feedsessionmanager.internal.SessionMana
 import com.google.android.libraries.feed.feedstore.FeedStore;
 import com.google.android.libraries.feed.feedstore.testing.DelegatingStore;
 import com.google.android.libraries.feed.host.config.Configuration;
-import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.host.storage.ContentStorageDirect;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
+import com.google.android.libraries.feed.testing.host.logging.FakeBasicLoggingApi;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
@@ -81,51 +81,47 @@ public class SessionManagerMutationTest {
   private final Configuration configuration = new Configuration.Builder().build();
   private final ContentIdGenerators idGenerators = new ContentIdGenerators();
   private final ContentStorageDirect contentStorage = new InMemoryContentStorage();
+  private final FakeBasicLoggingApi fakeBasicLoggingApi = new FakeBasicLoggingApi();
   private final FakeClock fakeClock = new FakeClock();
+  private final FakeThreadUtils fakeThreadUtils = new FakeThreadUtils();
   private final FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(ArrayList::new);
   private final String rootContentId = idGenerators.createRootContentId(0);
   private final TimingUtils timingUtils = new TimingUtils();
 
-  @Mock private BasicLoggingApi basicLoggingApi;
   @Mock private KnownContentListener knownContentListener;
   @Mock private SchedulerApi schedulerApi;
-  @Mock private ThreadUtils threadUtils;
   private ContentCache contentCache;
+  private FakeTaskQueue fakeTaskQueue;
   private ModelError notifyError;
   private Session notifySession;
   private SessionCache sessionCache;
   private Store storeSpy;
-  private TaskQueue taskQueue;
 
   @Before
   public void setUp() {
     initMocks(this);
     storeSpy = null;
     notifySession = null;
-    taskQueue =
-        new TaskQueue(
-            MoreExecutors.directExecutor(),
-            FakeMainThreadRunner.runTasksImmediately(),
-            fakeClock,
-            false);
-    taskQueue.initialize(() -> {});
+    fakeTaskQueue = new FakeTaskQueue(MoreExecutors.directExecutor(), fakeClock, fakeThreadUtils);
+    fakeTaskQueue.initialize(() -> {});
+    fakeThreadUtils.enforceMainThread(false);
     Store store =
         new FeedStore(
             timingUtils,
             extensionRegistry,
             contentStorage,
             new InMemoryJournalStorage(),
-            threadUtils,
-            taskQueue,
+            fakeThreadUtils,
+            fakeTaskQueue,
             fakeClock,
-            basicLoggingApi,
+            fakeBasicLoggingApi,
             FakeMainThreadRunner.runTasksImmediately());
     storeSpy = spy(new DelegatingStore(store));
     SessionFactory sessionFactory =
-        new SessionFactory(storeSpy, taskQueue, timingUtils, threadUtils, configuration);
+        new SessionFactory(storeSpy, fakeTaskQueue, timingUtils, fakeThreadUtils, configuration);
     sessionCache =
         new SessionCache(
-            storeSpy, taskQueue, sessionFactory, 10L, timingUtils, threadUtils, fakeClock);
+            storeSpy, fakeTaskQueue, sessionFactory, 10L, timingUtils, fakeThreadUtils, fakeClock);
     sessionCache.initialize();
     contentCache = new ContentCache();
   }
@@ -349,9 +345,9 @@ public class SessionManagerMutationTest {
             storeSpy,
             sessionCache,
             contentCache,
-            taskQueue,
+            fakeTaskQueue,
             schedulerApi,
-            threadUtils,
+            fakeThreadUtils,
             timingUtils,
             fakeClock);
     return (MutationCommitter)

@@ -24,13 +24,13 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.store.LocalActionMutation.ActionType;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.api.store.StoreListener;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
-import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeTaskQueue;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.feedapplifecyclelistener.FeedLifecycleListener.LifecycleEvent;
 import com.google.android.libraries.feed.feedstore.testing.AbstractFeedStoreTest;
@@ -82,29 +82,24 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
           .build();
   private static final byte[] SEMANTIC_PROPERTIES = new byte[] {4, 12, 18, 5};
 
-  @Mock private ThreadUtils threadUtils;
-  @Mock private StoreListener listener;
-  @Mock private Configuration configuration;
-  @Mock private BasicLoggingApi basicLoggingApi;
-
-  private TaskQueue taskQueue;
-
-  private final FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(ArrayList::new);
   private final ContentStorageDirect contentStorage = new InMemoryContentStorage();
+  private final FakeThreadUtils fakeThreadUtils = new FakeThreadUtils();
+  private final FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(ArrayList::new);
+
+  @Mock private BasicLoggingApi basicLoggingApi;
+  @Mock private Configuration configuration;
+  @Mock private StoreListener listener;
   private FakeMainThreadRunner mainThreadRunner;
+  private FakeTaskQueue taskQueue;
 
   @Before
   public void setUp() throws Exception {
     initMocks(this);
     when(configuration.getValueOrDefault(ConfigKey.USE_DIRECT_STORAGE, false)).thenReturn(false);
-    taskQueue =
-        new TaskQueue(
-            MoreExecutors.directExecutor(),
-            FakeMainThreadRunner.runTasksImmediately(),
-            fakeClock,
-            false);
+    taskQueue = new FakeTaskQueue(MoreExecutors.directExecutor(), fakeClock, fakeThreadUtils);
     taskQueue.initialize(() -> {});
     mainThreadRunner = FakeMainThreadRunner.runTasksImmediately();
+    fakeThreadUtils.enforceMainThread(false);
   }
 
   @Override
@@ -114,7 +109,7 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
         extensionRegistry,
         contentStorage,
         new InMemoryJournalStorage(),
-        threadUtils,
+        fakeThreadUtils,
         taskQueue,
         fakeClock,
         basicLoggingApi,
@@ -153,7 +148,7 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
             extensionRegistry,
             contentStorageSpy,
             journalStorageSpy,
-            threadUtils,
+            fakeThreadUtils,
             taskQueue,
             fakeClock,
             basicLoggingApi,
@@ -173,7 +168,7 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
             extensionRegistry,
             contentStorageSpy,
             journalStorageSpy,
-            threadUtils,
+            fakeThreadUtils,
             taskQueue,
             fakeClock,
             basicLoggingApi,

@@ -16,6 +16,7 @@ package com.google.android.libraries.feed.common.concurrent.testing;
 
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.time.Clock;
+import com.google.android.libraries.feed.testing.host.logging.FakeBasicLoggingApi;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.concurrent.Executor;
@@ -30,9 +31,16 @@ public final class FakeTaskQueue extends TaskQueue {
   /** A last-in, first-out stack of thread policies to restore. */
   private final Deque<Boolean> threadPolicies = new ArrayDeque<>();
 
+  private boolean resetWasCalled = false;
+  private boolean completeResetWasCalled = false;
+
   public FakeTaskQueue(Executor executor, Clock clock, FakeThreadUtils fakeThreadUtils) {
     super(
-        executor, FakeMainThreadRunner.runTasksImmediately(), clock, /* checkStarvation= */ false);
+        new FakeBasicLoggingApi(),
+        executor,
+        FakeMainThreadRunner.runTasksImmediately(),
+        clock,
+        /* checkStarvation= */ false);
     this.fakeThreadUtils = fakeThreadUtils;
   }
 
@@ -46,6 +54,18 @@ public final class FakeTaskQueue extends TaskQueue {
   protected void onPostTaskRun() {
     boolean policy = threadPolicies.pop();
     fakeThreadUtils.enforceMainThread(policy);
+  }
+
+  @Override
+  public void reset() {
+    super.reset();
+    resetWasCalled = true;
+  }
+
+  @Override
+  public void completeReset() {
+    super.completeReset();
+    completeResetWasCalled = true;
   }
 
   public void resetCounts() {
@@ -67,5 +87,13 @@ public final class FakeTaskQueue extends TaskQueue {
 
   public int getUserFacingTaskCount() {
     return userFacingTaskCount;
+  }
+
+  public boolean resetWasCalled() {
+    return resetWasCalled;
+  }
+
+  public boolean completeResetWasCalled() {
+    return completeResetWasCalled;
   }
 }

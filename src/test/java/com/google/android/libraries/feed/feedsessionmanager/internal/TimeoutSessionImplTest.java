@@ -18,12 +18,11 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.when;
 
 import com.google.android.libraries.feed.api.common.MutationContext;
-import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.testing.InternalProtocolBuilder;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.ViewDepthProvider;
-import com.google.android.libraries.feed.common.concurrent.TaskQueue;
-import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeTaskQueue;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.feedsessionmanager.internal.testing.AbstractSessionImplTest;
@@ -47,15 +46,16 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class TimeoutSessionImplTest extends AbstractSessionImplTest {
   private final FakeClock fakeClock = new FakeClock();
+  private final FakeThreadUtils fakeThreadUtils = new FakeThreadUtils();
   private final TimingUtils timingUtils = new TimingUtils();
 
-  @Mock private ThreadUtils threadUtils;
   @Mock private ViewDepthProvider viewDepthProvider;
 
   @Before
   @Override
   public void setUp() {
     super.setUp();
+    fakeThreadUtils.enforceMainThread(false);
   }
 
   @Test
@@ -244,15 +244,11 @@ public class TimeoutSessionImplTest extends AbstractSessionImplTest {
 
   @Override
   protected TimeoutSessionImpl getSessionImpl() {
-    TaskQueue taskQueue =
-        new TaskQueue(
-            MoreExecutors.directExecutor(),
-            FakeMainThreadRunner.runTasksImmediately(),
-            fakeClock,
-            false);
-    taskQueue.initialize(() -> {});
+    FakeTaskQueue fakeTaskQueue =
+        new FakeTaskQueue(MoreExecutors.directExecutor(), fakeClock, fakeThreadUtils);
+    fakeTaskQueue.initialize(() -> {});
     TimeoutSessionImpl session =
-        new TimeoutSessionImpl(store, false, taskQueue, timingUtils, threadUtils);
+        new TimeoutSessionImpl(store, false, fakeTaskQueue, timingUtils, fakeThreadUtils);
     session.bindModelProvider(fakeModelProvider, /* viewDepthProvider= */ null);
     return session;
   }

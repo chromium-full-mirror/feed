@@ -21,6 +21,7 @@ import com.google.android.libraries.feed.common.logging.Dumper;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.logging.StringFormattingUtils;
 import com.google.android.libraries.feed.common.time.Clock;
+import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import java.util.ArrayDeque;
 import java.util.Queue;
 import java.util.concurrent.Executor;
@@ -117,6 +118,7 @@ public class TaskQueue implements Dumpable {
   /** Track if starvation checking is running */
   private final AtomicBoolean starvationChecks = new AtomicBoolean(false);
 
+  private final BasicLoggingApi unusedBasicLoggingApi;
   private final Executor executor;
   private final Clock clock;
   private final boolean checkStarvation;
@@ -141,7 +143,12 @@ public class TaskQueue implements Dumpable {
    *     result in an infinite loop if the queue is ever delayed.
    */
   public TaskQueue(
-      Executor executor, MainThreadRunner mainThreadRunner, Clock clock, boolean checkStarvation) {
+      BasicLoggingApi basicLoggingApi,
+      Executor executor,
+      MainThreadRunner mainThreadRunner,
+      Clock clock,
+      boolean checkStarvation) {
+    this.unusedBasicLoggingApi = basicLoggingApi;
     this.executor = executor;
     this.mainThreadRunner = mainThreadRunner;
     this.clock = clock;

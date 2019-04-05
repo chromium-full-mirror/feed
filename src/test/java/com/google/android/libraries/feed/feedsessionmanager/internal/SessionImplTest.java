@@ -18,11 +18,10 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 
 import com.google.android.libraries.feed.api.common.MutationContext;
-import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.testing.InternalProtocolBuilder;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.ViewDepthProvider;
-import com.google.android.libraries.feed.common.concurrent.TaskQueue;
-import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeTaskQueue;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.feedsessionmanager.internal.testing.AbstractSessionImplTest;
@@ -35,21 +34,20 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
 
 /** Tests of the {@link SessionImpl} class. */
 @RunWith(RobolectricTestRunner.class)
 public class SessionImplTest extends AbstractSessionImplTest {
   private final FakeClock fakeClock = new FakeClock();
+  private final FakeThreadUtils fakeThreadUtils = new FakeThreadUtils();
   private final TimingUtils timingUtils = new TimingUtils();
-
-  @Mock private ThreadUtils threadUtils;
 
   @Before
   @Override
   public void setUp() {
     super.setUp();
+    fakeThreadUtils.enforceMainThread(false);
   }
 
   @Test
@@ -114,14 +112,11 @@ public class SessionImplTest extends AbstractSessionImplTest {
 
   @Override
   protected SessionImpl getSessionImpl() {
-    TaskQueue taskQueue =
-        new TaskQueue(
-            MoreExecutors.directExecutor(),
-            FakeMainThreadRunner.runTasksImmediately(),
-            fakeClock,
-            false);
-    taskQueue.initialize(() -> {});
-    SessionImpl session = new SessionImpl(store, false, taskQueue, timingUtils, threadUtils);
+    FakeTaskQueue fakeTaskQueue =
+        new FakeTaskQueue(MoreExecutors.directExecutor(), fakeClock, fakeThreadUtils);
+    fakeTaskQueue.initialize(() -> {});
+    SessionImpl session =
+        new SessionImpl(store, false, fakeTaskQueue, timingUtils, fakeThreadUtils);
     session.bindModelProvider(fakeModelProvider, null);
     return session;
   }

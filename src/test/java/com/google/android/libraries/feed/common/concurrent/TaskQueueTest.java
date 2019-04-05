@@ -20,6 +20,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
 import com.google.android.libraries.feed.common.concurrent.testing.ClockBackedFakeMainThreadRunner;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
+import com.google.android.libraries.feed.testing.host.logging.FakeBasicLoggingApi;
 import com.google.common.util.concurrent.MoreExecutors;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,12 +32,14 @@ import org.robolectric.RobolectricTestRunner;
 /** Tests of the {@link TaskQueue} class. */
 @RunWith(RobolectricTestRunner.class)
 public class TaskQueueTest {
-  private final List<Integer> callOrder = new ArrayList<>();
+  private final FakeBasicLoggingApi fakeBasicLoggingApi = new FakeBasicLoggingApi();
   private final FakeClock fakeClock = new FakeClock();
+  private final List<Integer> callOrder = new ArrayList<>();
   private final ClockBackedFakeMainThreadRunner fakeMainThreadRunner =
       ClockBackedFakeMainThreadRunner.create(fakeClock);
   private final TaskQueue taskQueue =
       new TaskQueue(
+          fakeBasicLoggingApi,
           MoreExecutors.directExecutor(),
           fakeMainThreadRunner,
           fakeClock,

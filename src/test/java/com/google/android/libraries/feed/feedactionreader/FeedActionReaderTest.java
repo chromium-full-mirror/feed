@@ -32,8 +32,8 @@ import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.store.LocalActionMutation.ActionType;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
-import com.google.android.libraries.feed.common.concurrent.TaskQueue;
-import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeTaskQueue;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.host.config.Configuration;
@@ -65,6 +65,7 @@ public class FeedActionReaderTest {
   private static final long DEFAULT_TIME = TimeUnit.DAYS.toSeconds(42);
 
   private final FakeClock fakeClock = new FakeClock();
+  private final FakeThreadUtils fakeThreadUtils = new FakeThreadUtils();
 
   @Mock private Store store;
   @Mock private ProtocolAdapter protocolAdapter;
@@ -290,14 +291,10 @@ public class FeedActionReaderTest {
     when(store.getSemanticProperties(anyList())).thenReturn(Result.success(semanticProperties));
   }
 
-  private TaskQueue getTaskQueue() {
-    TaskQueue taskQueue =
-        new TaskQueue(
-            MoreExecutors.directExecutor(),
-            FakeMainThreadRunner.runTasksImmediately(),
-            fakeClock,
-            false);
-    taskQueue.initialize(() -> {});
-    return taskQueue;
+  private FakeTaskQueue getTaskQueue() {
+    FakeTaskQueue fakeTaskQueue =
+        new FakeTaskQueue(MoreExecutors.directExecutor(), fakeClock, fakeThreadUtils);
+    fakeTaskQueue.initialize(() -> {});
+    return fakeTaskQueue;
   }
 }

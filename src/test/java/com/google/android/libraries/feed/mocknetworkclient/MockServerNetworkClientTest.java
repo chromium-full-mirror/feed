@@ -24,12 +24,12 @@ import android.app.Activity;
 import android.content.Context;
 import android.net.Uri;
 import com.google.android.libraries.feed.api.actionmanager.ActionReader;
-import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
-import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeTaskQueue;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.time.TimingUtils;
@@ -71,13 +71,13 @@ import org.robolectric.RobolectricTestRunner;
 public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
   private final Configuration configuration = new Configuration.Builder().build();
   private final FakeClock fakeClock = new FakeClock();
+  private final FakeThreadUtils fakeThreadUtils = new FakeThreadUtils();
   private final FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(ArrayList::new);
   private final TimingUtils timingUtils = new TimingUtils();
 
   @Mock private ActionReader actionReader;
   @Mock private ProtocolAdapter protocolAdapter;
   @Mock private SchedulerApi scheduler;
-  @Mock private ThreadUtils threadUtils;
   @Mock private TooltipSupportedApi tooltipSupportedApi;
   @Captor private ArgumentCaptor<Response> responseCaptor;
   private ApplicationInfo applicationInfo;
@@ -179,7 +179,7 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
             scheduler,
             getTaskQueue(),
             timingUtils,
-            threadUtils,
+            fakeThreadUtils,
             actionReader,
             context,
             applicationInfo,
@@ -189,6 +189,7 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
     when(protocolAdapter.createModel(any(Response.class)))
         .thenReturn(Result.success(new ArrayList<>()));
 
+    fakeThreadUtils.enforceMainThread(false);
     feedRequestManager.loadMore(
         streamToken,
         ConsistencyToken.getDefaultInstance(),
@@ -222,7 +223,7 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
             scheduler,
             getTaskQueue(),
             timingUtils,
-            threadUtils,
+            fakeThreadUtils,
             actionReader,
             context,
             applicationInfo,
@@ -232,6 +233,7 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
     when(protocolAdapter.createModel(any(Response.class)))
         .thenReturn(Result.success(new ArrayList<>()));
 
+    fakeThreadUtils.enforceMainThread(false);
     ByteString token = ByteString.copyFromUtf8("fooToken");
     StreamToken streamToken = StreamToken.newBuilder().setNextPageToken(token).build();
     feedRequestManager.loadMore(
@@ -246,9 +248,9 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
     LiteProtoTruth.assertThat(responseCaptor.getValue()).isEqualToDefaultInstance();
   }
 
-  private TaskQueue getTaskQueue() {
-    TaskQueue taskQueue =
-        new TaskQueue(MoreExecutors.directExecutor(), mainThreadRunner, fakeClock, false);
+  private FakeTaskQueue getTaskQueue() {
+    FakeTaskQueue taskQueue =
+        new FakeTaskQueue(MoreExecutors.directExecutor(), fakeClock, fakeThreadUtils);
     taskQueue.initialize(() -> {});
     return taskQueue;
   }

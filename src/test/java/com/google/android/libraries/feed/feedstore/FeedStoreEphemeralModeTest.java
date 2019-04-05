@@ -17,19 +17,18 @@ package com.google.android.libraries.feed.feedstore;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
-import com.google.android.libraries.feed.common.concurrent.TaskQueue;
-import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeTaskQueue;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.feedstore.testing.AbstractFeedStoreTest;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
-import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.storage.ContentStorageDirect;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
+import com.google.android.libraries.feed.testing.host.logging.FakeBasicLoggingApi;
 import com.google.common.util.concurrent.MoreExecutors;
 import java.util.ArrayList;
 import org.junit.Before;
@@ -41,12 +40,12 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class FeedStoreEphemeralModeTest extends AbstractFeedStoreTest {
 
-  @Mock private ThreadUtils threadUtils;
-  @Mock private Configuration configuration;
-  @Mock private BasicLoggingApi basicLoggingApi;
-
+  private final FakeBasicLoggingApi fakeBasicLoggingApi = new FakeBasicLoggingApi();
+  private final FakeThreadUtils fakeThreadUtils = new FakeThreadUtils();
   private final FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(ArrayList::new);
   private final ContentStorageDirect contentStorage = new InMemoryContentStorage();
+
+  @Mock private Configuration configuration;
 
   @Before
   public void setUp() throws Exception {
@@ -56,24 +55,21 @@ public class FeedStoreEphemeralModeTest extends AbstractFeedStoreTest {
 
   @Override
   protected Store getStore(MainThreadRunner mainThreadRunner) {
-    TaskQueue taskQueue =
-        new TaskQueue(
-            MoreExecutors.directExecutor(),
-            FakeMainThreadRunner.runTasksImmediately(),
-            fakeClock,
-            false);
-    taskQueue.initialize(() -> {});
+    FakeTaskQueue fakeTaskQueue =
+        new FakeTaskQueue(MoreExecutors.directExecutor(), fakeClock, fakeThreadUtils);
+    fakeTaskQueue.initialize(() -> {});
     FeedStore feedStore =
         new FeedStore(
             timingUtils,
             extensionRegistry,
             contentStorage,
             new InMemoryJournalStorage(),
-            threadUtils,
-            taskQueue,
+            fakeThreadUtils,
+            fakeTaskQueue,
             fakeClock,
-            basicLoggingApi,
+            fakeBasicLoggingApi,
             mainThreadRunner);
+    fakeThreadUtils.enforceMainThread(false);
     feedStore.switchToEphemeralMode();
     return feedStore;
   }

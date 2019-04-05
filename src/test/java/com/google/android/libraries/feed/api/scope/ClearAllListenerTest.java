@@ -14,16 +14,15 @@
 
 package com.google.android.libraries.feed.api.scope;
 
-import static org.mockito.Mockito.spy;
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.lifecycle.Resettable;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
-import com.google.android.libraries.feed.common.concurrent.TaskQueue;
-import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeTaskQueue;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.feedapplifecyclelistener.FeedAppLifecycleListener;
 import com.google.android.libraries.feed.host.logging.RequestReason;
@@ -39,25 +38,19 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class ClearAllListenerTest {
   private final FakeClock fakeClock = new FakeClock();
+  private final FakeThreadUtils fakeThreadUtils = new FakeThreadUtils();
 
   @Mock private Resettable store;
   @Mock private SessionManager sessionManager;
-  @Mock private TaskQueue taskQueue;
-  @Mock private ThreadUtils threadUtils;
+  private FakeTaskQueue fakeTaskQueue;
   private FeedAppLifecycleListener appLifecycleListener;
 
   @Before
   public void setUp() {
     initMocks(this);
-    taskQueue =
-        new TaskQueue(
-            MoreExecutors.directExecutor(),
-            FakeMainThreadRunner.runTasksImmediately(),
-            fakeClock,
-            false);
-    taskQueue.initialize(() -> {});
-    appLifecycleListener = new FeedAppLifecycleListener(threadUtils);
-    taskQueue = spy(taskQueue);
+    fakeTaskQueue = new FakeTaskQueue(MoreExecutors.directExecutor(), fakeClock, fakeThreadUtils);
+    fakeTaskQueue.initialize(() -> {});
+    appLifecycleListener = new FeedAppLifecycleListener(fakeThreadUtils);
   }
 
   @Test
@@ -66,8 +59,8 @@ public class ClearAllListenerTest {
     appLifecycleListener.onClearAll();
     verify(sessionManager).reset();
     verify(store).reset();
-    verify(taskQueue).reset();
-    verify(taskQueue).completeReset();
+    assertThat(fakeTaskQueue.resetWasCalled()).isTrue();
+    assertThat(fakeTaskQueue.completeResetWasCalled()).isTrue();
   }
 
   @Test
@@ -78,8 +71,8 @@ public class ClearAllListenerTest {
     verify(sessionManager)
         .triggerRefresh(null, RequestReason.CLEAR_ALL, UiContext.getDefaultInstance());
     verify(store).reset();
-    verify(taskQueue).reset();
-    verify(taskQueue).completeReset();
+    assertThat(fakeTaskQueue.resetWasCalled()).isTrue();
+    assertThat(fakeTaskQueue.completeResetWasCalled()).isTrue();
   }
 
   @Test
@@ -91,6 +84,7 @@ public class ClearAllListenerTest {
   }
 
   private void setupClearAllListener() {
-    new ClearAllListener(taskQueue, sessionManager, store, threadUtils, appLifecycleListener);
+    new ClearAllListener(
+        fakeTaskQueue, sessionManager, store, fakeThreadUtils, appLifecycleListener);
   }
 }

@@ -23,14 +23,14 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.common.MutationContext;
-import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.api.store.LocalActionMutation;
 import com.google.android.libraries.feed.api.store.LocalActionMutation.ActionType;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
-import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeTaskQueue;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -62,10 +62,10 @@ public class FeedActionManagerImplTest {
   private final FakeClock fakeClock = new FakeClock();
   private final FakeMainThreadRunner fakeMainThreadRunner =
       FakeMainThreadRunner.runTasksImmediately();
+  private final FakeThreadUtils fakeThreadUtils = new FakeThreadUtils();
 
   @Mock private SessionManager sessionManager;
   @Mock private Store store;
-  @Mock private ThreadUtils threadUtils;
   @Mock private LocalActionMutation localActionMutation;
   @Mock private Consumer<Result<List<StreamDataOperation>>> streamDataOperationsConsumer;
   @Captor private ArgumentCaptor<Integer> actionTypeCaptor;
@@ -82,7 +82,7 @@ public class FeedActionManagerImplTest {
     initMocks(this);
     actionManager =
         new FeedActionManagerImpl(
-            sessionManager, store, threadUtils, getTaskQueue(), fakeMainThreadRunner);
+            sessionManager, store, fakeThreadUtils, getTaskQueue(), fakeMainThreadRunner);
   }
 
   @Test
@@ -215,14 +215,10 @@ public class FeedActionManagerImplTest {
     when(store.editLocalActions()).thenReturn(localActionMutation);
   }
 
-  private TaskQueue getTaskQueue() {
-    TaskQueue taskQueue =
-        new TaskQueue(
-            MoreExecutors.directExecutor(),
-            FakeMainThreadRunner.runTasksImmediately(),
-            fakeClock,
-            false);
-    taskQueue.initialize(() -> {});
-    return taskQueue;
+  private FakeTaskQueue getTaskQueue() {
+    FakeTaskQueue fakeTaskQueue =
+        new FakeTaskQueue(MoreExecutors.directExecutor(), fakeClock, fakeThreadUtils);
+    fakeTaskQueue.initialize(() -> {});
+    return fakeTaskQueue;
   }
 }
