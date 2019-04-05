@@ -25,6 +25,8 @@
   <attr name="feedPrimaryTextColor" format="reference" />
   <!-- Sets the color of the no content card subtitle text. -->
   <attr name="feedSecondaryTextColor" format="reference" />
+  <!-- Sets the color of the spinner. -->
+  <attr name="feedSpinnerColor" format="reference" />
 </resources>
 
 
