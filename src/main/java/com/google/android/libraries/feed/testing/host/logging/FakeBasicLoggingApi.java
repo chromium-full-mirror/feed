@@ -29,6 +29,7 @@ import java.util.List;
 /** Fake implementation of {@link BasicLoggingApi}. */
 public class FakeBasicLoggingApi implements BasicLoggingApi {
 
+  @InternalFeedError public int lastInternalError = InternalFeedError.NEXT_VALUE;
   @RequestReason public int serverRequestReason = RequestReason.UNKNOWN;
 
   public FakeBasicLoggingApi() {}
@@ -103,7 +104,9 @@ public class FakeBasicLoggingApi implements BasicLoggingApi {
   public void onVisualElementViewed(ElementLoggingData data, int elementType) {}
 
   @Override
-  public void onInternalError(@InternalFeedError int internalError) {}
+  public void onInternalError(@InternalFeedError int internalError) {
+    lastInternalError = internalError;
+  }
 
   @Override
   public void onZeroStateRefreshCompleted(int newContentCount, int newTokenCount) {}

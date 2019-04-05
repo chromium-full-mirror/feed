@@ -36,6 +36,7 @@ import android.support.annotation.IntDef;
   InternalFeedError.NULL_SHARED_STATES,
   InternalFeedError.FAILED_TO_CREATE_LEAF,
   InternalFeedError.UNHANDLED_TOKEN,
+  InternalFeedError.TASK_QUEUE_STARVATION,
   InternalFeedError.NEXT_VALUE
 })
 public @interface InternalFeedError {
@@ -76,6 +77,12 @@ public @interface InternalFeedError {
   /** Represents a token that could not be handled. */
   int UNHANDLED_TOKEN = 11;
 
+  /**
+   * Represents that the task queue timed out waiting for a network request and began executing
+   * queued tasks.
+   */
+  int TASK_QUEUE_STARVATION = 12;
+
   /** The next value that should be used when adding additional values to the IntDef. */
-  int NEXT_VALUE = 12;
+  int NEXT_VALUE = 13;
 }

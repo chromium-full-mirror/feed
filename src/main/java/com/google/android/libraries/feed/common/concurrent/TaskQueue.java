@@ -22,6 +22,7 @@ import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.logging.StringFormattingUtils;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.host.logging.InternalFeedError;
 import java.util.ArrayDeque;
 import java.util.Queue;
 import java.util.concurrent.Executor;
@@ -118,7 +119,7 @@ public class TaskQueue implements Dumpable {
   /** Track if starvation checking is running */
   private final AtomicBoolean starvationChecks = new AtomicBoolean(false);
 
-  private final BasicLoggingApi unusedBasicLoggingApi;
+  private final BasicLoggingApi basicLoggingApi;
   private final Executor executor;
   private final Clock clock;
   private final boolean checkStarvation;
@@ -148,7 +149,7 @@ public class TaskQueue implements Dumpable {
       MainThreadRunner mainThreadRunner,
       Clock clock,
       boolean checkStarvation) {
-    this.unusedBasicLoggingApi = basicLoggingApi;
+    this.basicLoggingApi = basicLoggingApi;
     this.executor = executor;
     this.mainThreadRunner = mainThreadRunner;
     this.clock = clock;
@@ -271,6 +272,7 @@ public class TaskQueue implements Dumpable {
           TAG, " * Starvation Check, last task %s", StringFormattingUtils.formatLogDate(lastTask));
       if (clock.currentTimeMillis() >= lastTask + STARVATION_TIMEOUT_MS) {
         Logger.e(TAG, " - Starvation check failed, stopping the delay and running tasks");
+        basicLoggingApi.onInternalError(InternalFeedError.TASK_QUEUE_STARVATION);
         // Reset the delay since things aren't being run
         synchronized (lock) {
           if (waitingForHeadReset) {

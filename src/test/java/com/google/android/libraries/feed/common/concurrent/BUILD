@@ -44,6 +44,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/common/concurrent",
         "//src/main/java/com/google/android/libraries/feed/common/concurrent/testing",
         "//src/main/java/com/google/android/libraries/feed/common/time/testing",
+        "//src/main/java/com/google/android/libraries/feed/host/logging",
         "//src/main/java/com/google/android/libraries/feed/testing/host/logging",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_guava_guava",

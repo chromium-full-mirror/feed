@@ -20,6 +20,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
 import com.google.android.libraries.feed.common.concurrent.testing.ClockBackedFakeMainThreadRunner;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
+import com.google.android.libraries.feed.host.logging.InternalFeedError;
 import com.google.android.libraries.feed.testing.host.logging.FakeBasicLoggingApi;
 import com.google.common.util.concurrent.MoreExecutors;
 import java.util.ArrayList;
@@ -202,6 +203,8 @@ public class TaskQueueTest {
     runAndAssertStarvationChecks();
     assertThat(delayedTaskHasRun).isTrue();
     assertThat(taskQueue.isDelayed()).isFalse();
+    assertThat(fakeBasicLoggingApi.lastInternalError)
+        .isEqualTo(InternalFeedError.TASK_QUEUE_STARVATION);
   }
 
   @Test
