@@ -27,7 +27,7 @@ import com.google.android.libraries.feed.api.actionmanager.ActionReader;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
-import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.testing.ClockBackedFakeMainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeTaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.functional.Consumer;
@@ -96,7 +96,7 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
     initMocks(this);
     context = Robolectric.buildActivity(Activity.class).get();
     applicationInfo = new ApplicationInfo.Builder(context).setVersionString("0").build();
-    mainThreadRunner = FakeMainThreadRunner.runTasksImmediately();
+    mainThreadRunner = ClockBackedFakeMainThreadRunner.runTasksImmediately();
 
     MockServer mockServer = MockServer.getDefaultInstance();
     networkClient = new MockServerNetworkClient(context, mockServer, /* responseDelayMillis= */ 0L);

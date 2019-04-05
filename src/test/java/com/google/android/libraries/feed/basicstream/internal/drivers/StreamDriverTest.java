@@ -46,7 +46,7 @@ import com.google.android.libraries.feed.basicstream.internal.drivers.testing.Fa
 import com.google.android.libraries.feed.basicstream.internal.drivers.testing.FakeLeafFeatureDriver;
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
 import com.google.android.libraries.feed.basicstream.internal.viewloggingupdater.ViewLoggingUpdater;
-import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.testing.ClockBackedFakeMainThreadRunner;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.host.action.ActionApi;
@@ -139,7 +139,8 @@ public class StreamDriverTest {
   private Context context;
   private Clock clock;
   private ThreadUtils threadUtils;
-  private final FakeMainThreadRunner mainThreadRunner = FakeMainThreadRunner.queueAllTasks();
+  private final ClockBackedFakeMainThreadRunner mainThreadRunner =
+      ClockBackedFakeMainThreadRunner.queueAllTasks();
   private final ViewLoggingUpdater viewLoggingUpdater = new ViewLoggingUpdater();
 
   private static FakeModelChild createFakeClusterModelChild() {

@@ -28,7 +28,7 @@ import com.google.android.libraries.feed.api.knowncontent.ContentRemoval;
 import com.google.android.libraries.feed.api.knowncontent.KnownContentApi.KnownContentListener;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.Result;
-import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.testing.ClockBackedFakeMainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.functional.Function;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
@@ -63,7 +63,8 @@ public class FeedKnownContentApiTest {
   @Mock private Consumer<List<ContentMetadata>> knownContentConsumer;
   @Mock private ThreadUtils threadUtils;
 
-  private final FakeMainThreadRunner mainThreadRunner = FakeMainThreadRunner.runTasksImmediately();
+  private final ClockBackedFakeMainThreadRunner mainThreadRunner =
+      ClockBackedFakeMainThreadRunner.runTasksImmediately();
 
   @Captor
   private ArgumentCaptor<Function<StreamPayload, ContentMetadata>> knownContentFunctionCaptor;
@@ -175,7 +176,8 @@ public class FeedKnownContentApiTest {
 
   @Test
   public void testGetKnownContent_offMainThread() {
-    FakeMainThreadRunner fakeMainThreadRunner = FakeMainThreadRunner.queueAllTasks();
+    ClockBackedFakeMainThreadRunner fakeMainThreadRunner =
+        ClockBackedFakeMainThreadRunner.queueAllTasks();
     when(threadUtils.isMainThread()).thenReturn(false);
 
     knownContentApi = new FeedKnownContentApi(sessionManager, fakeMainThreadRunner, threadUtils);

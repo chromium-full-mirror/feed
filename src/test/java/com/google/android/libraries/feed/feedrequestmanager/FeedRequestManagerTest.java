@@ -28,7 +28,7 @@ import android.os.Build.VERSION_CODES;
 import android.util.Base64;
 import com.google.android.libraries.feed.api.common.DismissActionWithSemanticProperties;
 import com.google.android.libraries.feed.common.Result;
-import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.testing.ClockBackedFakeMainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeTaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.locale.LocaleUtils;
@@ -120,7 +120,7 @@ public class FeedRequestManagerTest {
   private ExtensionRegistryLite registry;
   private FeedRequestManager requestManager;
   private FakeActionReader fakeActionReader;
-  private FakeMainThreadRunner fakeMainThreadRunner;
+  private ClockBackedFakeMainThreadRunner fakeMainThreadRunner;
   private FakeProtocolAdapter fakeProtocolAdapter;
   private FakeThreadUtils fakeThreadUtils;
   private FakeTaskQueue fakeTaskQueue;
@@ -144,7 +144,7 @@ public class FeedRequestManagerTest {
     fakeBasicLoggingApi = new FakeBasicLoggingApi();
     fakeThreadUtils = new FakeThreadUtils();
     fakeMainThreadRunner =
-        FakeMainThreadRunner.runTasksImmediatelyWithThreadChecks(fakeThreadUtils);
+        ClockBackedFakeMainThreadRunner.runTasksImmediatelyWithThreadChecks(fakeThreadUtils);
     fakeNetworkClient = new FakeNetworkClient(fakeThreadUtils);
     fakeNetworkClient.setDefaultResponse(
         createHttpResponse(/* responseCode= */ 200, Response.getDefaultInstance()));

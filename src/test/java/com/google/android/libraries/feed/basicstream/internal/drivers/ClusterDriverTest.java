@@ -30,7 +30,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.pendingdismiss.PendingDismissHandler;
 import com.google.android.libraries.feed.basicstream.internal.viewloggingupdater.ViewLoggingUpdater;
-import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.testing.ClockBackedFakeMainThreadRunner;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
@@ -67,7 +67,8 @@ public class ClusterDriverTest {
   @Mock private TooltipApi tooltipApi;
 
   private final Configuration configuration = new Configuration.Builder().build();
-  private final FakeMainThreadRunner mainThreadRunner = FakeMainThreadRunner.queueAllTasks();
+  private final ClockBackedFakeMainThreadRunner mainThreadRunner =
+      ClockBackedFakeMainThreadRunner.queueAllTasks();
   private ClusterDriverForTest clusterDriver;
 
   @Before

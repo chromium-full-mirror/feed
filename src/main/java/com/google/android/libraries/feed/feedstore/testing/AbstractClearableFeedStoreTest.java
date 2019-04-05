@@ -21,7 +21,7 @@ import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.api.store.LocalActionMutation.ActionType;
 import com.google.android.libraries.feed.common.Result;
-import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.testing.ClockBackedFakeMainThreadRunner;
 import com.google.android.libraries.feed.feedstore.internal.ClearableStore;
 import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.protobuf.ByteString;
@@ -77,7 +77,8 @@ public abstract class AbstractClearableFeedStoreTest extends AbstractFeedStoreTe
 
   @Test
   public void clearAll() {
-    ClearableStore store = (ClearableStore) getStore(FakeMainThreadRunner.runTasksImmediately());
+    ClearableStore store =
+        (ClearableStore) getStore(ClockBackedFakeMainThreadRunner.runTasksImmediately());
 
     /*
     SETUP

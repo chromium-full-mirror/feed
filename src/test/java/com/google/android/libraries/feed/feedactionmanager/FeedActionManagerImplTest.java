@@ -28,7 +28,7 @@ import com.google.android.libraries.feed.api.store.LocalActionMutation;
 import com.google.android.libraries.feed.api.store.LocalActionMutation.ActionType;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
-import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.testing.ClockBackedFakeMainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeTaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.functional.Consumer;
@@ -60,8 +60,8 @@ public class FeedActionManagerImplTest {
   private static final String SESSION_ID = "session";
 
   private final FakeClock fakeClock = new FakeClock();
-  private final FakeMainThreadRunner fakeMainThreadRunner =
-      FakeMainThreadRunner.runTasksImmediately();
+  private final ClockBackedFakeMainThreadRunner fakeMainThreadRunner =
+      ClockBackedFakeMainThreadRunner.runTasksImmediately();
   private final FakeThreadUtils fakeThreadUtils = new FakeThreadUtils();
 
   @Mock private SessionManager sessionManager;

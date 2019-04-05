@@ -19,7 +19,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.stream.ScrollListener;
-import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.testing.ClockBackedFakeMainThreadRunner;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.host.logging.ScrollType;
 import com.google.android.libraries.feed.sharedstream.scroll.ScrollLogger;
@@ -38,7 +38,8 @@ public class BasicStreamScrollTrackerTest {
   @Mock private StreamScrollMonitor scrollMonitor;
   private final FakeClock clock = new FakeClock();
 
-  private final FakeMainThreadRunner mainThreadRunner = FakeMainThreadRunner.queueAllTasks();
+  private final ClockBackedFakeMainThreadRunner mainThreadRunner =
+      ClockBackedFakeMainThreadRunner.queueAllTasks();
   private BasicStreamScrollTracker scrollTracker;
 
   @Before

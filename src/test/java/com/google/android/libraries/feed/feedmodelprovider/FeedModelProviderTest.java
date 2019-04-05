@@ -46,7 +46,7 @@ import com.google.android.libraries.feed.api.modelprovider.TokenCompletedObserve
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
-import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.testing.ClockBackedFakeMainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedmodelprovider.FeedModelProvider.InitializeModel;
@@ -93,7 +93,7 @@ public class FeedModelProviderTest {
 
   private ModelChild continuationToken = null;
   private TimingUtils timingUtils = new TimingUtils();
-  private FakeMainThreadRunner fakeMainThreadRunner;
+  private ClockBackedFakeMainThreadRunner fakeMainThreadRunner;
 
   private List<PayloadWithId> childBindings = new ArrayList<>();
 
@@ -111,7 +111,7 @@ public class FeedModelProviderTest {
             })
         .when(sessionManager)
         .getStreamFeatures(any(), any());
-    fakeMainThreadRunner = FakeMainThreadRunner.runTasksImmediately();
+    fakeMainThreadRunner = ClockBackedFakeMainThreadRunner.runTasksImmediately();
   }
 
   @Test
@@ -351,7 +351,7 @@ public class FeedModelProviderTest {
 
   @Test
   public void testInvalidate_unregister() {
-    fakeMainThreadRunner = FakeMainThreadRunner.queueAllTasks();
+    fakeMainThreadRunner = ClockBackedFakeMainThreadRunner.queueAllTasks();
     FeedModelProvider modelProvider = createFeedModelProviderWithConfig();
     fakeMainThreadRunner.runAllTasks();
 
