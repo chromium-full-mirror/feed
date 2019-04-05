@@ -17,6 +17,7 @@ package com.google.android.libraries.feed.basicstream;
 import static com.google.android.libraries.feed.api.stream.Stream.POSITION_NOT_KNOWN;
 import static com.google.android.libraries.feed.basicstream.BasicStream.KEY_STREAM_STATE;
 import static com.google.android.libraries.feed.basicstream.BasicStream.MINIMUM_SPINNER_SHOW_TIME;
+import static com.google.android.libraries.feed.basicstream.BasicStream.MINIMUM_TIME_BEFORE_SHOWING_SPINNER;
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.common.truth.Truth.assertThat;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -62,7 +63,7 @@ import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriv
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
 import com.google.android.libraries.feed.basicstream.internal.viewloggingupdater.ViewLoggingUpdater;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
-import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.testing.ClockBackedFakeMainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
@@ -160,7 +161,7 @@ public class BasicStreamTest {
   private Context context;
   private FakeClock clock;
   private BasicStreamForTest basicStream;
-  private FakeMainThreadRunner mainThreadRunner;
+  private ClockBackedFakeMainThreadRunner mainThreadRunner;
   private List<Header> headers;
 
   @Before
@@ -194,7 +195,7 @@ public class BasicStreamTest {
 
     context = Robolectric.buildActivity(Activity.class).get();
     clock = new FakeClock();
-    mainThreadRunner = FakeMainThreadRunner.queueAllTasks();
+    mainThreadRunner = ClockBackedFakeMainThreadRunner.create(clock);
     layoutManager = new LinearLayoutManagerWithFakePositioning(context);
 
     basicStream = createBasicStream(layoutManager);
@@ -323,12 +324,16 @@ public class BasicStreamTest {
 
   @Test
   public void testOnSessionStart_logsOnOpenedWithNoImmediateContent() {
-    clock = clock.set(10);
     basicStream.onShow();
     reset(streamDriver);
     when(streamDriver.hasContent()).thenReturn(false);
 
-    clock = clock.set(11 + LOGGING_IMMEDIATE_CONTENT_THRESHOLD_MS);
+    // Advance so that the spinner starts showing
+    clock.advance(MINIMUM_TIME_BEFORE_SHOWING_SPINNER);
+
+    // Advance so that is has taken long enough that onOpenedWithNoImmediateContent is logged.
+    clock.advance(LOGGING_IMMEDIATE_CONTENT_THRESHOLD_MS);
+
     basicStream.onSessionStart();
 
     verify(basicLoggingApi).onOpenedWithNoImmediateContent();
@@ -597,18 +602,14 @@ public class BasicStreamTest {
 
   @Test
   public void testRestore_showsZeroStateIfNoSessionToRestore() {
-    basicStream.onShow();
-    mainThreadRunner.runAllTasks();
-
-    basicStream.onHide();
-    basicStream.onDestroy();
-
-    reset(streamDriver);
     basicStream = createBasicStream(new LinearLayoutManagerWithFakePositioning(context));
     basicStream.onCreate(Bundle.EMPTY);
 
     basicStream.onShow();
-    mainThreadRunner.runAllTasks();
+
+    verify(streamDriver, never()).showSpinner();
+
+    clock.advance(MINIMUM_TIME_BEFORE_SHOWING_SPINNER);
 
     verify(streamDriver).showSpinner();
   }
@@ -974,28 +975,36 @@ public class BasicStreamTest {
 
   @Test
   public void testOnSessionStart_showsContentImmediately_ifSpinnerTimeElapsed() {
-    clock.set(10);
     basicStream.onShow();
-    mainThreadRunner.runAllTasks();
     reset(adapter);
-    clock.set(10 + MINIMUM_SPINNER_SHOW_TIME);
+
+    // Advance so the spinner is shown.
+    clock.advance(MINIMUM_TIME_BEFORE_SHOWING_SPINNER);
+
+    // Advance so that it has shown long enough
+    clock.advance(MINIMUM_SPINNER_SHOW_TIME);
 
     basicStream.onSessionStart();
+
+    // The adapter should be immediately set in onSesssionStart
     verify(adapter).setDriver(streamDriver);
   }
 
   @Test
   public void testOnSessionStart_showsContentWithDelay_ifSpinnerTimeNotElapsed() {
-    clock.set(10);
-
     basicStream.onShow();
-    mainThreadRunner.runAllTasks();
+
+    // Advance so the spinner is shown.
+    clock.advance(MINIMUM_TIME_BEFORE_SHOWING_SPINNER);
+
     reset(adapter);
 
     basicStream.onSessionStart();
     verify(adapter, never()).setDriver(any(StreamDriver.class));
 
-    mainThreadRunner.runAllTasks();
+    // Advance so that it has shown long enough.
+    clock.advance(MINIMUM_SPINNER_SHOW_TIME);
+
     verify(adapter).setDriver(streamDriver);
   }
 
@@ -1004,13 +1013,18 @@ public class BasicStreamTest {
     clock.set(10);
 
     basicStream.onShow();
-    mainThreadRunner.runAllTasks();
+
     reset(adapter);
+
+    // Advance so the spinner is shown.
+    clock.advance(MINIMUM_TIME_BEFORE_SHOWING_SPINNER);
 
     basicStream.onSessionStart();
     basicStream.onSessionFinished(UiContext.getDefaultInstance());
 
-    mainThreadRunner.runAllTasks();
+    // Advance so that it has shown long enough.
+    clock.advance(MINIMUM_SPINNER_SHOW_TIME);
+
     verify(adapter, never()).setDriver(streamDriver);
   }
 
@@ -1029,7 +1043,9 @@ public class BasicStreamTest {
 
     verify(streamDriver, never()).showZeroState(/* zeroStateShowReason= */ anyInt());
     verify(streamDriver, never()).showSpinner();
-    mainThreadRunner.runAllTasks();
+
+    // Advance so the spinner is shown.
+    clock.advance(MINIMUM_TIME_BEFORE_SHOWING_SPINNER);
 
     verify(streamDriver).showSpinner();
   }
