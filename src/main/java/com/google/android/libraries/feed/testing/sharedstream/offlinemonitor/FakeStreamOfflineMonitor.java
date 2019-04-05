@@ -21,6 +21,7 @@ import com.google.android.libraries.feed.testing.host.offlineindicator.FakeOffli
 public class FakeStreamOfflineMonitor extends StreamOfflineMonitor {
 
   private final FakeOfflineIndicatorApi fakeIndicatorApi;
+  private boolean offlineStatusRequested = false;
 
   /** Creates a {@link FakeStreamOfflineMonitor} with the given {@link FakeOfflineIndicatorApi}. */
   public static FakeStreamOfflineMonitor createWithOfflineIndicatorApi(
@@ -54,5 +55,15 @@ public class FakeStreamOfflineMonitor extends StreamOfflineMonitor {
   /** Returns the count of how many observers there are for offline status. */
   public int getOfflineStatusConsumerCount() {
     return offlineStatusConsumersMap.size();
+  }
+
+  @Override
+  public void requestOfflineStatusForNewContent() {
+    offlineStatusRequested = true;
+    super.requestOfflineStatusForNewContent();
+  }
+
+  public boolean isOfflineStatusRequested() {
+    return offlineStatusRequested;
   }
 }

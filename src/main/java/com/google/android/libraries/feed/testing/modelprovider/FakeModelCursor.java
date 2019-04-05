@@ -38,6 +38,10 @@ public class FakeModelCursor implements ModelCursor {
     this.modelChildren = modelChildren;
   }
 
+  public static FakeModelCursor emptyCursor() {
+    return FakeModelCursor.newBuilder().build();
+  }
+
   public static Builder newBuilder() {
     return new Builder();
   }
@@ -74,8 +78,13 @@ public class FakeModelCursor implements ModelCursor {
     private Builder() {}
 
     public Builder addCard() {
-      final FakeModelCursor build = newBuilder().build();
+      final FakeModelCursor build = emptyCursor();
       return addChildWithModelFeature(getCardModelFeatureWithCursor(build));
+    }
+
+    public Builder addCard(String contentId) {
+      return addChildWithModelFeatureAndContentId(
+          getCardModelFeatureWithCursor(emptyCursor()), contentId);
     }
 
     public Builder addChild(ModelFeature feature) {
@@ -97,6 +106,10 @@ public class FakeModelCursor implements ModelCursor {
     public Builder addCluster() {
       final FakeModelCursor cursor = new FakeModelCursor(new ArrayList<>());
       return addChildWithModelFeature(getClusterModelFeatureWithCursor(cursor));
+    }
+
+    public Builder addCluster(String contentId) {
+      return addChildWithModelFeature(getClusterModelFeatureWithContentId(contentId));
     }
 
     public Builder addClusters(int count) {
@@ -182,11 +195,33 @@ public class FakeModelCursor implements ModelCursor {
         .build();
   }
 
+  public static FakeModelFeature getCardModelFeatureWithContentId(String contentId) {
+    return FakeModelFeature.newBuilder()
+        .setStreamFeature(
+            StreamFeature.newBuilder()
+                .setCard(Card.getDefaultInstance())
+                .setContentId(contentId)
+                .build())
+        .setModelCursor(FakeModelCursor.newBuilder().build())
+        .build();
+  }
+
   public static FakeModelFeature getClusterModelFeatureWithCursor(ModelCursor cursor) {
     return FakeModelFeature.newBuilder()
         .setStreamFeature(
             StreamFeature.newBuilder().setCluster(Cluster.getDefaultInstance()).build())
         .setModelCursor(cursor)
+        .build();
+  }
+
+  public static FakeModelFeature getClusterModelFeatureWithContentId(String contentId) {
+    return FakeModelFeature.newBuilder()
+        .setStreamFeature(
+            StreamFeature.newBuilder()
+                .setCluster(Cluster.getDefaultInstance())
+                .setContentId(contentId)
+                .build())
+        .setModelCursor(FakeModelCursor.newBuilder().build())
         .build();
   }
 
