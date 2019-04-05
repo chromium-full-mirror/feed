@@ -15,13 +15,10 @@
 package com.google.android.libraries.feed.common.concurrent;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
-import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.testing.ClockBackedFakeMainThreadRunner;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.common.util.concurrent.MoreExecutors;
 import java.util.ArrayList;
@@ -36,6 +33,16 @@ import org.robolectric.RobolectricTestRunner;
 public class TaskQueueTest {
   private final List<Integer> callOrder = new ArrayList<>();
   private final FakeClock fakeClock = new FakeClock();
+  private final ClockBackedFakeMainThreadRunner fakeMainThreadRunner =
+      ClockBackedFakeMainThreadRunner.create(fakeClock);
+  private final TaskQueue taskQueue =
+      new TaskQueue(
+          MoreExecutors.directExecutor(),
+          fakeMainThreadRunner,
+          fakeClock,
+          /* checkStarvation= */ true);
+
+  private boolean delayedTaskHasRun = false;
 
   @Before
   public void setUp() {
@@ -45,7 +52,6 @@ public class TaskQueueTest {
 
   @Test
   public void testInitialization() {
-    TaskQueue taskQueue = getTaskQueue();
     assertThat(taskQueue.isDelayed()).isTrue();
     taskQueue.initialize(this::noOp);
     assertThat(taskQueue.isDelayed()).isFalse();
@@ -53,7 +59,6 @@ public class TaskQueueTest {
 
   @Test
   public void testInitializationCallOrder() {
-    TaskQueue taskQueue = getTaskQueue();
     Runnable background = () -> runnable(1);
     Runnable userFacing = () -> runnable(2);
     Runnable postInit = () -> runnable(3);
@@ -71,7 +76,6 @@ public class TaskQueueTest {
 
   @Test
   public void testPostInit() {
-    TaskQueue taskQueue = getTaskQueue();
     taskQueue.initialize(this::noOp);
 
     Runnable invalidate = () -> runnable(1);
@@ -90,14 +94,16 @@ public class TaskQueueTest {
 
   @Test
   public void testHeadInvalidateReset() {
-    TaskQueue taskQueue = getTaskQueue();
     taskQueue.initialize(this::noOp);
     assertThat(taskQueue.isDelayed()).isFalse();
 
     taskQueue.execute("headInvalidate", TaskType.HEAD_INVALIDATE, this::noOp);
+    taskQueue.execute("delayedTask", TaskType.BACKGROUND, this::delayedTask);
     assertThat(taskQueue.isDelayed()).isTrue();
+    assertThat(delayedTaskHasRun).isFalse();
     taskQueue.execute("headReset", TaskType.HEAD_RESET, this::noOp);
     assertThat(taskQueue.isDelayed()).isFalse();
+    assertThat(delayedTaskHasRun).isTrue();
   }
 
   @Test
@@ -106,7 +112,6 @@ public class TaskQueueTest {
     Runnable invalidateNotRun = () -> runnable(2);
     Runnable init = () -> runnable(3);
 
-    TaskQueue taskQueue = getTaskQueue();
     taskQueue.execute("headInvalidate", TaskType.HEAD_INVALIDATE, invalidate);
     taskQueue.execute("headInvalidateDropped", TaskType.HEAD_INVALIDATE, invalidateNotRun);
     assertThat(taskQueue.hasBacklog()).isTrue();
@@ -118,7 +123,6 @@ public class TaskQueueTest {
 
   @Test
   public void testHeadInvalidateCallOrder() {
-    TaskQueue taskQueue = getTaskQueue();
     taskQueue.initialize(this::noOp);
     assertThat(taskQueue.isDelayed()).isFalse();
 
@@ -141,7 +145,6 @@ public class TaskQueueTest {
 
   @Test
   public void testResetTaskQueue_immediate() {
-    TaskQueue taskQueue = getTaskQueue();
     taskQueue.initialize(this::noOp);
     assertThat(taskQueue.isDelayed()).isFalse();
 
@@ -153,7 +156,6 @@ public class TaskQueueTest {
 
   @Test
   public void testResetQueue_withDelay() {
-    TaskQueue taskQueue = getTaskQueue();
     taskQueue.initialize(this::noOp);
     assertThat(taskQueue.isDelayed()).isFalse();
 
@@ -177,30 +179,50 @@ public class TaskQueueTest {
 
   @Test
   public void testStarvation_initialization() {
-    TaskQueue spyTaskQueue = spy(getTaskQueue());
-    spyTaskQueue.initialize(this::noOp);
+    taskQueue.initialize(this::noOp);
+    taskQueue.execute("delayedTask", TaskType.BACKGROUND, this::delayedTask);
 
-    verify(spyTaskQueue, never()).startStarvationCheck();
+    assertThat(delayedTaskHasRun).isTrue();
+    assertThat(taskQueue.isDelayed()).isFalse();
   }
 
   @Test
   public void testStarvation_headInvalidate() {
-    TaskQueue spyTaskQueue = spy(getTaskQueue());
-    spyTaskQueue.initialize(this::noOp);
-    spyTaskQueue.execute("headInvalidate", TaskType.HEAD_INVALIDATE, this::noOp);
+    taskQueue.initialize(this::noOp);
+    taskQueue.execute("headInvalidate", TaskType.HEAD_INVALIDATE, this::noOp);
+    taskQueue.execute("delayedTask", TaskType.BACKGROUND, this::delayedTask);
 
-    verify(spyTaskQueue).startStarvationCheck();
-    assertThat(spyTaskQueue.isDelayed()).isTrue();
+    assertThat(fakeMainThreadRunner.getCompletedTaskCount()).isEqualTo(0);
+    assertThat(delayedTaskHasRun).isFalse();
+    assertThat(taskQueue.isDelayed()).isTrue();
+
+    runAndAssertStarvationChecks();
+    assertThat(delayedTaskHasRun).isTrue();
+    assertThat(taskQueue.isDelayed()).isFalse();
   }
 
   @Test
   public void testStarvation_reset() {
-    TaskQueue spyTaskQueue = spy(getTaskQueue());
-    spyTaskQueue.initialize(this::noOp);
-    spyTaskQueue.reset();
+    taskQueue.initialize(this::noOp);
+    taskQueue.reset();
+    taskQueue.execute("delayedTask", TaskType.BACKGROUND, this::delayedTask);
 
-    verify(spyTaskQueue).startStarvationCheck();
-    assertThat(spyTaskQueue.isDelayed()).isTrue();
+    assertThat(delayedTaskHasRun).isFalse();
+    assertThat(taskQueue.isDelayed()).isTrue();
+
+    runAndAssertStarvationChecks();
+    assertThat(delayedTaskHasRun).isTrue();
+    assertThat(taskQueue.isDelayed()).isFalse();
+  }
+
+  private void runAndAssertStarvationChecks() {
+    int starvationTaskCount = 0;
+    long startTimeMillis = fakeClock.currentTimeMillis();
+    while (fakeClock.currentTimeMillis() - startTimeMillis < TaskQueue.STARVATION_TIMEOUT_MS) {
+      fakeClock.advance(TaskQueue.STARVATION_CHECK_MS);
+      starvationTaskCount++;
+      assertThat(fakeMainThreadRunner.getCompletedTaskCount()).isEqualTo(starvationTaskCount);
+    }
   }
 
   private void assertOrder(Integer... args) {
@@ -216,11 +238,7 @@ public class TaskQueueTest {
 
   private void noOp() {}
 
-  private TaskQueue getTaskQueue() {
-    return new TaskQueue(
-        MoreExecutors.directExecutor(),
-        FakeMainThreadRunner.runTasksImmediately(),
-        fakeClock,
-        false);
+  private void delayedTask() {
+    delayedTaskHasRun = true;
   }
 }

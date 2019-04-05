@@ -62,9 +62,9 @@ public class TaskQueue implements Dumpable {
    * thread. Starvation checks are started when we initially delay the queue and only runs while the
    * queue is delayed.
    */
-  private static final long STARVATION_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(15);
+  @VisibleForTesting static final long STARVATION_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(15);
 
-  private static final long STARVATION_CHECK_MS = TimeUnit.SECONDS.toMillis(6);
+  @VisibleForTesting static final long STARVATION_CHECK_MS = TimeUnit.SECONDS.toMillis(6);
 
   /** TaskType identifies the type of task being run and implicitly the priority of the task */
   @IntDef({
@@ -111,8 +111,6 @@ public class TaskQueue implements Dumpable {
   // Tracks the current task running on the executor
   /*@Nullable*/ private TaskWrapper currentTask;
 
-  private boolean debugMode = false;
-
   /** Track the time the last task finished. Used for Starvation checks. */
   private final AtomicLong lastTaskFinished = new AtomicLong();
 
@@ -125,17 +123,17 @@ public class TaskQueue implements Dumpable {
   private final MainThreadRunner mainThreadRunner;
 
   // counters used for dump
-  private int taskCount = 0;
-  private int immediateRunCount = 0;
-  private int delayedRunCount = 0;
-  private int immediateTaskCount = 0;
-  private int headInvalidateTaskCount = 0;
-  private int headResetTaskCount = 0;
-  private int userFacingTaskCount = 0;
-  private int backgroundTaskCount = 0;
-  private int maxImmediateTasks = 0;
-  private int maxUserFacingTasks = 0;
-  private int maxBackgroundTasks = 0;
+  protected int taskCount = 0;
+  protected int immediateRunCount = 0;
+  protected int delayedRunCount = 0;
+  protected int immediateTaskCount = 0;
+  protected int headInvalidateTaskCount = 0;
+  protected int headResetTaskCount = 0;
+  protected int userFacingTaskCount = 0;
+  protected int backgroundTaskCount = 0;
+  protected int maxImmediateTasks = 0;
+  protected int maxUserFacingTasks = 0;
+  protected int maxBackgroundTasks = 0;
 
   /**
    * @param checkStarvation This should be set to {@code false} in tests to disable Starvation
@@ -148,11 +146,6 @@ public class TaskQueue implements Dumpable {
     this.mainThreadRunner = mainThreadRunner;
     this.clock = clock;
     this.checkStarvation = checkStarvation;
-  }
-
-  @VisibleForTesting
-  public void setDebugMode(boolean debugMode) {
-    this.debugMode = debugMode;
   }
 
   /** Returns {@code true} if we are delaying for a request */
@@ -242,8 +235,7 @@ public class TaskQueue implements Dumpable {
     scheduleTask(taskWrapper, taskType);
   }
 
-  @VisibleForTesting
-  void startStarvationCheck() {
+  private void startStarvationCheck() {
     if (starvationChecks.get()) {
       Logger.i(TAG, "Starvation Checks are already running");
     }
@@ -270,7 +262,7 @@ public class TaskQueue implements Dumpable {
       long lastTask = lastTaskFinished.get();
       Logger.i(
           TAG, " * Starvation Check, last task %s", StringFormattingUtils.formatLogDate(lastTask));
-      if (clock.currentTimeMillis() > lastTask + STARVATION_TIMEOUT_MS) {
+      if (clock.currentTimeMillis() >= lastTask + STARVATION_TIMEOUT_MS) {
         Logger.e(TAG, " - Starvation check failed, stopping the delay and running tasks");
         // Reset the delay since things aren't being run
         synchronized (lock) {
@@ -322,7 +314,7 @@ public class TaskQueue implements Dumpable {
         maxImmediateTasks = Math.max(immediateTasks.size(), maxImmediateTasks);
         // An immediate could be created in a delayed state (invalidate head), so we check to
         // see if we need to run tasks
-        if (initialized && (currentTask == null || debugMode)) {
+        if (initialized && (currentTask == null)) {
           Logger.i(TAG, " - queueTask starting immediate task");
           executeNextTask();
         }
@@ -360,31 +352,6 @@ public class TaskQueue implements Dumpable {
     } else if (taskType == TaskType.BACKGROUND) {
       backgroundTaskCount++;
     }
-  }
-
-  @VisibleForTesting
-  public void resetCounts() {
-    taskCount = 0;
-    immediateTaskCount = 0;
-    headInvalidateTaskCount = 0;
-    headResetTaskCount = 0;
-    userFacingTaskCount = 0;
-    backgroundTaskCount = 0;
-  }
-
-  @VisibleForTesting
-  public int getBackgroundTaskCount() {
-    return backgroundTaskCount;
-  }
-
-  @VisibleForTesting
-  public int getImmediateTaskCount() {
-    return immediateTaskCount;
-  }
-
-  @VisibleForTesting
-  public int getUserFacingTaskCount() {
-    return userFacingTaskCount;
   }
 
   /** Indicates that tasks are being delayed until a response is processed */
@@ -605,22 +572,6 @@ public class TaskQueue implements Dumpable {
     dumper.forKey("maxImmediateQueue").value(maxImmediateTasks);
     dumper.forKey("maxUserFacingQueue").value(maxUserFacingTasks).compactPrevious();
     dumper.forKey("maxBackgroundQueue").value(maxBackgroundTasks).compactPrevious();
-  }
-
-  /**
-   * When running on a single thread in tests, it is possible that we set waitingForHeadReset after
-   * the task that would have cleared it is run. This only happens in tests since we use Direct
-   * Executors which can cause Tasks to run in a nested way not done when a SingleThreaded Executor
-   * is used. This method will reset the TaskQueue and run the queued tasks.
-   *
-   * <p>This can only be called from tests. Never call this from on test code.
-   */
-  @VisibleForTesting
-  public void runTasksForTest() {
-    synchronized (lock) {
-      waitingForHeadReset = false;
-    }
-    executeNextTask();
   }
 
   private static String taskTypeToString(@TaskType int taskType) {

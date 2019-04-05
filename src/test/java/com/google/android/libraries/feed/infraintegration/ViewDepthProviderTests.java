@@ -26,7 +26,6 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider.ViewDep
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
-import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.testing.InfrastructureIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
@@ -85,7 +84,6 @@ public class ViewDepthProviderTests {
   private ProtocolAdapter protocolAdapter;
   private ModelProviderValidator modelValidator;
   private SessionManager sessionManager;
-  private TaskQueue taskQueue;
 
   @Before
   public void setUp() {
@@ -102,7 +100,6 @@ public class ViewDepthProviderTests {
     protocolAdapter = scope.getProtocolAdapter();
     modelValidator = new ModelProviderValidator(scope.getProtocolAdapter());
     sessionManager = scope.getSessionManager();
-    taskQueue = scope.getTaskQueue();
   }
 
   @Test
@@ -190,8 +187,6 @@ public class ViewDepthProviderTests {
     requestManager.triggerRefresh(
         RequestReason.HOST_REQUESTED,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
-    // Due to running both requests on a single thread, we have to clear the TaskQueue
-    taskQueue.runTasksForTest();
 
     modelValidator.assertCursorContents(
         modelProvider,

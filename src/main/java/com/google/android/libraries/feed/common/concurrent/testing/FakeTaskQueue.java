@@ -47,4 +47,25 @@ public final class FakeTaskQueue extends TaskQueue {
     boolean policy = threadPolicies.pop();
     fakeThreadUtils.enforceMainThread(policy);
   }
+
+  public void resetCounts() {
+    taskCount = 0;
+    immediateTaskCount = 0;
+    headInvalidateTaskCount = 0;
+    headResetTaskCount = 0;
+    userFacingTaskCount = 0;
+    backgroundTaskCount = 0;
+  }
+
+  public int getBackgroundTaskCount() {
+    return backgroundTaskCount;
+  }
+
+  public int getImmediateTaskCount() {
+    return immediateTaskCount;
+  }
+
+  public int getUserFacingTaskCount() {
+    return userFacingTaskCount;
+  }
 }
