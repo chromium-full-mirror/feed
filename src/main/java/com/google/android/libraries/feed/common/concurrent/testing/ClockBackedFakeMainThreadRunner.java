@@ -20,28 +20,58 @@ import com.google.android.libraries.feed.common.concurrent.CancelableRunnableTas
 import com.google.android.libraries.feed.common.concurrent.CancelableTask;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 import java.util.PriorityQueue;
 
 /**
- * A {@link MainThreadRunner} which immediately executes non-delayed tasks, and executes delayed
- * tasks by listening to a {@link FakeClock}.
+ * A {@link MainThreadRunner} which listens to a {@link FakeClock} to determine when to execute
+ * delayed tasks. This class can optionally execute tasks immediately and enforce thread checks.
  */
 public final class ClockBackedFakeMainThreadRunner extends MainThreadRunner {
 
   private final FakeClock fakeClock;
+  private final FakeThreadUtils fakeThreadUtils;
+  private final List<Runnable> tasksToRun = new ArrayList<>();
+  private final boolean shouldQueueTasks;
 
   // Suppressing use of Comparator, which is fine because this is only used in tests.
   @SuppressWarnings("AndroidJdkLibsChecker")
   private final PriorityQueue<TimedRunnable> delayedTasks =
       new PriorityQueue<>(Comparator.comparingLong(TimedRunnable::getExecutionTime));
 
+  private int completedTaskCount = 0;
+
   public static ClockBackedFakeMainThreadRunner create(FakeClock fakeClock) {
-    return new ClockBackedFakeMainThreadRunner(fakeClock);
+    return new ClockBackedFakeMainThreadRunner(
+        fakeClock,
+        new FakeThreadUtils(/* enforceThreadChecks= */ false),
+        /* shouldQueueTasks= */ false);
   }
 
-  private ClockBackedFakeMainThreadRunner(FakeClock fakeClock) {
+  public static ClockBackedFakeMainThreadRunner runTasksImmediately() {
+    return create(new FakeClock());
+  }
+
+  public static ClockBackedFakeMainThreadRunner runTasksImmediatelyWithThreadChecks(
+      FakeThreadUtils fakeThreadUtils) {
+    return new ClockBackedFakeMainThreadRunner(
+        new FakeClock(), fakeThreadUtils, /* shouldQueueTasks= */ false);
+  }
+
+  public static ClockBackedFakeMainThreadRunner queueAllTasks() {
+    return new ClockBackedFakeMainThreadRunner(
+        new FakeClock(),
+        new FakeThreadUtils(/* enforceThreadChecks= */ false),
+        /* shouldQueueTasks= */ true);
+  }
+
+  private ClockBackedFakeMainThreadRunner(
+      FakeClock fakeClock, FakeThreadUtils fakeThreadUtils, boolean shouldQueueTasks) {
     this.fakeClock = fakeClock;
+    this.fakeThreadUtils = fakeThreadUtils;
+    this.shouldQueueTasks = shouldQueueTasks;
     fakeClock.addClockUpdateListener(
         (newCurrentTime, newElapsedRealtime) -> runTasksBefore(newElapsedRealtime));
   }
@@ -50,16 +80,24 @@ public final class ClockBackedFakeMainThreadRunner extends MainThreadRunner {
     TimedRunnable nextTask;
     while ((nextTask = delayedTasks.peek()) != null) {
       if (nextTask.getExecutionTime() > newElapsedRealtime) {
-        return;
+        break;
       }
 
-      checkNotNull(delayedTasks.poll()).run();
+      Runnable task = checkNotNull(delayedTasks.poll());
+      tasksToRun.add(task);
+    }
+
+    if (!shouldQueueTasks) {
+      runAllTasks();
     }
   }
 
   @Override
   public void execute(String name, Runnable runnable) {
-    runnable.run();
+    tasksToRun.add(runnable);
+    if (!shouldQueueTasks) {
+      runAllTasks();
+    }
   }
 
   @Override
@@ -67,6 +105,27 @@ public final class ClockBackedFakeMainThreadRunner extends MainThreadRunner {
     CancelableRunnableTask cancelable = new CancelableRunnableTask(runnable);
     delayedTasks.add(new TimedRunnable(cancelable, fakeClock.elapsedRealtime() + delayMs));
     return cancelable;
+  }
+
+  /** Runs all eligible tasks. */
+  public void runAllTasks() {
+    boolean policy = fakeThreadUtils.enforceMainThread(true);
+    for (Runnable task : tasksToRun) {
+      task.run();
+      completedTaskCount++;
+    }
+    tasksToRun.clear();
+    fakeThreadUtils.enforceMainThread(policy);
+  }
+
+  /** Returns {@literal true} if there are tasks to run or tasks have run. */
+  public boolean hasTasks() {
+    return !tasksToRun.isEmpty() || completedTaskCount != 0;
+  }
+
+  /** Returns the number of tasks that have run. */
+  public int getCompletedTaskCount() {
+    return completedTaskCount;
   }
 
   private static final class TimedRunnable implements Runnable {
