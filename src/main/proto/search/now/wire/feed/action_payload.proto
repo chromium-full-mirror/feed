@@ -30,5 +30,5 @@ option java_outer_classname = "ActionPayloadProto";
 message ActionPayload {
   // Reserved fields for renderable unit extensions
   // Please use CL numbers you own for extension numbers.
-  extensions 1 to 1;
+  extensions 1 to 2;
 }

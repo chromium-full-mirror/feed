@@ -16,6 +16,7 @@ package com.google.android.libraries.feed.feedactionparser;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.never;
@@ -57,6 +58,7 @@ import com.google.search.now.ui.action.FeedActionProto.TooltipData.FeatureName;
 import com.google.search.now.ui.action.FeedActionProto.UndoAction;
 import com.google.search.now.ui.action.PietExtensionsProto.PietFeedActionPayload;
 import com.google.search.now.ui.piet.ActionsProto.Action;
+import com.google.search.now.wire.feed.ActionPayloadProto.ActionPayload;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.DataOperationProto.DataOperation;
 import java.util.List;
@@ -310,32 +312,19 @@ public class FeedActionParserTest {
                   .build())
           .build();
 
-  private static final FeedActionPayload NOT_INTERESTED_IN_SOURCE =
+  private static final FeedActionPayload NOT_INTERESTED_IN =
       FeedActionPayload.newBuilder()
           .setExtension(
               FeedAction.feedActionExtension,
               FeedAction.newBuilder()
                   .setMetadata(
                       FeedActionMetadata.newBuilder()
-                          .setType(Type.NOT_INTERESTED_IN_SOURCE)
+                          .setType(Type.NOT_INTERESTED_IN)
                           .setNotInterestedInData(
                               NotInterestedInData.newBuilder()
                                   .addDataOperations(DataOperation.getDefaultInstance())
-                                  .setUndoAction(UNDO_ACTION)))
-                  .build())
-          .build();
-
-  private static final FeedActionPayload NOT_INTERESTED_IN_TOPIC =
-      FeedActionPayload.newBuilder()
-          .setExtension(
-              FeedAction.feedActionExtension,
-              FeedAction.newBuilder()
-                  .setMetadata(
-                      FeedActionMetadata.newBuilder()
-                          .setType(Type.NOT_INTERESTED_IN_TOPIC)
-                          .setNotInterestedInData(
-                              NotInterestedInData.newBuilder()
-                                  .addDataOperations(DataOperation.getDefaultInstance())
+                                  .setInterestType(NotInterestedInData.RecordedInterestType.SOURCE)
+                                  .setPayload(ActionPayload.getDefaultInstance())
                                   .setUndoAction(UNDO_ACTION)))
                   .build())
           .build();
@@ -675,14 +664,18 @@ public class FeedActionParserTest {
     feedActionParser.parseFeedActionPayload(
         DISMISS_LOCAL_FEED_ACTION, streamActionApi, /* view= */ null, ActionSource.CLICK);
     verify(streamActionApi, never())
-        .dismiss(anyString(), Mockito.anyListOf(StreamDataOperation.class), any());
+        .dismiss(
+            anyString(),
+            Mockito.anyListOf(StreamDataOperation.class),
+            any(UndoAction.class),
+            any(ActionPayload.class));
   }
 
   @Test
-  public void testNotInterestedInTopic_noApiSupport() {
-    when(streamActionApi.canHandleNotInterestedInTopic()).thenReturn(false);
+  public void testNotInterestedIn_noApiSupport() {
+    when(streamActionApi.canHandleNotInterestedIn()).thenReturn(false);
     when(protocolAdapter.createOperations(
-            NOT_INTERESTED_IN_TOPIC
+            NOT_INTERESTED_IN
                 .getExtension(FeedAction.feedActionExtension)
                 .getMetadata()
                 .getNotInterestedInData()
@@ -691,23 +684,11 @@ public class FeedActionParserTest {
     feedActionParser.parseFeedActionPayload(
         DISMISS_LOCAL_FEED_ACTION, streamActionApi, /* view= */ null, ActionSource.CLICK);
     verify(streamActionApi, never())
-        .handleNotInterestedInTopic(Mockito.anyListOf(StreamDataOperation.class), any());
-  }
-
-  @Test
-  public void testNotInterestedInSource_noApiSupport() {
-    when(streamActionApi.canHandleNotInterestedInSource()).thenReturn(false);
-    when(protocolAdapter.createOperations(
-            NOT_INTERESTED_IN_SOURCE
-                .getExtension(FeedAction.feedActionExtension)
-                .getMetadata()
-                .getNotInterestedInData()
-                .getDataOperationsList()))
-        .thenReturn(Result.success(streamDataOperations));
-    feedActionParser.parseFeedActionPayload(
-        DISMISS_LOCAL_FEED_ACTION, streamActionApi, /* view= */ null, ActionSource.CLICK);
-    verify(streamActionApi, never())
-        .handleNotInterestedInSource(Mockito.anyListOf(StreamDataOperation.class), any());
+        .handleNotInterestedIn(
+            Mockito.anyListOf(StreamDataOperation.class),
+            any(UndoAction.class),
+            any(ActionPayload.class),
+            anyInt());
   }
 
   @Test
@@ -726,7 +707,11 @@ public class FeedActionParserTest {
         /* view= */ null,
         ActionSource.CLICK);
     verify(streamActionApi, never())
-        .dismiss(anyString(), Mockito.anyListOf(StreamDataOperation.class), any());
+        .dismiss(
+            anyString(),
+            Mockito.anyListOf(StreamDataOperation.class),
+            any(UndoAction.class),
+            any(ActionPayload.class));
   }
 
   @Test
@@ -745,7 +730,11 @@ public class FeedActionParserTest {
         DISMISS_LOCAL_FEED_ACTION, streamActionApi, /* view= */ null, ActionSource.CLICK);
 
     verify(streamActionApi, never())
-        .dismiss(anyString(), Mockito.anyListOf(StreamDataOperation.class), any());
+        .dismiss(
+            anyString(),
+            Mockito.anyListOf(StreamDataOperation.class),
+            any(UndoAction.class),
+            any(ActionPayload.class));
   }
 
   @Test
@@ -763,16 +752,21 @@ public class FeedActionParserTest {
     feedActionParser.parseFeedActionPayload(
         DISMISS_LOCAL_FEED_ACTION, streamActionApi, /* view= */ null, ActionSource.CLICK);
 
-    verify(streamActionApi).dismiss(DISMISS_CONTENT_ID_STRING, streamDataOperations, UNDO_ACTION);
+    verify(streamActionApi)
+        .dismiss(
+            DISMISS_CONTENT_ID_STRING,
+            streamDataOperations,
+            UNDO_ACTION,
+            ActionPayload.getDefaultInstance());
   }
 
   @Test
-  public void testNotInterestedInSource() {
+  public void testNotInterestedIn() {
     when(streamActionApi.canDismiss()).thenReturn(true);
-    when(streamActionApi.canHandleNotInterestedInSource()).thenReturn(true);
+    when(streamActionApi.canHandleNotInterestedIn()).thenReturn(true);
 
     when(protocolAdapter.createOperations(
-            NOT_INTERESTED_IN_SOURCE
+            NOT_INTERESTED_IN
                 .getExtension(FeedAction.feedActionExtension)
                 .getMetadata()
                 .getNotInterestedInData()
@@ -780,28 +774,14 @@ public class FeedActionParserTest {
         .thenReturn(Result.success(streamDataOperations));
 
     feedActionParser.parseFeedActionPayload(
-        NOT_INTERESTED_IN_SOURCE, streamActionApi, /* view= */ null, ActionSource.CLICK);
+        NOT_INTERESTED_IN, streamActionApi, /* view= */ null, ActionSource.CLICK);
 
-    verify(streamActionApi).handleNotInterestedInSource(streamDataOperations, UNDO_ACTION);
-  }
-
-  @Test
-  public void testNotInterestedInTopic() {
-    when(streamActionApi.canDismiss()).thenReturn(true);
-    when(streamActionApi.canHandleNotInterestedInTopic()).thenReturn(true);
-
-    when(protocolAdapter.createOperations(
-            NOT_INTERESTED_IN_TOPIC
-                .getExtension(FeedAction.feedActionExtension)
-                .getMetadata()
-                .getNotInterestedInData()
-                .getDataOperationsList()))
-        .thenReturn(Result.success(streamDataOperations));
-
-    feedActionParser.parseFeedActionPayload(
-        NOT_INTERESTED_IN_TOPIC, streamActionApi, /* view= */ null, ActionSource.CLICK);
-
-    verify(streamActionApi).handleNotInterestedInTopic(streamDataOperations, UNDO_ACTION);
+    verify(streamActionApi)
+        .handleNotInterestedIn(
+            streamDataOperations,
+            UNDO_ACTION,
+            ActionPayload.getDefaultInstance(),
+            NotInterestedInData.RecordedInterestType.SOURCE.getNumber());
   }
 
   @Test

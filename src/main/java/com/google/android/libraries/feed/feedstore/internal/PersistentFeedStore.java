@@ -591,11 +591,11 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
       String contentId = entry.getKey();
       for (StreamUploadableAction removeAction : entry.getValue().removeActions()) {
         contentMutationBuilder.delete(
-            UPLOADABLE_ACTION_PREFIX + removeAction.getActionType() + contentId);
+            UPLOADABLE_ACTION_PREFIX + contentId + removeAction.getPayload().hashCode());
       }
       for (StreamUploadableAction upsertAction : entry.getValue().upsertActions()) {
         contentMutationBuilder.upsert(
-            UPLOADABLE_ACTION_PREFIX + upsertAction.getActionType() + contentId,
+            UPLOADABLE_ACTION_PREFIX + contentId + upsertAction.getPayload().hashCode(),
             upsertAction.toByteArray());
       }
     }

@@ -30,8 +30,9 @@ import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
+import com.google.search.now.wire.feed.ActionPayloadProto.ActionPayload;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /** Default implementation of {@link ActionManager} */
 public class FeedActionManagerImpl implements ActionManager {
@@ -80,12 +81,18 @@ public class FeedActionManagerImpl implements ActionManager {
   }
 
   @Override
-  public void uploadActions(Set<StreamUploadableAction> actions) {
+  public void createAndUploadAction(String contentId, ActionPayload payload) {
     taskQueue.execute(
         "feedActionUpload",
         TaskType.BACKGROUND,
         () -> {
-          sessionManager.triggerUploadActions(actions);
+          HashSet<StreamUploadableAction> actionSet = new HashSet<>();
+          actionSet.add(
+              StreamUploadableAction.newBuilder()
+                  .setFeatureContentId(contentId)
+                  .setPayload(payload)
+                  .build());
+          sessionManager.triggerUploadActions(actionSet);
         });
   }
 

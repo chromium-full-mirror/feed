@@ -20,6 +20,7 @@ import com.google.android.libraries.feed.host.stream.TooltipInfo;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.ui.action.FeedActionProto.OpenContextMenuData;
 import com.google.search.now.ui.action.FeedActionProto.UndoAction;
+import com.google.search.now.wire.feed.ActionPayloadProto.ActionPayload;
 import java.util.List;
 
 /**
@@ -38,19 +39,21 @@ public interface StreamActionApi extends ActionApi {
   boolean canDismiss();
 
   /** Dismisses card. */
-  void dismiss(String contentId, List<StreamDataOperation> dataOperations, UndoAction undoAction);
+  void dismiss(
+      String contentId,
+      List<StreamDataOperation> dataOperations,
+      UndoAction undoAction,
+      ActionPayload payload);
 
-  /** Whether or not the not interested in topic action can be handled. */
-  boolean canHandleNotInterestedInTopic();
-
-  /** Handles the Not interested in <topic> action. */
-  void handleNotInterestedInTopic(List<StreamDataOperation> dataOperations, UndoAction undoAction);
-
-  /** Whether or not the not interested in source action can be handled. */
-  boolean canHandleNotInterestedInSource();
+  /** Whether or not the not interested in action can be handled. */
+  boolean canHandleNotInterestedIn();
 
   /** Handles the Not interested in <source> action. */
-  void handleNotInterestedInSource(List<StreamDataOperation> dataOperations, UndoAction undoAction);
+  void handleNotInterestedIn(
+      List<StreamDataOperation> dataOperations,
+      UndoAction undoAction,
+      ActionPayload payload,
+      int interestType);
 
   /** Called when a client action has been performed. */
   void onClientAction(@ActionType int actionType);

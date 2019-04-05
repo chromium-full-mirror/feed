@@ -138,14 +138,15 @@ public final class FeedActionParser implements ActionParser {
         streamActionApi.dismiss(
             protocolAdapter.getStreamContentId(feedActionMetadata.getDismissData().getContentId()),
             streamDataOperationsResult.getValue(),
-            feedActionMetadata.getDismissData().getUndoAction());
+            feedActionMetadata.getDismissData().getUndoAction(),
+            feedActionMetadata.getDismissData().getPayload());
 
         break;
-      case NOT_INTERESTED_IN_SOURCE:
-        if (!streamActionApi.canHandleNotInterestedInSource()) {
+      case NOT_INTERESTED_IN:
+        if (!streamActionApi.canHandleNotInterestedIn()) {
           Logger.e(
               TAG,
-              "Cannot preform action not interested in topic action: StreamActionApi does not"
+              "Cannot preform action not interested in action: StreamActionApi does not"
                   + " support it.");
           return;
         }
@@ -157,40 +158,18 @@ public final class FeedActionParser implements ActionParser {
         if (!streamDataOperationResult.isSuccessful()) {
           Logger.e(
               TAG,
-              "Cannot preform action not interested in topic action: conversion to"
+              "Cannot preform action not interested in action: conversion to"
                   + " StreamDataOperation failed.");
           return;
         }
 
-        streamActionApi.handleNotInterestedInSource(
+        streamActionApi.handleNotInterestedIn(
             streamDataOperationResult.getValue(),
-            feedActionMetadata.getNotInterestedInData().getUndoAction());
+            feedActionMetadata.getNotInterestedInData().getUndoAction(),
+            feedActionMetadata.getNotInterestedInData().getPayload(),
+            feedActionMetadata.getNotInterestedInData().getInterestType().getNumber());
         break;
-      case NOT_INTERESTED_IN_TOPIC:
-        if (!streamActionApi.canHandleNotInterestedInTopic()) {
-          Logger.e(
-              TAG,
-              "Cannot preform action not interested in topic action: StreamActionApi does not"
-                  + " support it.");
-          return;
-        }
 
-        Result<List<StreamDataOperation>> dataOperationResult =
-            protocolAdapter.createOperations(
-                feedActionMetadata.getNotInterestedInData().getDataOperationsList());
-
-        if (!dataOperationResult.isSuccessful()) {
-          Logger.e(
-              TAG,
-              "Cannot preform action not interested in topic action: conversion to"
-                  + " StreamDataOperation failed.");
-          return;
-        }
-
-        streamActionApi.handleNotInterestedInTopic(
-            dataOperationResult.getValue(),
-            feedActionMetadata.getNotInterestedInData().getUndoAction());
-        break;
       case DOWNLOAD:
         if (!streamActionApi.canDownloadUrl()) {
           Logger.e(TAG, "Cannot download: StreamActionApi does not support it");
@@ -342,10 +321,8 @@ public final class FeedActionParser implements ActionParser {
         return contentMetadata.get() != null && streamActionApi.canDownloadUrl();
       case LEARN_MORE:
         return streamActionApi.canLearnMore();
-      case NOT_INTERESTED_IN_SOURCE:
-        return streamActionApi.canHandleNotInterestedInSource();
-      case NOT_INTERESTED_IN_TOPIC:
-        return streamActionApi.canHandleNotInterestedInTopic();
+      case NOT_INTERESTED_IN:
+        return streamActionApi.canHandleNotInterestedIn();
       case UNKNOWN:
       default:
         // TODO : Handle the action types introduced in [INTERNAL LINK]

@@ -19,6 +19,7 @@ import com.google.android.libraries.feed.api.common.ActionPropertiesWithId;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.common.Result;
 import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
+import com.google.search.now.wire.feed.ActionPayloadProto.ActionPayload;
 import com.google.search.now.wire.feed.ActionPropertiesProto.ActionProperties;
 import com.google.search.now.wire.feed.ActionRequestProto.ActionRequest;
 import com.google.search.now.wire.feed.ConsistencyTokenProto.ConsistencyToken;
@@ -77,6 +78,8 @@ final class UploadableActionsRequestBuilder {
       for (StreamUploadableAction action : uploadableActions) {
         String contentId = action.getFeatureContentId();
         FeedAction.Builder feedAction = FeedAction.newBuilder();
+        ActionPayload payload = action.getPayload();
+        feedAction.setActionPayload(payload);
         ActionProperties properties = actionPropertyMap.get(contentId);
         if (properties != null) {
           feedAction.setActionProperties(properties);

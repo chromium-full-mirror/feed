@@ -46,7 +46,6 @@ import com.google.android.libraries.feed.sharedstream.pendingdismiss.PendingDism
 import com.google.android.libraries.feed.testing.sharedstream.contextmenumanager.FakeContextMenuManager;
 import com.google.common.collect.ImmutableList;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
-import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
 import com.google.search.now.ui.action.FeedActionProto.FeedAction;
 import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata;
@@ -56,10 +55,10 @@ import com.google.search.now.ui.action.FeedActionProto.LabelledFeedActionData;
 import com.google.search.now.ui.action.FeedActionProto.OpenContextMenuData;
 import com.google.search.now.ui.action.FeedActionProto.OpenUrlData;
 import com.google.search.now.ui.action.FeedActionProto.UndoAction;
+import com.google.search.now.wire.feed.ActionPayloadProto.ActionPayload;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
@@ -80,6 +79,8 @@ public class StreamActionApiImplTest {
   private static final String OPEN_IN_NEW_WINDOW_LABEL = "Open in new window";
   private static final String PARAM = "param";
   private static final String NEW_URL = "ooh.shiny.com";
+  private static final int INTEREST_TYPE = 2;
+  private static final ActionPayload ACTION_PAYLOAD = ActionPayload.getDefaultInstance();
   private static final LabelledFeedActionData OPEN_IN_NEW_WINDOW =
       LabelledFeedActionData.newBuilder()
           .setLabel(OPEN_IN_NEW_WINDOW_LABEL)
@@ -184,7 +185,8 @@ public class StreamActionApiImplTest {
     String contentId = "contentId";
     List<StreamDataOperation> streamDataOperations =
         Collections.singletonList(StreamDataOperation.getDefaultInstance());
-    streamActionApi.dismiss(contentId, streamDataOperations, UndoAction.getDefaultInstance());
+    streamActionApi.dismiss(
+        contentId, streamDataOperations, UndoAction.getDefaultInstance(), ACTION_PAYLOAD);
 
     verify(actionManager)
         .dismissLocal(ImmutableList.of(contentId), streamDataOperations, SESSION_ID);
@@ -223,32 +225,17 @@ public class StreamActionApiImplTest {
 
   @Test
   public void testHandleNotInterestedInTopic_onCommitted() {
-    testCommittedDismissWithSnackbar(Type.NOT_INTERESTED_IN_TOPIC);
+    testCommittedDismissWithSnackbar(Type.NOT_INTERESTED_IN);
   }
 
   @Test
   public void testHandleNotInterestedInTopic_onReverted() {
-    testRevertedDismissWithSnackbar(Type.NOT_INTERESTED_IN_TOPIC);
+    testRevertedDismissWithSnackbar(Type.NOT_INTERESTED_IN);
   }
 
   @Test
   public void testHandleNotInterestedInTopic_noSnackbar() {
-    testDismissNoSnackbar(Type.NOT_INTERESTED_IN_TOPIC);
-  }
-
-  @Test
-  public void testHandleNotInterestedInSource_onCommitted() {
-    testCommittedDismissWithSnackbar(Type.NOT_INTERESTED_IN_SOURCE);
-  }
-
-  @Test
-  public void testHandleNotInterestedInSource_onReverted() {
-    testRevertedDismissWithSnackbar(Type.NOT_INTERESTED_IN_SOURCE);
-  }
-
-  @Test
-  public void testHandleNotInterestedInSource_noSnackbar() {
-    testDismissNoSnackbar(Type.NOT_INTERESTED_IN_SOURCE);
+    testDismissNoSnackbar(Type.NOT_INTERESTED_IN);
   }
 
   @Test
@@ -520,13 +507,11 @@ public class StreamActionApiImplTest {
     switch (actionType) {
       case DISMISS:
       case DISMISS_LOCAL:
-        streamActionApi.dismiss(CONTENT_ID, streamDataOperations, undoAction);
+        streamActionApi.dismiss(CONTENT_ID, streamDataOperations, undoAction, ACTION_PAYLOAD);
         break;
-      case NOT_INTERESTED_IN_SOURCE:
-        streamActionApi.handleNotInterestedInSource(streamDataOperations, undoAction);
-        break;
-      case NOT_INTERESTED_IN_TOPIC:
-        streamActionApi.handleNotInterestedInTopic(streamDataOperations, undoAction);
+      case NOT_INTERESTED_IN:
+        streamActionApi.handleNotInterestedIn(
+            streamDataOperations, undoAction, ACTION_PAYLOAD, INTEREST_TYPE);
         break;
       default:
         break;
@@ -536,33 +521,23 @@ public class StreamActionApiImplTest {
         .triggerPendingDismissForCluster(eq(undoAction), pendingDismissCallback.capture());
 
     pendingDismissCallback.getValue().onDismissCommitted();
-    HashSet<StreamUploadableAction> actionSet = new HashSet<>();
     switch (actionType) {
       case DISMISS:
         verify(actionManager)
             .dismissLocal(ImmutableList.of(CONTENT_ID), streamDataOperations, SESSION_ID);
         verify(basicLoggingApi).onContentDismissed(contentLoggingData, /*wasCommitted =*/ true);
-        actionSet.add(
-            StreamUploadableAction.newBuilder()
-                .setFeatureContentId(CONTENT_ID)
-                .setActionType(FeedActionMetadata.Type.DISMISS)
-                .build());
-        verify(actionManager).uploadActions(actionSet);
+        verify(actionManager).createAndUploadAction(CONTENT_ID, ACTION_PAYLOAD);
         break;
       case DISMISS_LOCAL:
         verify(actionManager)
             .dismissLocal(ImmutableList.of(CONTENT_ID), streamDataOperations, SESSION_ID);
         verify(basicLoggingApi).onContentDismissed(contentLoggingData, /*wasCommitted =*/ true);
         break;
-      case NOT_INTERESTED_IN_SOURCE:
-      case NOT_INTERESTED_IN_TOPIC:
+      case NOT_INTERESTED_IN:
         verify(actionManager).dismiss(streamDataOperations, SESSION_ID);
-        verify(basicLoggingApi).onNotInterestedIn(0, contentLoggingData, /*wasCommitted =*/ true);
-        actionSet.add(
-            StreamUploadableAction.newBuilder()
-                .setFeatureContentId(CONTENT_ID)
-                .build());
-        verify(actionManager).uploadActions(actionSet);
+        verify(basicLoggingApi)
+            .onNotInterestedIn(INTEREST_TYPE, contentLoggingData, /*wasCommitted =*/ true);
+        verify(actionManager).createAndUploadAction(CONTENT_ID, ACTION_PAYLOAD);
         break;
       default:
         break;
@@ -579,13 +554,11 @@ public class StreamActionApiImplTest {
     switch (actionType) {
       case DISMISS:
       case DISMISS_LOCAL:
-        streamActionApi.dismiss(contentId, streamDataOperations, undoAction);
+        streamActionApi.dismiss(contentId, streamDataOperations, undoAction, ACTION_PAYLOAD);
         break;
-      case NOT_INTERESTED_IN_SOURCE:
-        streamActionApi.handleNotInterestedInSource(streamDataOperations, undoAction);
-        break;
-      case NOT_INTERESTED_IN_TOPIC:
-        streamActionApi.handleNotInterestedInTopic(streamDataOperations, undoAction);
+      case NOT_INTERESTED_IN:
+        streamActionApi.handleNotInterestedIn(
+            streamDataOperations, undoAction, ACTION_PAYLOAD, INTEREST_TYPE);
         break;
       default:
         break;
@@ -603,9 +576,9 @@ public class StreamActionApiImplTest {
       case DISMISS_LOCAL:
         verify(basicLoggingApi).onContentDismissed(contentLoggingData, /*wasCommitted =*/ false);
         break;
-      case NOT_INTERESTED_IN_SOURCE:
-      case NOT_INTERESTED_IN_TOPIC:
-        verify(basicLoggingApi).onNotInterestedIn(0, contentLoggingData, /*wasCommitted =*/ false);
+      case NOT_INTERESTED_IN:
+        verify(basicLoggingApi)
+            .onNotInterestedIn(INTEREST_TYPE, contentLoggingData, /*wasCommitted =*/ false);
         break;
       default:
         break;
@@ -620,13 +593,11 @@ public class StreamActionApiImplTest {
     switch (actionType) {
       case DISMISS:
       case DISMISS_LOCAL:
-        streamActionApi.dismiss(contentId, streamDataOperations, undoAction);
+        streamActionApi.dismiss(contentId, streamDataOperations, undoAction, ACTION_PAYLOAD);
         break;
-      case NOT_INTERESTED_IN_SOURCE:
-        streamActionApi.handleNotInterestedInSource(streamDataOperations, undoAction);
-        break;
-      case NOT_INTERESTED_IN_TOPIC:
-        streamActionApi.handleNotInterestedInTopic(streamDataOperations, undoAction);
+      case NOT_INTERESTED_IN:
+        streamActionApi.handleNotInterestedIn(
+            streamDataOperations, undoAction, ACTION_PAYLOAD, INTEREST_TYPE);
         break;
       default:
         break;
@@ -641,10 +612,10 @@ public class StreamActionApiImplTest {
             .dismissLocal(ImmutableList.of(contentId), streamDataOperations, SESSION_ID);
         verify(basicLoggingApi).onContentDismissed(contentLoggingData, /*wasCommitted =*/ true);
         break;
-      case NOT_INTERESTED_IN_SOURCE:
-      case NOT_INTERESTED_IN_TOPIC:
+      case NOT_INTERESTED_IN:
         verify(actionManager).dismiss(streamDataOperations, SESSION_ID);
-        verify(basicLoggingApi).onNotInterestedIn(0, contentLoggingData, /*wasCommitted =*/ true);
+        verify(basicLoggingApi)
+            .onNotInterestedIn(INTEREST_TYPE, contentLoggingData, /*wasCommitted =*/ true);
         break;
       default:
         break;

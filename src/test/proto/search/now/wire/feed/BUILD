@@ -1,7 +1,10 @@
-package(default_visibility = [
-    "//src/main/java/com/google/android/libraries/feed/feedstore:__subpackages__",
-    "//src/test/java/com/google/android/libraries/feed:__subpackages__",
-])
+package(
+    default_testonly = 1,
+    default_visibility = [
+        "//src/main/java/com/google/android/libraries/feed/feedstore:__subpackages__",
+        "//src/test/java/com/google/android/libraries/feed:__subpackages__",
+    ],
+)
 
 licenses(["notice"])  # Apache 2
 

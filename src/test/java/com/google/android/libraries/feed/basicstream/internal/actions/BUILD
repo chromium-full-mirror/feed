@@ -26,6 +26,7 @@ android_local_test(
         "//src/main/proto/com/google/android/libraries/feed/api/proto:client_feed_java_proto_lite",
         "//src/main/proto/search/now/ui/action:feed_action_java_proto_lite",
         "//src/main/proto/search/now/ui/action:feed_action_payload_java_proto_lite",
+        "//src/main/proto/search/now/wire/feed:feed_java_proto_lite",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_truth_truth",

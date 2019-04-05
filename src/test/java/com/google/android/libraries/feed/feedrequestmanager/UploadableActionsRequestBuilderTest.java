@@ -21,7 +21,8 @@ import com.google.android.libraries.feed.testing.actionmanager.FakeActionReader;
 import com.google.android.libraries.feed.testing.protocoladapter.FakeProtocolAdapter;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
-import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.Type;
+import com.google.search.now.wire.feed.ActionPayloadForTestProto.ActionPayloadForTest;
+import com.google.search.now.wire.feed.ActionPayloadProto.ActionPayload;
 import com.google.search.now.wire.feed.ActionPropertiesProto.ActionProperties;
 import com.google.search.now.wire.feed.ActionRequestProto.ActionRequest;
 import com.google.search.now.wire.feed.ConsistencyTokenProto.ConsistencyToken;
@@ -40,7 +41,12 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class UploadableActionsRequestBuilderTest {
   private static final String CONTENT_ID = "contentId";
-
+  private final ActionPayload payload =
+      ActionPayload.newBuilder()
+          .setExtension(
+              ActionPayloadForTest.actionPayloadForTestExtension,
+              ActionPayloadForTest.newBuilder().setId(CONTENT_ID).build())
+          .build();
   private UploadableActionsRequestBuilder builder;
   private HashSet<StreamUploadableAction> actionSet = new HashSet<>();
   private ConsistencyToken token =
@@ -68,7 +74,7 @@ public class UploadableActionsRequestBuilderTest {
     actionSet.add(
         StreamUploadableAction.newBuilder()
             .setFeatureContentId(CONTENT_ID)
-            .setActionType(Type.DISMISS)
+            .setPayload(payload)
             .build());
     requestBuilder =
         ActionRequest.newBuilder()
@@ -78,11 +84,12 @@ public class UploadableActionsRequestBuilderTest {
 
   @Test
   public void testUploadableActionsRequest_noToken() throws Exception {
-
+ 
     FeedAction.Builder feedAction =
         FeedAction.newBuilder()
             .setActionProperties(ActionProperties.newBuilder().setActionData(data).build());
     feedAction.setContentId(ContentId.getDefaultInstance());
+    feedAction.setActionPayload(payload);
     feedActionRequestBuilder.addFeedAction(feedAction);
     requestBuilder.setExtension(
         FeedActionRequest.feedActionRequest, feedActionRequestBuilder.build());
@@ -109,6 +116,7 @@ public class UploadableActionsRequestBuilderTest {
         FeedAction.newBuilder()
             .setActionProperties(ActionProperties.newBuilder().setActionData(data).build());
     feedAction.setContentId(ContentId.getDefaultInstance());
+    feedAction.setActionPayload(payload);
     feedActionRequestBuilder.addFeedAction(feedAction);
     feedActionRequestBuilder.setConsistencyToken(token);
     requestBuilder.setExtension(

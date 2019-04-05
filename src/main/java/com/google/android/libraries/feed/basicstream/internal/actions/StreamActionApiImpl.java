@@ -31,15 +31,13 @@ import com.google.android.libraries.feed.host.stream.TooltipInfo;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.pendingdismiss.PendingDismissCallback;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
-import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
 import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.ElementType;
-import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.Type;
 import com.google.search.now.ui.action.FeedActionProto.LabelledFeedActionData;
 import com.google.search.now.ui.action.FeedActionProto.OpenContextMenuData;
 import com.google.search.now.ui.action.FeedActionProto.UndoAction;
+import com.google.search.now.wire.feed.ActionPayloadProto.ActionPayload;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 
 /** Action handler for Stream. */
@@ -124,68 +122,36 @@ public class StreamActionApiImpl implements StreamActionApi {
   }
 
   @Override
-  public boolean canHandleNotInterestedInTopic() {
+  public boolean canHandleNotInterestedIn() {
     return true;
   }
 
   @Override
-  public void handleNotInterestedInTopic(
-      List<StreamDataOperation> dataOperations, UndoAction undoAction) {
+  public void handleNotInterestedIn(
+      List<StreamDataOperation> dataOperations,
+      UndoAction undoAction,
+      ActionPayload payload,
+      int interestType) {
     if (!undoAction.hasConfirmationLabel()) {
       dismiss(dataOperations);
-
-      // TODO: use correct value
-      basicLoggingApi.onNotInterestedIn(0, contentLoggingData, /* wasCommitted = */ true);
+      basicLoggingApi.onNotInterestedIn(
+          interestType, contentLoggingData, /* wasCommitted = */ true);
     } else {
       dismissWithSnackbar(
           undoAction,
           new PendingDismissCallback() {
             @Override
             public void onDismissReverted() {
-              basicLoggingApi.onNotInterestedIn(0, contentLoggingData, /* wasCommitted = */ false);
+              basicLoggingApi.onNotInterestedIn(
+                  interestType, contentLoggingData, /* wasCommitted = */ false);
             }
 
             @Override
             public void onDismissCommitted() {
               dismiss(dataOperations);
-              HashSet<StreamUploadableAction> actionSet = new HashSet<>();
-              actionSet.add(
-                  StreamUploadableAction.newBuilder().setFeatureContentId(contentId).build());
-              actionManager.uploadActions(actionSet);
-              basicLoggingApi.onNotInterestedIn(0, contentLoggingData, /* wasCommitted = */ true);
-            }
-          });
-    }
-  }
-
-  @Override
-  public boolean canHandleNotInterestedInSource() {
-    return true;
-  }
-
-  @Override
-  public void handleNotInterestedInSource(
-      List<StreamDataOperation> dataOperations, UndoAction undoAction) {
-    if (!undoAction.hasConfirmationLabel()) {
-      dismiss(dataOperations);
-      basicLoggingApi.onNotInterestedIn(0, contentLoggingData, /* wasCommitted = */ true);
-    } else {
-      dismissWithSnackbar(
-          undoAction,
-          new PendingDismissCallback() {
-            @Override
-            public void onDismissReverted() {
-              basicLoggingApi.onNotInterestedIn(0, contentLoggingData, /* wasCommitted = */ false);
-            }
-
-            @Override
-            public void onDismissCommitted() {
-              dismiss(dataOperations);
-              HashSet<StreamUploadableAction> actionSet = new HashSet<>();
-              actionSet.add(
-                  StreamUploadableAction.newBuilder().setFeatureContentId(contentId).build());
-              actionManager.uploadActions(actionSet);
-              basicLoggingApi.onNotInterestedIn(0, contentLoggingData, /* wasCommitted = */ true);
+              actionManager.createAndUploadAction(contentId, payload);
+              basicLoggingApi.onNotInterestedIn(
+                  interestType, contentLoggingData, /* wasCommitted = */ true);
             }
           });
     }
@@ -193,7 +159,10 @@ public class StreamActionApiImpl implements StreamActionApi {
 
   @Override
   public void dismiss(
-      String contentId, List<StreamDataOperation> dataOperations, UndoAction undoAction) {
+      String contentId,
+      List<StreamDataOperation> dataOperations,
+      UndoAction undoAction,
+      ActionPayload payload) {
     if (!undoAction.hasConfirmationLabel()) {
       dismissLocal(contentId, dataOperations);
       basicLoggingApi.onContentDismissed(contentLoggingData, /* wasCommitted = */ true);
@@ -209,13 +178,8 @@ public class StreamActionApiImpl implements StreamActionApi {
             @Override
             public void onDismissCommitted() {
               dismissLocal(contentId, dataOperations);
-              HashSet<StreamUploadableAction> actionSet = new HashSet<>();
-              actionSet.add(
-                  StreamUploadableAction.newBuilder()
-                      .setFeatureContentId(contentId)
-                      .setActionType(Type.DISMISS)
-                      .build());
-              actionManager.uploadActions(actionSet);
+              dismiss(dataOperations);
+              actionManager.createAndUploadAction(contentId, payload);
               basicLoggingApi.onContentDismissed(contentLoggingData, /* wasCommitted = */ true);
             }
           });

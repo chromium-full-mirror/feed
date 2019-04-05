@@ -1,4 +1,4 @@
-// Copyright 2018 The Feed Authors.
+/// Copyright 2018 The Feed Authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -63,12 +63,11 @@ message FeedActionMetadata {
     DOWNLOAD = 6;
     OPEN_URL_NEW_TAB = 7;
     LEARN_MORE = 8;
-    NOT_INTERESTED_IN_TOPIC = 9 [deprecated = true];
-    NOT_INTERESTED_IN_SOURCE = 10 [deprecated = true];
     VIEW_ELEMENT = 12;
     HIDE_ELEMENT = 13;
     SHOW_TOOLTIP = 14;
     NOT_INTERESTED_IN = 15;
+    reserved 9, 10;  // Deprecated
   }
   optional Type type = 1;
 

@@ -39,10 +39,11 @@ import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
 import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
+import com.google.search.now.wire.feed.ActionPayloadProto.ActionPayload;
 import com.google.search.now.wire.feed.ConsistencyTokenProto.ConsistencyToken;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -72,6 +73,7 @@ public class FeedActionManagerImplTest {
   @Captor private ArgumentCaptor<Result<List<StreamDataOperation>>> streamDataOperationsCaptor;
   @Captor private ArgumentCaptor<MutationContext> mutationContextCaptor;
   @Captor private ArgumentCaptor<Consumer<Result<ConsistencyToken>>> consumerCaptor;
+  @Captor private ArgumentCaptor<Set<StreamUploadableAction>> actionCaptor;
 
   private ActionManager actionManager;
 
@@ -172,11 +174,13 @@ public class FeedActionManagerImplTest {
   }
 
   @Test
-  public void triggerUploadActions() throws Exception {
-    HashSet<StreamUploadableAction> actionSet = new HashSet<>();
-    actionSet.add(StreamUploadableAction.getDefaultInstance());
-    actionManager.uploadActions(actionSet);
-    verify(sessionManager).triggerUploadActions(actionSet);
+  public void triggerCreateAndUploadAction() throws Exception {
+    ActionPayload payload = ActionPayload.getDefaultInstance();
+    actionManager.createAndUploadAction(CONTENT_ID_STRING, payload);
+    verify(sessionManager).triggerUploadActions(actionCaptor.capture());
+    StreamUploadableAction action = (StreamUploadableAction) actionCaptor.getValue().toArray()[0];
+    assertThat(action.getFeatureContentId()).isEqualTo(CONTENT_ID_STRING);
+    assertThat(action.getPayload()).isEqualTo(payload);
   }
 
   @Test
