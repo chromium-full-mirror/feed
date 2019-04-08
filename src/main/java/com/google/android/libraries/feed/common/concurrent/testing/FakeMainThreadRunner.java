@@ -29,7 +29,7 @@ import java.util.PriorityQueue;
  * A {@link MainThreadRunner} which listens to a {@link FakeClock} to determine when to execute
  * delayed tasks. This class can optionally execute tasks immediately and enforce thread checks.
  */
-public final class ClockBackedFakeMainThreadRunner extends MainThreadRunner {
+public final class FakeMainThreadRunner extends MainThreadRunner {
 
   private final FakeClock fakeClock;
   private final FakeThreadUtils fakeThreadUtils;
@@ -43,31 +43,31 @@ public final class ClockBackedFakeMainThreadRunner extends MainThreadRunner {
 
   private int completedTaskCount = 0;
 
-  public static ClockBackedFakeMainThreadRunner create(FakeClock fakeClock) {
-    return new ClockBackedFakeMainThreadRunner(
+  public static FakeMainThreadRunner create(FakeClock fakeClock) {
+    return new FakeMainThreadRunner(
         fakeClock,
         new FakeThreadUtils(/* enforceThreadChecks= */ false),
         /* shouldQueueTasks= */ false);
   }
 
-  public static ClockBackedFakeMainThreadRunner runTasksImmediately() {
+  public static FakeMainThreadRunner runTasksImmediately() {
     return create(new FakeClock());
   }
 
-  public static ClockBackedFakeMainThreadRunner runTasksImmediatelyWithThreadChecks(
+  public static FakeMainThreadRunner runTasksImmediatelyWithThreadChecks(
       FakeThreadUtils fakeThreadUtils) {
-    return new ClockBackedFakeMainThreadRunner(
+    return new FakeMainThreadRunner(
         new FakeClock(), fakeThreadUtils, /* shouldQueueTasks= */ false);
   }
 
-  public static ClockBackedFakeMainThreadRunner queueAllTasks() {
-    return new ClockBackedFakeMainThreadRunner(
+  public static FakeMainThreadRunner queueAllTasks() {
+    return new FakeMainThreadRunner(
         new FakeClock(),
         new FakeThreadUtils(/* enforceThreadChecks= */ false),
         /* shouldQueueTasks= */ true);
   }
 
-  private ClockBackedFakeMainThreadRunner(
+  private FakeMainThreadRunner(
       FakeClock fakeClock, FakeThreadUtils fakeThreadUtils, boolean shouldQueueTasks) {
     this.fakeClock = fakeClock;
     this.fakeThreadUtils = fakeThreadUtils;

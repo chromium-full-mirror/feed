@@ -20,7 +20,7 @@ import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.UploadableActionMutation;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
-import com.google.android.libraries.feed.common.concurrent.testing.ClockBackedFakeMainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.time.Clock;
@@ -55,7 +55,7 @@ public final class FakeStore extends FeedStore {
         taskQueue,
         clock,
         new FakeBasicLoggingApi(),
-        ClockBackedFakeMainThreadRunner.runTasksImmediately());
+        FakeMainThreadRunner.runTasksImmediately());
     this.fakeThreadUtils = fakeThreadUtils;
   }
 

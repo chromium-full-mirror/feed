@@ -26,7 +26,7 @@ import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
-import com.google.android.libraries.feed.common.concurrent.testing.ClockBackedFakeMainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.testing.RunnableSubject;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
@@ -82,8 +82,7 @@ public abstract class AbstractFeedStoreTest {
           .setStreamStructure(STREAM_STRUCTURE)
           .setStreamPayload(STREAM_PAYLOAD)
           .build();
-  private final MainThreadRunner mainThreadRunner =
-      ClockBackedFakeMainThreadRunner.runTasksImmediately();
+  private final MainThreadRunner mainThreadRunner = FakeMainThreadRunner.runTasksImmediately();
 
   /**
    * Provides an instance of the store

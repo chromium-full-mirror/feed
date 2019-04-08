@@ -38,7 +38,7 @@ public final class FakeTaskQueue extends TaskQueue {
     super(
         new FakeBasicLoggingApi(),
         executor,
-        ClockBackedFakeMainThreadRunner.runTasksImmediately(),
+        FakeMainThreadRunner.runTasksImmediately(),
         clock,
         /* checkStarvation= */ false);
     this.fakeThreadUtils = fakeThreadUtils;

@@ -38,7 +38,7 @@ import com.google.android.libraries.feed.api.actionparser.ActionSource;
 import com.google.android.libraries.feed.api.actionparser.ActionSourceConverter;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.actions.StreamActionApiImpl;
-import com.google.android.libraries.feed.common.concurrent.testing.ClockBackedFakeMainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
@@ -106,8 +106,7 @@ public class PietViewHolderTest {
     initMocks(this);
     streamScrollMonitor =
         new StreamScrollMonitor(
-            mock(ContentChangedListener.class),
-            ClockBackedFakeMainThreadRunner.runTasksImmediately());
+            mock(ContentChangedListener.class), FakeMainThreadRunner.runTasksImmediately());
     cardConfiguration = new FakeCardConfiguration();
     context = Robolectric.buildActivity(Activity.class).get();
     frameLayout = new FrameLayout(context);

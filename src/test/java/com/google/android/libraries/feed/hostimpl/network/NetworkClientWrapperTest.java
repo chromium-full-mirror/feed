@@ -21,7 +21,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.net.Uri;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
-import com.google.android.libraries.feed.common.concurrent.testing.ClockBackedFakeMainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.host.network.HttpRequest;
 import com.google.android.libraries.feed.host.network.HttpRequest.HttpMethod;
@@ -43,8 +43,7 @@ public class NetworkClientWrapperTest {
   @Mock private Consumer<HttpResponse> responseConsumer;
 
   private HttpRequest request;
-  private final ClockBackedFakeMainThreadRunner mainThreadRunner =
-      ClockBackedFakeMainThreadRunner.queueAllTasks();
+  private final FakeMainThreadRunner mainThreadRunner = FakeMainThreadRunner.queueAllTasks();
 
   @Before
   public void setup() {

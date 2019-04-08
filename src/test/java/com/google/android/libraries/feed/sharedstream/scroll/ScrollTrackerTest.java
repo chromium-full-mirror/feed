@@ -17,7 +17,7 @@ package com.google.android.libraries.feed.sharedstream.scroll;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.common.concurrent.testing.ClockBackedFakeMainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import java.util.ArrayList;
 import org.junit.Before;
@@ -31,8 +31,7 @@ public final class ScrollTrackerTest {
   private static final long AGGREGATE_TIME_MS = 200L;
   private final FakeClock clock = new FakeClock();
   private ScrollTrackerForTest scrollTracker;
-  private final ClockBackedFakeMainThreadRunner mainThreadRunner =
-      ClockBackedFakeMainThreadRunner.create(clock);
+  private final FakeMainThreadRunner mainThreadRunner = FakeMainThreadRunner.create(clock);
 
   @Before
   public void setUp() {
@@ -104,7 +103,7 @@ public final class ScrollTrackerTest {
   static class ScrollTrackerForTest extends ScrollTracker {
     public ArrayList<Integer> scrollAmounts;
 
-    ScrollTrackerForTest(ClockBackedFakeMainThreadRunner mainThreadRunner, FakeClock clock) {
+    ScrollTrackerForTest(FakeMainThreadRunner mainThreadRunner, FakeClock clock) {
       super(mainThreadRunner, clock);
       scrollAmounts = new ArrayList<>();
     }

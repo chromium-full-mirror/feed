@@ -29,7 +29,7 @@ import com.google.android.libraries.feed.api.store.LocalActionMutation.ActionTyp
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
-import com.google.android.libraries.feed.common.concurrent.testing.ClockBackedFakeMainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.feedstore.testing.AbstractClearableFeedStoreTest;
 import com.google.android.libraries.feed.feedstore.testing.DelegatingContentStorage;
@@ -69,12 +69,12 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
   private final FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(ArrayList::new);
   private final ContentStorageDirect contentStorage = new InMemoryContentStorage();
   private final JournalStorageDirect journalStorage = new InMemoryJournalStorage();
-  private ClockBackedFakeMainThreadRunner mainThreadRunner;
+  private FakeMainThreadRunner mainThreadRunner;
 
   @Before
   public void setUp() throws Exception {
     initMocks(this);
-    mainThreadRunner = ClockBackedFakeMainThreadRunner.runTasksImmediately();
+    mainThreadRunner = FakeMainThreadRunner.runTasksImmediately();
   }
 
   @Override

@@ -27,7 +27,7 @@ import android.support.v7.widget.RecyclerView;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.api.stream.ScrollListener;
 import com.google.android.libraries.feed.api.stream.ScrollListener.ScrollState;
-import com.google.android.libraries.feed.common.concurrent.testing.ClockBackedFakeMainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,7 +45,7 @@ public class StreamScrollMonitorTest {
 
   private StreamScrollMonitor streamScrollMonitor;
   private RecyclerView recyclerView;
-  private ClockBackedFakeMainThreadRunner mainThreadRunner;
+  private FakeMainThreadRunner mainThreadRunner;
 
   @Before
   public void setUp() {
@@ -53,7 +53,7 @@ public class StreamScrollMonitorTest {
 
     Context context = Robolectric.buildActivity(Activity.class).get();
     recyclerView = new RecyclerView(context);
-    mainThreadRunner = ClockBackedFakeMainThreadRunner.queueAllTasks();
+    mainThreadRunner = FakeMainThreadRunner.queueAllTasks();
 
     streamScrollMonitor = new StreamScrollMonitor(contentChangedListener, mainThreadRunner);
     streamScrollMonitor.addScrollListener(scrollListener1);

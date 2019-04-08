@@ -31,7 +31,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelError.ErrorType;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.common.Result;
-import com.google.android.libraries.feed.common.concurrent.testing.ClockBackedFakeMainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeTaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.functional.Consumer;
@@ -110,7 +110,7 @@ public class FeedSessionManagerTest {
   private final TimingUtils timingUtils = new TimingUtils();
 
   private FakeActionUploadRequestManager fakeActionUploadRequestManager;
-  private ClockBackedFakeMainThreadRunner fakeMainThreadRunner;
+  private FakeMainThreadRunner fakeMainThreadRunner;
   private FakeProtocolAdapter fakeProtocolAdapter;
   private FakeRequestManager fakeRequestManager;
   private FakeStore fakeStore;
@@ -124,7 +124,7 @@ public class FeedSessionManagerTest {
     initMocks(this);
     fakeThreadUtils = new FakeThreadUtils();
     fakeMainThreadRunner =
-        ClockBackedFakeMainThreadRunner.runTasksImmediatelyWithThreadChecks(fakeThreadUtils);
+        FakeMainThreadRunner.runTasksImmediatelyWithThreadChecks(fakeThreadUtils);
     fakeTaskQueue = new FakeTaskQueue(MoreExecutors.directExecutor(), fakeClock, fakeThreadUtils);
     appLifecycleListener = new FeedAppLifecycleListener(fakeThreadUtils);
     fakeActionUploadRequestManager = new FakeActionUploadRequestManager(fakeThreadUtils);

@@ -63,7 +63,7 @@ import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriv
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
 import com.google.android.libraries.feed.basicstream.internal.viewloggingupdater.ViewLoggingUpdater;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
-import com.google.android.libraries.feed.common.concurrent.testing.ClockBackedFakeMainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
@@ -161,7 +161,7 @@ public class BasicStreamTest {
   private Context context;
   private FakeClock clock;
   private BasicStreamForTest basicStream;
-  private ClockBackedFakeMainThreadRunner mainThreadRunner;
+  private FakeMainThreadRunner mainThreadRunner;
   private List<Header> headers;
 
   @Before
@@ -195,7 +195,7 @@ public class BasicStreamTest {
 
     context = Robolectric.buildActivity(Activity.class).get();
     clock = new FakeClock();
-    mainThreadRunner = ClockBackedFakeMainThreadRunner.create(clock);
+    mainThreadRunner = FakeMainThreadRunner.create(clock);
     layoutManager = new LinearLayoutManagerWithFakePositioning(context);
 
     basicStream = createBasicStream(layoutManager);

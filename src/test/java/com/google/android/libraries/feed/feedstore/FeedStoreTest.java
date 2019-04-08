@@ -28,7 +28,7 @@ import com.google.android.libraries.feed.api.store.LocalActionMutation.ActionTyp
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.api.store.StoreListener;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
-import com.google.android.libraries.feed.common.concurrent.testing.ClockBackedFakeMainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeTaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
@@ -89,7 +89,7 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
   @Mock private BasicLoggingApi basicLoggingApi;
   @Mock private Configuration configuration;
   @Mock private StoreListener listener;
-  private ClockBackedFakeMainThreadRunner mainThreadRunner;
+  private FakeMainThreadRunner mainThreadRunner;
   private FakeTaskQueue taskQueue;
 
   @Before
@@ -98,7 +98,7 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
     when(configuration.getValueOrDefault(ConfigKey.USE_DIRECT_STORAGE, false)).thenReturn(false);
     taskQueue = new FakeTaskQueue(MoreExecutors.directExecutor(), fakeClock, fakeThreadUtils);
     taskQueue.initialize(() -> {});
-    mainThreadRunner = ClockBackedFakeMainThreadRunner.runTasksImmediately();
+    mainThreadRunner = FakeMainThreadRunner.runTasksImmediately();
     fakeThreadUtils.enforceMainThread(false);
   }
 

@@ -18,7 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
-import com.google.android.libraries.feed.common.concurrent.testing.ClockBackedFakeMainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.host.logging.InternalFeedError;
 import com.google.android.libraries.feed.testing.host.logging.FakeBasicLoggingApi;
@@ -36,8 +36,7 @@ public class TaskQueueTest {
   private final FakeBasicLoggingApi fakeBasicLoggingApi = new FakeBasicLoggingApi();
   private final FakeClock fakeClock = new FakeClock();
   private final List<Integer> callOrder = new ArrayList<>();
-  private final ClockBackedFakeMainThreadRunner fakeMainThreadRunner =
-      ClockBackedFakeMainThreadRunner.create(fakeClock);
+  private final FakeMainThreadRunner fakeMainThreadRunner = FakeMainThreadRunner.create(fakeClock);
   private final TaskQueue taskQueue =
       new TaskQueue(
           fakeBasicLoggingApi,

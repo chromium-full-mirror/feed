@@ -22,7 +22,7 @@ import com.google.android.libraries.feed.api.scope.ClearAllListener;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
-import com.google.android.libraries.feed.common.concurrent.testing.ClockBackedFakeMainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.time.Clock;
@@ -113,7 +113,7 @@ public class InfrastructureIntegrationScope {
         new TaskQueue(
             fakeBasicLoggingApi,
             executorService,
-            ClockBackedFakeMainThreadRunner.runTasksImmediately(),
+            FakeMainThreadRunner.runTasksImmediately(),
             clock,
             false);
     store =

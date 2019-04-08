@@ -37,7 +37,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.State;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
-import com.google.android.libraries.feed.common.concurrent.testing.ClockBackedFakeMainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeTaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.functional.Supplier;
@@ -115,7 +115,7 @@ public class SessionManagerMutationTest {
             fakeTaskQueue,
             fakeClock,
             fakeBasicLoggingApi,
-            ClockBackedFakeMainThreadRunner.runTasksImmediately());
+            FakeMainThreadRunner.runTasksImmediately());
     storeSpy = spy(new DelegatingStore(store));
     SessionFactory sessionFactory =
         new SessionFactory(storeSpy, fakeTaskQueue, timingUtils, fakeThreadUtils, configuration);

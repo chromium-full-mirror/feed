@@ -20,9 +20,7 @@ import com.google.android.libraries.feed.common.logging.Logger;
 import java.util.concurrent.Executor;
 
 /** Executes a task on the main thread (UI thread) with optional delay. */
-/*@DoNotMock(
-    "Use com.google.android.libraries.feed.common.concurrent.ClockBackedFakeMainThreadRunner"
-        + " instead")*/
+/*@DoNotMock("Use com.google.android.libraries.feed.common.concurrent.FakeMainThreadRunner instead")*/
 public class MainThreadRunner {
   private static final String TAG = "MainThreadRunner";
   private static final Handler handler = new Handler(Looper.getMainLooper());

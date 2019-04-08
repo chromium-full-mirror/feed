@@ -39,7 +39,7 @@ import com.google.android.libraries.feed.basicstream.internal.actions.ViewElemen
 import com.google.android.libraries.feed.basicstream.internal.pendingdismiss.ClusterPendingDismissHelper;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.PietViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewloggingupdater.ViewLoggingUpdater;
-import com.google.android.libraries.feed.common.concurrent.testing.ClockBackedFakeMainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
@@ -169,8 +169,7 @@ public class ContentDriverTest {
   @Captor private ArgumentCaptor<Consumer<Boolean>> offlineConsumerCaptor;
   private ContentDriver contentDriver;
   private final FakeClock clock = new FakeClock();
-  private final ClockBackedFakeMainThreadRunner mainThreadRunner =
-      ClockBackedFakeMainThreadRunner.create(clock);
+  private final FakeMainThreadRunner mainThreadRunner = FakeMainThreadRunner.create(clock);
   private final Configuration configuration =
       new Configuration.Builder().put(ConfigKey.VIEW_MIN_TIME_MS, VIEW_MIN_TIME_MS).build();
   private ViewLoggingUpdater viewLoggingUpdater;

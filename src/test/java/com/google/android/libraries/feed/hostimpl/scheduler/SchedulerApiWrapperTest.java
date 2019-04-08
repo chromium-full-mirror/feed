@@ -21,7 +21,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.ThreadUtils;
-import com.google.android.libraries.feed.common.concurrent.testing.ClockBackedFakeMainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi.SessionManagerState;
 import org.junit.After;
@@ -39,8 +39,7 @@ public class SchedulerApiWrapperTest {
   @Mock private SchedulerApi schedulerApi;
   private SessionManagerState sessionManagerState;
 
-  private final ClockBackedFakeMainThreadRunner mainThreadRunner =
-      ClockBackedFakeMainThreadRunner.runTasksImmediately();
+  private final FakeMainThreadRunner mainThreadRunner = FakeMainThreadRunner.runTasksImmediately();
 
   @Before
   public void setup() {
