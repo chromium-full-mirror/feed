@@ -86,13 +86,21 @@ public class InfrastructureIntegrationScope {
         }
       };
 
-  private final FeedSessionManager feedSessionManager;
-  private final FeedProtocolAdapter feedProtocolAdapter;
-  private final FeedModelProviderFactory modelProviderFactory;
+  private final Clock clock;
+  private final Configuration configuration;
+  private final ContentStorageDirect contentStorage;
+  private final ExecutorService executorService;
   private final FakeRequestManager fakeRequestManager;
   private final FeedAppLifecycleListener appLifecycleListener;
-  private final TaskQueue taskQueue;
+  private final FeedModelProviderFactory modelProviderFactory;
+  private final FeedProtocolAdapter feedProtocolAdapter;
+  private final FeedSessionManager feedSessionManager;
   private final FeedStore store;
+  private final JournalStorageDirect journalStorage;
+  private final SchedulerApi schedulerApi;
+  private final TaskQueue taskQueue;
+  private final ThreadUtils threadUtils;
+  private final long requestDelayMs;
 
   private InfrastructureIntegrationScope(
       ThreadUtils threadUtils,
@@ -100,15 +108,23 @@ public class InfrastructureIntegrationScope {
       SchedulerApi schedulerApi,
       Clock clock,
       Configuration configuration,
-      long requestDelayMs) {
+      long requestDelayMs,
+      ContentStorageDirect contentStorage,
+      JournalStorageDirect journalStorage) {
+    this.clock = clock;
+    this.configuration = configuration;
+    this.contentStorage = contentStorage;
+    this.executorService = executorService;
+    this.journalStorage = journalStorage;
+    this.requestDelayMs = requestDelayMs;
+    this.schedulerApi = schedulerApi;
+    this.threadUtils = threadUtils;
     TimingUtils timingUtils = new TimingUtils();
     MainThreadRunner mainThreadRunner = new MainThreadRunner();
     appLifecycleListener = new FeedAppLifecycleListener(threadUtils);
     FakeBasicLoggingApi fakeBasicLoggingApi = new FakeBasicLoggingApi();
 
     FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(new ExtensionProvider());
-    ContentStorageDirect contentStorage = new InMemoryContentStorage();
-    JournalStorageDirect journalStorage = new InMemoryJournalStorage();
     taskQueue =
         new TaskQueue(
             fakeBasicLoggingApi,
@@ -189,6 +205,19 @@ public class InfrastructureIntegrationScope {
     return appLifecycleListener;
   }
 
+  @Override
+  public InfrastructureIntegrationScope clone() {
+    return new InfrastructureIntegrationScope(
+        threadUtils,
+        executorService,
+        schedulerApi,
+        clock,
+        configuration,
+        requestDelayMs,
+        contentStorage,
+        journalStorage);
+  }
+
   private static class ExtensionProvider implements ProtoExtensionProvider {
     @Override
     public List<GeneratedExtension<?, ?>> getProtoExtensions() {
@@ -206,7 +235,7 @@ public class InfrastructureIntegrationScope {
 
   /** Builder for creating the {@link InfrastructureIntegrationScope} */
   public static class Builder {
-    private final ThreadUtils mockThreadUtils;
+    private final ThreadUtils threadUtils;
     private final ExecutorService executorService;
 
     private SchedulerApi schedulerApi = DISABLED_EMPTY_HEAD_REQUEST;
@@ -214,8 +243,8 @@ public class InfrastructureIntegrationScope {
     private Clock clock = new SystemClockImpl();
     private long requestDelayMs = 0;
 
-    public Builder(ThreadUtils mockThreadUtils, ExecutorService executorService) {
-      this.mockThreadUtils = mockThreadUtils;
+    public Builder(ThreadUtils threadUtils, ExecutorService executorService) {
+      this.threadUtils = threadUtils;
       this.executorService = executorService;
     }
 
@@ -241,7 +270,14 @@ public class InfrastructureIntegrationScope {
 
     public InfrastructureIntegrationScope build() {
       return new InfrastructureIntegrationScope(
-          mockThreadUtils, executorService, schedulerApi, clock, configuration, requestDelayMs);
+          threadUtils,
+          executorService,
+          schedulerApi,
+          clock,
+          configuration,
+          requestDelayMs,
+          new InMemoryContentStorage(),
+          new InMemoryJournalStorage());
     }
   }
 }
