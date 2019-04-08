@@ -51,6 +51,7 @@ import com.google.android.libraries.feed.basicstream.internal.StreamSavedInstanc
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
 import com.google.android.libraries.feed.basicstream.internal.viewloggingupdater.ViewLoggingUpdater;
+import com.google.android.libraries.feed.common.concurrent.CancelableTask;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Suppliers;
 import com.google.android.libraries.feed.common.logging.Logger;
@@ -147,6 +148,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
   /*@MonotonicNonNull*/ private StreamDriver streamDriver;
 
   /*@Nullable*/ private String savedSessionId;
+  /*@Nullable*/ private CancelableTask cancellableShowSpinnerRunnable;
+
   // TODO: instead of using a nullable field, pipe UiContext through the creation of
   // ModelProviders to onSessionStart().
   private UiRefreshReason uiRefreshReason = UiRefreshReason.getDefaultInstance();
@@ -606,11 +609,21 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
     streamDriver = newStreamDriver;
     adapter.setDriver(newStreamDriver);
     deepestContentTracker.reset();
+
+    if (streamDriver.hasContent()) {
+      isInitialLoad = false;
+    }
   }
 
   @Override
   public void onSessionStart() {
     threadUtils.checkMainThread();
+
+    if (cancellableShowSpinnerRunnable != null) {
+      cancellableShowSpinnerRunnable.cancel();
+      cancellableShowSpinnerRunnable = null;
+    }
+
     ModelProvider localModelProvider =
         checkNotNull(modelProvider, "Model Provider must be set if a session is active");
     // On initial load, if a loading spinner is currently being shown, the spinner must be shown for
@@ -640,7 +653,6 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
       updateAdapterAfterSessionStart(localModelProvider);
       logContent();
     }
-    isInitialLoad = false;
   }
 
   private void logContent() {
@@ -673,9 +685,14 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
     // restoring for now.  We can improve logic if this doesn't prove to be sufficient enough.
     scrollRestorer.abandonRestoringScroll();
 
-    if (streamDriver != null) {
-      streamDriver.showSpinner();
+    // At this point, the StreamDriver shouldn't be null. However, the
+    // cancellableShowSpinnerRunnable could be null or not, depending on whether this spinner is
+    // finishing because a failed restore or because the session started. If a spinner is queued to
+    // show, we want to show that one with its delay, otherwise we show a new one with a new delay.
+    if (streamDriver != null && cancellableShowSpinnerRunnable == null) {
+      showSpinnerWithDelay();
     }
+
     isRestoring = false;
 
     if (modelProvider != null) {
@@ -760,21 +777,16 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
               tooltipApi,
               UiRefreshReason.getDefaultInstance(),
               streamScrollMonitor);
-      if (isInitialLoad && !isRestoring) {
-        mainThreadRunner.executeWithDelay(
-            TAG + " onShow",
-            () -> {
-              if (isInitialLoad) {
-                checkNotNull(streamDriver).showSpinner();
-                initialLoadingSpinnerStartTime = clock.currentTimeMillis();
-              }
-            },
-            MINIMUM_TIME_BEFORE_SHOWING_SPINNER);
-      } else if (!isRestoring) {
-        streamDriver.showSpinner();
-      }
+
+      showSpinnerWithDelay();
       adapter.setDriver(streamDriver);
     }
+  }
+
+  private void showSpinnerWithDelay() {
+    cancellableShowSpinnerRunnable =
+        mainThreadRunner.executeWithDelay(
+            TAG + " onShow", new ShowSpinnerRunnable(), MINIMUM_TIME_BEFORE_SHOWING_SPINNER);
   }
 
   private String convertStreamSavedInstanceStateToString(
@@ -918,5 +930,15 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
     int STARTING = 0;
     int LOGGED_NO_CONTENT = 1;
     int LOGGED_CONTENT_SHOWN = 2;
+  }
+
+  private final class ShowSpinnerRunnable implements Runnable {
+
+    @Override
+    public void run() {
+      checkNotNull(streamDriver).showSpinner();
+      initialLoadingSpinnerStartTime = clock.currentTimeMillis();
+      BasicStream.this.cancellableShowSpinnerRunnable = null;
+    }
   }
 }

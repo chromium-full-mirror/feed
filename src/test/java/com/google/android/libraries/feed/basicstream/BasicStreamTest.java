@@ -278,7 +278,6 @@ public class BasicStreamTest {
     basicStream.onSessionFinished(UiContext.getDefaultInstance());
 
     verify(scrollRestorer).abandonRestoringScroll();
-    verify(streamDriver).showSpinner();
     verify(initialModelProvider).unregisterObserver(basicStream);
     verify(modelProviderFactory, times(2)).createNew(any(ViewDepthProvider.class));
     verify(modelProvider).registerObserver(basicStream);
@@ -1122,6 +1121,61 @@ public class BasicStreamTest {
     basicStream.onShow();
 
     verify(basicLoggingApi).onOpenedWithNoContent();
+  }
+
+  @Test
+  public void failToRestoreSession_doesntShowSpinnerImmediately() {
+    basicStream.onShow();
+
+    basicStream.onSessionFinished(UiContext.getDefaultInstance());
+
+    verify(streamDriver, never()).showSpinner();
+  }
+
+  @Test
+  public void failToRestoreSession_showsSpinnerAfterDelay() {
+    basicStream.onShow();
+
+    basicStream.onSessionFinished(UiContext.getDefaultInstance());
+
+    clock.advance(BasicStream.MINIMUM_TIME_BEFORE_SHOWING_SPINNER);
+
+    verify(streamDriver).showSpinner();
+  }
+
+  @Test
+  public void startSession_quicklyFinish_doesntShowInitialSpinner() {
+    basicStream.onShow();
+
+    // Advance, but not enough so that the spinner shows.
+    clock.advance(MINIMUM_TIME_BEFORE_SHOWING_SPINNER / 2);
+
+    // Start the session. At this point, the spinner enqueued by onShow() should never be shown.
+    basicStream.onSessionStart();
+
+    // Finish the session immediately. As we had started a session and the user had presumably seen
+    // content, we shouldn't trigger the spinner enqueued by onShow().
+    basicStream.onSessionFinished(UiContext.getDefaultInstance());
+
+    // It has now been long enough since onShow that the spinner would show if onSessionStart()
+    // hadn't been called first.
+    clock.advance(BasicStream.MINIMUM_TIME_BEFORE_SHOWING_SPINNER / 2);
+
+    verify(streamDriver, never()).showSpinner();
+  }
+
+  @Test
+  public void startSession_thenFinish_showsSpinnerAfterDelay() {
+    basicStream.onShow();
+
+    basicStream.onSessionStart();
+    basicStream.onSessionFinished(UiContext.getDefaultInstance());
+
+    verify(streamDriver, never()).showSpinner();
+
+    clock.advance(MINIMUM_TIME_BEFORE_SHOWING_SPINNER);
+
+    verify(streamDriver).showSpinner();
   }
 
   private byte[] decodeSavedInstanceStateString(String savedInstanceState) {
