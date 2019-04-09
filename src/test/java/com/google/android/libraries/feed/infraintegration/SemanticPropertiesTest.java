@@ -24,11 +24,10 @@ import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
-import com.google.android.libraries.feed.common.testing.InfrastructureIntegrationScope;
+import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
 import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.ResponseProto.Response;
@@ -52,10 +51,7 @@ public class SemanticPropertiesTest {
   @Before
   public void setUp() {
     initMocks(this);
-    InfrastructureIntegrationScope scope =
-        new InfrastructureIntegrationScope.Builder(
-                threadUtils, MoreExecutors.newDirectExecutorService())
-            .build();
+    InfraIntegrationScope scope = new InfraIntegrationScope.Builder(threadUtils).build();
     requestManager = scope.getRequestManager();
     sessionManager = scope.getSessionManager();
     store = scope.getStore();

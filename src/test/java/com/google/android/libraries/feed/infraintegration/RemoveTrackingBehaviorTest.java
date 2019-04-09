@@ -29,11 +29,10 @@ import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.functional.Function;
-import com.google.android.libraries.feed.common.testing.InfrastructureIntegrationScope;
+import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
 import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
@@ -68,10 +67,7 @@ public class RemoveTrackingBehaviorTest {
   @Before
   public void setUp() {
     initMocks(this);
-    InfrastructureIntegrationScope scope =
-        new InfrastructureIntegrationScope.Builder(
-                threadUtils, MoreExecutors.newDirectExecutorService())
-            .build();
+    InfraIntegrationScope scope = new InfraIntegrationScope.Builder(threadUtils).build();
     requestManager = scope.getRequestManager();
     sessionManager = scope.getSessionManager();
     modelProviderFactory = scope.getModelProviderFactory();

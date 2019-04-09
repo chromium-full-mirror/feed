@@ -1,4 +1,4 @@
-// Copyright 2018 The Feed Authors.
+// Copyright 2019 The Feed Authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -45,6 +45,7 @@ import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage
 import com.google.android.libraries.feed.testing.host.logging.FakeBasicLoggingApi;
 import com.google.android.libraries.feed.testing.requestmanager.FakeActionUploadRequestManager;
 import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.GeneratedMessageLite.GeneratedExtension;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,7 +56,7 @@ import java.util.concurrent.TimeUnit;
  * This is a Scope type object which is used in the Infrastructure Integration tests. It sets the
  * Feed objects from ProtocolAdapter through the SessionManager.
  */
-public class InfrastructureIntegrationScope {
+public class InfraIntegrationScope {
   private static final boolean USE_TIMEOUT_SCHEDULER = true;
   private static final long TIMEOUT_TIMEOUT_MS = 2;
 
@@ -102,7 +103,7 @@ public class InfrastructureIntegrationScope {
   private final ThreadUtils threadUtils;
   private final long requestDelayMs;
 
-  private InfrastructureIntegrationScope(
+  private InfraIntegrationScope(
       ThreadUtils threadUtils,
       ExecutorService executorService,
       SchedulerApi schedulerApi,
@@ -206,8 +207,8 @@ public class InfrastructureIntegrationScope {
   }
 
   @Override
-  public InfrastructureIntegrationScope clone() {
-    return new InfrastructureIntegrationScope(
+  public InfraIntegrationScope clone() {
+    return new InfraIntegrationScope(
         threadUtils,
         executorService,
         schedulerApi,
@@ -233,19 +234,18 @@ public class InfrastructureIntegrationScope {
         .build();
   }
 
-  /** Builder for creating the {@link InfrastructureIntegrationScope} */
+  /** Builder for creating the {@link InfraIntegrationScope} */
   public static class Builder {
     private final ThreadUtils threadUtils;
-    private final ExecutorService executorService;
 
-    private SchedulerApi schedulerApi = DISABLED_EMPTY_HEAD_REQUEST;
-    private Configuration configuration = new Configuration.Builder().build();
     private Clock clock = new SystemClockImpl();
+    private Configuration configuration = Configuration.getDefaultInstance();
+    private ExecutorService executorService = MoreExecutors.newDirectExecutorService();
+    private SchedulerApi schedulerApi = DISABLED_EMPTY_HEAD_REQUEST;
     private long requestDelayMs = 0;
 
-    public Builder(ThreadUtils threadUtils, ExecutorService executorService) {
+    public Builder(ThreadUtils threadUtils) {
       this.threadUtils = threadUtils;
-      this.executorService = executorService;
     }
 
     public Builder setConfiguration(Configuration configuration) {
@@ -255,6 +255,11 @@ public class InfrastructureIntegrationScope {
 
     public Builder setClock(Clock clock) {
       this.clock = clock;
+      return this;
+    }
+
+    public Builder setExecutorService(ExecutorService executorService) {
+      this.executorService = executorService;
       return this;
     }
 
@@ -268,8 +273,8 @@ public class InfrastructureIntegrationScope {
       return this;
     }
 
-    public InfrastructureIntegrationScope build() {
-      return new InfrastructureIntegrationScope(
+    public InfraIntegrationScope build() {
+      return new InfraIntegrationScope(
           threadUtils,
           executorService,
           schedulerApi,

@@ -26,7 +26,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderObserver;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
-import com.google.android.libraries.feed.common.testing.InfrastructureIntegrationScope;
+import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
 import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManager;
@@ -71,10 +71,11 @@ public class TimeoutSessionBaseTest {
   @Before
   public void setUp() {
     initMocks(this);
-    Configuration configuration = InfrastructureIntegrationScope.getTimeoutSchedulerConfig();
-    InfrastructureIntegrationScope scope =
-        new InfrastructureIntegrationScope.Builder(threadUtils, Executors.newSingleThreadExecutor())
+    Configuration configuration = InfraIntegrationScope.getTimeoutSchedulerConfig();
+    InfraIntegrationScope scope =
+        new InfraIntegrationScope.Builder(threadUtils)
             .setConfiguration(configuration)
+            .setExecutorService(Executors.newSingleThreadExecutor())
             .setSchedulerApi(schedulerApi)
             .build();
     requestManager = scope.getRequestManager();
@@ -146,9 +147,7 @@ public class TimeoutSessionBaseTest {
       ModelProvider modelProvider, AtomicBoolean finished, ContentId... cards) {
     finished.set(false);
     timeoutDeadline =
-        (DEBUG)
-            ? InfrastructureIntegrationScope.TIMEOUT_TEST_TIMEOUT + System.currentTimeMillis()
-            : 0;
+        DEBUG ? InfraIntegrationScope.TIMEOUT_TEST_TIMEOUT + System.currentTimeMillis() : 0;
     modelProvider.registerObserver(
         new ModelProviderObserver() {
           @Override

@@ -20,13 +20,12 @@ import static com.google.common.truth.Truth.assertThat;
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
-import com.google.android.libraries.feed.common.testing.InfrastructureIntegrationScope;
+import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.logging.RequestReason;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.ResponseProto.Response;
 import java.time.Duration;
@@ -52,10 +51,8 @@ public final class GcTest {
   private static final long LIFETIME_MS = Duration.ofHours(1).toMillis();
 
   private final FakeClock fakeClock = new FakeClock();
-  private final InfrastructureIntegrationScope scope =
-      new InfrastructureIntegrationScope.Builder(
-              new FakeThreadUtils(/* enforceThreadChecks= */ false),
-              MoreExecutors.newDirectExecutorService())
+  private final InfraIntegrationScope scope =
+      new InfraIntegrationScope.Builder(new FakeThreadUtils(/* enforceThreadChecks= */ false))
           .setClock(fakeClock)
           .setConfiguration(
               new Configuration.Builder().put(ConfigKey.SESSION_LIFETIME_MS, LIFETIME_MS).build())
@@ -84,7 +81,7 @@ public final class GcTest {
 
     // Advance the clock without expiring the first session.
     fakeClock.advance(LIFETIME_MS / 2);
-    InfrastructureIntegrationScope secondScope = scope.clone();
+    InfraIntegrationScope secondScope = scope.clone();
     assertPayloads(REQUEST_1, secondScope, /* shouldExist= */ true);
     assertPayloads(REQUEST_2, secondScope, /* shouldExist= */ true);
   }
@@ -113,13 +110,13 @@ public final class GcTest {
     // Advance the clock to expire the first session, create a new scope that will run
     // initialization and delete content from the expired session.
     fakeClock.advance(LIFETIME_MS + 1L);
-    InfrastructureIntegrationScope secondScope = scope.clone();
+    InfraIntegrationScope secondScope = scope.clone();
     assertPayloads(REQUEST_1, secondScope, /* shouldExist= */ false);
     assertPayloads(REQUEST_2, secondScope, /* shouldExist= */ true);
   }
 
   private static void assertPayloads(
-      ContentId[] contentIds, InfrastructureIntegrationScope scope, boolean shouldExist) {
+      ContentId[] contentIds, InfraIntegrationScope scope, boolean shouldExist) {
     for (ContentId contentId : contentIds) {
       List<PayloadWithId> payloads =
           scope

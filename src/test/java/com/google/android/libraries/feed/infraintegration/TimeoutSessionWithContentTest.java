@@ -28,7 +28,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderObserver;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
-import com.google.android.libraries.feed.common.testing.InfrastructureIntegrationScope;
+import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
 import com.google.android.libraries.feed.host.config.Configuration;
@@ -84,10 +84,11 @@ public class TimeoutSessionWithContentTest {
   @Before
   public void setUp() {
     initMocks(this);
-    Configuration configuration = InfrastructureIntegrationScope.getTimeoutSchedulerConfig();
-    InfrastructureIntegrationScope scope =
-        new InfrastructureIntegrationScope.Builder(threadUtils, Executors.newSingleThreadExecutor())
+    Configuration configuration = InfraIntegrationScope.getTimeoutSchedulerConfig();
+    InfraIntegrationScope scope =
+        new InfraIntegrationScope.Builder(threadUtils)
             .setConfiguration(configuration)
+            .setExecutorService(Executors.newSingleThreadExecutor())
             .setSchedulerApi(schedulerApi)
             .setRequestDelayMs(100)
             .build();
@@ -160,9 +161,7 @@ public class TimeoutSessionWithContentTest {
   private void assertSessionCreation(ModelProvider modelProvider, AtomicBoolean finished) {
     finished.set(false);
     timeoutDeadline =
-        (DEBUG)
-            ? InfrastructureIntegrationScope.TIMEOUT_TEST_TIMEOUT + System.currentTimeMillis()
-            : 0;
+        DEBUG ? InfraIntegrationScope.TIMEOUT_TEST_TIMEOUT + System.currentTimeMillis() : 0;
     modelProvider.registerObserver(
         new ModelProviderObserver() {
           @Override
@@ -190,9 +189,7 @@ public class TimeoutSessionWithContentTest {
       ModelProvider modelProvider, AtomicBoolean finished) {
     finished.set(false);
     timeoutDeadline =
-        (DEBUG)
-            ? InfrastructureIntegrationScope.TIMEOUT_TEST_TIMEOUT + System.currentTimeMillis()
-            : 0;
+        DEBUG ? InfraIntegrationScope.TIMEOUT_TEST_TIMEOUT + System.currentTimeMillis() : 0;
     modelProvider.registerObserver(
         new ModelProviderObserver() {
           @Override

@@ -159,6 +159,11 @@ public class Configuration {
     return values.containsKey(key);
   }
 
+  /** Returns a default {@link Configuration}. */
+  public static Configuration getDefaultInstance() {
+    return new Builder().build();
+  }
+
   /** Builder class used to create {@link Configuration} objects. */
   public static final class Builder {
     private final HashMap<String, Object> values = new HashMap<>();
