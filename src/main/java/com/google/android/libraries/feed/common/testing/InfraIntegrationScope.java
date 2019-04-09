@@ -43,6 +43,7 @@ import com.google.android.libraries.feed.host.storage.JournalStorageDirect;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
 import com.google.android.libraries.feed.testing.host.logging.FakeBasicLoggingApi;
+import com.google.android.libraries.feed.testing.host.scheduler.FakeSchedulerApi;
 import com.google.android.libraries.feed.testing.requestmanager.FakeActionUploadRequestManager;
 import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -65,27 +66,6 @@ public class InfraIntegrationScope {
    * error.
    */
   public static final long TIMEOUT_TEST_TIMEOUT = TimeUnit.SECONDS.toMillis(20);
-
-  /** Scope which disables making requests when $HEAD is empty. */
-  private static final SchedulerApi DISABLED_EMPTY_HEAD_REQUEST =
-      new SchedulerApi() {
-
-        @Override
-        @RequestBehavior
-        public int shouldSessionRequestData(SessionManagerState sessionManagerState) {
-          return RequestBehavior.NO_REQUEST_WITH_CONTENT;
-        }
-
-        @Override
-        public void onReceiveNewContent(long contentCreationDateTimeMs) {
-          // Do nothing
-        }
-
-        @Override
-        public void onRequestError(int networkResponseCode) {
-          // Do nothing
-        }
-      };
 
   private final Clock clock;
   private final Configuration configuration;
@@ -241,11 +221,12 @@ public class InfraIntegrationScope {
     private Clock clock = new SystemClockImpl();
     private Configuration configuration = Configuration.getDefaultInstance();
     private ExecutorService executorService = MoreExecutors.newDirectExecutorService();
-    private SchedulerApi schedulerApi = DISABLED_EMPTY_HEAD_REQUEST;
+    private SchedulerApi schedulerApi;
     private long requestDelayMs = 0;
 
     public Builder(ThreadUtils threadUtils) {
       this.threadUtils = threadUtils;
+      schedulerApi = new FakeSchedulerApi(threadUtils);
     }
 
     public Builder setConfiguration(Configuration configuration) {
