@@ -43,7 +43,6 @@ import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
-import com.google.android.libraries.feed.host.logging.LoggingApi;
 import com.google.android.libraries.feed.host.offlineindicator.OfflineIndicatorApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
@@ -66,7 +65,6 @@ public class FeedStreamScopeTest {
   // Mocks for required fields
   @Mock private ActionApi actionApi;
   @Mock private ImageLoaderApi imageLoaderApi;
-  @Mock private LoggingApi loggingApi;
   @Mock private TooltipSupportedApi tooltipSupportedApi;
 
   // Mocks for optional fields
@@ -114,7 +112,6 @@ public class FeedStreamScopeTest {
                 context,
                 actionApi,
                 imageLoaderApi,
-                loggingApi,
                 protocolAdapter,
                 sessionManager,
                 threadUtils,
@@ -145,7 +142,6 @@ public class FeedStreamScopeTest {
                 context,
                 actionApi,
                 imageLoaderApi,
-                loggingApi,
                 protocolAdapter,
                 sessionManager,
                 threadUtils,

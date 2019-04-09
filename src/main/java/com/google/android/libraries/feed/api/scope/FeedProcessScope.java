@@ -55,7 +55,6 @@ import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
-import com.google.android.libraries.feed.host.logging.LoggingApi;
 import com.google.android.libraries.feed.host.network.NetworkClient;
 import com.google.android.libraries.feed.host.offlineindicator.OfflineIndicatorApi;
 import com.google.android.libraries.feed.host.proto.ProtoExtensionProvider;
@@ -85,7 +84,6 @@ import java.util.concurrent.ExecutorService;
 public final class FeedProcessScope implements Dumpable {
   private static final String TAG = "FeedProcessScope";
 
-  private final LoggingApi loggingApi;
   private final NetworkClient networkClient;
   private final ProtocolAdapter protocolAdapter;
   private final RequestManager requestManager;
@@ -125,7 +123,6 @@ public final class FeedProcessScope implements Dumpable {
         context,
         actionApi,
         imageLoaderApi,
-        loggingApi,
         protocolAdapter,
         sessionManager,
         threadUtils,
@@ -148,7 +145,6 @@ public final class FeedProcessScope implements Dumpable {
 
   /** Created through the {@link Builder}. */
   private FeedProcessScope(
-      LoggingApi loggingApi,
       BasicLoggingApi basicLoggingApi,
       NetworkClient networkClient,
       ProtocolAdapter protocolAdapter,
@@ -169,7 +165,6 @@ public final class FeedProcessScope implements Dumpable {
       FeedExtensionRegistry feedExtensionRegistry,
       ClearAllListener clearAllListener,
       TooltipSupportedApi tooltipSupportedApi) {
-    this.loggingApi = loggingApi;
     this.basicLoggingApi = basicLoggingApi;
     this.networkClient = networkClient;
     this.protocolAdapter = protocolAdapter;
@@ -277,7 +272,6 @@ public final class FeedProcessScope implements Dumpable {
     // Required fields.
     private final Configuration configuration;
     final ExecutorService singleThreadExecutor;
-    private final LoggingApi loggingApi;
     private final BasicLoggingApi basicLoggingApi;
     private final TooltipSupportedApi tooltipSupportedApi;
     private final NetworkClient unwrappedNetworkClient;
@@ -307,7 +301,6 @@ public final class FeedProcessScope implements Dumpable {
     public Builder(
         Configuration configuration,
         ExecutorService singleThreadExecutor,
-        LoggingApi loggingApi,
         BasicLoggingApi basicLoggingApi,
         NetworkClient networkClient,
         SchedulerApi schedulerApi,
@@ -317,7 +310,6 @@ public final class FeedProcessScope implements Dumpable {
         TooltipSupportedApi tooltipSupportedApi) {
       this.configuration = configuration;
       this.singleThreadExecutor = singleThreadExecutor;
-      this.loggingApi = loggingApi;
       this.basicLoggingApi = basicLoggingApi;
       this.debugBehavior = debugBehavior;
       this.context = context;
@@ -550,7 +542,6 @@ public final class FeedProcessScope implements Dumpable {
       ClearAllListener clearAllListener =
           new ClearAllListener(taskQueue, sessionManager, store, threadUtils, lifecycleListener);
       return new FeedProcessScope(
-          loggingApi,
           basicLoggingApi,
           networkClient,
           Validators.checkNotNull(protocolAdapter),

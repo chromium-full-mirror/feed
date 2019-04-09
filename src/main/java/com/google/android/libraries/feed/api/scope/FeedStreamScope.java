@@ -36,7 +36,6 @@ import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
-import com.google.android.libraries.feed.host.logging.LoggingApi;
 import com.google.android.libraries.feed.host.offlineindicator.OfflineIndicatorApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
@@ -65,7 +64,6 @@ public final class FeedStreamScope {
         Context context,
         ActionApi actionApi,
         ImageLoaderApi imageLoaderApi,
-        LoggingApi loggingApi,
         ProtocolAdapter protocolAdapter,
         SessionManager sessionManager,
         ThreadUtils threadUtils,
@@ -87,7 +85,6 @@ public final class FeedStreamScope {
       this.context = context;
       this.actionApi = actionApi;
       this.imageLoaderApi = imageLoaderApi;
-      this.loggingApi = loggingApi;
       this.protocolAdapter = protocolAdapter;
       this.sessionManager = sessionManager;
       this.threadUtils = threadUtils;
@@ -180,9 +177,6 @@ public final class FeedStreamScope {
     private final Context context;
     private final ActionApi actionApi;
     private final ImageLoaderApi imageLoaderApi;
-
-    @SuppressWarnings("unused")
-    private final LoggingApi loggingApi;
 
     private final ProtocolAdapter protocolAdapter;
     private final SessionManager sessionManager;
