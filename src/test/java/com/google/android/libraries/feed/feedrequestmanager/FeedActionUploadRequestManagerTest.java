@@ -21,7 +21,6 @@ import android.os.Build;
 import android.os.Build.VERSION_CODES;
 import android.util.Base64;
 import com.google.android.libraries.feed.common.Result;
-import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeTaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
@@ -91,7 +90,6 @@ public class FeedActionUploadRequestManagerTest {
 
   private ExtensionRegistryLite registry;
   private FakeActionReader fakeActionReader;
-  private FakeMainThreadRunner fakeMainThreadRunner;
   private FakeNetworkClient fakeNetworkClient;
   private FakeProtocolAdapter fakeProtocolAdapter;
   private FakeStore fakeStore;
@@ -107,8 +105,6 @@ public class FeedActionUploadRequestManagerTest {
     registry.add(FeedRequest.feedRequest);
     fakeActionReader = new FakeActionReader();
     fakeThreadUtils = new FakeThreadUtils();
-    fakeMainThreadRunner =
-        FakeMainThreadRunner.runTasksImmediatelyWithThreadChecks(fakeThreadUtils);
     fakeNetworkClient = new FakeNetworkClient(fakeThreadUtils);
     fakeTaskQueue = new FakeTaskQueue(MoreExecutors.directExecutor(), fakeClock, fakeThreadUtils);
     fakeProtocolAdapter = new FakeProtocolAdapter();
@@ -411,8 +407,7 @@ public class FeedActionUploadRequestManagerTest {
         fakeThreadUtils,
         fakeActionReader,
         fakeStore,
-        fakeClock,
-        fakeMainThreadRunner);
+        fakeClock);
   }
 
   private static OpaqueActionData createOpaqueActionData(String contentId) {

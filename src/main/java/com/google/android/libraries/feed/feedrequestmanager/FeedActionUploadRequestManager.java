@@ -21,7 +21,6 @@ import com.google.android.libraries.feed.api.requestmanager.ActionUploadRequestM
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.api.store.UploadableActionMutation;
 import com.google.android.libraries.feed.common.Result;
-import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
 import com.google.android.libraries.feed.common.functional.Consumer;
@@ -73,8 +72,7 @@ public final class FeedActionUploadRequestManager implements ActionUploadRequest
       ThreadUtils threadUtils,
       ActionReader actionReader,
       Store store,
-      Clock clock,
-      MainThreadRunner mainThreadRunner) {
+      Clock clock) {
     this.configuration = configuration;
     this.networkClient = networkClient;
     this.protocolAdapter = protocolAdapter;
