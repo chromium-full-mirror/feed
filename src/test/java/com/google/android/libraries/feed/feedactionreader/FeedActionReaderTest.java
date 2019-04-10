@@ -28,8 +28,6 @@ import com.google.android.libraries.feed.api.common.DismissActionWithSemanticPro
 import com.google.android.libraries.feed.api.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
-import com.google.android.libraries.feed.api.store.LocalActionMutation.ActionType;
-import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeTaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
@@ -38,6 +36,8 @@ import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.internalapi.actionmanager.ActionReader;
+import com.google.android.libraries.feed.internalapi.store.LocalActionMutation.ActionType;
+import com.google.android.libraries.feed.internalapi.store.Store;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.search.now.feed.client.StreamDataProto.StreamLocalAction;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;

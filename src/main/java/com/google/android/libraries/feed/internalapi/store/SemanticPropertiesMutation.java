@@ -12,20 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.api.store;
+package com.google.android.libraries.feed.internalapi.store;
 
 import com.google.android.libraries.feed.host.storage.CommitResult;
-import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
+import com.google.protobuf.ByteString;
 
-/** Mutation for adding and updating uploadable actions in the Feed Store. */
-public interface UploadableActionMutation {
+/** Used to commit mutations to semantic properties data within the {@link Store} */
+public interface SemanticPropertiesMutation {
+  /** Add a new semantic properties mutation */
+  SemanticPropertiesMutation add(String contentId, ByteString semanticData);
 
-  /** Upsert a new Mutation to the Store */
-  UploadableActionMutation upsert(StreamUploadableAction action, String contentId);
-
-  /** Remove Mutation from the Store */
-  UploadableActionMutation remove(StreamUploadableAction action, String contentId);
-
-  /** Commit the mutations to the backing store */
+  /** Commit the current mutations */
   CommitResult commit();
 }

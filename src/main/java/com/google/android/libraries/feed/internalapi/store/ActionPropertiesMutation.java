@@ -12,20 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.api.store;
+package com.google.android.libraries.feed.internalapi.store;
 
 import com.google.android.libraries.feed.host.storage.CommitResult;
-import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
+import com.google.search.now.wire.feed.OpaqueActionDataProto.OpaqueActionData;
 
-/**
- * Mutation for adding and updating Content in the Feed Store. Remove will be handled by a task
- * which garbage collects the content that is not longer defined in any sessions.
- */
-public interface ContentMutation {
+/** Used to commit mutations to Action properties data within the {@link Store} */
+public interface ActionPropertiesMutation {
+  /** Add a new Action properties mutation */
+  ActionPropertiesMutation add(String contentId, OpaqueActionData actionData);
 
-  /** Add a new Mutation to the Store */
-  ContentMutation add(String contentId, StreamPayload payload);
-
-  /** Commit the mutations to the backing store */
+  /** Commit the current mutations */
   CommitResult commit();
 }

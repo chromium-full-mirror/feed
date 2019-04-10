@@ -17,13 +17,13 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.api.store.LocalActionMutation.ActionType;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.host.storage.JournalMutation;
 import com.google.android.libraries.feed.host.storage.JournalOperation;
 import com.google.android.libraries.feed.host.storage.JournalOperation.Append;
 import com.google.android.libraries.feed.host.storage.JournalOperation.Type;
 import com.google.android.libraries.feed.host.storage.JournalStorageDirect;
+import com.google.android.libraries.feed.internalapi.store.LocalActionMutation.ActionType;
 import com.google.search.now.feed.client.StreamDataProto.StreamLocalAction;
 import java.util.Arrays;
 import java.util.Collections;

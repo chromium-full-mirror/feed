@@ -21,7 +21,6 @@ import com.google.android.libraries.feed.api.common.DismissActionWithSemanticPro
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
-import com.google.android.libraries.feed.api.store.LocalActionMutation.ActionType;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
@@ -46,6 +45,7 @@ import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.host.stream.TooltipInfo.FeatureName;
 import com.google.android.libraries.feed.host.stream.TooltipSupportedApi;
 import com.google.android.libraries.feed.internalapi.actionmanager.ActionReader;
+import com.google.android.libraries.feed.internalapi.store.LocalActionMutation.ActionType;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;

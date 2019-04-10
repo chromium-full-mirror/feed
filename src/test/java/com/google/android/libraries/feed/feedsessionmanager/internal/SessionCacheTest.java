@@ -21,12 +21,12 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.ViewDepthProvider;
-import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeTaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.host.config.Configuration;
+import com.google.android.libraries.feed.internalapi.store.Store;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelProvider;
 import com.google.android.libraries.feed.testing.store.FakeStore;
 import com.google.common.util.concurrent.MoreExecutors;

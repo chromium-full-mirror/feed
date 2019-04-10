@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.api.store;
+package com.google.android.libraries.feed.internalapi.store;
 
 import com.google.android.libraries.feed.api.common.ActionPropertiesWithId;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
@@ -131,9 +131,9 @@ public interface Store {
   /** Whether the store is in ephemeral mode */
   boolean isEphemeralMode();
 
-  /** Register an {@link com.google.android.libraries.feed.api.store.StoreListener}. */
+  /** Register an {@link com.google.android.libraries.feed.internalapi.store.StoreListener}. */
   void registerObserver(StoreListener observer);
 
-  /** Unregister an {@link com.google.android.libraries.feed.api.store.StoreListener}. */
+  /** Unregister an {@link com.google.android.libraries.feed.internalapi.store.StoreListener}. */
   void unregisterObserver(StoreListener observer);
 }

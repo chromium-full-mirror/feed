@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.api.store;
+package com.google.android.libraries.feed.internalapi.store;
 
-import com.google.android.libraries.feed.host.storage.CommitResult;
-import com.google.protobuf.ByteString;
+import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 
-/** Used to commit mutations to semantic properties data within the {@link Store} */
-public interface SemanticPropertiesMutation {
-  /** Add a new semantic properties mutation */
-  SemanticPropertiesMutation add(String contentId, ByteString semanticData);
+/** A structural mutation against a session. */
+public interface SessionMutation {
 
-  /** Commit the current mutations */
-  CommitResult commit();
+  /** Add or update a structure in the store. */
+  SessionMutation add(StreamStructure streamStructure);
+
+  /** Commit the mutations to the backing store */
+  Boolean commit();
 }

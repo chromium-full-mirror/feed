@@ -10,7 +10,6 @@ android_local_test(
     aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
-        "//src/main/java/com/google/android/libraries/feed/api/store",
         "//src/main/java/com/google/android/libraries/feed/common/concurrent",
         "//src/main/java/com/google/android/libraries/feed/common/concurrent/testing",
         "//src/main/java/com/google/android/libraries/feed/common/protoextensions",
@@ -19,6 +18,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/host/config",
         "//src/main/java/com/google/android/libraries/feed/host/storage",
         "//src/main/java/com/google/android/libraries/feed/hostimpl/storage",
+        "//src/main/java/com/google/android/libraries/feed/internalapi/store",
         "//src/main/java/com/google/android/libraries/feed/testing/host/logging",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_guava_guava",
@@ -35,7 +35,6 @@ android_local_test(
     aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
-        "//src/main/java/com/google/android/libraries/feed/api/store",
         "//src/main/java/com/google/android/libraries/feed/common/concurrent",
         "//src/main/java/com/google/android/libraries/feed/common/concurrent/testing",
         "//src/main/java/com/google/android/libraries/feed/common/protoextensions",
@@ -47,6 +46,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/host/logging",
         "//src/main/java/com/google/android/libraries/feed/host/storage",
         "//src/main/java/com/google/android/libraries/feed/hostimpl/storage",
+        "//src/main/java/com/google/android/libraries/feed/internalapi/store",
         "//src/main/proto/com/google/android/libraries/feed/api/proto:client_feed_java_proto_lite",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_guava_guava",

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.api.store;
+package com.google.android.libraries.feed.internalapi.store;
 
 import android.support.annotation.IntDef;
 import com.google.android.libraries.feed.host.storage.CommitResult;

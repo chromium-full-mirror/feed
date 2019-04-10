@@ -15,9 +15,6 @@
 package com.google.android.libraries.feed.testing.store;
 
 import com.google.android.libraries.feed.api.common.PayloadWithId;
-import com.google.android.libraries.feed.api.store.ContentMutation;
-import com.google.android.libraries.feed.api.store.SessionMutation;
-import com.google.android.libraries.feed.api.store.UploadableActionMutation;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
@@ -28,6 +25,9 @@ import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedstore.FeedStore;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
+import com.google.android.libraries.feed.internalapi.store.ContentMutation;
+import com.google.android.libraries.feed.internalapi.store.SessionMutation;
+import com.google.android.libraries.feed.internalapi.store.UploadableActionMutation;
 import com.google.android.libraries.feed.testing.host.logging.FakeBasicLoggingApi;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
@@ -37,7 +37,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-/** Fake implementation of {@link com.google.android.libraries.feed.api.store.Store}. */
+/** Fake implementation of {@link com.google.android.libraries.feed.internalapi.store.Store}. */
 public final class FakeStore extends FeedStore {
   private final FakeThreadUtils fakeThreadUtils;
   private boolean allowCreateNewSession = true;

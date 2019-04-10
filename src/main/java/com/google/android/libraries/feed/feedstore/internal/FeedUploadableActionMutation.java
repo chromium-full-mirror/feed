@@ -14,10 +14,10 @@
 
 package com.google.android.libraries.feed.feedstore.internal;
 
-import com.google.android.libraries.feed.api.store.UploadableActionMutation;
 import com.google.android.libraries.feed.common.functional.Committer;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.storage.CommitResult;
+import com.google.android.libraries.feed.internalapi.store.UploadableActionMutation;
 import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
 import java.util.HashMap;
 import java.util.HashSet;
