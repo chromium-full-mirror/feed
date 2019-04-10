@@ -32,7 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /** Builder making creation of wire protocol Response object easier. */
-public class WireProtocolResponseBuilder {
+public class ResponseBuilder {
   // this needs to match the root content_id defined in the FeedProtocolAdapter.
   public static final ContentId ROOT_CONTENT_ID =
       ContentId.newBuilder().setContentDomain("stream_root").setId(0).setTable("feature").build();
@@ -57,21 +57,21 @@ public class WireProtocolResponseBuilder {
   /*@Nullable*/ private ByteString token = null;
 
   /** Add a CLEAR_ALL data operation to the response */
-  public WireProtocolResponseBuilder addClearOperation() {
+  public ResponseBuilder addClearOperation() {
     wireProtocolInfo.hasClearOperation = true;
     feedResponseBuilder.addDataOperation(
         DataOperation.newBuilder().setOperation(Operation.CLEAR_ALL).build());
     return this;
   }
 
-  public WireProtocolResponseBuilder addStreamToken(int tokenId, ByteString token) {
+  public ResponseBuilder addStreamToken(int tokenId, ByteString token) {
     this.token = token;
     this.tokenId = tokenId;
     wireProtocolInfo.hasToken = true;
     return this;
   }
 
-  public WireProtocolResponseBuilder addPietSharedState() {
+  public ResponseBuilder addPietSharedState() {
     PayloadMetadata payloadMetadata =
         PayloadMetadata.newBuilder().setContentId(PIET_SHARED_STATE).build();
     feedResponseBuilder.addDataOperation(
@@ -84,11 +84,11 @@ public class WireProtocolResponseBuilder {
   }
 
   /** Add a data operation for a feature that represents the Root of the Stream. */
-  public WireProtocolResponseBuilder addRootFeature() {
+  public ResponseBuilder addRootFeature() {
     return addRootFeature(ROOT_CONTENT_ID);
   }
 
-  public WireProtocolResponseBuilder addRootFeature(ContentId contentId) {
+  public ResponseBuilder addRootFeature(ContentId contentId) {
     PayloadMetadata payloadMetadata = PayloadMetadata.newBuilder().setContentId(contentId).build();
     Feature feature = Feature.newBuilder().setRenderableUnit(RenderableUnit.STREAM).build();
 
@@ -102,7 +102,7 @@ public class WireProtocolResponseBuilder {
     return this;
   }
 
-  public WireProtocolResponseBuilder addClusterFeature(ContentId contentId, ContentId parentId) {
+  public ResponseBuilder addClusterFeature(ContentId contentId, ContentId parentId) {
     PayloadMetadata payloadMetadata = PayloadMetadata.newBuilder().setContentId(contentId).build();
     Feature feature =
         Feature.newBuilder()
@@ -119,7 +119,7 @@ public class WireProtocolResponseBuilder {
     return this;
   }
 
-  public WireProtocolResponseBuilder addCard(ContentId contentId, ContentId parentId) {
+  public ResponseBuilder addCard(ContentId contentId, ContentId parentId) {
     // Create a Card
     PayloadMetadata payloadMetadata = PayloadMetadata.newBuilder().setContentId(contentId).build();
     Feature feature =
@@ -152,15 +152,14 @@ public class WireProtocolResponseBuilder {
     return this;
   }
 
-  public WireProtocolResponseBuilder addCardsToRoot(ContentId[] contentIds) {
+  public ResponseBuilder addCardsToRoot(ContentId[] contentIds) {
     for (ContentId contentId : contentIds) {
       addCard(contentId, ROOT_CONTENT_ID);
     }
     return this;
   }
 
-  public WireProtocolResponseBuilder addCardWithSemanticData(
-      ContentId contentId, ByteString semanticData) {
+  public ResponseBuilder addCardWithSemanticData(ContentId contentId, ByteString semanticData) {
     feedResponseBuilder.addDataOperation(
         DataOperation.newBuilder()
             .setOperation(Operation.UPDATE_OR_APPEND)
@@ -174,8 +173,7 @@ public class WireProtocolResponseBuilder {
     return this;
   }
 
-  public WireProtocolResponseBuilder addCardWithActionData(
-      ContentId contentId, OpaqueActionData actionData) {
+  public ResponseBuilder addCardWithActionData(ContentId contentId, OpaqueActionData actionData) {
     feedResponseBuilder.addDataOperation(
         DataOperation.newBuilder()
             .setOperation(Operation.UPDATE_OR_APPEND)
@@ -188,7 +186,7 @@ public class WireProtocolResponseBuilder {
     return this;
   }
 
-  public WireProtocolResponseBuilder removeFeature(ContentId contentId, ContentId parentId) {
+  public ResponseBuilder removeFeature(ContentId contentId, ContentId parentId) {
     PayloadMetadata payloadMetadata = PayloadMetadata.newBuilder().setContentId(contentId).build();
     Feature feature =
         Feature.newBuilder().setRenderableUnit(RenderableUnit.CARD).setParentId(parentId).build();
@@ -232,13 +230,13 @@ public class WireProtocolResponseBuilder {
     return wireProtocolInfo;
   }
 
-  /** Returns a new {@link WireProtocolResponseBuilder}. */
-  public static WireProtocolResponseBuilder builder() {
-    return new WireProtocolResponseBuilder();
+  /** Returns a new {@link ResponseBuilder}. */
+  public static ResponseBuilder builder() {
+    return new ResponseBuilder();
   }
 
-  /** Returns a {@link WireProtocolResponseBuilder} with a CLEAR_ALL, root, and cards. */
-  public static WireProtocolResponseBuilder forClearAllWithCards(ContentId[] cards) {
+  /** Returns a {@link ResponseBuilder} with a CLEAR_ALL, root, and cards. */
+  public static ResponseBuilder forClearAllWithCards(ContentId[] cards) {
     return builder().addClearOperation().addRootFeature().addCardsToRoot(cards);
   }
 

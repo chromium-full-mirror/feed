@@ -20,7 +20,7 @@ import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
-import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
+import com.google.android.libraries.feed.common.testing.ResponseBuilder;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
@@ -39,13 +39,11 @@ import org.robolectric.RobolectricTestRunner;
 public final class GcTest {
   private static final ContentId[] REQUEST_1 =
       new ContentId[] {
-        WireProtocolResponseBuilder.createFeatureContentId(1),
-        WireProtocolResponseBuilder.createFeatureContentId(2)
+        ResponseBuilder.createFeatureContentId(1), ResponseBuilder.createFeatureContentId(2)
       };
   private static final ContentId[] REQUEST_2 =
       new ContentId[] {
-        WireProtocolResponseBuilder.createFeatureContentId(3),
-        WireProtocolResponseBuilder.createFeatureContentId(4)
+        ResponseBuilder.createFeatureContentId(3), ResponseBuilder.createFeatureContentId(4)
       };
   private static final long LIFETIME_MS = Duration.ofHours(1).toMillis();
 
@@ -133,6 +131,6 @@ public final class GcTest {
   }
 
   private static Response createResponse(ContentId[] contentIds) {
-    return WireProtocolResponseBuilder.forClearAllWithCards(contentIds).build();
+    return ResponseBuilder.forClearAllWithCards(contentIds).build();
   }
 }

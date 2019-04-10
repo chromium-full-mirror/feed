@@ -32,7 +32,7 @@ import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
-import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
+import com.google.android.libraries.feed.common.testing.ResponseBuilder;
 import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
@@ -71,18 +71,15 @@ public class StructureUpdateTest {
     // Create a simple stream with a root and two features
     ContentId[] startingCards =
         new ContentId[] {
-          WireProtocolResponseBuilder.createFeatureContentId(1),
-          WireProtocolResponseBuilder.createFeatureContentId(2)
+          ResponseBuilder.createFeatureContentId(1), ResponseBuilder.createFeatureContentId(2)
         };
     // Define two features to be appended to the root
     ContentId[] appendedCards =
         new ContentId[] {
-          WireProtocolResponseBuilder.createFeatureContentId(3),
-          WireProtocolResponseBuilder.createFeatureContentId(4)
+          ResponseBuilder.createFeatureContentId(3), ResponseBuilder.createFeatureContentId(4)
         };
 
-    requestManager.queueResponse(
-        WireProtocolResponseBuilder.forClearAllWithCards(startingCards).build());
+    requestManager.queueResponse(ResponseBuilder.forClearAllWithCards(startingCards).build());
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
@@ -95,8 +92,7 @@ public class StructureUpdateTest {
     modelValidator.assertCursorSize(root.getCursor(), startingCards.length);
 
     // Append new children to root
-    requestManager.queueResponse(
-        WireProtocolResponseBuilder.builder().addCardsToRoot(appendedCards).build());
+    requestManager.queueResponse(ResponseBuilder.builder().addCardsToRoot(appendedCards).build());
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
@@ -124,18 +120,15 @@ public class StructureUpdateTest {
     // Create a simple stream with a root and two features
     ContentId[] startingCards =
         new ContentId[] {
-          WireProtocolResponseBuilder.createFeatureContentId(1),
-          WireProtocolResponseBuilder.createFeatureContentId(2)
+          ResponseBuilder.createFeatureContentId(1), ResponseBuilder.createFeatureContentId(2)
         };
     // Define two features to be appended to the root
     ContentId[] appendedCards =
         new ContentId[] {
-          WireProtocolResponseBuilder.createFeatureContentId(3),
-          WireProtocolResponseBuilder.createFeatureContentId(4)
+          ResponseBuilder.createFeatureContentId(3), ResponseBuilder.createFeatureContentId(4)
         };
 
-    requestManager.queueResponse(
-        WireProtocolResponseBuilder.forClearAllWithCards(startingCards).build());
+    requestManager.queueResponse(ResponseBuilder.forClearAllWithCards(startingCards).build());
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
@@ -149,8 +142,7 @@ public class StructureUpdateTest {
     cursor.getNextItem();
 
     // Now append additional children to the stream (and cursor)
-    requestManager.queueResponse(
-        WireProtocolResponseBuilder.builder().addCardsToRoot(appendedCards).build());
+    requestManager.queueResponse(ResponseBuilder.builder().addCardsToRoot(appendedCards).build());
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));

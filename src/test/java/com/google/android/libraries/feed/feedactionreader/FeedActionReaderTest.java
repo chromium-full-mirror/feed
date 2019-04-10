@@ -33,7 +33,7 @@ import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeTaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
-import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
+import com.google.android.libraries.feed.common.testing.ResponseBuilder;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
@@ -57,10 +57,9 @@ public class FeedActionReaderTest {
 
   private static final ContentIdGenerators ID_GENERATOR = new ContentIdGenerators();
 
-  private static final ContentId CONTENT_ID = WireProtocolResponseBuilder.createFeatureContentId(1);
+  private static final ContentId CONTENT_ID = ResponseBuilder.createFeatureContentId(1);
   private static final String CONTENT_ID_STRING = ID_GENERATOR.createContentId(CONTENT_ID);
-  private static final ContentId CONTENT_ID_2 =
-      WireProtocolResponseBuilder.createFeatureContentId(2);
+  private static final ContentId CONTENT_ID_2 = ResponseBuilder.createFeatureContentId(2);
   private static final String CONTENT_ID_STRING_2 = ID_GENERATOR.createContentId(CONTENT_ID_2);
   private static final long DEFAULT_TIME = TimeUnit.DAYS.toSeconds(42);
 

@@ -34,7 +34,7 @@ import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
 import com.google.android.libraries.feed.common.testing.PagingState;
-import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
+import com.google.android.libraries.feed.common.testing.ResponseBuilder;
 import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
@@ -84,13 +84,11 @@ public class StreamPagingTest {
     // ModelProvider created after $HEAD has content, one root, and two Cards and a token
     ContentId[] cards =
         new ContentId[] {
-          WireProtocolResponseBuilder.createFeatureContentId(1),
-          WireProtocolResponseBuilder.createFeatureContentId(2)
+          ResponseBuilder.createFeatureContentId(1), ResponseBuilder.createFeatureContentId(2)
         };
     ContentId[] pageCards =
         new ContentId[] {
-          WireProtocolResponseBuilder.createFeatureContentId(3),
-          WireProtocolResponseBuilder.createFeatureContentId(4)
+          ResponseBuilder.createFeatureContentId(3), ResponseBuilder.createFeatureContentId(4)
         };
     PagingState state = new PagingState(cards, pageCards, 1, contentIdGenerators);
     requestManager.queueResponse(state.initialResponse);
@@ -150,13 +148,11 @@ public class StreamPagingTest {
   public void testPostPagingSessionCreation() {
     ContentId[] cards =
         new ContentId[] {
-          WireProtocolResponseBuilder.createFeatureContentId(1),
-          WireProtocolResponseBuilder.createFeatureContentId(2)
+          ResponseBuilder.createFeatureContentId(1), ResponseBuilder.createFeatureContentId(2)
         };
     ContentId[] pageCards =
         new ContentId[] {
-          WireProtocolResponseBuilder.createFeatureContentId(3),
-          WireProtocolResponseBuilder.createFeatureContentId(4)
+          ResponseBuilder.createFeatureContentId(3), ResponseBuilder.createFeatureContentId(4)
         };
     PagingState state = new PagingState(cards, pageCards, 1, contentIdGenerators);
     requestManager.queueResponse(state.initialResponse);

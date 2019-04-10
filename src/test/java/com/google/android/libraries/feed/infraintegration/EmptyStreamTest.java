@@ -28,8 +28,8 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderObserver;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
-import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
-import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder.WireProtocolInfo;
+import com.google.android.libraries.feed.common.testing.ResponseBuilder;
+import com.google.android.libraries.feed.common.testing.ResponseBuilder.WireProtocolInfo;
 import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
 import com.google.search.now.feed.client.StreamDataProto.UiContext;
@@ -96,7 +96,7 @@ public class EmptyStreamTest {
   @Test
   public void emptyStream_emptyResponse() {
     // Create an empty stream through a response
-    WireProtocolResponseBuilder responseBuilder = new WireProtocolResponseBuilder();
+    ResponseBuilder responseBuilder = new ResponseBuilder();
     requestManager.queueResponse(responseBuilder.build());
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,

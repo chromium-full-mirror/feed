@@ -28,8 +28,8 @@ import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
-import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
-import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder.WireProtocolInfo;
+import com.google.android.libraries.feed.common.testing.ResponseBuilder;
+import com.google.android.libraries.feed.common.testing.ResponseBuilder.WireProtocolInfo;
 import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
@@ -65,9 +65,9 @@ public class SimpleStreamTest {
   public void simpleStream_oneCard() {
     // ModelProvider created after $HEAD has content, one root, and one Card
     // A Card is two features, the Card and Content.
-    WireProtocolResponseBuilder responseBuilder =
-        WireProtocolResponseBuilder.forClearAllWithCards(
-            new ContentId[] {WireProtocolResponseBuilder.createFeatureContentId(1)});
+    ResponseBuilder responseBuilder =
+        ResponseBuilder.forClearAllWithCards(
+            new ContentId[] {ResponseBuilder.createFeatureContentId(1)});
     requestManager.queueResponse(responseBuilder.build());
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
@@ -102,11 +102,9 @@ public class SimpleStreamTest {
     // ModelProvider created after $HEAD has content, one root, and two Cards
     ContentId[] cards =
         new ContentId[] {
-          WireProtocolResponseBuilder.createFeatureContentId(1),
-          WireProtocolResponseBuilder.createFeatureContentId(2)
+          ResponseBuilder.createFeatureContentId(1), ResponseBuilder.createFeatureContentId(2)
         };
-    WireProtocolResponseBuilder responseBuilder =
-        WireProtocolResponseBuilder.forClearAllWithCards(cards);
+    ResponseBuilder responseBuilder = ResponseBuilder.forClearAllWithCards(cards);
     requestManager.queueResponse(responseBuilder.build());
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,

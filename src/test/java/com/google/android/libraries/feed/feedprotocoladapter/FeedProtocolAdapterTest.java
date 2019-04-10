@@ -18,7 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.common.Result;
-import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
+import com.google.android.libraries.feed.common.testing.ResponseBuilder;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
@@ -37,18 +37,18 @@ import org.robolectric.RobolectricTestRunner;
 public class FeedProtocolAdapterTest {
 
   private final TimingUtils timingUtils = new TimingUtils();
-  private WireProtocolResponseBuilder responseBuilder;
+  private ResponseBuilder responseBuilder;
 
   @Before
   public void init() {
     initMocks(this);
-    responseBuilder = new WireProtocolResponseBuilder();
+    responseBuilder = new ResponseBuilder();
   }
 
   @Test
   public void testConvertContentId() {
     FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(timingUtils);
-    ContentId contentId = WireProtocolResponseBuilder.createFeatureContentId(13);
+    ContentId contentId = ResponseBuilder.createFeatureContentId(13);
     String streamContentId = protocolAdapter.getStreamContentId(contentId);
     assertThat(streamContentId).isNotNull();
     assertThat(streamContentId).contains(contentId.getContentDomain());
@@ -80,7 +80,7 @@ public class FeedProtocolAdapterTest {
   @Test
   public void testConvertContentId_roundTrip() {
     FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(timingUtils);
-    ContentId contentId = WireProtocolResponseBuilder.createFeatureContentId(13);
+    ContentId contentId = ResponseBuilder.createFeatureContentId(13);
     String streamContentId = protocolAdapter.getStreamContentId(contentId);
     Result<ContentId> contentIdResult = protocolAdapter.getWireContentId(streamContentId);
     assertThat(contentIdResult.isSuccessful()).isTrue();
@@ -129,10 +129,10 @@ public class FeedProtocolAdapterTest {
   @Test
   public void testSimpleResponse_feature_semanticProperties() {
     FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(timingUtils);
-    ContentId contentId = WireProtocolResponseBuilder.createFeatureContentId(13);
+    ContentId contentId = ResponseBuilder.createFeatureContentId(13);
     ByteString semanticData = ByteString.copyFromUtf8("helloWorld");
     Response response =
-        new WireProtocolResponseBuilder().addCardWithSemanticData(contentId, semanticData).build();
+        new ResponseBuilder().addCardWithSemanticData(contentId, semanticData).build();
 
     Result<List<StreamDataOperation>> results = protocolAdapter.createModel(response);
     assertThat(results.isSuccessful()).isTrue();
@@ -146,10 +146,9 @@ public class FeedProtocolAdapterTest {
   @Test
   public void testSimpleResponse_feature_actionProperties() {
     FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(timingUtils);
-    ContentId contentId = WireProtocolResponseBuilder.createFeatureContentId(13);
+    ContentId contentId = ResponseBuilder.createFeatureContentId(13);
     OpaqueActionData actionData = OpaqueActionData.getDefaultInstance();
-    Response response =
-        new WireProtocolResponseBuilder().addCardWithActionData(contentId, actionData).build();
+    Response response = new ResponseBuilder().addCardWithActionData(contentId, actionData).build();
 
     Result<List<StreamDataOperation>> results = protocolAdapter.createModel(response);
     assertThat(results.isSuccessful()).isTrue();

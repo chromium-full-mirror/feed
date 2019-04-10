@@ -14,7 +14,7 @@
 
 package com.google.android.libraries.feed.infraintegration;
 
-import static com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder.ROOT_CONTENT_ID;
+import static com.google.android.libraries.feed.common.testing.ResponseBuilder.ROOT_CONTENT_ID;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -31,7 +31,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
-import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
+import com.google.android.libraries.feed.common.testing.ResponseBuilder;
 import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
@@ -68,12 +68,12 @@ public class ContentRemoveTest {
     // Create a simple stream with a root and four features
     ContentId[] cards =
         new ContentId[] {
-          WireProtocolResponseBuilder.createFeatureContentId(1),
-          WireProtocolResponseBuilder.createFeatureContentId(2),
-          WireProtocolResponseBuilder.createFeatureContentId(3),
-          WireProtocolResponseBuilder.createFeatureContentId(4)
+          ResponseBuilder.createFeatureContentId(1),
+          ResponseBuilder.createFeatureContentId(2),
+          ResponseBuilder.createFeatureContentId(3),
+          ResponseBuilder.createFeatureContentId(4)
         };
-    requestManager.queueResponse(WireProtocolResponseBuilder.forClearAllWithCards(cards).build());
+    requestManager.queueResponse(ResponseBuilder.forClearAllWithCards(cards).build());
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
@@ -93,7 +93,7 @@ public class ContentRemoveTest {
     ModelCursor advancedCursor4 = advanceCursor(rootFeature.getCursor(), 4);
 
     requestManager.queueResponse(
-        WireProtocolResponseBuilder.builder().removeFeature(cards[1], ROOT_CONTENT_ID).build());
+        ResponseBuilder.builder().removeFeature(cards[1], ROOT_CONTENT_ID).build());
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));

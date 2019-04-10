@@ -25,7 +25,7 @@ import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
-import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
+import com.google.android.libraries.feed.common.testing.ResponseBuilder;
 import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
 import com.google.protobuf.ByteString;
@@ -59,11 +59,11 @@ public class SemanticPropertiesTest {
 
   @Test
   public void persistingSemanticProperties() {
-    ContentId contentId = WireProtocolResponseBuilder.createFeatureContentId(13);
+    ContentId contentId = ResponseBuilder.createFeatureContentId(13);
     ByteString semanticData = ByteString.copyFromUtf8("helloWorld");
 
     Response response =
-        new WireProtocolResponseBuilder().addCardWithSemanticData(contentId, semanticData).build();
+        new ResponseBuilder().addCardWithSemanticData(contentId, semanticData).build();
     requestManager.queueResponse(response);
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,

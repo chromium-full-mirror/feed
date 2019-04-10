@@ -27,7 +27,7 @@ import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
-import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
+import com.google.android.libraries.feed.common.testing.ResponseBuilder;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
@@ -50,28 +50,28 @@ import org.robolectric.RobolectricTestRunner;
 public class ViewDepthProviderTests {
   private static final ContentId[] REQUEST_ONE =
       new ContentId[] {
-        WireProtocolResponseBuilder.createFeatureContentId(1),
-        WireProtocolResponseBuilder.createFeatureContentId(2),
-        WireProtocolResponseBuilder.createFeatureContentId(3),
-        WireProtocolResponseBuilder.createFeatureContentId(4)
+        ResponseBuilder.createFeatureContentId(1),
+        ResponseBuilder.createFeatureContentId(2),
+        ResponseBuilder.createFeatureContentId(3),
+        ResponseBuilder.createFeatureContentId(4)
       };
   private static final ContentId[] REQUEST_TWO =
       new ContentId[] {
-        WireProtocolResponseBuilder.createFeatureContentId(5),
-        WireProtocolResponseBuilder.createFeatureContentId(6),
-        WireProtocolResponseBuilder.createFeatureContentId(7)
+        ResponseBuilder.createFeatureContentId(5),
+        ResponseBuilder.createFeatureContentId(6),
+        ResponseBuilder.createFeatureContentId(7)
       };
   private static final ContentId[] REQUEST_TWO_WITH_DUPLICATES =
       new ContentId[] {
-        WireProtocolResponseBuilder.createFeatureContentId(5),
-        WireProtocolResponseBuilder.createFeatureContentId(6),
-        WireProtocolResponseBuilder.createFeatureContentId(4)
+        ResponseBuilder.createFeatureContentId(5),
+        ResponseBuilder.createFeatureContentId(6),
+        ResponseBuilder.createFeatureContentId(4)
       };
   private static final ContentId[] REQUEST_TWO_WITH_DUPLICATES_PAGE =
       new ContentId[] {
-        WireProtocolResponseBuilder.createFeatureContentId(5),
-        WireProtocolResponseBuilder.createFeatureContentId(4),
-        WireProtocolResponseBuilder.createFeatureContentId(7)
+        ResponseBuilder.createFeatureContentId(5),
+        ResponseBuilder.createFeatureContentId(4),
+        ResponseBuilder.createFeatureContentId(7)
       };
 
   @Mock private ThreadUtils threadUtils;
@@ -103,8 +103,7 @@ public class ViewDepthProviderTests {
   public void baseDepthProviderTest() {
 
     // Load up the initial request
-    requestManager.queueResponse(
-        WireProtocolResponseBuilder.forClearAllWithCards(REQUEST_ONE).build());
+    requestManager.queueResponse(ResponseBuilder.forClearAllWithCards(REQUEST_ONE).build());
 
     // The REQUEST_ONE content will be added to head, this is then used to create the initial
     // session.
@@ -116,8 +115,7 @@ public class ViewDepthProviderTests {
     // REQUEST_WITH_CONTENT
     when(schedulerApi.shouldSessionRequestData(any(SessionManagerState.class)))
         .thenReturn(RequestBehavior.REQUEST_WITH_CONTENT);
-    requestManager.queueResponse(
-        WireProtocolResponseBuilder.forClearAllWithCards(REQUEST_TWO).build());
+    requestManager.queueResponse(ResponseBuilder.forClearAllWithCards(REQUEST_TWO).build());
     ModelProvider modelProvider = modelProviderFactory.createNew(viewDepthProvider);
 
     // The second request will be added after the first request, the ViewDepthProvider indicates
@@ -134,8 +132,7 @@ public class ViewDepthProviderTests {
   @Test
   public void testDuplicateEntries() {
     // Load up the initial request
-    requestManager.queueResponse(
-        WireProtocolResponseBuilder.forClearAllWithCards(REQUEST_ONE).build());
+    requestManager.queueResponse(ResponseBuilder.forClearAllWithCards(REQUEST_ONE).build());
 
     // The REQUEST_ONE content will be added to head, this is then used to create the initial
     // session.
@@ -148,7 +145,7 @@ public class ViewDepthProviderTests {
     when(schedulerApi.shouldSessionRequestData(any(SessionManagerState.class)))
         .thenReturn(RequestBehavior.REQUEST_WITH_CONTENT);
     requestManager.queueResponse(
-        WireProtocolResponseBuilder.forClearAllWithCards(REQUEST_TWO_WITH_DUPLICATES).build());
+        ResponseBuilder.forClearAllWithCards(REQUEST_TWO_WITH_DUPLICATES).build());
     ModelProvider modelProvider = modelProviderFactory.createNew(viewDepthProvider);
 
     // The second request will be added after the first request, the ViewDepthProvider indicates
@@ -163,9 +160,7 @@ public class ViewDepthProviderTests {
 
     // Now page in the same content, this should all be updates
     requestManager.queueResponse(
-        WireProtocolResponseBuilder.builder()
-            .addCardsToRoot(REQUEST_TWO_WITH_DUPLICATES_PAGE)
-            .build());
+        ResponseBuilder.builder().addCardsToRoot(REQUEST_TWO_WITH_DUPLICATES_PAGE).build());
     requestManager.triggerRefresh(
         RequestReason.HOST_REQUESTED,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));

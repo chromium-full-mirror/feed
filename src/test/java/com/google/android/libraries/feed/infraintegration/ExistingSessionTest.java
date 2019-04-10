@@ -27,7 +27,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
-import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
+import com.google.android.libraries.feed.common.testing.ResponseBuilder;
 import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
@@ -62,11 +62,11 @@ public class ExistingSessionTest {
     // Create a simple stream with a root and three features
     ContentId[] cards =
         new ContentId[] {
-          WireProtocolResponseBuilder.createFeatureContentId(1),
-          WireProtocolResponseBuilder.createFeatureContentId(2),
-          WireProtocolResponseBuilder.createFeatureContentId(3)
+          ResponseBuilder.createFeatureContentId(1),
+          ResponseBuilder.createFeatureContentId(2),
+          ResponseBuilder.createFeatureContentId(3)
         };
-    requestManager.queueResponse(WireProtocolResponseBuilder.forClearAllWithCards(cards).build());
+    requestManager.queueResponse(ResponseBuilder.forClearAllWithCards(cards).build());
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
@@ -99,11 +99,11 @@ public class ExistingSessionTest {
     // Create a simple stream with a root and three features
     ContentId[] cards =
         new ContentId[] {
-          WireProtocolResponseBuilder.createFeatureContentId(1),
-          WireProtocolResponseBuilder.createFeatureContentId(2),
-          WireProtocolResponseBuilder.createFeatureContentId(3)
+          ResponseBuilder.createFeatureContentId(1),
+          ResponseBuilder.createFeatureContentId(2),
+          ResponseBuilder.createFeatureContentId(3)
         };
-    requestManager.queueResponse(WireProtocolResponseBuilder.forClearAllWithCards(cards).build());
+    requestManager.queueResponse(ResponseBuilder.forClearAllWithCards(cards).build());
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
@@ -141,11 +141,11 @@ public class ExistingSessionTest {
     // Create a simple stream with a root and three features
     ContentId[] cards =
         new ContentId[] {
-          WireProtocolResponseBuilder.createFeatureContentId(1),
-          WireProtocolResponseBuilder.createFeatureContentId(2),
-          WireProtocolResponseBuilder.createFeatureContentId(3)
+          ResponseBuilder.createFeatureContentId(1),
+          ResponseBuilder.createFeatureContentId(2),
+          ResponseBuilder.createFeatureContentId(3)
         };
-    requestManager.queueResponse(WireProtocolResponseBuilder.forClearAllWithCards(cards).build());
+    requestManager.queueResponse(ResponseBuilder.forClearAllWithCards(cards).build());
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
@@ -171,11 +171,11 @@ public class ExistingSessionTest {
     // Create a simple stream with a root and three features
     ContentId[] cards =
         new ContentId[] {
-          WireProtocolResponseBuilder.createFeatureContentId(1),
-          WireProtocolResponseBuilder.createFeatureContentId(2),
-          WireProtocolResponseBuilder.createFeatureContentId(3)
+          ResponseBuilder.createFeatureContentId(1),
+          ResponseBuilder.createFeatureContentId(2),
+          ResponseBuilder.createFeatureContentId(3)
         };
-    requestManager.queueResponse(WireProtocolResponseBuilder.forClearAllWithCards(cards).build());
+    requestManager.queueResponse(ResponseBuilder.forClearAllWithCards(cards).build());
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));

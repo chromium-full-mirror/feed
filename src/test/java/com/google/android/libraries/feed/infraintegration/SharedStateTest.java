@@ -25,7 +25,7 @@ import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
-import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
+import com.google.android.libraries.feed.common.testing.ResponseBuilder;
 import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
@@ -60,41 +60,39 @@ public class SharedStateTest {
   @Test
   public void sharedState_headBeforeModelProvider() {
     // ModelProvider is created from $HEAD containing content, simple shared state added
-    WireProtocolResponseBuilder responseBuilder =
-        new WireProtocolResponseBuilder().addClearOperation().addPietSharedState().addRootFeature();
+    ResponseBuilder responseBuilder =
+        new ResponseBuilder().addClearOperation().addPietSharedState().addRootFeature();
     requestManager.queueResponse(responseBuilder.build());
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
 
     ModelProvider modelProvider = modelProviderFactory.createNew(null);
-    StreamSharedState sharedState =
-        modelProvider.getSharedState(WireProtocolResponseBuilder.PIET_SHARED_STATE);
+    StreamSharedState sharedState = modelProvider.getSharedState(ResponseBuilder.PIET_SHARED_STATE);
     assertThat(sharedState).isNotNull();
     modelValidator.assertStreamContentId(
         sharedState.getContentId(),
-        protocolAdapter.getStreamContentId(WireProtocolResponseBuilder.PIET_SHARED_STATE));
+        protocolAdapter.getStreamContentId(ResponseBuilder.PIET_SHARED_STATE));
   }
 
   @Test
   public void sharedState_headAfterModelProvider() {
     // ModelProvider is created from empty $HEAD, simple shared state added
     ModelProvider modelProvider = modelProviderFactory.createNew(null);
-    StreamSharedState sharedState =
-        modelProvider.getSharedState(WireProtocolResponseBuilder.PIET_SHARED_STATE);
+    StreamSharedState sharedState = modelProvider.getSharedState(ResponseBuilder.PIET_SHARED_STATE);
     assertThat(sharedState).isNull();
 
-    WireProtocolResponseBuilder responseBuilder =
-        new WireProtocolResponseBuilder().addClearOperation().addPietSharedState().addRootFeature();
+    ResponseBuilder responseBuilder =
+        new ResponseBuilder().addClearOperation().addPietSharedState().addRootFeature();
     requestManager.queueResponse(responseBuilder.build());
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
 
-    sharedState = modelProvider.getSharedState(WireProtocolResponseBuilder.PIET_SHARED_STATE);
+    sharedState = modelProvider.getSharedState(ResponseBuilder.PIET_SHARED_STATE);
     assertThat(sharedState).isNotNull();
     modelValidator.assertStreamContentId(
         sharedState.getContentId(),
-        protocolAdapter.getStreamContentId(WireProtocolResponseBuilder.PIET_SHARED_STATE));
+        protocolAdapter.getStreamContentId(ResponseBuilder.PIET_SHARED_STATE));
   }
 }

@@ -26,7 +26,7 @@ import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
 import com.google.android.libraries.feed.common.testing.PagingState;
-import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
+import com.google.android.libraries.feed.common.testing.ResponseBuilder;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.logging.RequestReason;
@@ -44,15 +44,15 @@ public class DetachSessionTest {
   // Create a simple stream with a root and three features
   private static final ContentId[] PAGE_1 =
       new ContentId[] {
-        WireProtocolResponseBuilder.createFeatureContentId(1),
-        WireProtocolResponseBuilder.createFeatureContentId(2),
-        WireProtocolResponseBuilder.createFeatureContentId(3)
+        ResponseBuilder.createFeatureContentId(1),
+        ResponseBuilder.createFeatureContentId(2),
+        ResponseBuilder.createFeatureContentId(3)
       };
   private static final ContentId[] PAGE_2 =
       new ContentId[] {
-        WireProtocolResponseBuilder.createFeatureContentId(4),
-        WireProtocolResponseBuilder.createFeatureContentId(5),
-        WireProtocolResponseBuilder.createFeatureContentId(6)
+        ResponseBuilder.createFeatureContentId(4),
+        ResponseBuilder.createFeatureContentId(5),
+        ResponseBuilder.createFeatureContentId(6)
       };
 
   @Mock private ThreadUtils threadUtils;

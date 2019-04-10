@@ -28,8 +28,8 @@ import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
 import com.google.android.libraries.feed.common.testing.PagingState;
-import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
-import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder.WireProtocolInfo;
+import com.google.android.libraries.feed.common.testing.ResponseBuilder;
+import com.google.android.libraries.feed.common.testing.ResponseBuilder.WireProtocolInfo;
 import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
 import com.google.protobuf.ByteString;
@@ -85,28 +85,24 @@ public class MultiSessionPagingTest {
     // Create session 1 content
     ContentId[] s1Cards =
         new ContentId[] {
-          WireProtocolResponseBuilder.createFeatureContentId(1),
-          WireProtocolResponseBuilder.createFeatureContentId(2)
+          ResponseBuilder.createFeatureContentId(1), ResponseBuilder.createFeatureContentId(2)
         };
     ContentId[] s1PageCards =
         new ContentId[] {
-          WireProtocolResponseBuilder.createFeatureContentId(3),
-          WireProtocolResponseBuilder.createFeatureContentId(4)
+          ResponseBuilder.createFeatureContentId(3), ResponseBuilder.createFeatureContentId(4)
         };
     PagingState s1State = new PagingState(s1Cards, s1PageCards, 1, contentIdGenerators);
     ByteString token1 = ByteString.copyFrom("s1-page", Charset.defaultCharset());
-    WireProtocolResponseBuilder s1InitialResponse = getInitialResponse(s1Cards, token1);
+    ResponseBuilder s1InitialResponse = getInitialResponse(s1Cards, token1);
 
     // Create session 2 content
     ContentId[] s2Cards =
         new ContentId[] {
-          WireProtocolResponseBuilder.createFeatureContentId(101),
-          WireProtocolResponseBuilder.createFeatureContentId(102)
+          ResponseBuilder.createFeatureContentId(101), ResponseBuilder.createFeatureContentId(102)
         };
     ContentId[] s2PageCards =
         new ContentId[] {
-          WireProtocolResponseBuilder.createFeatureContentId(103),
-          WireProtocolResponseBuilder.createFeatureContentId(104)
+          ResponseBuilder.createFeatureContentId(103), ResponseBuilder.createFeatureContentId(104)
         };
     PagingState s2State = new PagingState(s2Cards, s2PageCards, 2, contentIdGenerators);
 
@@ -165,7 +161,7 @@ public class MultiSessionPagingTest {
         mp2, s2Cards[0], s2Cards[1], s2PageCards[0], s2PageCards[1]);
   }
 
-  private WireProtocolResponseBuilder getInitialResponse(ContentId[] cards, ByteString token) {
-    return WireProtocolResponseBuilder.forClearAllWithCards(cards).addStreamToken(1, token);
+  private ResponseBuilder getInitialResponse(ContentId[] cards, ByteString token) {
+    return ResponseBuilder.forClearAllWithCards(cards).addStreamToken(1, token);
   }
 }

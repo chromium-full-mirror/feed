@@ -30,8 +30,8 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProviderObserver
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
-import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
-import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder.WireProtocolInfo;
+import com.google.android.libraries.feed.common.testing.ResponseBuilder;
+import com.google.android.libraries.feed.common.testing.ResponseBuilder.WireProtocolInfo;
 import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
 import com.google.search.now.feed.client.StreamDataProto.UiContext;
@@ -65,8 +65,7 @@ public class RootOnlyTest {
   @Test
   public void rootOnlyResponse_beforeSessionWithLifecycle() {
     // ModelProvider is created from $HEAD containing content
-    WireProtocolResponseBuilder responseBuilder =
-        new WireProtocolResponseBuilder().addClearOperation().addRootFeature();
+    ResponseBuilder responseBuilder = new ResponseBuilder().addClearOperation().addRootFeature();
     requestManager.queueResponse(responseBuilder.build());
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
@@ -101,8 +100,7 @@ public class RootOnlyTest {
     verify(changeObserver).onSessionStart();
     verify(changeObserver, never()).onSessionFinished(any(UiContext.class));
 
-    WireProtocolResponseBuilder responseBuilder =
-        new WireProtocolResponseBuilder().addRootFeature();
+    ResponseBuilder responseBuilder = new ResponseBuilder().addRootFeature();
     requestManager.queueResponse(responseBuilder.build());
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
@@ -127,8 +125,7 @@ public class RootOnlyTest {
     // Set the root in two different responses, verify the lifecycle is called correctly
     // and the root is replaced
     ModelProviderObserver changeObserver = mock(ModelProviderObserver.class);
-    WireProtocolResponseBuilder responseBuilder =
-        new WireProtocolResponseBuilder().addClearOperation().addRootFeature();
+    ResponseBuilder responseBuilder = new ResponseBuilder().addClearOperation().addRootFeature();
     requestManager.queueResponse(responseBuilder.build());
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
@@ -143,7 +140,7 @@ public class RootOnlyTest {
             .setId(2)
             .setTable("feature")
             .build();
-    responseBuilder = new WireProtocolResponseBuilder().addRootFeature(anotherRoot);
+    responseBuilder = new ResponseBuilder().addRootFeature(anotherRoot);
     requestManager.queueResponse(responseBuilder.build());
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,

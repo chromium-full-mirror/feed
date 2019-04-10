@@ -14,7 +14,7 @@
 
 package com.google.android.libraries.feed.infraintegration;
 
-import static com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder.ROOT_CONTENT_ID;
+import static com.google.android.libraries.feed.common.testing.ResponseBuilder.ROOT_CONTENT_ID;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -39,7 +39,7 @@ import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
 import com.google.android.libraries.feed.common.testing.PagingState;
-import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
+import com.google.android.libraries.feed.common.testing.ResponseBuilder;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.logging.RequestReason;
@@ -107,23 +107,23 @@ public class SyntheticTokensTest {
   public void syntheticTokenPaging() {
     ContentId[] cards =
         new ContentId[] {
-          WireProtocolResponseBuilder.createFeatureContentId(1),
-          WireProtocolResponseBuilder.createFeatureContentId(2),
-          WireProtocolResponseBuilder.createFeatureContentId(3),
-          WireProtocolResponseBuilder.createFeatureContentId(4),
-          WireProtocolResponseBuilder.createFeatureContentId(5),
-          WireProtocolResponseBuilder.createFeatureContentId(6),
-          WireProtocolResponseBuilder.createFeatureContentId(7),
-          WireProtocolResponseBuilder.createFeatureContentId(9),
-          WireProtocolResponseBuilder.createFeatureContentId(10),
-          WireProtocolResponseBuilder.createFeatureContentId(11),
-          WireProtocolResponseBuilder.createFeatureContentId(12),
-          WireProtocolResponseBuilder.createFeatureContentId(13)
+          ResponseBuilder.createFeatureContentId(1),
+          ResponseBuilder.createFeatureContentId(2),
+          ResponseBuilder.createFeatureContentId(3),
+          ResponseBuilder.createFeatureContentId(4),
+          ResponseBuilder.createFeatureContentId(5),
+          ResponseBuilder.createFeatureContentId(6),
+          ResponseBuilder.createFeatureContentId(7),
+          ResponseBuilder.createFeatureContentId(9),
+          ResponseBuilder.createFeatureContentId(10),
+          ResponseBuilder.createFeatureContentId(11),
+          ResponseBuilder.createFeatureContentId(12),
+          ResponseBuilder.createFeatureContentId(13)
         };
 
     // Create 13 cards (initial page size + page size + page size and slope of 1)
     // Initial model will have all the cards
-    requestManager.queueResponse(WireProtocolResponseBuilder.forClearAllWithCards(cards).build());
+    requestManager.queueResponse(ResponseBuilder.forClearAllWithCards(cards).build());
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
@@ -203,23 +203,23 @@ public class SyntheticTokensTest {
   public void syntheticTokenPaging_withCache() {
     ContentId[] cards =
         new ContentId[] {
-          WireProtocolResponseBuilder.createFeatureContentId(1),
-          WireProtocolResponseBuilder.createFeatureContentId(2),
-          WireProtocolResponseBuilder.createFeatureContentId(3),
-          WireProtocolResponseBuilder.createFeatureContentId(4),
-          WireProtocolResponseBuilder.createFeatureContentId(5),
-          WireProtocolResponseBuilder.createFeatureContentId(6),
-          WireProtocolResponseBuilder.createFeatureContentId(7),
-          WireProtocolResponseBuilder.createFeatureContentId(9),
-          WireProtocolResponseBuilder.createFeatureContentId(10),
-          WireProtocolResponseBuilder.createFeatureContentId(11),
-          WireProtocolResponseBuilder.createFeatureContentId(12),
-          WireProtocolResponseBuilder.createFeatureContentId(13)
+          ResponseBuilder.createFeatureContentId(1),
+          ResponseBuilder.createFeatureContentId(2),
+          ResponseBuilder.createFeatureContentId(3),
+          ResponseBuilder.createFeatureContentId(4),
+          ResponseBuilder.createFeatureContentId(5),
+          ResponseBuilder.createFeatureContentId(6),
+          ResponseBuilder.createFeatureContentId(7),
+          ResponseBuilder.createFeatureContentId(9),
+          ResponseBuilder.createFeatureContentId(10),
+          ResponseBuilder.createFeatureContentId(11),
+          ResponseBuilder.createFeatureContentId(12),
+          ResponseBuilder.createFeatureContentId(13)
         };
 
     // Create 13 cards (initial page size + page size + page size and slope of 1)
     // Initial model will have all the cards
-    requestManager.queueResponse(WireProtocolResponseBuilder.forClearAllWithCards(cards).build());
+    requestManager.queueResponse(ResponseBuilder.forClearAllWithCards(cards).build());
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
@@ -294,21 +294,21 @@ public class SyntheticTokensTest {
   public void syntheticTokenPaging_paging() {
     ContentId[] cards =
         new ContentId[] {
-          WireProtocolResponseBuilder.createFeatureContentId(1),
-          WireProtocolResponseBuilder.createFeatureContentId(2),
-          WireProtocolResponseBuilder.createFeatureContentId(3),
-          WireProtocolResponseBuilder.createFeatureContentId(4),
+          ResponseBuilder.createFeatureContentId(1),
+          ResponseBuilder.createFeatureContentId(2),
+          ResponseBuilder.createFeatureContentId(3),
+          ResponseBuilder.createFeatureContentId(4),
         };
     ContentId[] pageCards =
         new ContentId[] {
-          WireProtocolResponseBuilder.createFeatureContentId(5),
-          WireProtocolResponseBuilder.createFeatureContentId(6),
-          WireProtocolResponseBuilder.createFeatureContentId(7),
-          WireProtocolResponseBuilder.createFeatureContentId(8),
-          WireProtocolResponseBuilder.createFeatureContentId(9),
-          WireProtocolResponseBuilder.createFeatureContentId(10),
-          WireProtocolResponseBuilder.createFeatureContentId(11),
-          WireProtocolResponseBuilder.createFeatureContentId(12)
+          ResponseBuilder.createFeatureContentId(5),
+          ResponseBuilder.createFeatureContentId(6),
+          ResponseBuilder.createFeatureContentId(7),
+          ResponseBuilder.createFeatureContentId(8),
+          ResponseBuilder.createFeatureContentId(9),
+          ResponseBuilder.createFeatureContentId(10),
+          ResponseBuilder.createFeatureContentId(11),
+          ResponseBuilder.createFeatureContentId(12)
         };
 
     PagingState state = new PagingState(cards, pageCards, 1, contentIdGenerators);
@@ -363,21 +363,21 @@ public class SyntheticTokensTest {
   public void syntheticTokenPaging_pagingRestoredSession() {
     ContentId[] cards =
         new ContentId[] {
-          WireProtocolResponseBuilder.createFeatureContentId(1),
-          WireProtocolResponseBuilder.createFeatureContentId(2),
-          WireProtocolResponseBuilder.createFeatureContentId(3),
-          WireProtocolResponseBuilder.createFeatureContentId(4),
+          ResponseBuilder.createFeatureContentId(1),
+          ResponseBuilder.createFeatureContentId(2),
+          ResponseBuilder.createFeatureContentId(3),
+          ResponseBuilder.createFeatureContentId(4),
         };
     ContentId[] pageCards =
         new ContentId[] {
-          WireProtocolResponseBuilder.createFeatureContentId(5),
-          WireProtocolResponseBuilder.createFeatureContentId(6),
-          WireProtocolResponseBuilder.createFeatureContentId(7),
-          WireProtocolResponseBuilder.createFeatureContentId(8),
-          WireProtocolResponseBuilder.createFeatureContentId(9),
-          WireProtocolResponseBuilder.createFeatureContentId(10),
-          WireProtocolResponseBuilder.createFeatureContentId(11),
-          WireProtocolResponseBuilder.createFeatureContentId(12)
+          ResponseBuilder.createFeatureContentId(5),
+          ResponseBuilder.createFeatureContentId(6),
+          ResponseBuilder.createFeatureContentId(7),
+          ResponseBuilder.createFeatureContentId(8),
+          ResponseBuilder.createFeatureContentId(9),
+          ResponseBuilder.createFeatureContentId(10),
+          ResponseBuilder.createFeatureContentId(11),
+          ResponseBuilder.createFeatureContentId(12)
         };
 
     PagingState state = new PagingState(cards, pageCards, 1, contentIdGenerators);
@@ -442,21 +442,21 @@ public class SyntheticTokensTest {
   public void testEmptyFeed() {
     ContentId[] cards =
         new ContentId[] {
-          WireProtocolResponseBuilder.createFeatureContentId(1),
+          ResponseBuilder.createFeatureContentId(1),
         };
     ContentId[] cardsTwo =
         new ContentId[] {
-          WireProtocolResponseBuilder.createFeatureContentId(2),
-          WireProtocolResponseBuilder.createFeatureContentId(3),
-          WireProtocolResponseBuilder.createFeatureContentId(4),
-          WireProtocolResponseBuilder.createFeatureContentId(5),
-          WireProtocolResponseBuilder.createFeatureContentId(6),
-          WireProtocolResponseBuilder.createFeatureContentId(7),
-          WireProtocolResponseBuilder.createFeatureContentId(8),
+          ResponseBuilder.createFeatureContentId(2),
+          ResponseBuilder.createFeatureContentId(3),
+          ResponseBuilder.createFeatureContentId(4),
+          ResponseBuilder.createFeatureContentId(5),
+          ResponseBuilder.createFeatureContentId(6),
+          ResponseBuilder.createFeatureContentId(7),
+          ResponseBuilder.createFeatureContentId(8),
         };
 
     // Create an initial root with a single item in it.
-    requestManager.queueResponse(WireProtocolResponseBuilder.forClearAllWithCards(cards).build());
+    requestManager.queueResponse(ResponseBuilder.forClearAllWithCards(cards).build());
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
@@ -470,7 +470,7 @@ public class SyntheticTokensTest {
     // Remove the single item under the root to create the empty state.
     Result<List<StreamDataOperation>> result =
         protocolAdapter.createModel(
-            WireProtocolResponseBuilder.builder().removeFeature(cards[0], ROOT_CONTENT_ID).build());
+            ResponseBuilder.builder().removeFeature(cards[0], ROOT_CONTENT_ID).build());
     assertThat(result.isSuccessful()).isTrue();
     Consumer<Result<List<StreamDataOperation>>> updateConsumer =
         sessionManager.getUpdateConsumer(context);
@@ -484,8 +484,7 @@ public class SyntheticTokensTest {
 
     // Create a next page response with enough new cards to ensure a synthetic token is added
     result =
-        protocolAdapter.createModel(
-            WireProtocolResponseBuilder.builder().addCardsToRoot(cardsTwo).build());
+        protocolAdapter.createModel(ResponseBuilder.builder().addCardsToRoot(cardsTwo).build());
     assertThat(result.isSuccessful()).isTrue();
     updateConsumer = sessionManager.getUpdateConsumer(context);
     updateConsumer.accept(Result.success(result.getValue()));
@@ -514,7 +513,7 @@ public class SyntheticTokensTest {
   private void clearSessionManagerContentCache() {
     // This is a bit of hack, which will clear the content cache and indicate to the
     // FeedSessionManager that we are in the non-cached mode.
-    requestManager.queueResponse(new WireProtocolResponseBuilder().build());
+    requestManager.queueResponse(new ResponseBuilder().build());
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));

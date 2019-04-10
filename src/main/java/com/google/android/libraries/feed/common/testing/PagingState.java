@@ -14,11 +14,11 @@
 
 package com.google.android.libraries.feed.common.testing;
 
-import static com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder.ROOT_CONTENT_ID;
+import static com.google.android.libraries.feed.common.testing.ResponseBuilder.ROOT_CONTENT_ID;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
-import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder.WireProtocolInfo;
+import com.google.android.libraries.feed.common.testing.ResponseBuilder.WireProtocolInfo;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
@@ -47,15 +47,15 @@ public class PagingState {
   }
 
   private static Response getInitialResponse(ContentId[] cards, int tokenId, ByteString token) {
-    WireProtocolResponseBuilder responseBuilder =
-        WireProtocolResponseBuilder.forClearAllWithCards(cards).addStreamToken(tokenId, token);
+    ResponseBuilder responseBuilder =
+        ResponseBuilder.forClearAllWithCards(cards).addStreamToken(tokenId, token);
     WireProtocolInfo info = responseBuilder.getWireProtocolInfo();
     assertThat(info.hasToken).isTrue();
     return responseBuilder.build();
   }
 
   private static Response getPageResponse(ContentId[] pagedCards) {
-    return WireProtocolResponseBuilder.builder().addCardsToRoot(pagedCards).build();
+    return ResponseBuilder.builder().addCardsToRoot(pagedCards).build();
   }
 
   private static StreamToken getSessionId(

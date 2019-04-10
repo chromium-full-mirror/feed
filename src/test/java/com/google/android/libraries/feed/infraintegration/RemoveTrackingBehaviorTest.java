@@ -14,7 +14,7 @@
 
 package com.google.android.libraries.feed.infraintegration;
 
-import static com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder.ROOT_CONTENT_ID;
+import static com.google.android.libraries.feed.common.testing.ResponseBuilder.ROOT_CONTENT_ID;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -30,7 +30,7 @@ import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.functional.Function;
 import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
-import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
+import com.google.android.libraries.feed.common.testing.ResponseBuilder;
 import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
@@ -50,11 +50,11 @@ import org.robolectric.RobolectricTestRunner;
 public class RemoveTrackingBehaviorTest {
   private static final ContentId[] CARDS =
       new ContentId[] {
-        WireProtocolResponseBuilder.createFeatureContentId(1),
-        WireProtocolResponseBuilder.createFeatureContentId(2),
-        WireProtocolResponseBuilder.createFeatureContentId(3),
-        WireProtocolResponseBuilder.createFeatureContentId(4),
-        WireProtocolResponseBuilder.createFeatureContentId(5),
+        ResponseBuilder.createFeatureContentId(1),
+        ResponseBuilder.createFeatureContentId(2),
+        ResponseBuilder.createFeatureContentId(3),
+        ResponseBuilder.createFeatureContentId(4),
+        ResponseBuilder.createFeatureContentId(5),
       };
 
   @Mock private ThreadUtils threadUtils;
@@ -86,8 +86,8 @@ public class RemoveTrackingBehaviorTest {
               assertThat(contentIds).hasSize(1);
               called.set(true);
             }));
-    WireProtocolResponseBuilder responseBuilder =
-        WireProtocolResponseBuilder.builder().removeFeature(CARDS[1], ROOT_CONTENT_ID);
+    ResponseBuilder responseBuilder =
+        ResponseBuilder.builder().removeFeature(CARDS[1], ROOT_CONTENT_ID);
     List<StreamDataOperation> dataOperations = getDataOperations(responseBuilder);
     MutationContext mutationContext = new MutationContext.Builder().setUserInitiated(true).build();
     Consumer<Result<List<StreamDataOperation>>> updateConsumer =
@@ -108,8 +108,8 @@ public class RemoveTrackingBehaviorTest {
               assertThat(contentIds).hasSize(2);
               called.set(true);
             }));
-    WireProtocolResponseBuilder responseBuilder =
-        WireProtocolResponseBuilder.builder()
+    ResponseBuilder responseBuilder =
+        ResponseBuilder.builder()
             .removeFeature(CARDS[1], ROOT_CONTENT_ID)
             .removeFeature(CARDS[3], ROOT_CONTENT_ID);
     List<StreamDataOperation> dataOperations = getDataOperations(responseBuilder);
@@ -137,8 +137,8 @@ public class RemoveTrackingBehaviorTest {
               called.set(true);
             }));
 
-    WireProtocolResponseBuilder responseBuilder =
-        WireProtocolResponseBuilder.builder().removeFeature(CARDS[1], ROOT_CONTENT_ID);
+    ResponseBuilder responseBuilder =
+        ResponseBuilder.builder().removeFeature(CARDS[1], ROOT_CONTENT_ID);
     List<StreamDataOperation> dataOperations = getDataOperations(responseBuilder);
     MutationContext mutationContext = new MutationContext.Builder().setUserInitiated(false).build();
     Consumer<Result<List<StreamDataOperation>>> updateConsumer =
@@ -177,7 +177,7 @@ public class RemoveTrackingBehaviorTest {
     return streamFeature.hasContent() ? streamFeature.getContentId() : null;
   }
 
-  private List<StreamDataOperation> getDataOperations(WireProtocolResponseBuilder builder) {
+  private List<StreamDataOperation> getDataOperations(ResponseBuilder builder) {
     Response response = builder.build();
     Result<List<StreamDataOperation>> result = protocolAdapter.createModel(response);
     assertThat(result.isSuccessful()).isTrue();
@@ -185,7 +185,7 @@ public class RemoveTrackingBehaviorTest {
   }
 
   private void loadInitialData() {
-    requestManager.queueResponse(WireProtocolResponseBuilder.forClearAllWithCards(CARDS).build());
+    requestManager.queueResponse(ResponseBuilder.forClearAllWithCards(CARDS).build());
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));

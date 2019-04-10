@@ -14,7 +14,7 @@
 
 package com.google.android.libraries.feed.infraintegration;
 
-import static com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder.ROOT_CONTENT_ID;
+import static com.google.android.libraries.feed.common.testing.ResponseBuilder.ROOT_CONTENT_ID;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
@@ -30,7 +30,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProviderObserver
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
-import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
+import com.google.android.libraries.feed.common.testing.ResponseBuilder;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi.RequestBehavior;
@@ -61,15 +61,15 @@ public class TimeoutSessionWithContentTest {
   private static final boolean DEBUG = false;
   private static final ContentId[] REQUEST_ONE =
       new ContentId[] {
-        WireProtocolResponseBuilder.createFeatureContentId(1),
-        WireProtocolResponseBuilder.createFeatureContentId(2),
-        WireProtocolResponseBuilder.createFeatureContentId(3)
+        ResponseBuilder.createFeatureContentId(1),
+        ResponseBuilder.createFeatureContentId(2),
+        ResponseBuilder.createFeatureContentId(3)
       };
   private static final ContentId[] REQUEST_TWO =
       new ContentId[] {
-        WireProtocolResponseBuilder.createFeatureContentId(4),
-        WireProtocolResponseBuilder.createFeatureContentId(3),
-        WireProtocolResponseBuilder.createFeatureContentId(5)
+        ResponseBuilder.createFeatureContentId(4),
+        ResponseBuilder.createFeatureContentId(3),
+        ResponseBuilder.createFeatureContentId(5)
       };
 
   @Mock private ThreadUtils threadUtils;
@@ -113,8 +113,7 @@ public class TimeoutSessionWithContentTest {
   public void testRequestWithWait() throws TimeoutException {
 
     // Load up the initial request
-    requestManager.queueResponse(
-        WireProtocolResponseBuilder.forClearAllWithCards(REQUEST_ONE).build());
+    requestManager.queueResponse(ResponseBuilder.forClearAllWithCards(REQUEST_ONE).build());
 
     // Wait for the request to complete (REQUEST_WITH_CONTENT).  This will trigger the request and
     // wait for it to complete to populate the new session.
@@ -134,8 +133,7 @@ public class TimeoutSessionWithContentTest {
     }
 
     // Create a new ModelProvider from HEAD (REQUEST_WITH_CONTENT)
-    requestManager.queueResponse(
-        WireProtocolResponseBuilder.forClearAllWithCards(REQUEST_TWO).build());
+    requestManager.queueResponse(ResponseBuilder.forClearAllWithCards(REQUEST_TWO).build());
     when(schedulerApi.shouldSessionRequestData(any(SessionManagerState.class)))
         .thenReturn(RequestBehavior.REQUEST_WITH_CONTENT);
     // This will wait for the session to be created and validate the root cursor

@@ -37,7 +37,7 @@ public class ModelProviderValidator {
   }
 
   public void assertRoot(ModelProvider modelProvider) {
-    assertRoot(modelProvider, WireProtocolResponseBuilder.ROOT_CONTENT_ID);
+    assertRoot(modelProvider, ResponseBuilder.ROOT_CONTENT_ID);
   }
 
   // Suppress nullness since it's just another failure type for tests

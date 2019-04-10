@@ -27,7 +27,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProviderObserver
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
-import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
+import com.google.android.libraries.feed.common.testing.ResponseBuilder;
 import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
@@ -97,14 +97,13 @@ public class TimeoutSessionBaseTest {
   public void testRequestWithWait() throws TimeoutException {
     ContentId[] requestOne =
         new ContentId[] {
-          WireProtocolResponseBuilder.createFeatureContentId(1),
-          WireProtocolResponseBuilder.createFeatureContentId(2),
-          WireProtocolResponseBuilder.createFeatureContentId(3)
+          ResponseBuilder.createFeatureContentId(1),
+          ResponseBuilder.createFeatureContentId(2),
+          ResponseBuilder.createFeatureContentId(3)
         };
 
     // Load up the initial request
-    requestManager.queueResponse(
-        WireProtocolResponseBuilder.forClearAllWithCards(requestOne).build());
+    requestManager.queueResponse(ResponseBuilder.forClearAllWithCards(requestOne).build());
 
     // Wait for the request to complete (REQUEST_WITH_WAIT).  This will trigger the request and wait
     // for it to complete to populate the new session.

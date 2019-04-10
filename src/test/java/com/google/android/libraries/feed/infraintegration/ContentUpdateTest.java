@@ -32,7 +32,7 @@ import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
-import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
+import com.google.android.libraries.feed.common.testing.ResponseBuilder;
 import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
@@ -72,10 +72,9 @@ public class ContentUpdateTest {
     // Create a simple stream with a root and two features
     ContentId[] cards =
         new ContentId[] {
-          WireProtocolResponseBuilder.createFeatureContentId(1),
-          WireProtocolResponseBuilder.createFeatureContentId(2)
+          ResponseBuilder.createFeatureContentId(1), ResponseBuilder.createFeatureContentId(2)
         };
-    requestManager.queueResponse(WireProtocolResponseBuilder.forClearAllWithCards(cards).build());
+    requestManager.queueResponse(ResponseBuilder.forClearAllWithCards(cards).build());
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
@@ -109,8 +108,7 @@ public class ContentUpdateTest {
     assertThat(cursor.isAtEnd()).isTrue();
 
     // Create an update response for the two content items
-    requestManager.queueResponse(
-        WireProtocolResponseBuilder.builder().addCardsToRoot(cards).build());
+    requestManager.queueResponse(ResponseBuilder.builder().addCardsToRoot(cards).build());
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));

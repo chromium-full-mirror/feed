@@ -23,7 +23,7 @@ import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.functional.Function;
 import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
-import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
+import com.google.android.libraries.feed.common.testing.ResponseBuilder;
 import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
@@ -55,14 +55,14 @@ public class FilterHeadTest {
   public void testFiltering() {
     ContentId[] cards =
         new ContentId[] {
-          WireProtocolResponseBuilder.createFeatureContentId(1),
-          WireProtocolResponseBuilder.createFeatureContentId(2),
-          WireProtocolResponseBuilder.createFeatureContentId(3),
-          WireProtocolResponseBuilder.createFeatureContentId(4),
-          WireProtocolResponseBuilder.createFeatureContentId(5),
+          ResponseBuilder.createFeatureContentId(1),
+          ResponseBuilder.createFeatureContentId(2),
+          ResponseBuilder.createFeatureContentId(3),
+          ResponseBuilder.createFeatureContentId(4),
+          ResponseBuilder.createFeatureContentId(5),
         };
 
-    requestManager.queueResponse(WireProtocolResponseBuilder.forClearAllWithCards(cards).build());
+    requestManager.queueResponse(ResponseBuilder.forClearAllWithCards(cards).build());
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
