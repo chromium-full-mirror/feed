@@ -370,6 +370,10 @@ public class TaskQueue implements Dumpable {
     }
   }
 
+  public boolean isIdle() {
+    return !hasBacklog() && currentTask == null;
+  }
+
   @VisibleForTesting
   boolean hasBacklog() {
     synchronized (lock) {
