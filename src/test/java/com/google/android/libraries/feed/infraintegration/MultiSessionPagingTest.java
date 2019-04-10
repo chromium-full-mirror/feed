@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.infraintegration;
 
-import static com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder.ROOT_CONTENT_ID;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -167,12 +166,6 @@ public class MultiSessionPagingTest {
   }
 
   private WireProtocolResponseBuilder getInitialResponse(ContentId[] cards, ByteString token) {
-    WireProtocolResponseBuilder responseBuilder =
-        new WireProtocolResponseBuilder().addClearOperation().addRootFeature();
-    for (ContentId contentId : cards) {
-      responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
-    }
-    responseBuilder.addStreamToken(1, token);
-    return responseBuilder;
+    return WireProtocolResponseBuilder.forClearAllWithCards(cards).addStreamToken(1, token);
   }
 }

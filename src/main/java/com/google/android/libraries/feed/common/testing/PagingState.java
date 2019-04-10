@@ -48,22 +48,14 @@ public class PagingState {
 
   private static Response getInitialResponse(ContentId[] cards, int tokenId, ByteString token) {
     WireProtocolResponseBuilder responseBuilder =
-        new WireProtocolResponseBuilder().addClearOperation().addRootFeature();
-    for (ContentId contentId : cards) {
-      responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
-    }
-    responseBuilder.addStreamToken(tokenId, token);
+        WireProtocolResponseBuilder.forClearAllWithCards(cards).addStreamToken(tokenId, token);
     WireProtocolInfo info = responseBuilder.getWireProtocolInfo();
     assertThat(info.hasToken).isTrue();
     return responseBuilder.build();
   }
 
   private static Response getPageResponse(ContentId[] pagedCards) {
-    WireProtocolResponseBuilder pageResponseBuilder = new WireProtocolResponseBuilder();
-    for (ContentId contentId : pagedCards) {
-      pageResponseBuilder.addCard(contentId, ROOT_CONTENT_ID);
-    }
-    return pageResponseBuilder.build();
+    return WireProtocolResponseBuilder.builder().addCardsToRoot(pagedCards).build();
   }
 
   private static StreamToken getSessionId(

@@ -73,12 +73,7 @@ public class ContentRemoveTest {
           WireProtocolResponseBuilder.createFeatureContentId(3),
           WireProtocolResponseBuilder.createFeatureContentId(4)
         };
-    WireProtocolResponseBuilder responseBuilder =
-        new WireProtocolResponseBuilder().addClearOperation().addRootFeature();
-    for (ContentId contentId : cards) {
-      responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
-    }
-    requestManager.queueResponse(responseBuilder.build());
+    requestManager.queueResponse(WireProtocolResponseBuilder.forClearAllWithCards(cards).build());
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
@@ -97,8 +92,8 @@ public class ContentRemoveTest {
     ModelCursor advancedCursor3 = advanceCursor(rootFeature.getCursor(), 3);
     ModelCursor advancedCursor4 = advanceCursor(rootFeature.getCursor(), 4);
 
-    responseBuilder = new WireProtocolResponseBuilder().removeFeature(cards[1], ROOT_CONTENT_ID);
-    requestManager.queueResponse(responseBuilder.build());
+    requestManager.queueResponse(
+        WireProtocolResponseBuilder.builder().removeFeature(cards[1], ROOT_CONTENT_ID).build());
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));

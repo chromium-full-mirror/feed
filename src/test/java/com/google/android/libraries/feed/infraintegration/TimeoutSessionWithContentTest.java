@@ -113,12 +113,8 @@ public class TimeoutSessionWithContentTest {
   public void testRequestWithWait() throws TimeoutException {
 
     // Load up the initial request
-    WireProtocolResponseBuilder responseBuilder =
-        new WireProtocolResponseBuilder().addClearOperation().addRootFeature();
-    for (ContentId contentId : REQUEST_ONE) {
-      responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
-    }
-    requestManager.queueResponse(responseBuilder.build());
+    requestManager.queueResponse(
+        WireProtocolResponseBuilder.forClearAllWithCards(REQUEST_ONE).build());
 
     // Wait for the request to complete (REQUEST_WITH_CONTENT).  This will trigger the request and
     // wait for it to complete to populate the new session.
@@ -138,11 +134,8 @@ public class TimeoutSessionWithContentTest {
     }
 
     // Create a new ModelProvider from HEAD (REQUEST_WITH_CONTENT)
-    responseBuilder = new WireProtocolResponseBuilder().addClearOperation().addRootFeature();
-    for (ContentId contentId : REQUEST_TWO) {
-      responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
-    }
-    requestManager.queueResponse(responseBuilder.build());
+    requestManager.queueResponse(
+        WireProtocolResponseBuilder.forClearAllWithCards(REQUEST_TWO).build());
     when(schedulerApi.shouldSessionRequestData(any(SessionManagerState.class)))
         .thenReturn(RequestBehavior.REQUEST_WITH_CONTENT);
     // This will wait for the session to be created and validate the root cursor

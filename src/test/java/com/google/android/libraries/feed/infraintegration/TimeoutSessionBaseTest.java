@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.infraintegration;
 
-import static com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder.ROOT_CONTENT_ID;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
@@ -104,12 +103,8 @@ public class TimeoutSessionBaseTest {
         };
 
     // Load up the initial request
-    WireProtocolResponseBuilder responseBuilder =
-        new WireProtocolResponseBuilder().addClearOperation().addRootFeature();
-    for (ContentId contentId : requestOne) {
-      responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
-    }
-    requestManager.queueResponse(responseBuilder.build());
+    requestManager.queueResponse(
+        WireProtocolResponseBuilder.forClearAllWithCards(requestOne).build());
 
     // Wait for the request to complete (REQUEST_WITH_WAIT).  This will trigger the request and wait
     // for it to complete to populate the new session.

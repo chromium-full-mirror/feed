@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.infraintegration;
 
-import static com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder.ROOT_CONTENT_ID;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.android.libraries.feed.api.common.MutationContext;
@@ -134,11 +133,6 @@ public final class GcTest {
   }
 
   private static Response createResponse(ContentId[] contentIds) {
-    WireProtocolResponseBuilder responseBuilder =
-        new WireProtocolResponseBuilder().addClearOperation().addRootFeature();
-    for (ContentId contentId : contentIds) {
-      responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
-    }
-    return responseBuilder.build();
+    return WireProtocolResponseBuilder.forClearAllWithCards(contentIds).build();
   }
 }

@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.infraintegration;
 
-import static com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder.ROOT_CONTENT_ID;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -104,12 +103,8 @@ public class ViewDepthProviderTests {
   public void baseDepthProviderTest() {
 
     // Load up the initial request
-    WireProtocolResponseBuilder responseBuilder =
-        new WireProtocolResponseBuilder().addClearOperation().addRootFeature();
-    for (ContentId contentId : REQUEST_ONE) {
-      responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
-    }
-    requestManager.queueResponse(responseBuilder.build());
+    requestManager.queueResponse(
+        WireProtocolResponseBuilder.forClearAllWithCards(REQUEST_ONE).build());
 
     // The REQUEST_ONE content will be added to head, this is then used to create the initial
     // session.
@@ -121,11 +116,8 @@ public class ViewDepthProviderTests {
     // REQUEST_WITH_CONTENT
     when(schedulerApi.shouldSessionRequestData(any(SessionManagerState.class)))
         .thenReturn(RequestBehavior.REQUEST_WITH_CONTENT);
-    responseBuilder = new WireProtocolResponseBuilder().addClearOperation();
-    for (ContentId contentId : REQUEST_TWO) {
-      responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
-    }
-    requestManager.queueResponse(responseBuilder.build());
+    requestManager.queueResponse(
+        WireProtocolResponseBuilder.forClearAllWithCards(REQUEST_TWO).build());
     ModelProvider modelProvider = modelProviderFactory.createNew(viewDepthProvider);
 
     // The second request will be added after the first request, the ViewDepthProvider indicates
@@ -142,12 +134,8 @@ public class ViewDepthProviderTests {
   @Test
   public void testDuplicateEntries() {
     // Load up the initial request
-    WireProtocolResponseBuilder responseBuilder =
-        new WireProtocolResponseBuilder().addClearOperation().addRootFeature();
-    for (ContentId contentId : REQUEST_ONE) {
-      responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
-    }
-    requestManager.queueResponse(responseBuilder.build());
+    requestManager.queueResponse(
+        WireProtocolResponseBuilder.forClearAllWithCards(REQUEST_ONE).build());
 
     // The REQUEST_ONE content will be added to head, this is then used to create the initial
     // session.
@@ -159,11 +147,8 @@ public class ViewDepthProviderTests {
     // REQUEST_WITH_CONTENT
     when(schedulerApi.shouldSessionRequestData(any(SessionManagerState.class)))
         .thenReturn(RequestBehavior.REQUEST_WITH_CONTENT);
-    responseBuilder = new WireProtocolResponseBuilder().addClearOperation();
-    for (ContentId contentId : REQUEST_TWO_WITH_DUPLICATES) {
-      responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
-    }
-    requestManager.queueResponse(responseBuilder.build());
+    requestManager.queueResponse(
+        WireProtocolResponseBuilder.forClearAllWithCards(REQUEST_TWO_WITH_DUPLICATES).build());
     ModelProvider modelProvider = modelProviderFactory.createNew(viewDepthProvider);
 
     // The second request will be added after the first request, the ViewDepthProvider indicates
@@ -177,11 +162,10 @@ public class ViewDepthProviderTests {
         REQUEST_TWO_WITH_DUPLICATES[2]);
 
     // Now page in the same content, this should all be updates
-    responseBuilder = new WireProtocolResponseBuilder();
-    for (ContentId contentId : REQUEST_TWO_WITH_DUPLICATES_PAGE) {
-      responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
-    }
-    requestManager.queueResponse(responseBuilder.build());
+    requestManager.queueResponse(
+        WireProtocolResponseBuilder.builder()
+            .addCardsToRoot(REQUEST_TWO_WITH_DUPLICATES_PAGE)
+            .build());
     requestManager.triggerRefresh(
         RequestReason.HOST_REQUESTED,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));

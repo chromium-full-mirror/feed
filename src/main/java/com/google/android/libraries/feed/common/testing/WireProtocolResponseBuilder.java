@@ -152,6 +152,13 @@ public class WireProtocolResponseBuilder {
     return this;
   }
 
+  public WireProtocolResponseBuilder addCardsToRoot(ContentId[] contentIds) {
+    for (ContentId contentId : contentIds) {
+      addCard(contentId, ROOT_CONTENT_ID);
+    }
+    return this;
+  }
+
   public WireProtocolResponseBuilder addCardWithSemanticData(
       ContentId contentId, ByteString semanticData) {
     feedResponseBuilder.addDataOperation(
@@ -223,6 +230,16 @@ public class WireProtocolResponseBuilder {
 
   public WireProtocolInfo getWireProtocolInfo() {
     return wireProtocolInfo;
+  }
+
+  /** Returns a new {@link WireProtocolResponseBuilder}. */
+  public static WireProtocolResponseBuilder builder() {
+    return new WireProtocolResponseBuilder();
+  }
+
+  /** Returns a {@link WireProtocolResponseBuilder} with a CLEAR_ALL, root, and cards. */
+  public static WireProtocolResponseBuilder forClearAllWithCards(ContentId[] cards) {
+    return builder().addClearOperation().addRootFeature().addCardsToRoot(cards);
   }
 
   /** Captures information about the wire protocol that was created. */

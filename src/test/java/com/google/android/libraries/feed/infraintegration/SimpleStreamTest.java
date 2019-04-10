@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.infraintegration;
 
-import static com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder.ROOT_CONTENT_ID;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -67,10 +66,8 @@ public class SimpleStreamTest {
     // ModelProvider created after $HEAD has content, one root, and one Card
     // A Card is two features, the Card and Content.
     WireProtocolResponseBuilder responseBuilder =
-        new WireProtocolResponseBuilder()
-            .addClearOperation()
-            .addRootFeature()
-            .addCard(WireProtocolResponseBuilder.createFeatureContentId(1), ROOT_CONTENT_ID);
+        WireProtocolResponseBuilder.forClearAllWithCards(
+            new ContentId[] {WireProtocolResponseBuilder.createFeatureContentId(1)});
     requestManager.queueResponse(responseBuilder.build());
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
@@ -109,10 +106,7 @@ public class SimpleStreamTest {
           WireProtocolResponseBuilder.createFeatureContentId(2)
         };
     WireProtocolResponseBuilder responseBuilder =
-        new WireProtocolResponseBuilder().addClearOperation().addRootFeature();
-    for (ContentId contentId : cards) {
-      responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
-    }
+        WireProtocolResponseBuilder.forClearAllWithCards(cards);
     requestManager.queueResponse(responseBuilder.build());
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,

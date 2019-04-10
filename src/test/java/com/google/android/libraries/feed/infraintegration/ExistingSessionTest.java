@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.infraintegration;
 
-import static com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder.ROOT_CONTENT_ID;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -67,12 +66,7 @@ public class ExistingSessionTest {
           WireProtocolResponseBuilder.createFeatureContentId(2),
           WireProtocolResponseBuilder.createFeatureContentId(3)
         };
-    WireProtocolResponseBuilder responseBuilder =
-        new WireProtocolResponseBuilder().addClearOperation().addRootFeature();
-    for (ContentId contentId : cards) {
-      responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
-    }
-    requestManager.queueResponse(responseBuilder.build());
+    requestManager.queueResponse(WireProtocolResponseBuilder.forClearAllWithCards(cards).build());
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
@@ -109,12 +103,7 @@ public class ExistingSessionTest {
           WireProtocolResponseBuilder.createFeatureContentId(2),
           WireProtocolResponseBuilder.createFeatureContentId(3)
         };
-    WireProtocolResponseBuilder responseBuilder =
-        new WireProtocolResponseBuilder().addClearOperation().addRootFeature();
-    for (ContentId contentId : cards) {
-      responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
-    }
-    requestManager.queueResponse(responseBuilder.build());
+    requestManager.queueResponse(WireProtocolResponseBuilder.forClearAllWithCards(cards).build());
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
@@ -156,12 +145,7 @@ public class ExistingSessionTest {
           WireProtocolResponseBuilder.createFeatureContentId(2),
           WireProtocolResponseBuilder.createFeatureContentId(3)
         };
-    WireProtocolResponseBuilder responseBuilder =
-        new WireProtocolResponseBuilder().addClearOperation().addRootFeature();
-    for (ContentId contentId : cards) {
-      responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
-    }
-    requestManager.queueResponse(responseBuilder.build());
+    requestManager.queueResponse(WireProtocolResponseBuilder.forClearAllWithCards(cards).build());
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
@@ -191,12 +175,7 @@ public class ExistingSessionTest {
           WireProtocolResponseBuilder.createFeatureContentId(2),
           WireProtocolResponseBuilder.createFeatureContentId(3)
         };
-    WireProtocolResponseBuilder responseBuilder =
-        new WireProtocolResponseBuilder().addClearOperation().addRootFeature();
-    for (ContentId contentId : cards) {
-      responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
-    }
-    requestManager.queueResponse(responseBuilder.build());
+    requestManager.queueResponse(WireProtocolResponseBuilder.forClearAllWithCards(cards).build());
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));

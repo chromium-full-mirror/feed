@@ -123,12 +123,7 @@ public class SyntheticTokensTest {
 
     // Create 13 cards (initial page size + page size + page size and slope of 1)
     // Initial model will have all the cards
-    WireProtocolResponseBuilder responseBuilder =
-        new WireProtocolResponseBuilder().addClearOperation().addRootFeature();
-    for (ContentId contentId : cards) {
-      responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
-    }
-    requestManager.queueResponse(responseBuilder.build());
+    requestManager.queueResponse(WireProtocolResponseBuilder.forClearAllWithCards(cards).build());
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
@@ -224,12 +219,7 @@ public class SyntheticTokensTest {
 
     // Create 13 cards (initial page size + page size + page size and slope of 1)
     // Initial model will have all the cards
-    WireProtocolResponseBuilder responseBuilder =
-        new WireProtocolResponseBuilder().addClearOperation().addRootFeature();
-    for (ContentId contentId : cards) {
-      responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
-    }
-    requestManager.queueResponse(responseBuilder.build());
+    requestManager.queueResponse(WireProtocolResponseBuilder.forClearAllWithCards(cards).build());
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
@@ -466,12 +456,7 @@ public class SyntheticTokensTest {
         };
 
     // Create an initial root with a single item in it.
-    WireProtocolResponseBuilder responseBuilder =
-        new WireProtocolResponseBuilder().addClearOperation().addRootFeature();
-    for (ContentId contentId : cards) {
-      responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
-    }
-    requestManager.queueResponse(responseBuilder.build());
+    requestManager.queueResponse(WireProtocolResponseBuilder.forClearAllWithCards(cards).build());
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
@@ -483,8 +468,9 @@ public class SyntheticTokensTest {
         new MutationContext.Builder().setRequestingSessionId(modelProvider.getSessionId()).build();
 
     // Remove the single item under the root to create the empty state.
-    responseBuilder = new WireProtocolResponseBuilder().removeFeature(cards[0], ROOT_CONTENT_ID);
-    Result<List<StreamDataOperation>> result = protocolAdapter.createModel(responseBuilder.build());
+    Result<List<StreamDataOperation>> result =
+        protocolAdapter.createModel(
+            WireProtocolResponseBuilder.builder().removeFeature(cards[0], ROOT_CONTENT_ID).build());
     assertThat(result.isSuccessful()).isTrue();
     Consumer<Result<List<StreamDataOperation>>> updateConsumer =
         sessionManager.getUpdateConsumer(context);
@@ -497,11 +483,9 @@ public class SyntheticTokensTest {
     assertThat(cursor.isAtEnd()).isTrue();
 
     // Create a next page response with enough new cards to ensure a synthetic token is added
-    responseBuilder = new WireProtocolResponseBuilder();
-    for (ContentId contentId : cardsTwo) {
-      responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
-    }
-    result = protocolAdapter.createModel(responseBuilder.build());
+    result =
+        protocolAdapter.createModel(
+            WireProtocolResponseBuilder.builder().addCardsToRoot(cardsTwo).build());
     assertThat(result.isSuccessful()).isTrue();
     updateConsumer = sessionManager.getUpdateConsumer(context);
     updateConsumer.accept(Result.success(result.getValue()));

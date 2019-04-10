@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.infraintegration;
 
-import static com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder.ROOT_CONTENT_ID;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -82,12 +81,8 @@ public class StructureUpdateTest {
           WireProtocolResponseBuilder.createFeatureContentId(4)
         };
 
-    WireProtocolResponseBuilder responseBuilder =
-        new WireProtocolResponseBuilder().addClearOperation().addRootFeature();
-    for (ContentId contentId : startingCards) {
-      responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
-    }
-    requestManager.queueResponse(responseBuilder.build());
+    requestManager.queueResponse(
+        WireProtocolResponseBuilder.forClearAllWithCards(startingCards).build());
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
@@ -100,11 +95,8 @@ public class StructureUpdateTest {
     modelValidator.assertCursorSize(root.getCursor(), startingCards.length);
 
     // Append new children to root
-    responseBuilder = new WireProtocolResponseBuilder();
-    for (ContentId contentId : appendedCards) {
-      responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
-    }
-    requestManager.queueResponse(responseBuilder.build());
+    requestManager.queueResponse(
+        WireProtocolResponseBuilder.builder().addCardsToRoot(appendedCards).build());
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
@@ -142,12 +134,8 @@ public class StructureUpdateTest {
           WireProtocolResponseBuilder.createFeatureContentId(4)
         };
 
-    WireProtocolResponseBuilder responseBuilder =
-        new WireProtocolResponseBuilder().addClearOperation().addRootFeature();
-    for (ContentId contentId : startingCards) {
-      responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
-    }
-    requestManager.queueResponse(responseBuilder.build());
+    requestManager.queueResponse(
+        WireProtocolResponseBuilder.forClearAllWithCards(startingCards).build());
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
@@ -161,11 +149,8 @@ public class StructureUpdateTest {
     cursor.getNextItem();
 
     // Now append additional children to the stream (and cursor)
-    responseBuilder = new WireProtocolResponseBuilder();
-    for (ContentId contentId : appendedCards) {
-      responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
-    }
-    requestManager.queueResponse(responseBuilder.build());
+    requestManager.queueResponse(
+        WireProtocolResponseBuilder.builder().addCardsToRoot(appendedCards).build());
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));

@@ -87,7 +87,7 @@ public class RemoveTrackingBehaviorTest {
               called.set(true);
             }));
     WireProtocolResponseBuilder responseBuilder =
-        new WireProtocolResponseBuilder().removeFeature(CARDS[1], ROOT_CONTENT_ID);
+        WireProtocolResponseBuilder.builder().removeFeature(CARDS[1], ROOT_CONTENT_ID);
     List<StreamDataOperation> dataOperations = getDataOperations(responseBuilder);
     MutationContext mutationContext = new MutationContext.Builder().setUserInitiated(true).build();
     Consumer<Result<List<StreamDataOperation>>> updateConsumer =
@@ -109,7 +109,7 @@ public class RemoveTrackingBehaviorTest {
               called.set(true);
             }));
     WireProtocolResponseBuilder responseBuilder =
-        new WireProtocolResponseBuilder()
+        WireProtocolResponseBuilder.builder()
             .removeFeature(CARDS[1], ROOT_CONTENT_ID)
             .removeFeature(CARDS[3], ROOT_CONTENT_ID);
     List<StreamDataOperation> dataOperations = getDataOperations(responseBuilder);
@@ -138,7 +138,7 @@ public class RemoveTrackingBehaviorTest {
             }));
 
     WireProtocolResponseBuilder responseBuilder =
-        new WireProtocolResponseBuilder().removeFeature(CARDS[1], ROOT_CONTENT_ID);
+        WireProtocolResponseBuilder.builder().removeFeature(CARDS[1], ROOT_CONTENT_ID);
     List<StreamDataOperation> dataOperations = getDataOperations(responseBuilder);
     MutationContext mutationContext = new MutationContext.Builder().setUserInitiated(false).build();
     Consumer<Result<List<StreamDataOperation>>> updateConsumer =
@@ -185,12 +185,7 @@ public class RemoveTrackingBehaviorTest {
   }
 
   private void loadInitialData() {
-    WireProtocolResponseBuilder responseBuilder =
-        new WireProtocolResponseBuilder().addClearOperation().addRootFeature();
-    for (ContentId contentId : CARDS) {
-      responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
-    }
-    requestManager.queueResponse(responseBuilder.build());
+    requestManager.queueResponse(WireProtocolResponseBuilder.forClearAllWithCards(CARDS).build());
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
