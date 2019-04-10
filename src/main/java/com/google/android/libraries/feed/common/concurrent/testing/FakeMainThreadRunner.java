@@ -1,4 +1,4 @@
-// Copyright 2018 The Feed Authors.
+// Copyright 2019 The Feed Authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.PriorityQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * A {@link MainThreadRunner} which listens to a {@link FakeClock} to determine when to execute
@@ -31,6 +32,7 @@ import java.util.PriorityQueue;
  */
 public final class FakeMainThreadRunner extends MainThreadRunner {
 
+  private final AtomicBoolean currentlyExecutingTasks = new AtomicBoolean();
   private final FakeClock fakeClock;
   private final FakeThreadUtils fakeThreadUtils;
   private final List<Runnable> tasksToRun = new ArrayList<>();
@@ -109,13 +111,21 @@ public final class FakeMainThreadRunner extends MainThreadRunner {
 
   /** Runs all eligible tasks. */
   public void runAllTasks() {
-    boolean policy = fakeThreadUtils.enforceMainThread(true);
-    for (Runnable task : tasksToRun) {
-      task.run();
-      completedTaskCount++;
+    if (currentlyExecutingTasks.getAndSet(true)) {
+      return;
     }
-    tasksToRun.clear();
-    fakeThreadUtils.enforceMainThread(policy);
+
+    boolean policy = fakeThreadUtils.enforceMainThread(true);
+    try {
+      while (!tasksToRun.isEmpty()) {
+        Runnable task = tasksToRun.remove(0);
+        task.run();
+        completedTaskCount++;
+      }
+    } finally {
+      fakeThreadUtils.enforceMainThread(policy);
+      currentlyExecutingTasks.set(false);
+    }
   }
 
   /** Returns {@literal true} if there are tasks to run or tasks have run. */

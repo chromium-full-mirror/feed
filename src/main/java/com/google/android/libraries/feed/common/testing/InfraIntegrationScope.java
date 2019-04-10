@@ -20,14 +20,12 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.scope.ClearAllListener;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
-import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
-import com.google.android.libraries.feed.common.time.Clock;
-import com.google.android.libraries.feed.common.time.SystemClockImpl;
 import com.google.android.libraries.feed.common.time.TimingUtils;
+import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.feedapplifecyclelistener.FeedAppLifecycleListener;
 import com.google.android.libraries.feed.feedmodelprovider.FeedModelProviderFactory;
 import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter;
@@ -67,10 +65,11 @@ public class InfraIntegrationScope {
    */
   public static final long TIMEOUT_TEST_TIMEOUT = TimeUnit.SECONDS.toMillis(20);
 
-  private final Clock clock;
   private final Configuration configuration;
   private final ContentStorageDirect contentStorage;
   private final ExecutorService executorService;
+  private final FakeClock fakeClock;
+  private final FakeMainThreadRunner fakeMainThreadRunner;
   private final FakeRequestManager fakeRequestManager;
   private final FeedAppLifecycleListener appLifecycleListener;
   private final FeedModelProviderFactory modelProviderFactory;
@@ -81,27 +80,25 @@ public class InfraIntegrationScope {
   private final SchedulerApi schedulerApi;
   private final TaskQueue taskQueue;
   private final ThreadUtils threadUtils;
-  private final long requestDelayMs;
 
   private InfraIntegrationScope(
       ThreadUtils threadUtils,
       ExecutorService executorService,
       SchedulerApi schedulerApi,
-      Clock clock,
+      FakeClock fakeClock,
       Configuration configuration,
-      long requestDelayMs,
       ContentStorageDirect contentStorage,
-      JournalStorageDirect journalStorage) {
-    this.clock = clock;
+      JournalStorageDirect journalStorage,
+      FakeMainThreadRunner fakeMainThreadRunner) {
+    this.fakeClock = fakeClock;
     this.configuration = configuration;
     this.contentStorage = contentStorage;
     this.executorService = executorService;
     this.journalStorage = journalStorage;
-    this.requestDelayMs = requestDelayMs;
+    this.fakeMainThreadRunner = fakeMainThreadRunner;
     this.schedulerApi = schedulerApi;
     this.threadUtils = threadUtils;
     TimingUtils timingUtils = new TimingUtils();
-    MainThreadRunner mainThreadRunner = new MainThreadRunner();
     appLifecycleListener = new FeedAppLifecycleListener(threadUtils);
     FakeBasicLoggingApi fakeBasicLoggingApi = new FakeBasicLoggingApi();
 
@@ -110,9 +107,9 @@ public class InfraIntegrationScope {
         new TaskQueue(
             fakeBasicLoggingApi,
             executorService,
-            FakeMainThreadRunner.runTasksImmediately(),
-            clock,
-            false);
+            fakeMainThreadRunner,
+            fakeClock,
+            /* checkStarvation= */ true);
     store =
         new FeedStore(
             timingUtils,
@@ -121,15 +118,16 @@ public class InfraIntegrationScope {
             journalStorage,
             threadUtils,
             taskQueue,
-            clock,
+            fakeClock,
             fakeBasicLoggingApi,
-            mainThreadRunner);
+            fakeMainThreadRunner);
     feedProtocolAdapter = new FeedProtocolAdapter(timingUtils);
     fakeRequestManager =
         new FakeRequestManager(
             new FakeThreadUtils(/* enforceThreadChecks= */ false),
+            fakeMainThreadRunner,
             feedProtocolAdapter,
-            requestDelayMs);
+            taskQueue);
     FakeActionUploadRequestManager fakeActionUploadRequestManager =
         new FakeActionUploadRequestManager(new FakeThreadUtils());
     feedSessionManager =
@@ -143,7 +141,7 @@ public class InfraIntegrationScope {
                 fakeActionUploadRequestManager,
                 schedulerApi,
                 configuration,
-                clock,
+                fakeClock,
                 appLifecycleListener)
             .create();
     new ClearAllListener(taskQueue, feedSessionManager, store, threadUtils, appLifecycleListener);
@@ -154,7 +152,7 @@ public class InfraIntegrationScope {
             threadUtils,
             timingUtils,
             taskQueue,
-            mainThreadRunner,
+            fakeMainThreadRunner,
             configuration);
   }
 
@@ -168,6 +166,10 @@ public class InfraIntegrationScope {
 
   public ModelProviderFactory getModelProviderFactory() {
     return modelProviderFactory;
+  }
+
+  public FakeClock getFakeClock() {
+    return fakeClock;
   }
 
   public FeedStore getStore() {
@@ -192,11 +194,11 @@ public class InfraIntegrationScope {
         threadUtils,
         executorService,
         schedulerApi,
-        clock,
+        fakeClock,
         configuration,
-        requestDelayMs,
         contentStorage,
-        journalStorage);
+        journalStorage,
+        fakeMainThreadRunner);
   }
 
   private static class ExtensionProvider implements ProtoExtensionProvider {
@@ -216,13 +218,13 @@ public class InfraIntegrationScope {
 
   /** Builder for creating the {@link InfraIntegrationScope} */
   public static class Builder {
+    private final FakeClock fakeClock = new FakeClock();
+    private final FakeMainThreadRunner fakeMainThreadRunner =
+        FakeMainThreadRunner.create(fakeClock);
     private final ThreadUtils threadUtils;
 
-    private Clock clock = new SystemClockImpl();
     private Configuration configuration = Configuration.getDefaultInstance();
-    private ExecutorService executorService = MoreExecutors.newDirectExecutorService();
     private SchedulerApi schedulerApi;
-    private long requestDelayMs = 0;
 
     public Builder(ThreadUtils threadUtils) {
       this.threadUtils = threadUtils;
@@ -234,36 +236,21 @@ public class InfraIntegrationScope {
       return this;
     }
 
-    public Builder setClock(Clock clock) {
-      this.clock = clock;
-      return this;
-    }
-
-    public Builder setExecutorService(ExecutorService executorService) {
-      this.executorService = executorService;
-      return this;
-    }
-
     public Builder setSchedulerApi(SchedulerApi schedulerApi) {
       this.schedulerApi = schedulerApi;
-      return this;
-    }
-
-    public Builder setRequestDelayMs(long requestDelayMs) {
-      this.requestDelayMs = requestDelayMs;
       return this;
     }
 
     public InfraIntegrationScope build() {
       return new InfraIntegrationScope(
           threadUtils,
-          executorService,
+          MoreExecutors.newDirectExecutorService(),
           schedulerApi,
-          clock,
+          fakeClock,
           configuration,
-          requestDelayMs,
           new InMemoryContentStorage(),
-          new InMemoryJournalStorage());
+          new InMemoryJournalStorage(),
+          fakeMainThreadRunner);
     }
   }
 }

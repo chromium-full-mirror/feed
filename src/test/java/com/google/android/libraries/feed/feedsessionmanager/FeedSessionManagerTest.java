@@ -1,4 +1,4 @@
-// Copyright 2018 The Feed Authors.
+// Copyright 2019 The Feed Authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -131,7 +131,8 @@ public class FeedSessionManagerTest {
     fakeStore = new FakeStore(fakeThreadUtils, fakeTaskQueue, fakeClock);
     fakeProtocolAdapter = new FakeProtocolAdapter();
     fakeRequestManager =
-        new FakeRequestManager(fakeThreadUtils, fakeProtocolAdapter, /* requestDelayMs= */ 0);
+        new FakeRequestManager(
+            fakeThreadUtils, fakeMainThreadRunner, fakeProtocolAdapter, fakeTaskQueue);
     fakeRequestManager.queueResponse(Response.getDefaultInstance());
     when(schedulerApi.shouldSessionRequestData(any(SessionManagerState.class)))
         .thenReturn(RequestBehavior.NO_REQUEST_WITH_CONTENT);

@@ -1,4 +1,4 @@
-// Copyright 2018 The Feed Authors.
+// Copyright 2019 The Feed Authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ public class TaskQueue implements Dumpable {
    * thread. Starvation checks are started when we initially delay the queue and only runs while the
    * queue is delayed.
    */
-  @VisibleForTesting static final long STARVATION_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(15);
+  @VisibleForTesting public static final long STARVATION_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(15);
 
   @VisibleForTesting static final long STARVATION_CHECK_MS = TimeUnit.SECONDS.toMillis(6);
 

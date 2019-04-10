@@ -1,4 +1,4 @@
-// Copyright 2018 The Feed Authors.
+// Copyright 2019 The Feed Authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,6 +17,9 @@ package com.google.android.libraries.feed.testing.requestmanager;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.common.Result;
+import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.TaskQueue;
+import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.functional.Supplier;
@@ -36,9 +39,10 @@ import java.util.Queue;
  */
 public class FakeRequestManager implements RequestManager {
   private final FakeThreadUtils fakeThreadUtils;
+  private final MainThreadRunner mainThreadRunner;
   private final ProtocolAdapter protocolAdapter;
-  private final long requestDelayMs;
-  private final Queue<Response> responses = new ArrayDeque<>();
+  private final Queue<ResponseWithDelay> responses = new ArrayDeque<>();
+  private final TaskQueue taskQueue;
   /*@Nullable*/ private StreamToken latestStreamToken = null;
   @RequestReason private int latestRequestReason = RequestReason.UNKNOWN;
 
@@ -47,16 +51,36 @@ public class FakeRequestManager implements RequestManager {
       defaultTriggerRefreshConsumerSupplier;
 
   public FakeRequestManager(
-      FakeThreadUtils fakeThreadUtils, ProtocolAdapter protocolAdapter, long requestDelayMs) {
+      FakeThreadUtils fakeThreadUtils,
+      MainThreadRunner mainThreadRunner,
+      ProtocolAdapter protocolAdapter,
+      TaskQueue taskQueue) {
     this.fakeThreadUtils = fakeThreadUtils;
+    this.mainThreadRunner = mainThreadRunner;
     this.protocolAdapter = protocolAdapter;
-    this.requestDelayMs = requestDelayMs;
+    this.taskQueue = taskQueue;
   }
 
   // TODO: queue responses for action uploads
-  /** Adds a Response to the Queue. */
+  /** Adds a Response to the queue. */
   public FakeRequestManager queueResponse(Response response) {
-    responses.add(response);
+    return queueResponse(response, /* delayMs= */ 0);
+  }
+
+  /** Adds a Response to the queue with a delay. */
+  public FakeRequestManager queueResponse(Response response, long delayMs) {
+    responses.add(new ResponseWithDelay(response, delayMs));
+    return this;
+  }
+
+  /** Adds an error to the queue. */
+  public FakeRequestManager queueError() {
+    return queueError(/* delayMs= */ 0);
+  }
+
+  /** Adds an error to the queue with a delay. */
+  public FakeRequestManager queueError(long delayMs) {
+    responses.add(new ResponseWithDelay(delayMs));
     return this;
   }
 
@@ -67,13 +91,7 @@ public class FakeRequestManager implements RequestManager {
       Consumer<Result<List<StreamDataOperation>>> consumer) {
     fakeThreadUtils.checkNotMainThread();
     latestStreamToken = streamToken;
-    Response response = responses.remove();
-    Result<List<StreamDataOperation>> result = protocolAdapter.createModel(response);
-
-    // Call the consumer on the main thread.
-    boolean policy = fakeThreadUtils.enforceMainThread(true);
-    consumer.accept(result);
-    fakeThreadUtils.enforceMainThread(policy);
+    handleResponseWithDelay(responses.remove(), consumer);
   }
 
   @Override
@@ -88,21 +106,37 @@ public class FakeRequestManager implements RequestManager {
       ConsistencyToken token,
       Consumer<Result<List<StreamDataOperation>>> consumer) {
     latestRequestReason = reason;
-    Response response = responses.remove();
-    Result<List<StreamDataOperation>> result = protocolAdapter.createModel(response);
+    ResponseWithDelay responseWithDelay = responses.remove();
+    taskQueue.execute(
+        "FakeRequestManager#triggerRefresh",
+        TaskType.HEAD_INVALIDATE,
+        () -> {
+          handleResponseWithDelay(responseWithDelay, consumer);
+        });
+  }
 
-    if (requestDelayMs > 0) {
-      try {
-        // slightly delay the results.
-        Thread.sleep(requestDelayMs);
-      } catch (InterruptedException e) {
-        throw new IllegalStateException(e);
-      }
+  private void handleResponseWithDelay(
+      ResponseWithDelay responseWithDelay, Consumer<Result<List<StreamDataOperation>>> consumer) {
+    if (responseWithDelay.delayMs > 0) {
+      mainThreadRunner.executeWithDelay(
+          "FakeRequestManager#consumer",
+          () -> {
+            invokeConsumer(responseWithDelay, consumer);
+          },
+          responseWithDelay.delayMs);
+    } else {
+      invokeConsumer(responseWithDelay, consumer);
     }
+  }
 
-    // Call the consumer on the main thread.
+  private void invokeConsumer(
+      ResponseWithDelay responseWithDelay, Consumer<Result<List<StreamDataOperation>>> consumer) {
     boolean policy = fakeThreadUtils.enforceMainThread(true);
-    consumer.accept(result);
+    if (responseWithDelay.isError) {
+      consumer.accept(Result.failure());
+    } else {
+      consumer.accept(protocolAdapter.createModel(responseWithDelay.response));
+    }
     fakeThreadUtils.enforceMainThread(policy);
   }
 
@@ -135,5 +169,23 @@ public class FakeRequestManager implements RequestManager {
   @RequestReason
   public int getLatestRequestReason() {
     return latestRequestReason;
+  }
+
+  private static final class ResponseWithDelay {
+    private final Response response;
+    private final boolean isError;
+    private final long delayMs;
+
+    private ResponseWithDelay(Response response, long delayMs) {
+      this.response = response;
+      this.delayMs = delayMs;
+      isError = false;
+    }
+
+    private ResponseWithDelay(long delayMs) {
+      this.response = Response.getDefaultInstance();
+      this.delayMs = delayMs;
+      isError = true;
+    }
   }
 }

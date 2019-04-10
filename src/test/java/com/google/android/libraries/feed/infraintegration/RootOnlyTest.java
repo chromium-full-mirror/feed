@@ -1,4 +1,4 @@
-// Copyright 2018 The Feed Authors.
+// Copyright 2019 The Feed Authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -34,7 +34,9 @@ import com.google.android.libraries.feed.common.testing.ResponseBuilder;
 import com.google.android.libraries.feed.common.testing.ResponseBuilder.WireProtocolInfo;
 import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
+import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.feed.client.StreamDataProto.UiContext;
+import com.google.search.now.wire.feed.ConsistencyTokenProto.ConsistencyToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import org.junit.Before;
 import org.junit.Test;
@@ -102,8 +104,10 @@ public class RootOnlyTest {
 
     ResponseBuilder responseBuilder = new ResponseBuilder().addRootFeature();
     requestManager.queueResponse(responseBuilder.build());
-    requestManager.triggerRefresh(
-        RequestReason.OPEN_WITHOUT_CONTENT,
+    // TODO: sessions reject updates without a CLEAR_ALL or paging with a different token.
+    requestManager.loadMore(
+        StreamToken.getDefaultInstance(),
+        ConsistencyToken.getDefaultInstance(),
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
     verify(changeObserver, never()).onSessionFinished(any(UiContext.class));
 
@@ -142,8 +146,10 @@ public class RootOnlyTest {
             .build();
     responseBuilder = new ResponseBuilder().addRootFeature(anotherRoot);
     requestManager.queueResponse(responseBuilder.build());
-    requestManager.triggerRefresh(
-        RequestReason.OPEN_WITHOUT_CONTENT,
+    // TODO: sessions reject updates without a CLEAR_ALL or paging with a different token.
+    requestManager.loadMore(
+        StreamToken.getDefaultInstance(),
+        ConsistencyToken.getDefaultInstance(),
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
     verify(changeObserver).onSessionFinished(any(UiContext.class));
   }

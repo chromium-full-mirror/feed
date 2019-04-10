@@ -1,4 +1,4 @@
-// Copyright 2018 The Feed Authors.
+// Copyright 2019 The Feed Authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,11 +16,8 @@ package com.google.android.libraries.feed.infraintegration;
 
 import static com.google.android.libraries.feed.common.testing.ResponseBuilder.ROOT_CONTENT_ID;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.FeatureChange.ChildChanges;
 import com.google.android.libraries.feed.api.modelprovider.ModelError;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
@@ -28,25 +25,23 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderObserver;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
 import com.google.android.libraries.feed.common.testing.ResponseBuilder;
+import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.host.config.Configuration;
-import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi.RequestBehavior;
-import com.google.android.libraries.feed.host.scheduler.SchedulerApi.SessionManagerState;
+import com.google.android.libraries.feed.testing.host.scheduler.FakeSchedulerApi;
 import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
 import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.shadows.ShadowLooper;
 
 /**
  * This is a TimeoutSession test which verifies REQUEST_WITH_CONTENT
@@ -72,9 +67,11 @@ public class TimeoutSessionWithContentTest {
         ResponseBuilder.createFeatureContentId(5)
       };
 
-  @Mock private ThreadUtils threadUtils;
-  @Mock private SchedulerApi schedulerApi;
+  private final FakeThreadUtils fakeThreadUtils =
+      new FakeThreadUtils(/* enforceThreadChecks= */ false);
+  private final FakeSchedulerApi fakeSchedulerApi = new FakeSchedulerApi(fakeThreadUtils);
 
+  private FakeClock fakeClock;
   private FakeRequestManager requestManager;
   private ModelProviderFactory modelProviderFactory;
   private ProtocolAdapter protocolAdapter;
@@ -86,12 +83,11 @@ public class TimeoutSessionWithContentTest {
     initMocks(this);
     Configuration configuration = InfraIntegrationScope.getTimeoutSchedulerConfig();
     InfraIntegrationScope scope =
-        new InfraIntegrationScope.Builder(threadUtils)
+        new InfraIntegrationScope.Builder(fakeThreadUtils)
             .setConfiguration(configuration)
-            .setExecutorService(Executors.newSingleThreadExecutor())
-            .setSchedulerApi(schedulerApi)
-            .setRequestDelayMs(100)
+            .setSchedulerApi(fakeSchedulerApi)
             .build();
+    fakeClock = scope.getFakeClock();
     requestManager = scope.getRequestManager();
     modelProviderFactory = scope.getModelProviderFactory();
     protocolAdapter = scope.getProtocolAdapter();
@@ -113,46 +109,50 @@ public class TimeoutSessionWithContentTest {
   public void testRequestWithWait() throws TimeoutException {
 
     // Load up the initial request
-    requestManager.queueResponse(ResponseBuilder.forClearAllWithCards(REQUEST_ONE).build());
+    requestManager.queueResponse(
+        ResponseBuilder.forClearAllWithCards(REQUEST_ONE).build(), /* delayMs= */ 100);
 
     // Wait for the request to complete (REQUEST_WITH_CONTENT).  This will trigger the request and
     // wait for it to complete to populate the new session.
-    when(schedulerApi.shouldSessionRequestData(any(SessionManagerState.class)))
-        .thenReturn(RequestBehavior.REQUEST_WITH_WAIT);
+    fakeSchedulerApi.setRequestBehavior(RequestBehavior.REQUEST_WITH_WAIT);
     ModelProvider modelProvider = modelProviderFactory.createNew(null);
 
     // This will wait for the session to be created and validate the root cursor
     AtomicBoolean finished = new AtomicBoolean(false);
     assertSessionCreation(modelProvider, finished);
+    long startTimeMs = fakeClock.currentTimeMillis();
     while (!finished.get()) {
       // Loop through the tasks and wait for the assertSessionCreation to set finished to true
-      ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
-      if (timeoutDeadline > 0 && System.currentTimeMillis() > timeoutDeadline) {
+      fakeClock.tick();
+      if (timeoutDeadline > 0 && fakeClock.currentTimeMillis() > timeoutDeadline) {
         throw new TimeoutException();
       }
     }
+    assertThat(fakeClock.currentTimeMillis() - startTimeMs).isAtLeast(100L);
 
     // Create a new ModelProvider from HEAD (REQUEST_WITH_CONTENT)
-    requestManager.queueResponse(ResponseBuilder.forClearAllWithCards(REQUEST_TWO).build());
-    when(schedulerApi.shouldSessionRequestData(any(SessionManagerState.class)))
-        .thenReturn(RequestBehavior.REQUEST_WITH_CONTENT);
+    requestManager.queueResponse(
+        ResponseBuilder.forClearAllWithCards(REQUEST_TWO).build(), /* delayMs= */ 100);
+    fakeSchedulerApi.setRequestBehavior(RequestBehavior.REQUEST_WITH_CONTENT);
     // This will wait for the session to be created and validate the root cursor
     modelProvider = modelProviderFactory.createNew(null);
     assertSessionCreationWithRequest(modelProvider, finished);
+    startTimeMs = fakeClock.currentTimeMillis();
     while (!finished.get()) {
       // Loop through the tasks and wait for the assertSessionCreation to set finished to true
-      ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
-      if (timeoutDeadline > 0 && System.currentTimeMillis() > timeoutDeadline) {
+      fakeClock.tick();
+      if (timeoutDeadline > 0 && fakeClock.currentTimeMillis() > timeoutDeadline) {
         throw new TimeoutException();
       }
     }
+    assertThat(fakeClock.currentTimeMillis() - startTimeMs).isAtLeast(100L);
   }
 
   // Verifies the initial session.
   private void assertSessionCreation(ModelProvider modelProvider, AtomicBoolean finished) {
     finished.set(false);
     timeoutDeadline =
-        DEBUG ? InfraIntegrationScope.TIMEOUT_TEST_TIMEOUT + System.currentTimeMillis() : 0;
+        DEBUG ? InfraIntegrationScope.TIMEOUT_TEST_TIMEOUT + fakeClock.currentTimeMillis() : 0;
     modelProvider.registerObserver(
         new ModelProviderObserver() {
           @Override
@@ -180,7 +180,7 @@ public class TimeoutSessionWithContentTest {
       ModelProvider modelProvider, AtomicBoolean finished) {
     finished.set(false);
     timeoutDeadline =
-        DEBUG ? InfraIntegrationScope.TIMEOUT_TEST_TIMEOUT + System.currentTimeMillis() : 0;
+        DEBUG ? InfraIntegrationScope.TIMEOUT_TEST_TIMEOUT + fakeClock.currentTimeMillis() : 0;
     modelProvider.registerObserver(
         new ModelProviderObserver() {
           @Override

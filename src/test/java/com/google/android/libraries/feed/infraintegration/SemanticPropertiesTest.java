@@ -1,4 +1,4 @@
-// Copyright 2018 The Feed Authors.
+// Copyright 2019 The Feed Authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -63,7 +63,10 @@ public class SemanticPropertiesTest {
     ByteString semanticData = ByteString.copyFromUtf8("helloWorld");
 
     Response response =
-        new ResponseBuilder().addCardWithSemanticData(contentId, semanticData).build();
+        new ResponseBuilder()
+            .addClearOperation()
+            .addCardWithSemanticData(contentId, semanticData)
+            .build();
     requestManager.queueResponse(response);
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,

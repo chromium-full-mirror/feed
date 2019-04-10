@@ -1,4 +1,4 @@
-// Copyright 2018 The Feed Authors.
+// Copyright 2019 The Feed Authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -35,6 +35,8 @@ import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
 import com.google.android.libraries.feed.common.testing.ResponseBuilder;
 import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
+import com.google.search.now.feed.client.StreamDataProto.StreamToken;
+import com.google.search.now.wire.feed.ConsistencyTokenProto.ConsistencyToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import java.util.List;
 import org.junit.Before;
@@ -93,8 +95,10 @@ public class StructureUpdateTest {
 
     // Append new children to root
     requestManager.queueResponse(ResponseBuilder.builder().addCardsToRoot(appendedCards).build());
-    requestManager.triggerRefresh(
-        RequestReason.OPEN_WITHOUT_CONTENT,
+    // TODO: sessions reject updates without a CLEAR_ALL or paging with a different token.
+    requestManager.loadMore(
+        StreamToken.getDefaultInstance(),
+        ConsistencyToken.getDefaultInstance(),
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
 
     // assert the new state of the stream
@@ -143,8 +147,10 @@ public class StructureUpdateTest {
 
     // Now append additional children to the stream (and cursor)
     requestManager.queueResponse(ResponseBuilder.builder().addCardsToRoot(appendedCards).build());
-    requestManager.triggerRefresh(
-        RequestReason.OPEN_WITHOUT_CONTENT,
+    // TODO: sessions reject updates without a CLEAR_ALL or paging with a different token.
+    requestManager.loadMore(
+        StreamToken.getDefaultInstance(),
+        ConsistencyToken.getDefaultInstance(),
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
     modelValidator.assertCursorSize(cursor, 3);
   }

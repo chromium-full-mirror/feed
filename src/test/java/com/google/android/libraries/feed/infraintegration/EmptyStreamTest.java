@@ -1,4 +1,4 @@
-// Copyright 2018 The Feed Authors.
+// Copyright 2019 The Feed Authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,29 +21,30 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.MutationContext;
-import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.State;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderObserver;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
+import com.google.android.libraries.feed.common.concurrent.TaskQueue;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ResponseBuilder;
 import com.google.android.libraries.feed.common.testing.ResponseBuilder.WireProtocolInfo;
+import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
 import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
 
 /** Test which verifies the ModelProvider state for the empty stream cases. */
 @RunWith(RobolectricTestRunner.class)
 public class EmptyStreamTest {
-  @Mock private ThreadUtils threadUtils;
 
+  private FakeClock fakeClock;
   private FakeRequestManager requestManager;
   private SessionManager sessionManager;
   private ModelProviderFactory modelProviderFactory;
@@ -51,7 +52,10 @@ public class EmptyStreamTest {
   @Before
   public void setUp() {
     initMocks(this);
-    InfraIntegrationScope scope = new InfraIntegrationScope.Builder(threadUtils).build();
+    InfraIntegrationScope scope =
+        new InfraIntegrationScope.Builder(new FakeThreadUtils(/* enforceThreadChecks= */ false))
+            .build();
+    fakeClock = scope.getFakeClock();
     requestManager = scope.getRequestManager();
     sessionManager = scope.getSessionManager();
     modelProviderFactory = scope.getModelProviderFactory();
@@ -101,6 +105,8 @@ public class EmptyStreamTest {
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+    // TODO: the empty response is missing CLEAR_ALL, so the TaskQueue is delaying.
+    fakeClock.advance(TaskQueue.STARVATION_TIMEOUT_MS);
     ModelProvider modelProvider = modelProviderFactory.createNew(null);
 
     assertThat(modelProvider).isNotNull();

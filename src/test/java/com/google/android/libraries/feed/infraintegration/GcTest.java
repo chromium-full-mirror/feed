@@ -47,13 +47,12 @@ public final class GcTest {
       };
   private static final long LIFETIME_MS = Duration.ofHours(1).toMillis();
 
-  private final FakeClock fakeClock = new FakeClock();
   private final InfraIntegrationScope scope =
       new InfraIntegrationScope.Builder(new FakeThreadUtils(/* enforceThreadChecks= */ false))
-          .setClock(fakeClock)
           .setConfiguration(
               new Configuration.Builder().put(ConfigKey.SESSION_LIFETIME_MS, LIFETIME_MS).build())
           .build();
+  private final FakeClock fakeClock = scope.getFakeClock();
 
   @Test
   public void testGc_contentInLiveSessionRetained() {

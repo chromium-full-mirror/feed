@@ -35,6 +35,8 @@ import com.google.android.libraries.feed.host.scheduler.SchedulerApi.RequestBeha
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi.SessionManagerState;
 import com.google.android.libraries.feed.testing.modelprovider.FakeViewDepthProvider;
 import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
+import com.google.search.now.feed.client.StreamDataProto.StreamToken;
+import com.google.search.now.wire.feed.ConsistencyTokenProto.ConsistencyToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import org.junit.Before;
 import org.junit.Test;
@@ -166,8 +168,10 @@ public class ViewDepthProviderTests {
     // Now page in the same content, this should all be updates
     requestManager.queueResponse(
         ResponseBuilder.builder().addCardsToRoot(REQUEST_TWO_WITH_DUPLICATES_PAGE).build());
-    requestManager.triggerRefresh(
-        RequestReason.HOST_REQUESTED,
+    // TODO: sessions reject updates without a CLEAR_ALL or paging with a different token.
+    requestManager.loadMore(
+        StreamToken.getDefaultInstance(),
+        ConsistencyToken.getDefaultInstance(),
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
 
     modelValidator.assertCursorContents(

@@ -1,4 +1,4 @@
-// Copyright 2018 The Feed Authors.
+// Copyright 2019 The Feed Authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.MutationContext;
-import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
@@ -35,11 +34,14 @@ import com.google.android.libraries.feed.api.modelprovider.TokenCompletedObserve
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.Result;
+import com.google.android.libraries.feed.common.concurrent.TaskQueue;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
 import com.google.android.libraries.feed.common.testing.PagingState;
 import com.google.android.libraries.feed.common.testing.ResponseBuilder;
+import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.logging.RequestReason;
@@ -52,7 +54,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
 
 /** Test Synthetic tokens. */
@@ -62,8 +63,7 @@ public class SyntheticTokensTest {
   private static final int PAGE_SIZE = 4;
   private static final int MIN_PAGE_SIZE = 2;
 
-  @Mock private ThreadUtils threadUtils;
-
+  private FakeClock fakeClock;
   private FakeRequestManager requestManager;
   private SessionManager sessionManager;
   private ModelProviderFactory modelProviderFactory;
@@ -81,7 +81,10 @@ public class SyntheticTokensTest {
             .put(ConfigKey.NON_CACHED_MIN_PAGE_SIZE, MIN_PAGE_SIZE)
             .build();
     InfraIntegrationScope scope =
-        new InfraIntegrationScope.Builder(threadUtils).setConfiguration(configuration).build();
+        new InfraIntegrationScope.Builder(new FakeThreadUtils(/* enforceThreadChecks= */ false))
+            .setConfiguration(configuration)
+            .build();
+    fakeClock = scope.getFakeClock();
     requestManager = scope.getRequestManager();
     sessionManager = scope.getSessionManager();
     modelProviderFactory = scope.getModelProviderFactory();
@@ -517,5 +520,6 @@ public class SyntheticTokensTest {
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+    fakeClock.advance(TaskQueue.STARVATION_TIMEOUT_MS);
   }
 }
