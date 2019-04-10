@@ -1,4 +1,4 @@
-// Copyright 2018 The Feed Authors.
+// Copyright 2019 The Feed Authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi.RequestBehavior;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi.SessionManagerState;
+import com.google.android.libraries.feed.testing.modelprovider.FakeViewDepthProvider;
 import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import org.junit.Before;
@@ -82,6 +83,7 @@ public class ViewDepthProviderTests {
   private ProtocolAdapter protocolAdapter;
   private ModelProviderValidator modelValidator;
   private SessionManager sessionManager;
+  private ViewDepthProvider viewDepthProvider;
 
   @Before
   public void setUp() {
@@ -97,6 +99,9 @@ public class ViewDepthProviderTests {
     protocolAdapter = scope.getProtocolAdapter();
     modelValidator = new ModelProviderValidator(scope.getProtocolAdapter());
     sessionManager = scope.getSessionManager();
+    viewDepthProvider =
+        new FakeViewDepthProvider()
+            .setChildViewDepth(protocolAdapter.getStreamContentId(REQUEST_ONE[1]));
   }
 
   @Test
@@ -174,12 +179,4 @@ public class ViewDepthProviderTests {
         REQUEST_TWO_WITH_DUPLICATES[2],
         REQUEST_TWO_WITH_DUPLICATES_PAGE[2]);
   }
-
-  private ViewDepthProvider viewDepthProvider =
-      new ViewDepthProvider() {
-        @Override
-        public /*@Nullable*/ String getChildViewDepth() {
-          return protocolAdapter.getStreamContentId(REQUEST_ONE[1]);
-        }
-      };
 }
