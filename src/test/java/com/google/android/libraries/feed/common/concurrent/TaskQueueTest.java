@@ -104,9 +104,12 @@ public class TaskQueueTest {
     taskQueue.execute("delayedTask", TaskType.BACKGROUND, this::delayedTask);
     assertThat(taskQueue.isDelayed()).isTrue();
     assertThat(delayedTaskHasRun).isFalse();
+    assertThat(taskQueue.hasPendingStarvationCheck()).isTrue();
+
     taskQueue.execute("headReset", TaskType.HEAD_RESET, this::noOp);
     assertThat(taskQueue.isDelayed()).isFalse();
     assertThat(delayedTaskHasRun).isTrue();
+    assertThat(taskQueue.hasPendingStarvationCheck()).isFalse();
   }
 
   @Test
@@ -224,10 +227,12 @@ public class TaskQueueTest {
     int starvationTaskCount = 0;
     long startTimeMillis = fakeClock.currentTimeMillis();
     while (fakeClock.currentTimeMillis() - startTimeMillis < TaskQueue.STARVATION_TIMEOUT_MS) {
+      assertThat(taskQueue.hasPendingStarvationCheck()).isTrue();
       fakeClock.advance(TaskQueue.STARVATION_CHECK_MS);
       starvationTaskCount++;
       assertThat(fakeMainThreadRunner.getCompletedTaskCount()).isEqualTo(starvationTaskCount);
     }
+    assertThat(taskQueue.hasPendingStarvationCheck()).isFalse();
   }
 
   private void assertOrder(Integer... args) {

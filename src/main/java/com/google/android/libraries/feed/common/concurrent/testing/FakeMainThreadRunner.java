@@ -124,6 +124,21 @@ public final class FakeMainThreadRunner extends MainThreadRunner {
     }
   }
 
+  /** Returns {@literal true} if there are tasks to run in the future. */
+  public boolean hasPendingTasks() {
+    if (!tasksToRun.isEmpty()) {
+      return true;
+    }
+
+    for (TimedRunnable runnable : delayedTasks) {
+      if (!runnable.isCanceled()) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   /** Returns {@literal true} if there are tasks to run or tasks have run. */
   public boolean hasTasks() {
     return !tasksToRun.isEmpty() || completedTaskCount != 0;
@@ -136,16 +151,20 @@ public final class FakeMainThreadRunner extends MainThreadRunner {
 
   private static final class TimedRunnable implements Runnable {
 
+    private final CancelableRunnableTask runnable;
     private final long executionTime;
-    private final Runnable runnable;
 
-    private TimedRunnable(Runnable runnable, long executeTime) {
+    private TimedRunnable(CancelableRunnableTask runnable, long executeTime) {
       this.runnable = runnable;
       this.executionTime = executeTime;
     }
 
-    long getExecutionTime() {
+    private long getExecutionTime() {
       return executionTime;
+    }
+
+    private boolean isCanceled() {
+      return runnable.canceled();
     }
 
     @Override

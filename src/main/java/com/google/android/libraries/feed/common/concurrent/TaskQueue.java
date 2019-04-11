@@ -110,14 +110,19 @@ public class TaskQueue implements Dumpable {
   @GuardedBy("lock")
   private boolean initialized = false;
 
+  /**
+   * CancelableTask that tracks the current starvation runnable. {@liternal null} means that
+   * starvation checks are not running.
+   */
+  @GuardedBy("lock")
+  /*@Nullable*/
+  private CancelableTask starvationCheckTask = null;
+
   // Tracks the current task running on the executor
   /*@Nullable*/ private TaskWrapper currentTask;
 
   /** Track the time the last task finished. Used for Starvation checks. */
   private final AtomicLong lastTaskFinished = new AtomicLong();
-
-  /** Track if starvation checking is running */
-  private final AtomicBoolean starvationChecks = new AtomicBoolean(false);
 
   private final BasicLoggingApi basicLoggingApi;
   private final Executor executor;
@@ -191,9 +196,12 @@ public class TaskQueue implements Dumpable {
 
   /** this is called post reset to clear the initialized flag. */
   public void completeReset() {
+    Logger.i(TAG, "completeReset");
     synchronized (lock) {
       initialized = true;
     }
+
+    maybeCancelStarvationCheck();
   }
 
   /**
@@ -244,27 +252,46 @@ public class TaskQueue implements Dumpable {
   }
 
   private void startStarvationCheck() {
-    if (starvationChecks.get()) {
-      Logger.i(TAG, "Starvation Checks are already running");
+    synchronized (lock) {
+      if (!checkStarvation) {
+        Logger.i(TAG, "Starvation Checks are disabled");
+        return;
+      } else if (starvationCheckTask != null) {
+        Logger.i(TAG, "Starvation Checks are already running");
+        return;
+      }
+
+      if (isDelayed()) {
+        Logger.i(TAG, " * Starting starvation checks");
+        starvationCheckTask =
+            mainThreadRunner.executeWithDelay(
+                "starvationChecks", new StarvationChecker(), STARVATION_CHECK_MS);
+      }
     }
-    if (!checkStarvation || starvationChecks.get()) {
-      return;
-    }
-    if (isDelayed()) {
-      Logger.i(TAG, " * Starting starvation checks");
-      starvationChecks.set(true);
-      mainThreadRunner.executeWithDelay(
-          "starvationChecks", new StarvationChecker(), STARVATION_CHECK_MS);
+  }
+
+  private void maybeCancelStarvationCheck() {
+    synchronized (lock) {
+      CancelableTask localTask = starvationCheckTask;
+      if (!isDelayed() && localTask != null) {
+        Logger.i(TAG, "Cancelling starvation checks");
+        localTask.cancel();
+        starvationCheckTask = null;
+      }
     }
   }
 
   private final class StarvationChecker implements Runnable {
     @Override
     public void run() {
+      // TODO: isDelayed shouldn't be called if starvationCheckTask is properly
+      // cancelled.
       if (!isDelayed() && !hasBacklog()) {
         // Quick out, we are not delaying things, this stops starvation checking
         Logger.i(TAG, " * Starvation checks being turned off");
-        starvationChecks.set(false);
+        synchronized (lock) {
+          starvationCheckTask = null;
+        }
         return;
       }
       long lastTask = lastTaskFinished.get();
@@ -281,11 +308,14 @@ public class TaskQueue implements Dumpable {
           if (!initialized) {
             initialized = true;
           }
+          starvationCheckTask = null;
         }
-        starvationChecks.set(false);
         executeNextTask();
       } else {
-        mainThreadRunner.executeWithDelay("StarvationChecks", this, STARVATION_CHECK_MS);
+        synchronized (lock) {
+          starvationCheckTask =
+              mainThreadRunner.executeWithDelay("StarvationChecks", this, STARVATION_CHECK_MS);
+        }
       }
     }
   }
@@ -370,14 +400,22 @@ public class TaskQueue implements Dumpable {
     }
   }
 
+  /** Returns {@literal true} if no tasks are running and no tasks are enqueued. */
   public boolean isIdle() {
     return !hasBacklog() && currentTask == null;
   }
 
-  @VisibleForTesting
-  boolean hasBacklog() {
+  /** Returns {@literal true} if there are tests enqueued to run. */
+  public boolean hasBacklog() {
     synchronized (lock) {
       return !backgroundTasks.isEmpty() || !userTasks.isEmpty() || !immediateTasks.isEmpty();
+    }
+  }
+
+  @VisibleForTesting
+  boolean hasPendingStarvationCheck() {
+    synchronized (lock) {
+      return starvationCheckTask != null && !starvationCheckTask.canceled();
     }
   }
 
@@ -498,6 +536,7 @@ public class TaskQueue implements Dumpable {
       synchronized (lock) {
         waitingForHeadReset = false;
       }
+      maybeCancelStarvationCheck();
     }
   }
 
