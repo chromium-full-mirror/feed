@@ -17,7 +17,7 @@ package com.google.android.libraries.feed.feedmodelprovider.internal;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.api.modelprovider.TokenCompletedObserver;
+import com.google.android.libraries.feed.internalapi.modelprovider.TokenCompletedObserver;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import java.util.List;
 import org.junit.Before;

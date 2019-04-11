@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.api.modelprovider;
+package com.google.android.libraries.feed.internalapi.modelprovider;
 
-import com.google.android.libraries.feed.api.modelprovider.ModelProvider.ViewDepthProvider;
 import com.google.android.libraries.feed.common.functional.Predicate;
+import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider.ViewDepthProvider;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 
 /** Factory method for creating {@link ModelProvider} instances. */

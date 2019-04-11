@@ -14,10 +14,10 @@
 
 package com.google.android.libraries.feed.testing.modelprovider;
 
-import com.google.android.libraries.feed.api.modelprovider.ModelChild;
-import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
-import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
-import com.google.android.libraries.feed.api.modelprovider.ModelToken;
+import com.google.android.libraries.feed.internalapi.modelprovider.ModelChild;
+import com.google.android.libraries.feed.internalapi.modelprovider.ModelCursor;
+import com.google.android.libraries.feed.internalapi.modelprovider.ModelFeature;
+import com.google.android.libraries.feed.internalapi.modelprovider.ModelToken;
 import com.google.common.collect.ImmutableList;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;

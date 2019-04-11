@@ -15,7 +15,7 @@
 package com.google.android.libraries.feed.sharedstream.deepestcontenttracker;
 
 import android.support.annotation.VisibleForTesting;
-import com.google.android.libraries.feed.api.modelprovider.ModelProvider.ViewDepthProvider;
+import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider.ViewDepthProvider;
 import java.util.ArrayList;
 import java.util.List;
 

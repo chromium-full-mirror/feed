@@ -15,10 +15,10 @@
 package com.google.android.libraries.feed.feedmodelprovider.internal;
 
 import android.text.TextUtils;
-import com.google.android.libraries.feed.api.modelprovider.ModelChild;
-import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
-import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.common.logging.Logger;
+import com.google.android.libraries.feed.internalapi.modelprovider.ModelChild;
+import com.google.android.libraries.feed.internalapi.modelprovider.ModelFeature;
+import com.google.android.libraries.feed.internalapi.modelprovider.ModelToken;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 
 /** */

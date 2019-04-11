@@ -17,9 +17,9 @@ package com.google.android.libraries.feed.sharedstream.removetrackingfactory;
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.knowncontent.ContentRemoval;
 import com.google.android.libraries.feed.api.knowncontent.KnownContentApi;
-import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
-import com.google.android.libraries.feed.api.modelprovider.ModelProvider.RemoveTrackingFactory;
-import com.google.android.libraries.feed.api.modelprovider.RemoveTracking;
+import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider;
+import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider.RemoveTrackingFactory;
+import com.google.android.libraries.feed.internalapi.modelprovider.RemoveTracking;
 
 /** {@link RemoveTrackingFactory} to notify host of removed content. */
 public class StreamRemoveTrackingFactory implements RemoveTrackingFactory<ContentRemoval> {

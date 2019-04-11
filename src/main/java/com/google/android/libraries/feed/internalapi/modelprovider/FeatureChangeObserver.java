@@ -12,21 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.api.modelprovider;
+package com.google.android.libraries.feed.internalapi.modelprovider;
 
-/** Defines completion of a continuation token initiated request. */
-public final class TokenCompleted {
-  private final ModelCursor modelCursor;
-
-  public TokenCompleted(ModelCursor modelCursor) {
-    this.modelCursor = modelCursor;
-  }
-
-  /**
-   * Returns a cursor representing the continuation from the point in the stream the continuation
-   * token was found.
-   */
-  public ModelCursor getCursor() {
-    return modelCursor;
-  }
+/**
+ * Defines an interface which observes changes features within the stream model. The {@link
+ * #onChange(FeatureChange)} is called when a feature changes.
+ */
+public interface FeatureChangeObserver {
+  /** Called when children of the feature or the underlying payload proto instance change. */
+  void onChange(FeatureChange change);
 }

@@ -14,15 +14,15 @@
 
 package com.google.android.libraries.feed.testing.modelprovider;
 
-import com.google.android.libraries.feed.api.modelprovider.ModelChild;
-import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
-import com.google.android.libraries.feed.api.modelprovider.ModelError;
-import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
-import com.google.android.libraries.feed.api.modelprovider.ModelMutation;
-import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
-import com.google.android.libraries.feed.api.modelprovider.ModelProviderObserver;
-import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.host.logging.RequestReason;
+import com.google.android.libraries.feed.internalapi.modelprovider.ModelChild;
+import com.google.android.libraries.feed.internalapi.modelprovider.ModelCursor;
+import com.google.android.libraries.feed.internalapi.modelprovider.ModelError;
+import com.google.android.libraries.feed.internalapi.modelprovider.ModelFeature;
+import com.google.android.libraries.feed.internalapi.modelprovider.ModelMutation;
+import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider;
+import com.google.android.libraries.feed.internalapi.modelprovider.ModelProviderObserver;
+import com.google.android.libraries.feed.internalapi.modelprovider.ModelToken;
 import com.google.common.collect.ImmutableList;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.UiContext;

@@ -67,7 +67,6 @@ android_local_test(
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/common",
         "//src/main/java/com/google/android/libraries/feed/api/knowncontent",
-        "//src/main/java/com/google/android/libraries/feed/api/modelprovider",
         "//src/main/java/com/google/android/libraries/feed/api/protocoladapter",
         "//src/main/java/com/google/android/libraries/feed/api/scope",
         "//src/main/java/com/google/android/libraries/feed/api/sessionmanager",
@@ -82,7 +81,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/host/offlineindicator",
         "//src/main/java/com/google/android/libraries/feed/host/stream",
         "//src/main/java/com/google/android/libraries/feed/internalapi/actionmanager",
-        "//src/main/java/com/google/android/libraries/feed/internalapi/actionparser",
+        "//src/main/java/com/google/android/libraries/feed/internalapi/modelprovider",
         "//src/main/java/com/google/android/libraries/feed/piet/host",
         "//third_party:robolectric",
         "@com_google_protobuf_javalite//:protobuf_java_lite",

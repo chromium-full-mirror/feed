@@ -15,11 +15,6 @@
 package com.google.android.libraries.feed.basicstream.internal.drivers;
 
 import android.support.annotation.VisibleForTesting;
-import com.google.android.libraries.feed.api.modelprovider.ModelChild;
-import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
-import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
-import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
-import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.pendingdismiss.ClusterPendingDismissHelper;
 import com.google.android.libraries.feed.basicstream.internal.pendingdismiss.PendingDismissHandler;
@@ -33,6 +28,11 @@ import com.google.android.libraries.feed.host.logging.InternalFeedError;
 import com.google.android.libraries.feed.host.stream.TooltipApi;
 import com.google.android.libraries.feed.internalapi.actionmanager.ActionManager;
 import com.google.android.libraries.feed.internalapi.actionparser.ActionParserFactory;
+import com.google.android.libraries.feed.internalapi.modelprovider.ModelChild;
+import com.google.android.libraries.feed.internalapi.modelprovider.ModelChild.Type;
+import com.google.android.libraries.feed.internalapi.modelprovider.ModelCursor;
+import com.google.android.libraries.feed.internalapi.modelprovider.ModelFeature;
+import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
 import com.google.android.libraries.feed.sharedstream.pendingdismiss.PendingDismissCallback;

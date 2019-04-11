@@ -18,12 +18,6 @@ import static com.google.android.libraries.feed.common.testing.ResponseBuilder.R
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.api.modelprovider.FeatureChange.ChildChanges;
-import com.google.android.libraries.feed.api.modelprovider.ModelError;
-import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
-import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
-import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
-import com.google.android.libraries.feed.api.modelprovider.ModelProviderObserver;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
@@ -32,6 +26,12 @@ import com.google.android.libraries.feed.common.testing.ResponseBuilder;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi.RequestBehavior;
+import com.google.android.libraries.feed.internalapi.modelprovider.FeatureChange.ChildChanges;
+import com.google.android.libraries.feed.internalapi.modelprovider.ModelError;
+import com.google.android.libraries.feed.internalapi.modelprovider.ModelFeature;
+import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider;
+import com.google.android.libraries.feed.internalapi.modelprovider.ModelProviderFactory;
+import com.google.android.libraries.feed.internalapi.modelprovider.ModelProviderObserver;
 import com.google.android.libraries.feed.testing.host.scheduler.FakeSchedulerApi;
 import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
 import com.google.search.now.feed.client.StreamDataProto.UiContext;

@@ -14,9 +14,9 @@
 
 package com.google.android.libraries.feed.feedmodelprovider.internal;
 
-import com.google.android.libraries.feed.api.modelprovider.ModelToken;
-import com.google.android.libraries.feed.api.modelprovider.TokenCompletedObserver;
 import com.google.android.libraries.feed.common.feedobservable.FeedObservable;
+import com.google.android.libraries.feed.internalapi.modelprovider.ModelToken;
+import com.google.android.libraries.feed.internalapi.modelprovider.TokenCompletedObserver;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import java.util.ArrayList;
 import java.util.List;

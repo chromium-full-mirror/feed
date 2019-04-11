@@ -12,7 +12,6 @@ android_local_test(
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/common",
         "//src/main/java/com/google/android/libraries/feed/api/common/testing",
-        "//src/main/java/com/google/android/libraries/feed/api/modelprovider",
         "//src/main/java/com/google/android/libraries/feed/common",
         "//src/main/java/com/google/android/libraries/feed/common/concurrent/testing",
         "//src/main/java/com/google/android/libraries/feed/common/functional",
@@ -26,6 +25,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/host/config",
         "//src/main/java/com/google/android/libraries/feed/host/logging",
         "//src/main/java/com/google/android/libraries/feed/host/scheduler",
+        "//src/main/java/com/google/android/libraries/feed/internalapi/modelprovider",
         "//src/main/java/com/google/android/libraries/feed/internalapi/store",
         "//src/main/java/com/google/android/libraries/feed/testing/protocoladapter",
         "//src/main/java/com/google/android/libraries/feed/testing/requestmanager",

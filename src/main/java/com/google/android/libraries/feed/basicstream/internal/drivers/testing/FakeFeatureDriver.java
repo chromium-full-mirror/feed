@@ -14,9 +14,9 @@
 
 package com.google.android.libraries.feed.basicstream.internal.drivers.testing;
 
-import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.basicstream.internal.drivers.FeatureDriver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.LeafFeatureDriver;
+import com.google.android.libraries.feed.internalapi.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelFeature;
 
 /** Fake for {@link FeatureDriver}. */

@@ -14,9 +14,9 @@
 
 package com.google.android.libraries.feed.testing.modelprovider;
 
-import com.google.android.libraries.feed.api.modelprovider.FeatureChange;
-import com.google.android.libraries.feed.api.modelprovider.ModelChild;
-import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
+import com.google.android.libraries.feed.internalapi.modelprovider.FeatureChange;
+import com.google.android.libraries.feed.internalapi.modelprovider.ModelChild;
+import com.google.android.libraries.feed.internalapi.modelprovider.ModelFeature;
 import java.util.ArrayList;
 import java.util.List;
 

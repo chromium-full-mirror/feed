@@ -15,12 +15,12 @@
 package com.google.android.libraries.feed.feedsessionmanager.internal;
 
 import com.google.android.libraries.feed.api.common.MutationContext;
-import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.common.logging.Dumpable;
 import com.google.android.libraries.feed.common.logging.Dumper;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTracker;
+import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.internalapi.store.SessionMutation;
 import com.google.android.libraries.feed.internalapi.store.Store;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;

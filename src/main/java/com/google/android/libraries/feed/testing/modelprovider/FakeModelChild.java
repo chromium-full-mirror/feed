@@ -17,11 +17,11 @@ package com.google.android.libraries.feed.testing.modelprovider;
 import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 import static com.google.android.libraries.feed.common.Validators.checkState;
 
-import com.google.android.libraries.feed.api.modelprovider.ModelChild;
-import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
-import com.google.android.libraries.feed.api.modelprovider.ModelToken;
+import com.google.android.libraries.feed.internalapi.modelprovider.ModelChild;
+import com.google.android.libraries.feed.internalapi.modelprovider.ModelFeature;
+import com.google.android.libraries.feed.internalapi.modelprovider.ModelToken;
 
-/** Fake for {@link com.google.android.libraries.feed.api.modelprovider.ModelChild}. */
+/** Fake for {@link com.google.android.libraries.feed.internalapi.modelprovider.ModelChild}. */
 public class FakeModelChild implements ModelChild {
 
   private final String contentId;
