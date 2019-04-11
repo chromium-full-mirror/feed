@@ -44,6 +44,7 @@ import com.google.android.libraries.feed.feedmodelprovider.internal.UpdatableMod
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.logging.RequestReason;
+import com.google.android.libraries.feed.host.logging.Task;
 import com.google.android.libraries.feed.internalapi.modelprovider.FeatureChange;
 import com.google.android.libraries.feed.internalapi.modelprovider.FeatureChangeObserver;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelChild;
@@ -227,7 +228,7 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
         // The nullness checker fails to understand tokenTracker can't be null in the Lambda usage
         SyntheticTokenTracker tt = Validators.checkNotNull(tokenTracker);
         taskQueue.execute(
-            "FeedModelProvider.handleSyntheticToken",
+            Task.HANDLE_SYNTHETIC_TOKEN,
             TaskType.USER_FACING,
             () -> tt.handleSyntheticToken(token));
         return true;

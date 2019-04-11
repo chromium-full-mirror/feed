@@ -16,6 +16,7 @@ package com.google.android.libraries.feed.hostimpl.logging;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.ContentLoggingData;
 import com.google.android.libraries.feed.host.logging.ElementLoggingData;
+import com.google.android.libraries.feed.host.logging.Task;
 import java.util.List;
 
 /** {@link BasicLoggingApi} implementation that no-ops for all methods. */
@@ -99,4 +100,7 @@ public final class NoOpBasicLoggingApi implements BasicLoggingApi {
 
   @Override
   public void onScroll(int scrollType, int distanceScrolled) {}
+
+  @Override
+  public void onTaskFinished(@Task int task, int delayTime, int taskTime) {}
 }

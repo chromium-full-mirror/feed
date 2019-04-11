@@ -234,4 +234,13 @@ public interface BasicLoggingApi {
    * @param distanceScrolled distance in px the user scrolled for this particular scroll.
    */
   void onScroll(@ScrollType int scrollType, int distanceScrolled);
+
+  /**
+   * Called when a task finishes executing.
+   *
+   * @param task the task that is being run.
+   * @param delayTime how long it took from enqueuing the task to when it was run.
+   * @param taskTime how long it took from the task starting to when it finished executing.
+   */
+  void onTaskFinished(@Task int task, int delayTime, int taskTime);
 }

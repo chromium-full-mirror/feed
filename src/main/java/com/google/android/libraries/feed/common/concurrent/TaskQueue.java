@@ -23,6 +23,7 @@ import com.google.android.libraries.feed.common.logging.StringFormattingUtils;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.InternalFeedError;
+import com.google.android.libraries.feed.host.logging.Task;
 import java.util.ArrayDeque;
 import java.util.Queue;
 import java.util.concurrent.Executor;
@@ -222,13 +223,13 @@ public class TaskQueue implements Dumpable {
   }
 
   /** Execute a Task on the Executor. */
-  public void execute(String task, @TaskType int taskType, Runnable runnable) {
+  public void execute(@Task int task, @TaskType int taskType, Runnable runnable) {
     execute(task, taskType, runnable, null, 0);
   }
 
   /** Execute a task providing a timeout task. */
   public void execute(
-      String task,
+      @Task int task,
       @TaskType int taskType,
       Runnable runnable,
       /*@Nullable*/ Runnable timeOutRunnable,
@@ -241,6 +242,7 @@ public class TaskQueue implements Dumpable {
           new TimeoutTaskWrapper(task, taskType, taskWrapper, timeOutRunnable)
               .startTimeout(timeoutMillis);
     }
+    // TODO: Log task name instead of task number
     Logger.i(
         TAG,
         " - task [%s - d: %s, b: %s]: %s",
@@ -330,7 +332,7 @@ public class TaskQueue implements Dumpable {
     }
   }
 
-  private TaskWrapper getTaskWrapper(String task, @TaskType int taskType, Runnable runnable) {
+  private TaskWrapper getTaskWrapper(@Task int task, @TaskType int taskType, Runnable runnable) {
     if (taskType == TaskType.HEAD_RESET) {
       return new HeadResetTaskWrapper(task, taskType, runnable);
     }
@@ -459,11 +461,11 @@ public class TaskQueue implements Dumpable {
    * the default which supports the basic Task, subclasses will manage state changes.
    */
   private class TaskWrapper implements Runnable {
-    protected final String task;
+    @Task protected final int task;
     final int taskType;
     protected final Runnable runnable;
 
-    TaskWrapper(String task, @TaskType int taskType, Runnable runnable) {
+    TaskWrapper(@Task int task, @TaskType int taskType, Runnable runnable) {
       this.task = task;
       this.taskType = taskType;
       this.runnable = runnable;
@@ -482,6 +484,7 @@ public class TaskQueue implements Dumpable {
     @Override
     public final void run() {
       long start = System.nanoTime();
+      // TODO: Log task name instead of task number
       Logger.i(
           TAG,
           "Execute task [%s - d: %s, b: %s]: %s",
@@ -512,7 +515,7 @@ public class TaskQueue implements Dumpable {
    */
   private final class InitializationTaskWrapper extends TaskWrapper {
     InitializationTaskWrapper(Runnable runnable) {
-      super("initializationTask", TaskType.IMMEDIATE, runnable);
+      super(Task.TASK_QUEUE_INITIALIZE, TaskType.IMMEDIATE, runnable);
     }
 
     @Override
@@ -527,7 +530,7 @@ public class TaskQueue implements Dumpable {
    * HeadReset will run a task which resets $HEAD. It clears the {@link #waitingForHeadReset} state.
    */
   private final class HeadResetTaskWrapper extends TaskWrapper {
-    HeadResetTaskWrapper(String task, @TaskType int taskType, Runnable runnable) {
+    HeadResetTaskWrapper(@Task int task, @TaskType int taskType, Runnable runnable) {
       super(task, taskType, runnable);
     }
 
@@ -546,7 +549,7 @@ public class TaskQueue implements Dumpable {
    * #waitingForHeadReset}. In addition starvation checks will be started.
    */
   private final class HeadInvalidateTaskWrapper extends TaskWrapper {
-    HeadInvalidateTaskWrapper(String task, @TaskType int taskType, Runnable runnable) {
+    HeadInvalidateTaskWrapper(@Task int task, @TaskType int taskType, Runnable runnable) {
       super(task, taskType, runnable);
     }
 
@@ -574,8 +577,8 @@ public class TaskQueue implements Dumpable {
     private final AtomicBoolean ranTimeoutTask = new AtomicBoolean(false);
 
     TimeoutTaskWrapper(
-        String task, @TaskType int taskType, Runnable taskRunnable, Runnable timeoutRunnable) {
-      super("timeoutWrapper:" + task, taskType, taskRunnable);
+        @Task int task, @TaskType int taskType, Runnable taskRunnable, Runnable timeoutRunnable) {
+      super(task, taskType, taskRunnable);
       this.timeoutRunnable = timeoutRunnable;
     }
 

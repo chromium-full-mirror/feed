@@ -24,6 +24,7 @@ import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
+import com.google.android.libraries.feed.host.logging.Task;
 import com.google.android.libraries.feed.internalapi.actionmanager.ActionReader;
 import com.google.android.libraries.feed.internalapi.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.internalapi.store.Store;
@@ -91,7 +92,7 @@ public final class FeedActionReader implements ActionReader {
     // duplicates not being counted as valid.
     if ((double) contentIds.size() / dismissActions.size() < minValidActionRatio) {
       taskQueue.execute(
-          "triggerLocalActionGc",
+          Task.LOCAL_ACTION_GC,
           TaskType.BACKGROUND,
           store.triggerLocalActionGc(dismissActions, new ArrayList<>(contentIds)));
     }

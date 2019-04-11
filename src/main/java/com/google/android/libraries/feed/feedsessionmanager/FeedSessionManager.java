@@ -59,6 +59,7 @@ import com.google.android.libraries.feed.feedsessionmanager.internal.SessionMana
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.logging.RequestReason;
+import com.google.android.libraries.feed.host.logging.Task;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi.RequestBehavior;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi.SessionManagerState;
@@ -262,8 +263,7 @@ public final class FeedSessionManager
 
     if (!sessionCache.isHeadInitialized()) {
       Logger.i(TAG, "Delaying populateSession until initialization is finished");
-      taskQueue.execute(
-          "postInitialization/populateSession", TaskType.IMMEDIATE, () -> populateSession(session));
+      taskQueue.execute(Task.GET_NEW_SESSION, TaskType.IMMEDIATE, () -> populateSession(session));
     } else {
       populateSession(session);
     }
@@ -320,7 +320,7 @@ public final class FeedSessionManager
     // Task which creates and populates the newly created session.  This must be done
     // on the Session Manager thread so it atomic with the mutations.
     taskQueue.execute(
-        "populateNewSession",
+        Task.POPULATE_NEW_SESSION,
         taskType,
         () -> populateSessionTask(session, legacyHeadContent),
         timeoutTask,
@@ -412,7 +412,7 @@ public final class FeedSessionManager
       // queue a clear which will run after all currently delayed tasks.  This allows delayed
       // session population tasks to inform the ModelProvider of errors then we clear the error
       // state.
-      taskQueue.execute("clearNoCardsError", TaskType.USER_FACING, () -> noCardsError = null);
+      taskQueue.execute(Task.NO_CARD_ERROR_CLEAR, TaskType.USER_FACING, () -> noCardsError = null);
       return;
     } else if (session != null && error.getErrorType() == ErrorType.PAGINATION_ERROR) {
       Logger.e(TAG, "Pagination Error found");
@@ -444,7 +444,7 @@ public final class FeedSessionManager
     // Task which populates the newly created session.  This must be done
     // on the Session Manager thread so it atomic with the mutations.
     taskQueue.execute(
-        "createExistingSession",
+        Task.GET_EXISTING_SESSION,
         TaskType.USER_FACING,
         () -> {
           threadUtils.checkNotMainThread();
@@ -481,7 +481,9 @@ public final class FeedSessionManager
   public void invalidateSession(String sessionId) {
     if (threadUtils.isMainThread()) {
       taskQueue.execute(
-          "invalidateSession", TaskType.USER_FACING, () -> sessionCache.removeAttached(sessionId));
+          Task.INVALIDATE_SESSION,
+          TaskType.USER_FACING,
+          () -> sessionCache.removeAttached(sessionId));
     } else {
       sessionCache.removeAttached(sessionId);
     }
@@ -491,7 +493,9 @@ public final class FeedSessionManager
   public void detachSession(String sessionId) {
     if (threadUtils.isMainThread()) {
       taskQueue.execute(
-          "detachSession", TaskType.USER_FACING, () -> sessionCache.detachModelProvider(sessionId));
+          Task.DETACH_SESSION,
+          TaskType.USER_FACING,
+          () -> sessionCache.detachModelProvider(sessionId));
     } else {
       sessionCache.detachModelProvider(sessionId);
     }
@@ -516,7 +520,7 @@ public final class FeedSessionManager
             .setRequestingSessionId(sessionId)
             .build();
     taskQueue.execute(
-        "triggerLoadMore(FeedSessionManager)",
+        Task.HANDLE_TOKEN,
         TaskType.BACKGROUND,
         () -> {
           fetchActionsAndUpload(
@@ -542,7 +546,7 @@ public final class FeedSessionManager
       initialize();
     }
     taskQueue.execute(
-        "triggerRefresh(FeedSessionManager)",
+        Task.SESSION_MANAGER_TRIGGER_REFRESH,
         TaskType.HEAD_INVALIDATE, // invalidate because we are requesting a refresh
         () -> triggerRefreshTask(sessionId, requestReason, uiContext));
   }
@@ -710,7 +714,7 @@ public final class FeedSessionManager
       Function<StreamPayload, /*@Nullable*/ T> filterPredicate,
       Consumer<Result<List</*@NonNull*/ T>>> consumer) {
     taskQueue.execute(
-        "getStreamFeaturesFromHead",
+        Task.GET_STREAM_FEATURES_FROM_HEAD,
         TaskType.BACKGROUND,
         () -> {
           HeadAsStructure headAsStructure = new HeadAsStructure(store, timingUtils, threadUtils);

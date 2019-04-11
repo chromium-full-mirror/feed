@@ -23,6 +23,7 @@ import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.android.libraries.feed.host.logging.ScrollType;
 import com.google.android.libraries.feed.host.logging.SessionEvent;
 import com.google.android.libraries.feed.host.logging.SpinnerType;
+import com.google.android.libraries.feed.host.logging.Task;
 import com.google.android.libraries.feed.host.logging.ZeroStateShowReason;
 import java.util.List;
 
@@ -116,4 +117,7 @@ public class FakeBasicLoggingApi implements BasicLoggingApi {
 
   @Override
   public void onScroll(@ScrollType int scrollType, int distanceScrolled) {}
+
+  @Override
+  public void onTaskFinished(@Task int task, int delayTime, int taskTime) {}
 }

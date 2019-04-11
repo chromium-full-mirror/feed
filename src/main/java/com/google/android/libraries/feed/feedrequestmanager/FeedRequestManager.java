@@ -37,6 +37,7 @@ import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.RequestReason;
+import com.google.android.libraries.feed.host.logging.Task;
 import com.google.android.libraries.feed.host.network.HttpRequest;
 import com.google.android.libraries.feed.host.network.HttpRequest.HttpMethod;
 import com.google.android.libraries.feed.host.network.NetworkClient;
@@ -166,7 +167,7 @@ public final class FeedRequestManager implements RequestManager {
       // This will make a new request, it should invalidate the existing head to delay everything
       // until the response is obtained.
       taskQueue.execute(
-          "requestManager.TriggerRefresh",
+          Task.REQUEST_MANAGER_TRIGGER_REFRESH,
           TaskType.HEAD_INVALIDATE,
           () -> executeRequest(request, consumer));
     } else {
@@ -240,7 +241,7 @@ public final class FeedRequestManager implements RequestManager {
                 FeatureName.CARD_MENU_TOOLTIP,
                 (wouldTrigger) -> {
                   taskQueue.execute(
-                      "sendRequest",
+                      Task.SEND_REQUEST,
                       TaskType.IMMEDIATE,
                       () -> {
                         requestBuilder.setCardMenuTooltipWouldTrigger(wouldTrigger);
@@ -300,7 +301,7 @@ public final class FeedRequestManager implements RequestManager {
   private void handleResponseBytes(
       final byte[] responseBytes, final Consumer<Result<List<StreamDataOperation>>> consumer) {
     taskQueue.execute(
-        "handleResponseBytes",
+        Task.HANDLE_RESPONSE_BYTES,
         TaskType.IMMEDIATE,
         () -> {
           Response response;

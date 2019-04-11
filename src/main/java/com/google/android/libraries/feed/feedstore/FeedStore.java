@@ -37,6 +37,7 @@ import com.google.android.libraries.feed.feedstore.internal.FeedStoreHelper;
 import com.google.android.libraries.feed.feedstore.internal.PersistentFeedStore;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.InternalFeedError;
+import com.google.android.libraries.feed.host.logging.Task;
 import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.host.storage.ContentStorageDirect;
 import com.google.android.libraries.feed.host.storage.JournalStorageDirect;
@@ -228,7 +229,7 @@ public class FeedStore extends FeedObservable<StoreListener>
       delegate = new EphemeralFeedStore(clock, timingUtils, storeHelper);
 
       taskQueue.execute(
-          "clearPersistentStoreTask",
+          Task.CLEAR_PERSISTENT_STORE_TASK,
           TaskType.BACKGROUND,
           () -> {
             ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
@@ -261,7 +262,8 @@ public class FeedStore extends FeedObservable<StoreListener>
   @Override
   public void onLifecycleEvent(@LifecycleEvent String event) {
     if (LifecycleEvent.ENTER_BACKGROUND.equals(event) && isEphemeralMode) {
-      taskQueue.execute("dumpEphemeralActions", TaskType.BACKGROUND, this::dumpEphemeralActions);
+      taskQueue.execute(
+          Task.DUMP_EPHEMERAL_ACTIONS, TaskType.BACKGROUND, this::dumpEphemeralActions);
     }
   }
 

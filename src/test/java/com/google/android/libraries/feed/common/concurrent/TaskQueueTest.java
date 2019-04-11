@@ -21,6 +21,7 @@ import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.host.logging.InternalFeedError;
+import com.google.android.libraries.feed.host.logging.Task;
 import com.google.android.libraries.feed.testing.host.logging.FakeBasicLoggingApi;
 import com.google.common.util.concurrent.MoreExecutors;
 import java.util.ArrayList;
@@ -67,9 +68,9 @@ public class TaskQueueTest {
     Runnable postInit = () -> runnable(3);
     Runnable init = () -> runnable(4);
 
-    taskQueue.execute("background", TaskType.BACKGROUND, background);
-    taskQueue.execute("userFacing", TaskType.USER_FACING, userFacing);
-    taskQueue.execute("postInit", TaskType.IMMEDIATE, postInit);
+    taskQueue.execute(Task.UNKNOWN, TaskType.BACKGROUND, background);
+    taskQueue.execute(Task.UNKNOWN, TaskType.USER_FACING, userFacing);
+    taskQueue.execute(Task.UNKNOWN, TaskType.IMMEDIATE, postInit);
     assertThat(taskQueue.hasBacklog()).isTrue();
     taskQueue.initialize(init);
 
@@ -86,10 +87,10 @@ public class TaskQueueTest {
     Runnable userFacing = () -> runnable(3);
     Runnable reset = () -> runnable(4);
 
-    taskQueue.execute("headInvalidate", TaskType.HEAD_INVALIDATE, invalidate);
-    taskQueue.execute("postInit", TaskType.IMMEDIATE, postInit);
-    taskQueue.execute("userFacing", TaskType.USER_FACING, userFacing);
-    taskQueue.execute("reset", TaskType.HEAD_RESET, reset);
+    taskQueue.execute(Task.UNKNOWN, TaskType.HEAD_INVALIDATE, invalidate);
+    taskQueue.execute(Task.UNKNOWN, TaskType.IMMEDIATE, postInit);
+    taskQueue.execute(Task.UNKNOWN, TaskType.USER_FACING, userFacing);
+    taskQueue.execute(Task.UNKNOWN, TaskType.HEAD_RESET, reset);
 
     assertThat(taskQueue.hasBacklog()).isFalse();
     assertOrder(1, 2, 4, 3);
@@ -100,13 +101,15 @@ public class TaskQueueTest {
     taskQueue.initialize(this::noOp);
     assertThat(taskQueue.isDelayed()).isFalse();
 
-    taskQueue.execute("headInvalidate", TaskType.HEAD_INVALIDATE, this::noOp);
-    taskQueue.execute("delayedTask", TaskType.BACKGROUND, this::delayedTask);
+    taskQueue.execute(Task.UNKNOWN, TaskType.HEAD_INVALIDATE, this::noOp);
+    taskQueue.execute(Task.UNKNOWN, TaskType.BACKGROUND, this::delayedTask);
+
     assertThat(taskQueue.isDelayed()).isTrue();
     assertThat(delayedTaskHasRun).isFalse();
     assertThat(taskQueue.hasPendingStarvationCheck()).isTrue();
 
-    taskQueue.execute("headReset", TaskType.HEAD_RESET, this::noOp);
+    taskQueue.execute(Task.UNKNOWN, TaskType.HEAD_RESET, this::noOp);
+
     assertThat(taskQueue.isDelayed()).isFalse();
     assertThat(delayedTaskHasRun).isTrue();
     assertThat(taskQueue.hasPendingStarvationCheck()).isFalse();
@@ -118,8 +121,8 @@ public class TaskQueueTest {
     Runnable invalidateNotRun = () -> runnable(2);
     Runnable init = () -> runnable(3);
 
-    taskQueue.execute("headInvalidate", TaskType.HEAD_INVALIDATE, invalidate);
-    taskQueue.execute("headInvalidateDropped", TaskType.HEAD_INVALIDATE, invalidateNotRun);
+    taskQueue.execute(Task.UNKNOWN, TaskType.HEAD_INVALIDATE, invalidate);
+    taskQueue.execute(Task.UNKNOWN, TaskType.HEAD_INVALIDATE, invalidateNotRun);
     assertThat(taskQueue.hasBacklog()).isTrue();
     taskQueue.initialize(init);
 
@@ -138,12 +141,12 @@ public class TaskQueueTest {
     Runnable postInit = () -> runnable(4);
     Runnable headReset = () -> runnable(5);
 
-    taskQueue.execute("headInvalidate", TaskType.HEAD_INVALIDATE, headInvalidate);
-    taskQueue.execute("background", TaskType.BACKGROUND, background);
-    taskQueue.execute("userFacing", TaskType.USER_FACING, userFacing);
-    taskQueue.execute("postInit", TaskType.IMMEDIATE, postInit); // run immediately
+    taskQueue.execute(Task.UNKNOWN, TaskType.HEAD_INVALIDATE, headInvalidate);
+    taskQueue.execute(Task.UNKNOWN, TaskType.BACKGROUND, background);
+    taskQueue.execute(Task.UNKNOWN, TaskType.USER_FACING, userFacing);
+    taskQueue.execute(Task.UNKNOWN, TaskType.IMMEDIATE, postInit); // run immediately
     assertThat(taskQueue.hasBacklog()).isTrue();
-    taskQueue.execute("headReset", TaskType.HEAD_RESET, headReset);
+    taskQueue.execute(Task.UNKNOWN, TaskType.HEAD_RESET, headReset);
 
     assertThat(taskQueue.hasBacklog()).isFalse();
     assertOrder(1, 4, 5, 3, 2);
@@ -170,10 +173,10 @@ public class TaskQueueTest {
     Runnable userFacing = () -> runnable(3);
     Runnable postInit = () -> runnable(4);
 
-    taskQueue.execute("headInvalidate", TaskType.HEAD_INVALIDATE, headInvalidate);
-    taskQueue.execute("background", TaskType.BACKGROUND, background);
-    taskQueue.execute("userFacing", TaskType.USER_FACING, userFacing);
-    taskQueue.execute("postInit", TaskType.IMMEDIATE, postInit);
+    taskQueue.execute(Task.UNKNOWN, TaskType.HEAD_INVALIDATE, headInvalidate);
+    taskQueue.execute(Task.UNKNOWN, TaskType.BACKGROUND, background);
+    taskQueue.execute(Task.UNKNOWN, TaskType.USER_FACING, userFacing);
+    taskQueue.execute(Task.UNKNOWN, TaskType.IMMEDIATE, postInit);
     assertThat(taskQueue.hasBacklog()).isTrue();
 
     taskQueue.reset();
@@ -186,7 +189,7 @@ public class TaskQueueTest {
   @Test
   public void testStarvation_initialization() {
     taskQueue.initialize(this::noOp);
-    taskQueue.execute("delayedTask", TaskType.BACKGROUND, this::delayedTask);
+    taskQueue.execute(Task.UNKNOWN, TaskType.BACKGROUND, this::delayedTask);
 
     assertThat(delayedTaskHasRun).isTrue();
     assertThat(taskQueue.isDelayed()).isFalse();
@@ -195,8 +198,8 @@ public class TaskQueueTest {
   @Test
   public void testStarvation_headInvalidate() {
     taskQueue.initialize(this::noOp);
-    taskQueue.execute("headInvalidate", TaskType.HEAD_INVALIDATE, this::noOp);
-    taskQueue.execute("delayedTask", TaskType.BACKGROUND, this::delayedTask);
+    taskQueue.execute(Task.UNKNOWN, TaskType.HEAD_INVALIDATE, this::noOp);
+    taskQueue.execute(Task.UNKNOWN, TaskType.BACKGROUND, this::delayedTask);
 
     assertThat(fakeMainThreadRunner.getCompletedTaskCount()).isEqualTo(0);
     assertThat(delayedTaskHasRun).isFalse();
@@ -213,7 +216,7 @@ public class TaskQueueTest {
   public void testStarvation_reset() {
     taskQueue.initialize(this::noOp);
     taskQueue.reset();
-    taskQueue.execute("delayedTask", TaskType.BACKGROUND, this::delayedTask);
+    taskQueue.execute(Task.UNKNOWN, TaskType.BACKGROUND, this::delayedTask);
 
     assertThat(delayedTaskHasRun).isFalse();
     assertThat(taskQueue.isDelayed()).isTrue();

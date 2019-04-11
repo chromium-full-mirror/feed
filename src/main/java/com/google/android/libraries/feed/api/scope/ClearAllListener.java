@@ -25,6 +25,7 @@ import com.google.android.libraries.feed.common.logging.Dumper;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.feedapplifecyclelistener.FeedLifecycleListener;
 import com.google.android.libraries.feed.host.logging.RequestReason;
+import com.google.android.libraries.feed.host.logging.Task;
 import com.google.search.now.feed.client.StreamDataProto.UiContext;
 
 /**
@@ -60,10 +61,11 @@ public final class ClearAllListener implements FeedLifecycleListener, Dumpable {
   public void onLifecycleEvent(String event) {
     switch (event) {
       case LifecycleEvent.CLEAR_ALL:
-        taskQueue.execute("clearAll", TaskType.IMMEDIATE, this::clearAll);
+        taskQueue.execute(Task.CLEAR_ALL, TaskType.IMMEDIATE, this::clearAll);
         break;
       case LifecycleEvent.CLEAR_ALL_WITH_REFRESH:
-        taskQueue.execute("clearAllWithRefersh", TaskType.IMMEDIATE, this::clearAllWithRefresh);
+        taskQueue.execute(
+            Task.CLEAR_ALL_WITH_REFRESH, TaskType.IMMEDIATE, this::clearAllWithRefresh);
         break;
       default:
         // Do nothing

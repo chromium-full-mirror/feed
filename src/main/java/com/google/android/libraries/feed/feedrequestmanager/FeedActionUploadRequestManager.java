@@ -25,6 +25,7 @@ import com.google.android.libraries.feed.common.protoextensions.FeedExtensionReg
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
+import com.google.android.libraries.feed.host.logging.Task;
 import com.google.android.libraries.feed.host.network.HttpRequest;
 import com.google.android.libraries.feed.host.network.HttpRequest.HttpMethod;
 import com.google.android.libraries.feed.host.network.NetworkClient;
@@ -181,7 +182,7 @@ public final class FeedActionUploadRequestManager implements ActionUploadRequest
             Logger.e(TAG, "errorCode: %d", input.getResponseCode());
             Logger.e(TAG, "errorResponse: %s", errorBody);
             taskQueue.execute(
-                "executeUploadActionRequest",
+                Task.EXECUTE_UPLOAD_ACTION_REQUEST,
                 TaskType.IMMEDIATE,
                 () -> {
                   consumer.accept(Result.failure());
@@ -197,7 +198,7 @@ public final class FeedActionUploadRequestManager implements ActionUploadRequest
       final byte[] responseBytes,
       final Consumer<Result<ConsistencyToken>> consumer) {
     taskQueue.execute(
-        "handleUploadableActionResponseBytes",
+        Task.HANDLE_UPLOADABLE_ACTION_RESPONSE_BYTES,
         TaskType.IMMEDIATE,
         () -> {
           Response response;

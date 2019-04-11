@@ -24,6 +24,7 @@ import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
 import com.google.android.libraries.feed.common.functional.Consumer;
+import com.google.android.libraries.feed.host.logging.Task;
 import com.google.android.libraries.feed.internalapi.actionmanager.ActionManager;
 import com.google.android.libraries.feed.internalapi.store.LocalActionMutation;
 import com.google.android.libraries.feed.internalapi.store.LocalActionMutation.ActionType;
@@ -64,7 +65,7 @@ public class FeedActionManagerImpl implements ActionManager {
     executeStreamDataOperations(streamDataOperations, sessionId);
     // Store the dismissLocal actions
     taskQueue.execute(
-        "feedActionManagerDismiss",
+        Task.DISMISS_LOCAL,
         TaskType.BACKGROUND,
         () -> {
           LocalActionMutation localActionMutation = store.editLocalActions();
@@ -83,7 +84,7 @@ public class FeedActionManagerImpl implements ActionManager {
   @Override
   public void createAndUploadAction(String contentId, ActionPayload payload) {
     taskQueue.execute(
-        "feedActionUpload",
+        Task.CREATE_AND_UPLOAD,
         TaskType.BACKGROUND,
         () -> {
           HashSet<StreamUploadableAction> actionSet = new HashSet<>();
@@ -100,7 +101,7 @@ public class FeedActionManagerImpl implements ActionManager {
   public void uploadAllActionsAndUpdateUrl(
       String url, String consistencyTokenQueryParamName, Consumer<String> consumer) {
     taskQueue.execute(
-        "feedActionUpload",
+        Task.UPLOAD_ALL_ACTIONS_FOR_URL,
         TaskType.BACKGROUND,
         () -> {
           // TODO: figure out spinner and/or timeout conditions

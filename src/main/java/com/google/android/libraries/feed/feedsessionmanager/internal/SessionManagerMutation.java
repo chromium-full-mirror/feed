@@ -30,6 +30,7 @@ import com.google.android.libraries.feed.common.logging.StringFormattingUtils;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTracker;
+import com.google.android.libraries.feed.host.logging.Task;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelError;
@@ -115,7 +116,8 @@ public final class SessionManagerMutation implements Dumpable {
 
   public void resetHead() {
     HeadMutationCommitter mutation = new HeadMutationCommitter();
-    taskQueue.execute("invalidateHead", TaskType.HEAD_INVALIDATE, () -> mutation.resetHead(null));
+    taskQueue.execute(
+        Task.INVALIDATE_HEAD, TaskType.HEAD_INVALIDATE, () -> mutation.resetHead(null));
   }
 
   public void forceResetHead() {
@@ -258,7 +260,7 @@ public final class SessionManagerMutation implements Dumpable {
         } else {
           Logger.e(TAG, "Update error, the update is being ignored");
           modelErrorObserver.onError(session, new ModelError(ErrorType.NO_CARDS_ERROR, null));
-          taskQueue.execute("MutationCommitter:requestFailure", TaskType.HEAD_RESET, () -> {});
+          taskQueue.execute(Task.REQUEST_FAILURE, TaskType.HEAD_RESET, () -> {});
         }
         return;
       }
@@ -275,16 +277,7 @@ public final class SessionManagerMutation implements Dumpable {
       } else {
         taskType = clearedHead ? TaskType.HEAD_RESET : TaskType.USER_FACING;
       }
-      taskQueue.execute(
-          "SessionMutation(task "
-              + task
-              + ", size "
-              + dataOperations.size()
-              + ", clearHead "
-              + clearedHead
-              + ")",
-          taskType,
-          this::commitTask);
+      taskQueue.execute(Task.COMMIT_TASK, taskType, this::commitTask);
     }
 
     private void commitTask() {
@@ -352,7 +345,7 @@ public final class SessionManagerMutation implements Dumpable {
             TAG, "Unsupported Mutation: %s", dataOperation.getStreamStructure().getOperation());
       }
       taskQueue.execute(
-          "persistMutation",
+          Task.PERSIST_MUTATION,
           TaskType.BACKGROUND,
           () -> {
             if (contentMutation.commit().getResult() == CommitResult.Result.FAILURE) {

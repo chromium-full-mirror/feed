@@ -17,7 +17,6 @@ package com.google.android.libraries.feed.feedmodelprovider;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -540,7 +539,7 @@ public class FeedModelProviderTest {
               return null;
             })
         .when(taskQueue)
-        .execute(anyString(), anyInt(), any());
+        .execute(anyInt(), anyInt(), any());
 
     FeedModelProvider modelProvider = createFeedModelProvider();
     int featureCnt = 11;
@@ -587,7 +586,7 @@ public class FeedModelProviderTest {
               return null;
             })
         .when(taskQueue)
-        .execute(anyString(), anyInt(), any());
+        .execute(anyInt(), anyInt(), any());
 
     FeedModelProvider modelProvider = createFeedModelProvider();
     createTopLevelFeatures(modelProvider, /* featureCount= */ 11).commit();

@@ -29,6 +29,7 @@ import com.google.android.libraries.feed.common.logging.StringFormattingUtils;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTracker;
+import com.google.android.libraries.feed.host.logging.Task;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.internalapi.store.Store;
 import com.google.search.now.feed.client.StreamDataProto.SessionMetadata;
@@ -451,19 +452,19 @@ public final class SessionCache implements Dumpable {
             timeTracker.stop("task", "updateContentTracker");
             unboundSessionCount++;
           };
-      taskQueue.execute("updateContentTracker", TaskType.BACKGROUND, updateContentTracker);
+      taskQueue.execute(Task.UPDATE_CONTENT_TRACKER, TaskType.BACKGROUND, updateContentTracker);
     }
 
     if (cleanupSessions) {
       // Queue up a task to clear the session journals.
       taskQueue.execute(
-          "cleanupSessionJournals", TaskType.BACKGROUND, this::cleanupSessionJournals);
+          Task.CLEAN_UP_SESSION_JOURNALS, TaskType.BACKGROUND, this::cleanupSessionJournals);
     }
     Set<String> reservedContentIds = new HashSet<>();
     reservedContentIds.add(STREAM_SESSION_CONTENT_ID);
     reservedContentIds.add(CONSISTENCY_TOKEN_CONTENT_ID);
     taskQueue.execute(
-        "contentGc",
+        Task.GARBAGE_COLLECT_CONTENT,
         TaskType.BACKGROUND,
         store.triggerContentGc(
             reservedContentIds, getAccessibleContentSupplier(sessionContentTrackers)));

@@ -23,6 +23,7 @@ import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUti
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.host.logging.RequestReason;
+import com.google.android.libraries.feed.host.logging.Task;
 import com.google.android.libraries.feed.internalapi.protocoladapter.ProtocolAdapter;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
@@ -108,7 +109,7 @@ public class FakeRequestManager implements RequestManager {
     latestRequestReason = reason;
     ResponseWithDelay responseWithDelay = responses.remove();
     taskQueue.execute(
-        "FakeRequestManager#triggerRefresh",
+        Task.UNKNOWN,
         TaskType.HEAD_INVALIDATE,
         () -> {
           handleResponseWithDelay(responseWithDelay, consumer);

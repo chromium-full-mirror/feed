@@ -24,6 +24,7 @@ import com.google.android.libraries.feed.common.logging.Dumper;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTracker;
+import com.google.android.libraries.feed.host.logging.Task;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelMutation;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider.ViewDepthProvider;
@@ -243,7 +244,7 @@ public class SessionImpl implements InitializableSession, Dumpable {
         mutationContext != null && mutationContext.isUserInitiated()
             ? TaskType.IMMEDIATE
             : TaskType.USER_FACING;
-    taskQueue.execute("SessionImpl.sessionMutation", taskType, sessionMutation::commit);
+    taskQueue.execute(Task.SESSION_MUTATION, taskType, sessionMutation::commit);
     if (modelMutation != null) {
       modelMutation.commit();
     }
