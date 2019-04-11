@@ -464,11 +464,13 @@ public class TaskQueue implements Dumpable {
     @Task protected final int task;
     final int taskType;
     protected final Runnable runnable;
+    private final long queueTimeMs;
 
     TaskWrapper(@Task int task, @TaskType int taskType, Runnable runnable) {
       this.task = task;
       this.taskType = taskType;
       this.runnable = runnable;
+      this.queueTimeMs = clock.elapsedRealtime();
     }
 
     /** This will run the task on the {@link Executor}. */
@@ -483,7 +485,7 @@ public class TaskQueue implements Dumpable {
      */
     @Override
     public final void run() {
-      long start = System.nanoTime();
+      long startTimeMs = clock.elapsedRealtime();
       // TODO: Log task name instead of task number
       Logger.i(
           TAG,
@@ -501,7 +503,13 @@ public class TaskQueue implements Dumpable {
       onPostTaskRun();
 
       currentTask = saveTask;
-      Logger.i(TAG, " - Finished %s, time %s ms", task, (System.nanoTime() - start) / 1000000);
+
+      int taskExecutionTime = (int) (clock.elapsedRealtime() - startTimeMs);
+      int taskDelayTime = (int) (startTimeMs - queueTimeMs);
+
+      // TODO: Log task name instead of task number
+      Logger.i(TAG, " - Finished %s, time %s ms", task, taskExecutionTime);
+      basicLoggingApi.onTaskFinished(task, taskDelayTime, taskExecutionTime);
       executeNextTask();
     }
 

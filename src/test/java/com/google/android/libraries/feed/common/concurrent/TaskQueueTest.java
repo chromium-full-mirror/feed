@@ -34,6 +34,8 @@ import org.robolectric.RobolectricTestRunner;
 /** Tests of the {@link TaskQueue} class. */
 @RunWith(RobolectricTestRunner.class)
 public class TaskQueueTest {
+
+  private static final long LONG_RUNNING_TASK_TIME = 123456L;
   private final FakeBasicLoggingApi fakeBasicLoggingApi = new FakeBasicLoggingApi();
   private final FakeClock fakeClock = new FakeClock();
   private final List<Integer> callOrder = new ArrayList<>();
@@ -226,6 +228,39 @@ public class TaskQueueTest {
     assertThat(taskQueue.isDelayed()).isFalse();
   }
 
+  @Test
+  public void testTaskTiming_immediatelyRunTask_logsTaskFinished() {
+    taskQueue.initialize(this::noOp);
+
+    taskQueue.execute(Task.CLEAR_ALL, TaskType.IMMEDIATE, this::noOp);
+
+    assertThat(fakeBasicLoggingApi.lastTaskDelay).isEqualTo(0);
+    assertThat(fakeBasicLoggingApi.lastTaskTime).isEqualTo(0);
+    assertThat(fakeBasicLoggingApi.lastTaskLogged).isEqualTo(Task.CLEAR_ALL);
+  }
+
+  @Test
+  public void testTaskTiming_longTask_logsTaskFinished() {
+    taskQueue.initialize(this::noOp);
+
+    taskQueue.execute(Task.UNKNOWN, TaskType.IMMEDIATE, this::longRunningTask);
+
+    assertThat(fakeBasicLoggingApi.lastTaskTime).isEqualTo(LONG_RUNNING_TASK_TIME);
+  }
+
+  @Test
+  public void testTaskTiming_delayedTask_logsTaskFinished() {
+    // Queue task before initialization, causing it to be delayed
+    taskQueue.execute(Task.UNKNOWN, TaskType.HEAD_INVALIDATE, this::delayedTask);
+    long delayTime = 123L;
+    fakeClock.advance(delayTime);
+
+    // Initialize, allowing the delayed task to be run
+    taskQueue.initialize(this::noOp);
+
+    assertThat(fakeBasicLoggingApi.lastTaskDelay).isEqualTo(delayTime);
+  }
+
   private void runAndAssertStarvationChecks() {
     int starvationTaskCount = 0;
     long startTimeMillis = fakeClock.currentTimeMillis();
@@ -253,5 +288,9 @@ public class TaskQueueTest {
 
   private void delayedTask() {
     delayedTaskHasRun = true;
+  }
+
+  private void longRunningTask() {
+    fakeClock.advance(LONG_RUNNING_TASK_TIME);
   }
 }

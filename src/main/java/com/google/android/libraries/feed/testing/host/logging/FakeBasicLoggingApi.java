@@ -32,6 +32,9 @@ public class FakeBasicLoggingApi implements BasicLoggingApi {
 
   @InternalFeedError public int lastInternalError = InternalFeedError.NEXT_VALUE;
   @RequestReason public int serverRequestReason = RequestReason.UNKNOWN;
+  @Task public int lastTaskLogged;
+  public int lastTaskDelay;
+  public int lastTaskTime;
 
   public FakeBasicLoggingApi() {}
 
@@ -119,5 +122,9 @@ public class FakeBasicLoggingApi implements BasicLoggingApi {
   public void onScroll(@ScrollType int scrollType, int distanceScrolled) {}
 
   @Override
-  public void onTaskFinished(@Task int task, int delayTime, int taskTime) {}
+  public void onTaskFinished(@Task int task, int delayTime, int taskTime) {
+    lastTaskDelay = delayTime;
+    lastTaskTime = taskTime;
+    lastTaskLogged = task;
+  }
 }
