@@ -13,9 +13,10 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/feedstore/testing",
         "//src/main/java/com/google/android/libraries/feed/hostimpl/storage",
         "//src/main/java/com/google/android/libraries/feed/testing/conformance/storage",
+        "//third_party:robolectric",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:org_mockito_mockito_core",
-        "@robolectric//bazel:robolectric",
+        "@robolectric//bazel:android-all",
     ],
 )
 
@@ -29,8 +30,9 @@ android_local_test(
     deps = [
         "//src/main/java/com/google/android/libraries/feed/hostimpl/storage",
         "//src/main/java/com/google/android/libraries/feed/testing/conformance/storage",
+        "//third_party:robolectric",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
-        "@robolectric//bazel:robolectric",
+        "@robolectric//bazel:android-all",
     ],
 )
 
@@ -45,8 +47,9 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/feedstore/testing",
         "//src/main/java/com/google/android/libraries/feed/hostimpl/storage",
         "//src/main/java/com/google/android/libraries/feed/testing/conformance/storage",
+        "//third_party:robolectric",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
-        "@robolectric//bazel:robolectric",
+        "@robolectric//bazel:android-all",
     ],
 )
 
@@ -60,8 +63,9 @@ android_local_test(
     deps = [
         "//src/main/java/com/google/android/libraries/feed/hostimpl/storage",
         "//src/main/java/com/google/android/libraries/feed/testing/conformance/storage",
+        "//third_party:robolectric",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
-        "@robolectric//bazel:robolectric",
+        "@robolectric//bazel:android-all",
     ],
 )
 
@@ -74,17 +78,14 @@ android_local_test(
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/common",
-        "//src/main/java/com/google/android/libraries/feed/common",
-        "//src/main/java/com/google/android/libraries/feed/common/testing",
-        "//src/main/java/com/google/android/libraries/feed/host/storage",
         "//src/main/java/com/google/android/libraries/feed/hostimpl/storage",
         "//src/main/java/com/google/android/libraries/feed/testing/conformance/storage",
-        "@com_google_code_findbugs_jsr305//jar",
+        "//third_party:robolectric",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
+        "@maven//:androidx_test_core",
         "@maven//:com_google_guava_guava",
-        "@maven//:com_google_truth_truth",
         "@maven//:org_mockito_mockito_core",
-        "@robolectric//bazel:robolectric",
+        "@robolectric//bazel:android-all",
     ],
 )
 
@@ -99,10 +100,12 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/api/common",
         "//src/main/java/com/google/android/libraries/feed/hostimpl/storage",
         "//src/main/java/com/google/android/libraries/feed/testing/conformance/storage",
+        "//third_party:robolectric",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
+        "@maven//:androidx_test_core",
         "@maven//:com_google_guava_guava",
         "@maven//:org_mockito_mockito_core",
-        "@robolectric//bazel:robolectric",
+        "@robolectric//bazel:android-all",
     ],
 )
 
@@ -117,11 +120,13 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/api/common",
         "//src/main/java/com/google/android/libraries/feed/hostimpl/storage",
         "//src/main/java/com/google/android/libraries/feed/testing/conformance/storage",
+        "//third_party:robolectric",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
+        "@maven//:androidx_test_core",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_truth_truth",
         "@maven//:org_mockito_mockito_core",
-        "@robolectric//bazel:robolectric",
+        "@robolectric//bazel:android-all",
     ],
 )
 
@@ -136,10 +141,12 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/api/common",
         "//src/main/java/com/google/android/libraries/feed/hostimpl/storage",
         "//src/main/java/com/google/android/libraries/feed/testing/conformance/storage",
+        "//third_party:robolectric",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
+        "@maven//:androidx_test_core",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_truth_truth",
         "@maven//:org_mockito_mockito_core",
-        "@robolectric//bazel:robolectric",
+        "@robolectric//bazel:android-all",
     ],
 )

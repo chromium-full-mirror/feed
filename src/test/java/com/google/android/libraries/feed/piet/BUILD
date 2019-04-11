@@ -18,10 +18,11 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/piet/host",
         "//src/main/proto/search/now/ui/piet:piet_errors_java_proto_lite",
         "//src/main/proto/search/now/ui/piet:piet_java_proto_lite",
+        "//third_party:robolectric",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_truth_truth",
         "@maven//:org_mockito_mockito_core",
-        "@robolectric//bazel:robolectric",
+        "@robolectric//bazel:android-all",
     ],
 )
 
@@ -39,10 +40,11 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/piet",
         "//src/main/java/com/google/android/libraries/feed/piet/host",
         "//src/main/proto/search/now/ui/piet:piet_java_proto_lite",
+        "//third_party:robolectric",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_truth_truth",
         "@maven//:org_mockito_mockito_core",
-        "@robolectric//bazel:robolectric",
+        "@robolectric//bazel:android-all",
     ],
 )
 
@@ -57,10 +59,11 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/common/ui",
         "//src/main/java/com/google/android/libraries/feed/piet",
         "//src/main/proto/search/now/ui/piet:piet_errors_java_proto_lite",
+        "//third_party:robolectric",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_truth_truth",
         "@maven//:org_mockito_mockito_core",
-        "@robolectric//bazel:robolectric",
+        "@robolectric//bazel:android-all",
     ],
 )
 
@@ -75,10 +78,11 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/common/testing",
         "//src/main/java/com/google/android/libraries/feed/piet",
         "//src/main/proto/search/now/ui/piet:piet_java_proto_lite",
+        "//third_party:robolectric",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_truth_truth",
         "@maven//:org_mockito_mockito_core",
-        "@robolectric//bazel:robolectric",
+        "@robolectric//bazel:android-all",
     ],
 )
 
@@ -98,10 +102,11 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/piet/ui",
         "//src/main/java/com/google/android/libraries/feed/testing/shadows",
         "//src/main/proto/search/now/ui/piet:piet_java_proto_lite",
+        "//third_party:robolectric",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_truth_truth",
         "@maven//:org_mockito_mockito_core",
-        "@robolectric//bazel:robolectric",
+        "@robolectric//bazel:android-all",
     ],
 )
 
@@ -119,10 +124,11 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/piet",
         "//src/main/java/com/google/android/libraries/feed/piet/host",
         "//src/main/proto/search/now/ui/piet:piet_java_proto_lite",
+        "//third_party:robolectric",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_truth_truth",
         "@maven//:org_mockito_mockito_core",
-        "@robolectric//bazel:robolectric",
+        "@robolectric//bazel:android-all",
     ],
 )
 
@@ -141,10 +147,11 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/piet/host",
         "//src/main/java/com/google/android/libraries/feed/testing/shadows",
         "//src/main/proto/search/now/ui/piet:piet_java_proto_lite",
+        "//third_party:robolectric",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_truth_truth",
         "@maven//:org_mockito_mockito_core",
-        "@robolectric//bazel:robolectric",
+        "@robolectric//bazel:android-all",
     ],
 )
 
@@ -161,10 +168,11 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/piet",
         "//src/main/java/com/google/android/libraries/feed/piet/host",
         "//src/main/proto/search/now/ui/piet:piet_java_proto_lite",
+        "//third_party:robolectric",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_truth_truth",
         "@maven//:org_mockito_mockito_core",
-        "@robolectric//bazel:robolectric",
+        "@robolectric//bazel:android-all",
     ],
 )
 
@@ -184,10 +192,11 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/piet/ui",
         "//src/main/proto/search/now/ui/piet:piet_errors_java_proto_lite",
         "//src/main/proto/search/now/ui/piet:piet_java_proto_lite",
+        "//third_party:robolectric",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_truth_truth",
         "@maven//:org_mockito_mockito_core",
-        "@robolectric//bazel:robolectric",
+        "@robolectric//bazel:android-all",
     ],
 )
 
@@ -206,10 +215,11 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/piet/host",
         "//src/main/proto/search/now/ui/piet:piet_errors_java_proto_lite",
         "//src/main/proto/search/now/ui/piet:piet_java_proto_lite",
+        "//third_party:robolectric",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_truth_truth",
         "@maven//:org_mockito_mockito_core",
-        "@robolectric//bazel:robolectric",
+        "@robolectric//bazel:android-all",
     ],
 )
 
@@ -231,10 +241,11 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/piet/ui",
         "//src/main/proto/search/now/ui/piet:piet_errors_java_proto_lite",
         "//src/main/proto/search/now/ui/piet:piet_java_proto_lite",
+        "//third_party:robolectric",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_truth_truth",
         "@maven//:org_mockito_mockito_core",
-        "@robolectric//bazel:robolectric",
+        "@robolectric//bazel:android-all",
     ],
 )
 
@@ -255,12 +266,13 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/piet/host",
         "//src/main/java/com/google/android/libraries/feed/piet/ui",
         "//src/main/proto/search/now/ui/piet:piet_java_proto_lite",
+        "//third_party:robolectric",
         "@com_google_code_findbugs_jsr305//jar",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_android_support_support_compat",
         "@maven//:com_google_truth_truth",
         "@maven//:org_mockito_mockito_core",
-        "@robolectric//bazel:robolectric",
+        "@robolectric//bazel:android-all",
     ],
 )
 
@@ -275,11 +287,12 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/common/testing",
         "//src/main/java/com/google/android/libraries/feed/piet",
         "//src/main/proto/search/now/ui/piet:piet_java_proto_lite",
+        "//third_party:robolectric",
         "@com_google_code_findbugs_jsr305//jar",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_truth_truth",
         "@maven//:org_mockito_mockito_core",
-        "@robolectric//bazel:robolectric",
+        "@robolectric//bazel:android-all",
     ],
 )
 
@@ -295,10 +308,11 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/piet",
         "//src/main/java/com/google/android/libraries/feed/piet/host",
         "//src/main/java/com/google/android/libraries/feed/piet/ui",
+        "//third_party:robolectric",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_truth_truth",
         "@maven//:org_mockito_mockito_core",
-        "@robolectric//bazel:robolectric",
+        "@robolectric//bazel:android-all",
     ],
 )
 
@@ -314,10 +328,11 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/piet",
         "//src/main/java/com/google/android/libraries/feed/piet/host",
         "//src/main/proto/search/now/ui/piet:piet_java_proto_lite",
+        "//third_party:robolectric",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_truth_truth",
         "@maven//:org_mockito_mockito_core",
-        "@robolectric//bazel:robolectric",
+        "@robolectric//bazel:android-all",
     ],
 )
 
@@ -330,7 +345,7 @@ java_test(
         "//src/main/java/com/google/android/libraries/feed/piet",
         "//src/main/proto/search/now/ui/piet:piet_errors_java_proto_lite",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
-        "@junit_junit//jar",
+        "@maven//:junit_junit",
     ],
 )
 
@@ -346,11 +361,12 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/piet",
         "//src/main/java/com/google/android/libraries/feed/piet/host",
         "//src/main/proto/search/now/ui/piet:piet_java_proto_lite",
+        "//third_party:robolectric",
         "@com_google_code_findbugs_jsr305//jar",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_truth_truth",
         "@maven//:org_mockito_mockito_core",
-        "@robolectric//bazel:robolectric",
+        "@robolectric//bazel:android-all",
     ],
 )
 
@@ -368,11 +384,12 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/piet/host",
         "//src/main/proto/search/now/ui/piet:piet_errors_java_proto_lite",
         "//src/main/proto/search/now/ui/piet:piet_java_proto_lite",
+        "//third_party:robolectric",
         "@com_google_code_findbugs_jsr305//jar",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_truth_truth",
         "@maven//:org_mockito_mockito_core",
-        "@robolectric//bazel:robolectric",
+        "@robolectric//bazel:android-all",
     ],
 )
 
@@ -388,10 +405,11 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/piet",
         "//src/main/java/com/google/android/libraries/feed/piet/host",
         "//src/main/proto/search/now/ui/piet:piet_java_proto_lite",
+        "//third_party:robolectric",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_truth_truth",
         "@maven//:org_mockito_mockito_core",
-        "@robolectric//bazel:robolectric",
+        "@robolectric//bazel:android-all",
     ],
 )
 
@@ -412,10 +430,11 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/piet/host",
         "//src/main/java/com/google/android/libraries/feed/piet/ui",
         "//src/main/proto/search/now/ui/piet:piet_java_proto_lite",
+        "//third_party:robolectric",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_truth_truth",
         "@maven//:org_mockito_mockito_core",
-        "@robolectric//bazel:robolectric",
+        "@robolectric//bazel:android-all",
     ],
 )
 
@@ -431,11 +450,12 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/piet",
         "//src/main/java/com/google/android/libraries/feed/piet/host",
         "//src/main/proto/search/now/ui/piet:piet_java_proto_lite",
+        "//third_party:robolectric",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_truth_truth",
         "@maven//:org_mockito_mockito_core",
-        "@robolectric//bazel:robolectric",
+        "@robolectric//bazel:android-all",
     ],
 )
 
@@ -449,11 +469,12 @@ android_local_test(
     deps = [
         "//src/main/java/com/google/android/libraries/feed/common/testing",
         "//src/main/java/com/google/android/libraries/feed/piet",
+        "//third_party:robolectric",
         "@com_google_code_findbugs_jsr305//jar",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_truth_truth",
         "@maven//:org_mockito_mockito_core",
-        "@robolectric//bazel:robolectric",
+        "@robolectric//bazel:android-all",
     ],
 )
 
@@ -471,10 +492,11 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/piet/host",
         "//src/main/java/com/google/android/libraries/feed/piet/ui",
         "//src/main/proto/search/now/ui/piet:piet_java_proto_lite",
+        "//third_party:robolectric",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_truth_truth",
         "@maven//:org_mockito_mockito_core",
-        "@robolectric//bazel:robolectric",
+        "@robolectric//bazel:android-all",
     ],
 )
 
@@ -493,10 +515,11 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/piet",
         "//src/main/java/com/google/android/libraries/feed/piet/host",
         "//src/main/proto/search/now/ui/piet:piet_java_proto_lite",
+        "//third_party:robolectric",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_truth_truth",
         "@maven//:org_mockito_mockito_core",
-        "@robolectric//bazel:robolectric",
+        "@robolectric//bazel:android-all",
     ],
 )
 
@@ -515,11 +538,12 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/piet/host",
         "//src/main/proto/search/now/ui/piet:piet_errors_java_proto_lite",
         "//src/main/proto/search/now/ui/piet:piet_java_proto_lite",
+        "//third_party:robolectric",
         "@com_google_code_findbugs_jsr305//jar",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_truth_truth",
         "@maven//:org_mockito_mockito_core",
-        "@robolectric//bazel:robolectric",
+        "@robolectric//bazel:android-all",
     ],
 )
 
@@ -535,9 +559,10 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/piet/host",
         "//src/main/java/com/google/android/libraries/feed/testing/shadows",
         "//src/main/proto/search/now/ui/piet:piet_java_proto_lite",
+        "//third_party:robolectric",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_truth_truth",
         "@maven//:org_mockito_mockito_core",
-        "@robolectric//bazel:robolectric",
+        "@robolectric//bazel:android-all",
     ],
 )

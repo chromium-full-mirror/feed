@@ -11,8 +11,10 @@ android_local_test(
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/common/ui",
+        "//third_party:robolectric",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
+        "@maven//:androidx_test_core",
         "@maven//:com_google_truth_truth",
-        "@robolectric//bazel:robolectric",
+        "@robolectric//bazel:android-all",
     ],
 )

@@ -23,7 +23,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import static org.robolectric.Shadows.shadowOf;
 
 import android.app.Activity;
-import android.content.Context;
 import android.view.View;
 import android.view.View.MeasureSpec;
 import android.view.ViewGroup;
@@ -43,7 +42,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.RuntimeEnvironment;
 
 /** Tests for {@link ContextMenuManagerImpl}. */
 @RunWith(RobolectricTestRunner.class)
@@ -54,7 +52,7 @@ public class ContextMenuManagerImplTest {
   @Mock private MenuMeasurer menuMeasurer;
   @Mock private ContextMenuClickHandler clickHandler;
 
-  private Context context;
+  private Activity context;
   private ContextMenuManagerImpl contextMenuManager;
   private FrameLayout parentView;
   private View anchorView;
@@ -97,7 +95,7 @@ public class ContextMenuManagerImplTest {
     contextMenuManager.openContextMenu(anchorView, adapterItems, clickHandler);
     assertThat(shadowOf(parentView).getDisallowInterceptTouchEvent()).isTrue();
 
-    PopupWindow popupWindow = shadowOf(RuntimeEnvironment.application).getLatestPopupWindow();
+    PopupWindow popupWindow = shadowOf(context.getApplication()).getLatestPopupWindow();
     ListView listView = (ListView) popupWindow.getContentView();
 
     assertThat(listView.getAdapter().getItem(0)).isSameAs(adapterItems.get(0));
@@ -120,7 +118,7 @@ public class ContextMenuManagerImplTest {
     assertThat(contextMenuManager.openContextMenu(anchorView, adapterItems, clickHandler))
         .isFalse();
 
-    shadowOf(RuntimeEnvironment.application).getLatestPopupWindow().dismiss();
+    shadowOf(context.getApplication()).getLatestPopupWindow().dismiss();
 
     // After the menu is dismissed another can be opened
     assertThat(contextMenuManager.openContextMenu(anchorView, adapterItems, clickHandler)).isTrue();
@@ -130,20 +128,18 @@ public class ContextMenuManagerImplTest {
   public void testDismiss_fromLockingPhone() {
     contextMenuManager.openContextMenu(anchorView, adapterItems, clickHandler);
 
-    assertThat(shadowOf(RuntimeEnvironment.application).getLatestPopupWindow().isShowing())
-        .isTrue();
+    assertThat(shadowOf(context.getApplication()).getLatestPopupWindow().isShowing()).isTrue();
 
     contextMenuManager.dismissPopup();
 
-    assertThat(shadowOf(RuntimeEnvironment.application).getLatestPopupWindow().isShowing())
-        .isFalse();
+    assertThat(shadowOf(context.getApplication()).getLatestPopupWindow().isShowing()).isFalse();
   }
 
   @Test
   public void testClosesMenuWhenDimensionsChange() {
     contextMenuManager.openContextMenu(anchorView, adapterItems, clickHandler);
 
-    PopupWindow popupWindow = shadowOf(RuntimeEnvironment.application).getLatestPopupWindow();
+    PopupWindow popupWindow = shadowOf(context.getApplication()).getLatestPopupWindow();
     assertThat(popupWindow.isShowing()).isTrue();
 
     contextMenuManager.dismissPopup();
@@ -155,7 +151,7 @@ public class ContextMenuManagerImplTest {
   public void testOpenContextMenu_hasShadow() {
     contextMenuManager.openContextMenu(anchorView, adapterItems, clickHandler);
 
-    PopupWindow popupWindow = shadowOf(RuntimeEnvironment.application).getLatestPopupWindow();
+    PopupWindow popupWindow = shadowOf(context.getApplication()).getLatestPopupWindow();
     assertThat(popupWindow.getBackground()).isNotNull();
   }
 

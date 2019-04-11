@@ -7,7 +7,7 @@ android_library(
     testonly = True,
     srcs = glob(["*.java"]),
     deps = [
+        "//third_party:robolectric",
         "@maven//:com_android_support_recyclerview_v7",
-        "@robolectric//bazel:robolectric",
     ],
 )

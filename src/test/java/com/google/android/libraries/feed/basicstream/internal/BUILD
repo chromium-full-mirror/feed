@@ -13,10 +13,11 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/api/stream",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/viewholders",
+        "//third_party:robolectric",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_truth_truth",
         "@maven//:org_mockito_mockito_core",
-        "@robolectric//bazel:robolectric",
+        "@robolectric//bazel:android-all",
     ],
 )
 
@@ -30,11 +31,12 @@ android_local_test(
     deps = [
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/viewholders",
+        "//third_party:robolectric",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_android_support_recyclerview_v7",
         "@maven//:com_google_truth_truth",
         "@maven//:org_mockito_mockito_core",
-        "@robolectric//bazel:robolectric",
+        "@robolectric//bazel:android-all",
     ],
 )
 
@@ -59,11 +61,12 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/sharedstream/piet",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/scroll",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/ui",
+        "//third_party:robolectric",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_android_support_recyclerview_v7",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_truth_truth",
         "@maven//:org_mockito_mockito_core",
-        "@robolectric//bazel:robolectric",
+        "@robolectric//bazel:android-all",
     ],
 )

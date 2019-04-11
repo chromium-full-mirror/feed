@@ -18,6 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.content.Context;
+import androidx.test.core.app.ApplicationProvider;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.testing.conformance.storage.JournalStorageDirectConformanceTest;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -27,7 +28,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.RuntimeEnvironment;
 
 /** Tests for {@link PersistentContentStorage}. */
 @RunWith(RobolectricTestRunner.class)
@@ -39,7 +39,7 @@ public class PersistentJournalStorageDirectTest extends JournalStorageDirectConf
   @Before
   public void setUp() throws Exception {
     initMocks(this);
-    context = RuntimeEnvironment.application;
+    context = ApplicationProvider.getApplicationContext();
     journalStorage =
         new PersistentJournalStorage(context, MoreExecutors.directExecutor(), threadUtils, null);
   }

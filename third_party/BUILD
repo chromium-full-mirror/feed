@@ -20,3 +20,13 @@ java_plugin(
         "@maven//:com_google_dagger_dagger_producers",
     ],
 )
+
+java_library(
+    name = "robolectric",
+    exports = [
+        "@maven//:org_robolectric_annotations",
+        "@maven//:org_robolectric_robolectric",
+        "@maven//:org_robolectric_shadowapi",
+        "@maven//:org_robolectric_shadows_framework",
+    ],
+)

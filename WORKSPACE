@@ -19,10 +19,12 @@ http_archive(
 )
 
 load("@rules_jvm_external//:defs.bzl", "maven_install")
+load("//third_party:dependencies.bzl", "get_robolectric_dependency")
 
 maven_install(
     artifacts = [
-        "androidx.test:monitor:1.1.1",
+        "androidx.test:core:1.1.0",
+        "androidx.test:monitor:1.1.0",
         "com.android.support:appcompat-v7:" + ANDROID_SUPPORT_LIBRARY_VERSION,
         "com.android.support:collections:" + ANDROID_SUPPORT_LIBRARY_VERSION,
         "com.android.support:interpolator:" + ANDROID_SUPPORT_LIBRARY_VERSION,
@@ -37,7 +39,12 @@ maven_install(
         "com.google.guava:guava:27.0.1-android",
         "com.google.guava:guava-testlib:27.0.1-android",
         "com.google.truth:truth:0.42",
+        "junit:junit:4.12",
         "org.mockito:mockito-core:2.24.0",
+        get_robolectric_dependency("annotations"),
+        get_robolectric_dependency("robolectric"),
+        get_robolectric_dependency("shadowapi"),
+        get_robolectric_dependency("shadows-framework"),
     ],
     repositories = [
         "http://central.maven.org/maven2/",
@@ -69,8 +76,9 @@ http_archive(
 
 http_archive(
     name = "robolectric",
-    urls = ["https://github.com/robolectric/robolectric-bazel/archive/7020b9a7a4796d2dc5392d6385d83e384a01f9fd.tar.gz"],
-    strip_prefix = "robolectric-bazel-7020b9a7a4796d2dc5392d6385d83e384a01f9fd",
+    urls = ["https://github.com/robolectric/robolectric-bazel/archive/4.1.tar.gz"],
+    sha256 = "2ee850ca521288db72b0dedb9ecbda55b64d11c470435a882f8daf615091253d",
+    strip_prefix = "robolectric-bazel-4.1",
 )
 
 load("@robolectric//bazel:robolectric.bzl", "robolectric_repositories")

@@ -27,10 +27,11 @@ android_local_test(
         "//src/main/proto/search/now/ui/action:feed_action_java_proto_lite",
         "//src/main/proto/search/now/ui/action:feed_action_payload_java_proto_lite",
         "//src/main/proto/search/now/wire/feed:feed_java_proto_lite",
+        "//third_party:robolectric",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_truth_truth",
         "@maven//:org_mockito_mockito_core",
-        "@robolectric//bazel:robolectric",
+        "@robolectric//bazel:android-all",
     ],
 )

@@ -19,10 +19,10 @@ import static com.google.common.truth.Truth.assertThat;
 import android.content.Context;
 import android.os.Build.VERSION_CODES;
 import android.widget.LinearLayout;
+import androidx.test.core.app.ApplicationProvider;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 /** Tests for {@link LayoutUtils}. */
@@ -35,7 +35,7 @@ public class LayoutUtilsTest {
   private static final int END = 3;
   private static final int BOTTOM = 4;
 
-  private final Context context = RuntimeEnvironment.application;
+  private final Context context = ApplicationProvider.getApplicationContext();
 
   @Test
   @Config(sdk = VERSION_CODES.JELLY_BEAN)

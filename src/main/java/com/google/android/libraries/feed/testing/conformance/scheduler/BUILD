@@ -8,6 +8,6 @@ java_library(
     srcs = glob(["*.java"]),
     deps = [
         "//src/main/java/com/google/android/libraries/feed/host/scheduler",
-        "@junit_junit//jar",
+        "@maven//:junit_junit",
     ],
 )

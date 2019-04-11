@@ -92,7 +92,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 import org.robolectric.util.ReflectionHelpers;
 
@@ -191,7 +190,7 @@ public class FeedRequestManagerTest {
     assertThat(fakeTooltipSupportedApi.getLatestFeatureName()).isNull();
 
     HttpRequest httpRequest = fakeNetworkClient.getLatestRequest();
-    assertHttpRequestFormattedCorrectly(httpRequest);
+    assertHttpRequestFormattedCorrectly(httpRequest, context);
 
     Request request = getRequestFromHttpRequest(httpRequest);
     Request expectedRequest =
@@ -256,7 +255,7 @@ public class FeedRequestManagerTest {
     requestManager.triggerRefresh(RequestReason.HOST_REQUESTED);
 
     HttpRequest httpRequest = fakeNetworkClient.getLatestRequest();
-    assertHttpRequestFormattedCorrectly(httpRequest);
+    assertHttpRequestFormattedCorrectly(httpRequest, context);
 
     Request request = getRequestFromHttpRequest(httpRequest);
     Request expectedRequest =
@@ -281,7 +280,7 @@ public class FeedRequestManagerTest {
     requestManager.triggerRefresh(RequestReason.HOST_REQUESTED, input -> {});
 
     HttpRequest httpRequest = fakeNetworkClient.getLatestRequest();
-    assertHttpRequestFormattedCorrectly(httpRequest);
+    assertHttpRequestFormattedCorrectly(httpRequest, context);
 
     Request request = getRequestFromHttpRequest(httpRequest);
 
@@ -327,7 +326,7 @@ public class FeedRequestManagerTest {
     requestManager.triggerRefresh(RequestReason.HOST_REQUESTED, input -> {});
 
     HttpRequest httpRequest = fakeNetworkClient.getLatestRequest();
-    assertHttpRequestFormattedCorrectly(httpRequest);
+    assertHttpRequestFormattedCorrectly(httpRequest, context);
 
     Request request = getRequestFromHttpRequest(httpRequest);
 
@@ -378,7 +377,7 @@ public class FeedRequestManagerTest {
     requestManager.triggerRefresh(RequestReason.HOST_REQUESTED, input -> {});
 
     HttpRequest httpRequest = fakeNetworkClient.getLatestRequest();
-    assertHttpRequestFormattedCorrectly(httpRequest);
+    assertHttpRequestFormattedCorrectly(httpRequest, context);
 
     Request request = getRequestFromHttpRequest(httpRequest);
 
@@ -429,7 +428,7 @@ public class FeedRequestManagerTest {
     requestManager.triggerRefresh(RequestReason.HOST_REQUESTED, input -> {});
 
     HttpRequest httpRequest = fakeNetworkClient.getLatestRequest();
-    assertHttpRequestFormattedCorrectly(httpRequest);
+    assertHttpRequestFormattedCorrectly(httpRequest, context);
 
     Request request = getRequestFromHttpRequest(httpRequest);
 
@@ -482,7 +481,7 @@ public class FeedRequestManagerTest {
     requestManager.triggerRefresh(RequestReason.HOST_REQUESTED, input -> {});
 
     HttpRequest httpRequest = fakeNetworkClient.getLatestRequest();
-    assertHttpRequestFormattedCorrectly(httpRequest);
+    assertHttpRequestFormattedCorrectly(httpRequest, context);
 
     Request request = getRequestFromHttpRequest(httpRequest);
 
@@ -543,7 +542,7 @@ public class FeedRequestManagerTest {
     requestManager.triggerRefresh(RequestReason.HOST_REQUESTED, input -> {});
 
     HttpRequest httpRequest = fakeNetworkClient.getLatestRequest();
-    assertHttpRequestFormattedCorrectly(httpRequest);
+    assertHttpRequestFormattedCorrectly(httpRequest, context);
 
     Request request = getRequestFromHttpRequest(httpRequest);
 
@@ -601,7 +600,7 @@ public class FeedRequestManagerTest {
     requestManager.triggerRefresh(RequestReason.HOST_REQUESTED, input -> {});
 
     HttpRequest httpRequest = fakeNetworkClient.getLatestRequest();
-    assertHttpRequestFormattedCorrectly(httpRequest);
+    assertHttpRequestFormattedCorrectly(httpRequest, context);
 
     Request request = getRequestFromHttpRequest(httpRequest);
 
@@ -772,7 +771,7 @@ public class FeedRequestManagerTest {
                                     .setBuildType(BuildType.RELEASE)
                                     .setApiVersion(VERSION_CODES.LOLLIPOP)
                                     .build())
-                            .setLocale(LocaleUtils.getLanguageTag(RuntimeEnvironment.application))
+                            .setLocale(LocaleUtils.getLanguageTag(context))
                             .setAppType(AppType.GSA)
                             .setAppVersion(
                                 Version.newBuilder()
@@ -807,14 +806,15 @@ public class FeedRequestManagerTest {
     assertThat(fakeBasicLoggingApi.serverRequestReason).isEqualTo(reason);
   }
 
-  private static void assertHttpRequestFormattedCorrectly(HttpRequest httpRequest) {
+  private static void assertHttpRequestFormattedCorrectly(
+      HttpRequest httpRequest, Context context) {
     assertThat(httpRequest.getBody()).hasLength(0);
     assertThat(httpRequest.getMethod()).isEqualTo(HttpMethod.GET);
     assertThat(httpRequest.getUri().getQueryParameter("fmt")).isEqualTo("bin");
     assertThat(httpRequest.getUri().getQueryParameter(RequestHelper.MOTHERSHIP_PARAM_PAYLOAD))
         .isNotNull();
     assertThat(httpRequest.getUri().getQueryParameter(RequestHelper.LOCALE_PARAM))
-        .isEqualTo(LocaleUtils.getLanguageTag(RuntimeEnvironment.application));
+        .isEqualTo(LocaleUtils.getLanguageTag(context));
   }
 
   private static HttpResponse createHttpResponse(int responseCode, Response response)
@@ -896,7 +896,7 @@ public class FeedRequestManagerTest {
     requestManager.triggerRefresh(RequestReason.HOST_REQUESTED, input -> {});
 
     HttpRequest httpRequest = fakeNetworkClient.getLatestRequest();
-    assertHttpRequestFormattedCorrectly(httpRequest);
+    assertHttpRequestFormattedCorrectly(httpRequest, context);
 
     Set<Capability> expectedCap = EnumSet.of(Capability.BASE_UI);
     if (capability != null) {
