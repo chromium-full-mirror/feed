@@ -14,7 +14,7 @@ java_library(
         "//src/main/java/com/google/android/libraries/feed/internalapi/modelprovider",
         "//src/main/java/com/google/android/libraries/feed/internalapi/store",
         "//src/main/java/com/google/android/libraries/feed/testing/modelprovider",
-        "//src/main/proto/com/google/android/libraries/feed/api/proto:client_feed_java_proto_lite",
+        "//src/main/proto/com/google/android/libraries/feed/internalapi/proto:client_feed_java_proto_lite",
         "@maven//:com_google_truth_truth",
         "@maven//:junit_junit",
         "@maven//:org_mockito_mockito_core",

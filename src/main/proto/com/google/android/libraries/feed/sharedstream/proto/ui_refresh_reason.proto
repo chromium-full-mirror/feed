@@ -18,7 +18,7 @@ package com.google.android.libraries.feed.sharedstream.proto;
 
 option optimize_for=LITE_RUNTIME;
 
-import "src/main/proto/com/google/android/libraries/feed/api/proto/stream_data.proto";
+import "src/main/proto/com/google/android/libraries/feed/internalapi/proto/stream_data.proto";
 
 option java_package = "com.google.android.libraries.feed.sharedstream.proto";
 option java_outer_classname = "UiRefreshReasonProto";

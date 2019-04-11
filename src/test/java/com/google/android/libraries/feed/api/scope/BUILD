@@ -17,7 +17,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/common/time/testing",
         "//src/main/java/com/google/android/libraries/feed/feedapplifecyclelistener",
         "//src/main/java/com/google/android/libraries/feed/host/logging",
-        "//src/main/proto/com/google/android/libraries/feed/api/proto:client_feed_java_proto_lite",
+        "//src/main/proto/com/google/android/libraries/feed/internalapi/proto:client_feed_java_proto_lite",
         "//third_party:robolectric",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_guava_guava",

@@ -17,7 +17,7 @@ proto_library(
     name = "ui_refresh_reason",
     srcs = ["ui_refresh_reason.proto"],
     deps = [
-        "//src/main/proto/com/google/android/libraries/feed/api/proto:client_feed_proto",
+        "//src/main/proto/com/google/android/libraries/feed/internalapi/proto:client_feed_proto",
     ],
 )
 

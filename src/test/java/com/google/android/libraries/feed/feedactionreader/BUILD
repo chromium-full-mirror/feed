@@ -21,7 +21,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/internalapi/actionmanager",
         "//src/main/java/com/google/android/libraries/feed/internalapi/protocoladapter",
         "//src/main/java/com/google/android/libraries/feed/internalapi/store",
-        "//src/main/proto/com/google/android/libraries/feed/api/proto:client_feed_java_proto_lite",
+        "//src/main/proto/com/google/android/libraries/feed/internalapi/proto:client_feed_java_proto_lite",
         "//src/main/proto/search/now/wire/feed:feed_java_proto_lite",
         "//third_party:robolectric",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
