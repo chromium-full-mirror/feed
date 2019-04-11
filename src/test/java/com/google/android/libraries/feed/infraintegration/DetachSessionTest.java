@@ -17,7 +17,6 @@ package com.google.android.libraries.feed.infraintegration;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.MutationContext;
-import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
@@ -35,7 +34,6 @@ import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
 
 /** This will test detaching a session then updating it and reattaching to it */
@@ -55,8 +53,6 @@ public class DetachSessionTest {
         ResponseBuilder.createFeatureContentId(6)
       };
 
-  @Mock private ThreadUtils threadUtils;
-
   private FakeRequestManager requestManager;
   private SessionManager sessionManager;
   private ModelProviderFactory modelProviderFactory;
@@ -70,7 +66,7 @@ public class DetachSessionTest {
     Configuration configuration =
         new Configuration.Builder().put(ConfigKey.LIMIT_PAGE_UPDATES, false).build();
     InfraIntegrationScope scope =
-        new InfraIntegrationScope.Builder(threadUtils).setConfiguration(configuration).build();
+        new InfraIntegrationScope.Builder().setConfiguration(configuration).build();
     requestManager = scope.getRequestManager();
     sessionManager = scope.getSessionManager();
     modelProviderFactory = scope.getModelProviderFactory();

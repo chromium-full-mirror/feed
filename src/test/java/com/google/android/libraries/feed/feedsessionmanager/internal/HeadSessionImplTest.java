@@ -41,8 +41,7 @@ import org.robolectric.RobolectricTestRunner;
 public class HeadSessionImplTest {
   private final ContentIdGenerators contentIdGenerators = new ContentIdGenerators();
   private final FakeClock fakeClock = new FakeClock();
-  private final FakeThreadUtils fakeThreadUtils =
-      new FakeThreadUtils(/* enforceThreadChecks= */ false);
+  private final FakeThreadUtils fakeThreadUtils = FakeThreadUtils.withoutThreadChecks();
   private final TimingUtils timingUtils = new TimingUtils();
 
   private FakeStore fakeStore;

@@ -41,7 +41,7 @@ import org.robolectric.RobolectricTestRunner;
 public class FeedStoreEphemeralModeTest extends AbstractFeedStoreTest {
 
   private final FakeBasicLoggingApi fakeBasicLoggingApi = new FakeBasicLoggingApi();
-  private final FakeThreadUtils fakeThreadUtils = new FakeThreadUtils();
+  private final FakeThreadUtils fakeThreadUtils = FakeThreadUtils.withThreadChecks();
   private final FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(ArrayList::new);
   private final ContentStorageDirect contentStorage = new InMemoryContentStorage();
 

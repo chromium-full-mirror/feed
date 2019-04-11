@@ -19,7 +19,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.SemanticPropertiesWithId;
-import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.Result;
@@ -36,14 +35,11 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
 
 /** Tests around Semantic Properties */
 @RunWith(RobolectricTestRunner.class)
 public class SemanticPropertiesTest {
-  @Mock private ThreadUtils threadUtils;
-
   private FakeRequestManager requestManager;
   private SessionManager sessionManager;
   private Store store;
@@ -51,7 +47,7 @@ public class SemanticPropertiesTest {
   @Before
   public void setUp() {
     initMocks(this);
-    InfraIntegrationScope scope = new InfraIntegrationScope.Builder(threadUtils).build();
+    InfraIntegrationScope scope = new InfraIntegrationScope.Builder().build();
     requestManager = scope.getRequestManager();
     sessionManager = scope.getSessionManager();
     store = scope.getStore();

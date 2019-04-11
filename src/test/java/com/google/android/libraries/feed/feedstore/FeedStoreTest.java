@@ -83,7 +83,7 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
   private static final byte[] SEMANTIC_PROPERTIES = new byte[] {4, 12, 18, 5};
 
   private final ContentStorageDirect contentStorage = new InMemoryContentStorage();
-  private final FakeThreadUtils fakeThreadUtils = new FakeThreadUtils();
+  private final FakeThreadUtils fakeThreadUtils = FakeThreadUtils.withThreadChecks();
   private final FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(ArrayList::new);
 
   @Mock private BasicLoggingApi basicLoggingApi;

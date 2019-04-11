@@ -62,7 +62,7 @@ public class FeedActionManagerImplTest {
   private final FakeClock fakeClock = new FakeClock();
   private final FakeMainThreadRunner fakeMainThreadRunner =
       FakeMainThreadRunner.runTasksImmediately();
-  private final FakeThreadUtils fakeThreadUtils = new FakeThreadUtils();
+  private final FakeThreadUtils fakeThreadUtils = FakeThreadUtils.withThreadChecks();
 
   @Mock private SessionManager sessionManager;
   @Mock private Store store;

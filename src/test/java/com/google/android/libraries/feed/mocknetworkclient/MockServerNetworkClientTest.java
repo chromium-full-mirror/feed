@@ -71,7 +71,7 @@ import org.robolectric.RobolectricTestRunner;
 public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
   private final Configuration configuration = new Configuration.Builder().build();
   private final FakeClock fakeClock = new FakeClock();
-  private final FakeThreadUtils fakeThreadUtils = new FakeThreadUtils();
+  private final FakeThreadUtils fakeThreadUtils = FakeThreadUtils.withThreadChecks();
   private final FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(ArrayList::new);
   private final TimingUtils timingUtils = new TimingUtils();
 

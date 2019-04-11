@@ -51,7 +51,7 @@ public class SessionCacheTest {
   private final Configuration configuration = new Configuration.Builder().build();
   private final ContentIdGenerators idGenerators = new ContentIdGenerators();
   private final FakeClock fakeClock = new FakeClock();
-  private final FakeThreadUtils fakeThreadUtils = new FakeThreadUtils();
+  private final FakeThreadUtils fakeThreadUtils = FakeThreadUtils.withThreadChecks();
   private final TimingUtils timingUtils = new TimingUtils();
 
   private FakeStore fakeStore;

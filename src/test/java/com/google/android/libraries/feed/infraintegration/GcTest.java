@@ -18,7 +18,6 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
-import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ResponseBuilder;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
@@ -48,7 +47,7 @@ public final class GcTest {
   private static final long LIFETIME_MS = Duration.ofHours(1).toMillis();
 
   private final InfraIntegrationScope scope =
-      new InfraIntegrationScope.Builder(new FakeThreadUtils(/* enforceThreadChecks= */ false))
+      new InfraIntegrationScope.Builder()
           .setConfiguration(
               new Configuration.Builder().put(ConfigKey.SESSION_LIFETIME_MS, LIFETIME_MS).build())
           .build();

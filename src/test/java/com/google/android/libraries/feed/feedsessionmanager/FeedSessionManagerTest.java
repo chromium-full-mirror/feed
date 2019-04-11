@@ -122,7 +122,7 @@ public class FeedSessionManagerTest {
   @Before
   public void setUp() {
     initMocks(this);
-    fakeThreadUtils = new FakeThreadUtils();
+    fakeThreadUtils = FakeThreadUtils.withThreadChecks();
     fakeMainThreadRunner =
         FakeMainThreadRunner.runTasksImmediatelyWithThreadChecks(fakeThreadUtils);
     fakeTaskQueue = new FakeTaskQueue(MoreExecutors.directExecutor(), fakeClock, fakeThreadUtils);

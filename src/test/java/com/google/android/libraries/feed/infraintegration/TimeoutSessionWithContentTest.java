@@ -67,9 +67,8 @@ public class TimeoutSessionWithContentTest {
         ResponseBuilder.createFeatureContentId(5)
       };
 
-  private final FakeThreadUtils fakeThreadUtils =
-      new FakeThreadUtils(/* enforceThreadChecks= */ false);
-  private final FakeSchedulerApi fakeSchedulerApi = new FakeSchedulerApi(fakeThreadUtils);
+  private final FakeSchedulerApi fakeSchedulerApi =
+      new FakeSchedulerApi(FakeThreadUtils.withoutThreadChecks());
 
   private FakeClock fakeClock;
   private FakeRequestManager requestManager;
@@ -83,7 +82,7 @@ public class TimeoutSessionWithContentTest {
     initMocks(this);
     Configuration configuration = InfraIntegrationScope.getTimeoutSchedulerConfig();
     InfraIntegrationScope scope =
-        new InfraIntegrationScope.Builder(fakeThreadUtils)
+        new InfraIntegrationScope.Builder()
             .setConfiguration(configuration)
             .setSchedulerApi(fakeSchedulerApi)
             .build();

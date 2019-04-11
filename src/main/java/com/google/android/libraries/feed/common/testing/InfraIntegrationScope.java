@@ -124,12 +124,12 @@ public class InfraIntegrationScope {
     feedProtocolAdapter = new FeedProtocolAdapter(timingUtils);
     fakeRequestManager =
         new FakeRequestManager(
-            new FakeThreadUtils(/* enforceThreadChecks= */ false),
+            FakeThreadUtils.withoutThreadChecks(),
             fakeMainThreadRunner,
             feedProtocolAdapter,
             taskQueue);
     FakeActionUploadRequestManager fakeActionUploadRequestManager =
-        new FakeActionUploadRequestManager(new FakeThreadUtils());
+        new FakeActionUploadRequestManager(FakeThreadUtils.withThreadChecks());
     feedSessionManager =
         new FeedSessionManagerFactory(
                 taskQueue,
@@ -221,15 +221,12 @@ public class InfraIntegrationScope {
     private final FakeClock fakeClock = new FakeClock();
     private final FakeMainThreadRunner fakeMainThreadRunner =
         FakeMainThreadRunner.create(fakeClock);
-    private final ThreadUtils threadUtils;
+    private final ThreadUtils threadUtils = FakeThreadUtils.withoutThreadChecks();
 
     private Configuration configuration = Configuration.getDefaultInstance();
-    private SchedulerApi schedulerApi;
+    private SchedulerApi schedulerApi = new FakeSchedulerApi(threadUtils);
 
-    public Builder(ThreadUtils threadUtils) {
-      this.threadUtils = threadUtils;
-      schedulerApi = new FakeSchedulerApi(threadUtils);
-    }
+    public Builder() {}
 
     public Builder setConfiguration(Configuration configuration) {
       this.configuration = configuration;

@@ -18,7 +18,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.MutationContext;
-import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
@@ -32,14 +31,11 @@ import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
 
 /** Tests of accessing shared state. */
 @RunWith(RobolectricTestRunner.class)
 public class SharedStateTest {
-  @Mock private ThreadUtils threadUtils;
-
   private FakeRequestManager requestManager;
   private SessionManager sessionManager;
   private ProtocolAdapter protocolAdapter;
@@ -49,7 +45,7 @@ public class SharedStateTest {
   @Before
   public void setUp() {
     initMocks(this);
-    InfraIntegrationScope scope = new InfraIntegrationScope.Builder(threadUtils).build();
+    InfraIntegrationScope scope = new InfraIntegrationScope.Builder().build();
     requestManager = scope.getRequestManager();
     sessionManager = scope.getSessionManager();
     modelProviderFactory = scope.getModelProviderFactory();

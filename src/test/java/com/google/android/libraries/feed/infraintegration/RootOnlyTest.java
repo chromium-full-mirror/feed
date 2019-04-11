@@ -22,7 +22,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.MutationContext;
-import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.State;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
@@ -41,14 +40,11 @@ import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
 
 /** Tests of a Stream with only a root. */
 @RunWith(RobolectricTestRunner.class)
 public class RootOnlyTest {
-  @Mock private ThreadUtils threadUtils;
-
   private FakeRequestManager requestManager;
   private SessionManager sessionManager;
   private ModelProviderValidator modelValidator;
@@ -57,7 +53,7 @@ public class RootOnlyTest {
   @Before
   public void setUp() {
     initMocks(this);
-    InfraIntegrationScope scope = new InfraIntegrationScope.Builder(threadUtils).build();
+    InfraIntegrationScope scope = new InfraIntegrationScope.Builder().build();
     requestManager = scope.getRequestManager();
     sessionManager = scope.getSessionManager();
     modelProviderFactory = scope.getModelProviderFactory();

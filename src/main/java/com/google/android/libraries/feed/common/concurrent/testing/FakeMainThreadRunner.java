@@ -47,9 +47,7 @@ public final class FakeMainThreadRunner extends MainThreadRunner {
 
   public static FakeMainThreadRunner create(FakeClock fakeClock) {
     return new FakeMainThreadRunner(
-        fakeClock,
-        new FakeThreadUtils(/* enforceThreadChecks= */ false),
-        /* shouldQueueTasks= */ false);
+        fakeClock, FakeThreadUtils.withoutThreadChecks(), /* shouldQueueTasks= */ false);
   }
 
   public static FakeMainThreadRunner runTasksImmediately() {
@@ -64,9 +62,7 @@ public final class FakeMainThreadRunner extends MainThreadRunner {
 
   public static FakeMainThreadRunner queueAllTasks() {
     return new FakeMainThreadRunner(
-        new FakeClock(),
-        new FakeThreadUtils(/* enforceThreadChecks= */ false),
-        /* shouldQueueTasks= */ true);
+        new FakeClock(), FakeThreadUtils.withoutThreadChecks(), /* shouldQueueTasks= */ true);
   }
 
   private FakeMainThreadRunner(

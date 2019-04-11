@@ -42,7 +42,7 @@ import org.robolectric.RobolectricTestRunner;
 public class HeadAsStructureTest {
 
   private final ContentIdGenerators idGenerators = new ContentIdGenerators();
-  private final FakeThreadUtils fakeThreadUtils = new FakeThreadUtils();
+  private final FakeThreadUtils fakeThreadUtils = FakeThreadUtils.withThreadChecks();
   private final String rootContentId = idGenerators.createRootContentId(0);
   private final TimingUtils timingUtils = new TimingUtils();
   private final FakeClock fakeClock = new FakeClock();

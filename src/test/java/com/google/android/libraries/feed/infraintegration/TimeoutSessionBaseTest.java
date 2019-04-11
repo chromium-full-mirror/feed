@@ -53,9 +53,8 @@ public class TimeoutSessionBaseTest {
   // This flag will should be flipped to debug the test.  It will disable TimeoutExceptions.
   private static final boolean DEBUG = false;
 
-  private final FakeThreadUtils fakeThreadUtils =
-      new FakeThreadUtils(/* enforceThreadChecks= */ false);
-  private final FakeSchedulerApi fakeSchedulerApi = new FakeSchedulerApi(fakeThreadUtils);
+  private final FakeSchedulerApi fakeSchedulerApi =
+      new FakeSchedulerApi(FakeThreadUtils.withoutThreadChecks());
 
   private FakeClock fakeClock;
   private FakeRequestManager requestManager;
@@ -69,7 +68,7 @@ public class TimeoutSessionBaseTest {
     initMocks(this);
     Configuration configuration = InfraIntegrationScope.getTimeoutSchedulerConfig();
     InfraIntegrationScope scope =
-        new InfraIntegrationScope.Builder(fakeThreadUtils)
+        new InfraIntegrationScope.Builder()
             .setConfiguration(configuration)
             .setSchedulerApi(fakeSchedulerApi)
             .build();

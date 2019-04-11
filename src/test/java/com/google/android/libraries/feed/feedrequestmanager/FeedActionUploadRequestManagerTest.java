@@ -104,7 +104,7 @@ public class FeedActionUploadRequestManagerTest {
     registry = ExtensionRegistryLite.newInstance();
     registry.add(FeedRequest.feedRequest);
     fakeActionReader = new FakeActionReader();
-    fakeThreadUtils = new FakeThreadUtils();
+    fakeThreadUtils = FakeThreadUtils.withThreadChecks();
     fakeNetworkClient = new FakeNetworkClient(fakeThreadUtils);
     fakeTaskQueue = new FakeTaskQueue(MoreExecutors.directExecutor(), fakeClock, fakeThreadUtils);
     fakeProtocolAdapter = new FakeProtocolAdapter();

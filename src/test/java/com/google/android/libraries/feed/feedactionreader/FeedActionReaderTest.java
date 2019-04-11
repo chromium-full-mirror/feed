@@ -64,7 +64,7 @@ public class FeedActionReaderTest {
   private static final long DEFAULT_TIME = TimeUnit.DAYS.toSeconds(42);
 
   private final FakeClock fakeClock = new FakeClock();
-  private final FakeThreadUtils fakeThreadUtils = new FakeThreadUtils();
+  private final FakeThreadUtils fakeThreadUtils = FakeThreadUtils.withThreadChecks();
 
   @Mock private Store store;
   @Mock private ProtocolAdapter protocolAdapter;

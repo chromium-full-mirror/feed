@@ -18,7 +18,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.MutationContext;
-import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
@@ -38,7 +37,6 @@ import java.nio.charset.Charset;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
 
 /**
@@ -62,8 +60,6 @@ import org.robolectric.RobolectricTestRunner;
  */
 @RunWith(RobolectricTestRunner.class)
 public class MultiSessionPagingTest {
-  @Mock private ThreadUtils threadUtils;
-
   private FakeRequestManager requestManager;
   private SessionManager sessionManager;
   private ModelProviderFactory modelProviderFactory;
@@ -73,7 +69,7 @@ public class MultiSessionPagingTest {
   @Before
   public void setUp() {
     initMocks(this);
-    InfraIntegrationScope scope = new InfraIntegrationScope.Builder(threadUtils).build();
+    InfraIntegrationScope scope = new InfraIntegrationScope.Builder().build();
     requestManager = scope.getRequestManager();
     sessionManager = scope.getSessionManager();
     modelProviderFactory = scope.getModelProviderFactory();

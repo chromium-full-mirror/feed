@@ -142,7 +142,7 @@ public class FeedRequestManagerTest {
     fakeActionReader = new FakeActionReader();
     fakeProtocolAdapter = new FakeProtocolAdapter();
     fakeBasicLoggingApi = new FakeBasicLoggingApi();
-    fakeThreadUtils = new FakeThreadUtils();
+    fakeThreadUtils = FakeThreadUtils.withThreadChecks();
     fakeMainThreadRunner =
         FakeMainThreadRunner.runTasksImmediatelyWithThreadChecks(fakeThreadUtils);
     fakeNetworkClient = new FakeNetworkClient(fakeThreadUtils);

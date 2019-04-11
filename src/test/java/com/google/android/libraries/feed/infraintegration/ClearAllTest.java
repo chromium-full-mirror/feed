@@ -18,7 +18,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.MutationContext;
-import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.lifecycle.AppLifecycleListener;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.State;
@@ -35,14 +34,11 @@ import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
 
 /** This will test the behavior of clear all. */
 @RunWith(RobolectricTestRunner.class)
 public class ClearAllTest {
-  @Mock private ThreadUtils threadUtils;
-
   private FakeRequestManager requestManager;
   private SessionManager sessionManager;
   private ModelProviderFactory modelProviderFactory;
@@ -55,7 +51,7 @@ public class ClearAllTest {
     Configuration configuration =
         new Configuration.Builder().put(ConfigKey.LIMIT_PAGE_UPDATES, false).build();
     InfraIntegrationScope scope =
-        new InfraIntegrationScope.Builder(threadUtils).setConfiguration(configuration).build();
+        new InfraIntegrationScope.Builder().setConfiguration(configuration).build();
     requestManager = scope.getRequestManager();
     sessionManager = scope.getSessionManager();
     modelProviderFactory = scope.getModelProviderFactory();

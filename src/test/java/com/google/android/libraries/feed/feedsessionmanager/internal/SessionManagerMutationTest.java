@@ -83,7 +83,7 @@ public class SessionManagerMutationTest {
   private final ContentStorageDirect contentStorage = new InMemoryContentStorage();
   private final FakeBasicLoggingApi fakeBasicLoggingApi = new FakeBasicLoggingApi();
   private final FakeClock fakeClock = new FakeClock();
-  private final FakeThreadUtils fakeThreadUtils = new FakeThreadUtils();
+  private final FakeThreadUtils fakeThreadUtils = FakeThreadUtils.withThreadChecks();
   private final FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(ArrayList::new);
   private final String rootContentId = idGenerators.createRootContentId(0);
   private final TimingUtils timingUtils = new TimingUtils();

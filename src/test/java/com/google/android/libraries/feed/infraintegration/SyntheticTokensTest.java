@@ -35,7 +35,6 @@ import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
-import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
@@ -81,9 +80,7 @@ public class SyntheticTokensTest {
             .put(ConfigKey.NON_CACHED_MIN_PAGE_SIZE, MIN_PAGE_SIZE)
             .build();
     InfraIntegrationScope scope =
-        new InfraIntegrationScope.Builder(new FakeThreadUtils(/* enforceThreadChecks= */ false))
-            .setConfiguration(configuration)
-            .build();
+        new InfraIntegrationScope.Builder().setConfiguration(configuration).build();
     fakeClock = scope.getFakeClock();
     requestManager = scope.getRequestManager();
     sessionManager = scope.getSessionManager();

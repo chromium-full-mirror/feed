@@ -19,7 +19,6 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.MutationContext;
-import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.ViewDepthProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
@@ -77,7 +76,6 @@ public class ViewDepthProviderTests {
         ResponseBuilder.createFeatureContentId(7)
       };
 
-  @Mock private ThreadUtils threadUtils;
   @Mock private SchedulerApi schedulerApi;
 
   private FakeRequestManager requestManager;
@@ -92,7 +90,7 @@ public class ViewDepthProviderTests {
     initMocks(this);
     Configuration configuration = InfraIntegrationScope.getTimeoutSchedulerConfig();
     InfraIntegrationScope scope =
-        new InfraIntegrationScope.Builder(threadUtils)
+        new InfraIntegrationScope.Builder()
             .setConfiguration(configuration)
             .setSchedulerApi(schedulerApi)
             .build();

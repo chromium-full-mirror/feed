@@ -27,7 +27,6 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderObserver;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
-import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ResponseBuilder;
 import com.google.android.libraries.feed.common.testing.ResponseBuilder.WireProtocolInfo;
@@ -52,9 +51,7 @@ public class EmptyStreamTest {
   @Before
   public void setUp() {
     initMocks(this);
-    InfraIntegrationScope scope =
-        new InfraIntegrationScope.Builder(new FakeThreadUtils(/* enforceThreadChecks= */ false))
-            .build();
+    InfraIntegrationScope scope = new InfraIntegrationScope.Builder().build();
     fakeClock = scope.getFakeClock();
     requestManager = scope.getRequestManager();
     sessionManager = scope.getSessionManager();
