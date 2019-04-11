@@ -580,9 +580,9 @@ public class TaskQueue implements Dumpable {
    * not started before the timeout millis.
    */
   private final class TimeoutTaskWrapper extends TaskWrapper {
-    private final Runnable timeoutRunnable;
     private final AtomicBoolean started = new AtomicBoolean(false);
-    private final AtomicBoolean ranTimeoutTask = new AtomicBoolean(false);
+    private final Runnable timeoutRunnable;
+    /*@Nullable*/ private CancelableTask timeoutTask = null;
 
     TimeoutTaskWrapper(
         @Task int task, @TaskType int taskType, Runnable taskRunnable, Runnable timeoutRunnable) {
@@ -595,26 +595,38 @@ public class TaskQueue implements Dumpable {
      * #timeoutRunnable} will run.
      */
     private TimeoutTaskWrapper startTimeout(long timeoutMillis) {
-      mainThreadRunner.executeWithDelay("taskTimeout", this::runTimeoutCallback, timeoutMillis);
+      timeoutTask =
+          mainThreadRunner.executeWithDelay("taskTimeout", this::runTimeoutCallback, timeoutMillis);
       return this;
     }
 
     @Override
     void runTask() {
-      started.set(true);
-      if (ranTimeoutTask.get()) {
-        Logger.w(TAG, " - We ran the TimeoutTask already");
+      // If the boolean is already set then runTimeoutCallback has run.
+      if (started.getAndSet(true)) {
+        Logger.w(TAG, " - runTimeoutCallback already ran [%s]", task);
+        executeNextTask();
         return;
       }
+
+      CancelableTask localTask = timeoutTask;
+      if (localTask != null) {
+        Logger.i(TAG, "Cancelling timeout [%s]", task);
+        localTask.cancel();
+        timeoutTask = null;
+      }
+
       super.runTask();
     }
 
     private void runTimeoutCallback() {
-      if (started.get()) {
+      // If the boolean is already set then runTask has run.
+      if (started.getAndSet(true)) {
+        Logger.w(TAG, " - runTask already ran [%s]", task);
         return;
       }
+
       Logger.w(TAG, "Execute Timeout [%s]: %s", taskType, task);
-      ranTimeoutTask.set(true);
       executor.execute(timeoutRunnable);
     }
   }

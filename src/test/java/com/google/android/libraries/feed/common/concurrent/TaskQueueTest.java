@@ -49,6 +49,7 @@ public class TaskQueueTest {
           /* checkStarvation= */ true);
 
   private boolean delayedTaskHasRun = false;
+  private boolean delayedTaskHasTimedOut = false;
 
   @Before
   public void setUp() {
@@ -261,6 +262,47 @@ public class TaskQueueTest {
     assertThat(fakeBasicLoggingApi.lastTaskDelay).isEqualTo(delayTime);
   }
 
+  @Test
+  public void testTimeout_withoutTimeout() {
+    // Put the TaskQueue into a delaying state and schedule a task with a timeout.
+    taskQueue.initialize(this::noOp);
+    taskQueue.execute(Task.UNKNOWN, TaskType.HEAD_INVALIDATE, this::noOp);
+    taskQueue.execute(
+        Task.UNKNOWN,
+        TaskType.BACKGROUND,
+        this::delayedTask,
+        this::delayedTaskTimeout,
+        /*timeoutMillis= */ 10L);
+
+    fakeClock.advance(9L);
+    taskQueue.execute(Task.UNKNOWN, TaskType.HEAD_RESET, this::noOp);
+    assertThat(delayedTaskHasRun).isTrue();
+    assertThat(delayedTaskHasTimedOut).isFalse();
+
+    fakeClock.tick();
+    assertThat(delayedTaskHasTimedOut).isFalse();
+  }
+
+  @Test
+  public void testTimeout_withTimeout() {
+    // Put the TaskQueue into a delaying state and schedule a task with a timeout.
+    taskQueue.initialize(this::noOp);
+    taskQueue.execute(Task.UNKNOWN, TaskType.HEAD_INVALIDATE, this::noOp);
+    taskQueue.execute(
+        Task.UNKNOWN,
+        TaskType.BACKGROUND,
+        this::delayedTask,
+        this::delayedTaskTimeout,
+        /*timeoutMillis= */ 10L);
+
+    fakeClock.advance(10L);
+    assertThat(delayedTaskHasRun).isFalse();
+    assertThat(delayedTaskHasTimedOut).isTrue();
+
+    taskQueue.execute(Task.UNKNOWN, TaskType.HEAD_RESET, this::noOp);
+    assertThat(delayedTaskHasRun).isFalse();
+  }
+
   private void runAndAssertStarvationChecks() {
     int starvationTaskCount = 0;
     long startTimeMillis = fakeClock.currentTimeMillis();
@@ -288,6 +330,10 @@ public class TaskQueueTest {
 
   private void delayedTask() {
     delayedTaskHasRun = true;
+  }
+
+  private void delayedTaskTimeout() {
+    delayedTaskHasTimedOut = true;
   }
 
   private void longRunningTask() {
