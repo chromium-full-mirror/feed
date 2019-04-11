@@ -15,7 +15,6 @@
 package com.google.android.libraries.feed.feedsessionmanager;
 
 import com.google.android.libraries.feed.api.common.ThreadUtils;
-import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.ActionUploadRequestManager;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
@@ -30,6 +29,7 @@ import com.google.android.libraries.feed.feedsessionmanager.internal.SessionMana
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
+import com.google.android.libraries.feed.internalapi.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.internalapi.store.Store;
 import java.util.concurrent.TimeUnit;
 

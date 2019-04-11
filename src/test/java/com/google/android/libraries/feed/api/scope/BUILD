@@ -36,7 +36,6 @@ android_local_test(
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/common",
-        "//src/main/java/com/google/android/libraries/feed/api/protocoladapter",
         "//src/main/java/com/google/android/libraries/feed/api/requestmanager",
         "//src/main/java/com/google/android/libraries/feed/api/scope",
         "//src/main/java/com/google/android/libraries/feed/api/sessionmanager",
@@ -48,6 +47,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/host/scheduler",
         "//src/main/java/com/google/android/libraries/feed/host/storage",
         "//src/main/java/com/google/android/libraries/feed/host/stream",
+        "//src/main/java/com/google/android/libraries/feed/internalapi/protocoladapter",
         "//third_party:robolectric",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_guava_guava",
@@ -67,7 +67,6 @@ android_local_test(
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/common",
         "//src/main/java/com/google/android/libraries/feed/api/knowncontent",
-        "//src/main/java/com/google/android/libraries/feed/api/protocoladapter",
         "//src/main/java/com/google/android/libraries/feed/api/scope",
         "//src/main/java/com/google/android/libraries/feed/api/sessionmanager",
         "//src/main/java/com/google/android/libraries/feed/api/stream",
@@ -82,6 +81,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/host/stream",
         "//src/main/java/com/google/android/libraries/feed/internalapi/actionmanager",
         "//src/main/java/com/google/android/libraries/feed/internalapi/modelprovider",
+        "//src/main/java/com/google/android/libraries/feed/internalapi/protocoladapter",
         "//src/main/java/com/google/android/libraries/feed/piet/host",
         "//third_party:robolectric",
         "@com_google_protobuf_javalite//:protobuf_java_lite",

@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.feedprotocoladapter;
 
-import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.Validators;
 import com.google.android.libraries.feed.common.logging.Dumpable;
@@ -25,6 +24,7 @@ import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTrac
 import com.google.android.libraries.feed.feedprotocoladapter.internal.transformers.ContentDataOperationTransformer;
 import com.google.android.libraries.feed.feedprotocoladapter.internal.transformers.DataOperationTransformer;
 import com.google.android.libraries.feed.feedprotocoladapter.internal.transformers.FeatureDataOperationTransformer;
+import com.google.android.libraries.feed.internalapi.protocoladapter.ProtocolAdapter;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;

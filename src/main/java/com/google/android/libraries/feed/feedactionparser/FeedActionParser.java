@@ -24,7 +24,6 @@ import static com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata
 
 import android.view.View;
 import com.google.android.libraries.feed.api.knowncontent.ContentMetadata;
-import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.logging.Logger;
@@ -36,6 +35,7 @@ import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.InternalFeedError;
 import com.google.android.libraries.feed.internalapi.actionparser.ActionParser;
 import com.google.android.libraries.feed.internalapi.actionparser.ActionSource;
+import com.google.android.libraries.feed.internalapi.protocoladapter.ProtocolAdapter;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
 import com.google.search.now.ui.action.FeedActionProto.FeedAction;

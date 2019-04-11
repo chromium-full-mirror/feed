@@ -11,7 +11,6 @@ android_local_test(
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/knowncontent",
-        "//src/main/java/com/google/android/libraries/feed/api/protocoladapter",
         "//src/main/java/com/google/android/libraries/feed/common",
         "//src/main/java/com/google/android/libraries/feed/feedactionparser",
         "//src/main/java/com/google/android/libraries/feed/feedactionparser/internal",
@@ -19,6 +18,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/host/logging",
         "//src/main/java/com/google/android/libraries/feed/host/stream",
         "//src/main/java/com/google/android/libraries/feed/internalapi/actionparser",
+        "//src/main/java/com/google/android/libraries/feed/internalapi/protocoladapter",
         "//src/main/proto/com/google/android/libraries/feed/api/proto:client_feed_java_proto_lite",
         "//src/main/proto/search/now/ui/action:feed_action_java_proto_lite",
         "//src/main/proto/search/now/ui/action:feed_action_payload_java_proto_lite",

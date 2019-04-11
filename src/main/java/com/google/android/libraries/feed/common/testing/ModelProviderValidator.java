@@ -17,12 +17,12 @@ package com.google.android.libraries.feed.common.testing;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.fail;
 
-import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelChild;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelChild.Type;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider;
+import com.google.android.libraries.feed.internalapi.protocoladapter.ProtocolAdapter;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
