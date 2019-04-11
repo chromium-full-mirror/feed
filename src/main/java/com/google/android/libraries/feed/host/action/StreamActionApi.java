@@ -24,8 +24,8 @@ import com.google.search.now.wire.feed.ActionPayloadProto.ActionPayload;
 import java.util.List;
 
 /**
- * Allows the {@link com.google.android.libraries.feed.api.actionparser.ActionParser} to communicate
- * actions back to the Stream after parsing.
+ * Allows the {@link com.google.android.libraries.feed.internalapi.actionparser.ActionParser} to
+ * communicate actions back to the Stream after parsing.
  */
 public interface StreamActionApi extends ActionApi {
 

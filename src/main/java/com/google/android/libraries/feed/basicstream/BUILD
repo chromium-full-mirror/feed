@@ -8,7 +8,6 @@ android_library(
     manifest = "AndroidManifest.xml",
     resource_files = glob(["res/**"]),
     deps = [
-        "//src/main/java/com/google/android/libraries/feed/api/actionparser",
         "//src/main/java/com/google/android/libraries/feed/api/common",
         "//src/main/java/com/google/android/libraries/feed/api/knowncontent",
         "//src/main/java/com/google/android/libraries/feed/api/modelprovider",
@@ -29,6 +28,7 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/host/offlineindicator",
         "//src/main/java/com/google/android/libraries/feed/host/stream",
         "//src/main/java/com/google/android/libraries/feed/internalapi/actionmanager",
+        "//src/main/java/com/google/android/libraries/feed/internalapi/actionparser",
         "//src/main/java/com/google/android/libraries/feed/piet",
         "//src/main/java/com/google/android/libraries/feed/piet/host",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/contentchanged",

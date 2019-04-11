@@ -7,7 +7,6 @@ android_library(
     srcs = glob(["*.java"]),
     manifest = "AndroidManifest.xml",
     deps = [
-        "//src/main/java/com/google/android/libraries/feed/api/actionparser",
         "//src/main/java/com/google/android/libraries/feed/api/common",
         "//src/main/java/com/google/android/libraries/feed/api/knowncontent",
         "//src/main/java/com/google/android/libraries/feed/api/modelprovider",
@@ -27,6 +26,7 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/host/logging",
         "//src/main/java/com/google/android/libraries/feed/host/stream",
         "//src/main/java/com/google/android/libraries/feed/internalapi/actionmanager",
+        "//src/main/java/com/google/android/libraries/feed/internalapi/actionparser",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/constants",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/contextmenumanager",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/logging",

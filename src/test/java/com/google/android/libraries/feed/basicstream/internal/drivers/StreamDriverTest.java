@@ -30,7 +30,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
 import android.content.Context;
-import com.google.android.libraries.feed.api.actionparser.ActionParserFactory;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.knowncontent.KnownContentApi;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
@@ -57,6 +56,7 @@ import com.google.android.libraries.feed.host.stream.SnackbarApi;
 import com.google.android.libraries.feed.host.stream.SnackbarCallbackApi;
 import com.google.android.libraries.feed.host.stream.TooltipApi;
 import com.google.android.libraries.feed.internalapi.actionmanager.ActionManager;
+import com.google.android.libraries.feed.internalapi.actionparser.ActionParserFactory;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
 import com.google.android.libraries.feed.sharedstream.pendingdismiss.PendingDismissCallback;

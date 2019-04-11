@@ -15,7 +15,6 @@
 package com.google.android.libraries.feed.api.scope;
 
 import android.content.Context;
-import com.google.android.libraries.feed.api.actionparser.ActionParserFactory;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.knowncontent.KnownContentApi;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
@@ -42,6 +41,7 @@ import com.google.android.libraries.feed.host.stream.StreamConfiguration;
 import com.google.android.libraries.feed.host.stream.TooltipApi;
 import com.google.android.libraries.feed.host.stream.TooltipSupportedApi;
 import com.google.android.libraries.feed.internalapi.actionmanager.ActionManager;
+import com.google.android.libraries.feed.internalapi.actionparser.ActionParserFactory;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
 import java.util.ArrayList;
@@ -102,11 +102,6 @@ public final class FeedStreamScope {
       this.offlineIndicatorApi = offlineIndicatorApi;
       this.knownContentApi = knownContentApi;
       this.tooltipApi = tooltipApi;
-    }
-
-    public Builder setActionParserFactory(ActionParserFactory actionParserFactory) {
-      this.actionParserFactory = actionParserFactory;
-      return this;
     }
 
     public Builder setIsBackgroundDark(boolean isBackgroundDark) {

@@ -22,7 +22,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.api.actionparser.ActionParserFactory;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
@@ -37,6 +36,7 @@ import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.InternalFeedError;
 import com.google.android.libraries.feed.host.stream.TooltipApi;
 import com.google.android.libraries.feed.internalapi.actionmanager.ActionManager;
+import com.google.android.libraries.feed.internalapi.actionparser.ActionParserFactory;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelCursor;

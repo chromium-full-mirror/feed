@@ -10,7 +10,6 @@ android_local_test(
     aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
-        "//src/main/java/com/google/android/libraries/feed/api/actionparser",
         "//src/main/java/com/google/android/libraries/feed/api/knowncontent",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/actions",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/pendingdismiss",
@@ -19,6 +18,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/host/logging",
         "//src/main/java/com/google/android/libraries/feed/host/stream",
         "//src/main/java/com/google/android/libraries/feed/internalapi/actionmanager",
+        "//src/main/java/com/google/android/libraries/feed/internalapi/actionparser",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/contextmenumanager",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/pendingdismiss",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/publicapi/menumeasurer",

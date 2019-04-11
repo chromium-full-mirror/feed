@@ -27,8 +27,6 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.support.v7.widget.RecyclerView;
-import com.google.android.libraries.feed.api.actionparser.ActionParser;
-import com.google.android.libraries.feed.api.actionparser.ActionParserFactory;
 import com.google.android.libraries.feed.api.knowncontent.ContentMetadata;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
@@ -51,6 +49,8 @@ import com.google.android.libraries.feed.host.logging.ContentLoggingData;
 import com.google.android.libraries.feed.host.logging.InternalFeedError;
 import com.google.android.libraries.feed.host.stream.TooltipApi;
 import com.google.android.libraries.feed.internalapi.actionmanager.ActionManager;
+import com.google.android.libraries.feed.internalapi.actionparser.ActionParser;
+import com.google.android.libraries.feed.internalapi.actionparser.ActionParserFactory;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.logging.LoggingListener;
 import com.google.android.libraries.feed.sharedstream.logging.StreamContentLoggingData;

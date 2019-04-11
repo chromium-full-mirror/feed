@@ -8,7 +8,6 @@ android_library(
     manifest = "AndroidManifest.xml",
     resource_files = glob(["res/**"]),
     deps = [
-        "//src/main/java/com/google/android/libraries/feed/api/actionparser",
         "//src/main/java/com/google/android/libraries/feed/api/stream",
         "//src/main/java/com/google/android/libraries/feed/common",
         "//src/main/java/com/google/android/libraries/feed/common/logging",
@@ -16,6 +15,7 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/host/action",
         "//src/main/java/com/google/android/libraries/feed/host/config",
         "//src/main/java/com/google/android/libraries/feed/host/stream",
+        "//src/main/java/com/google/android/libraries/feed/internalapi/actionparser",
         "//src/main/java/com/google/android/libraries/feed/piet",
         "//src/main/java/com/google/android/libraries/feed/piet/host",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/logging",

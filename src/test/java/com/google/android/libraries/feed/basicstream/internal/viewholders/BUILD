@@ -67,7 +67,6 @@ android_local_test(
     aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
-        "//src/main/java/com/google/android/libraries/feed/api/actionparser",
         "//src/main/java/com/google/android/libraries/feed/api/stream",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/actions",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/viewholders",
@@ -76,6 +75,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/host/config",
         "//src/main/java/com/google/android/libraries/feed/host/logging",
         "//src/main/java/com/google/android/libraries/feed/host/stream",
+        "//src/main/java/com/google/android/libraries/feed/internalapi/actionparser",
         "//src/main/java/com/google/android/libraries/feed/piet",
         "//src/main/java/com/google/android/libraries/feed/piet/host",
         "//src/main/java/com/google/android/libraries/feed/piet/testing",

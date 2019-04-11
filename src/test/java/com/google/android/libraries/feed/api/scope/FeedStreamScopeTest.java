@@ -23,7 +23,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
 import android.content.Context;
-import com.google.android.libraries.feed.api.actionparser.ActionParserFactory;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.knowncontent.KnownContentApi;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
@@ -70,7 +69,6 @@ public class FeedStreamScopeTest {
   // Mocks for optional fields
   @Mock private ProtocolAdapter protocolAdapter;
   @Mock private SessionManager sessionManager;
-  @Mock private ActionParserFactory actionParserFactory;
   @Mock private Stream stream;
   @Mock private StreamConfiguration streamConfiguration;
   @Mock private CardConfiguration cardConfiguration;
@@ -160,7 +158,6 @@ public class FeedStreamScopeTest {
                 knownContentApi,
                 tooltipApi,
                 tooltipSupportedApi)
-            .setActionParserFactory(actionParserFactory)
             .setStream(stream)
             .setModelProviderFactory(modelProviderFactory)
             .setCustomElementProvider(customElementProvider)

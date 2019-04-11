@@ -14,13 +14,13 @@
 
 package com.google.android.libraries.feed.feedactionparser;
 
-import com.google.android.libraries.feed.api.actionparser.ActionParser;
-import com.google.android.libraries.feed.api.actionparser.ActionParserFactory;
 import com.google.android.libraries.feed.api.knowncontent.ContentMetadata;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.feedactionparser.internal.PietFeedActionPayloadRetriever;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.internalapi.actionparser.ActionParser;
+import com.google.android.libraries.feed.internalapi.actionparser.ActionParserFactory;
 
 /** Default factory for the default {@link ActionParser} implementation. */
 public final class FeedActionParserFactory implements ActionParserFactory {
