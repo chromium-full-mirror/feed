@@ -14,11 +14,6 @@
 
 package com.google.android.libraries.feed.feedsessionmanager;
 
-import static com.google.android.libraries.feed.host.scheduler.SchedulerApi.RequestBehavior.NO_REQUEST_WITH_TIMEOUT;
-import static com.google.android.libraries.feed.host.scheduler.SchedulerApi.RequestBehavior.REQUEST_WITH_CONTENT;
-import static com.google.android.libraries.feed.host.scheduler.SchedulerApi.RequestBehavior.REQUEST_WITH_TIMEOUT;
-import static com.google.android.libraries.feed.host.scheduler.SchedulerApi.RequestBehavior.REQUEST_WITH_WAIT;
-
 import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
@@ -50,7 +45,6 @@ import com.google.android.libraries.feed.feedapplifecyclelistener.FeedLifecycleL
 import com.google.android.libraries.feed.feedsessionmanager.internal.ContentCache;
 import com.google.android.libraries.feed.feedsessionmanager.internal.HeadAsStructure;
 import com.google.android.libraries.feed.feedsessionmanager.internal.HeadAsStructure.TreeNode;
-import com.google.android.libraries.feed.feedsessionmanager.internal.HeadSessionImpl;
 import com.google.android.libraries.feed.feedsessionmanager.internal.InitializableSession;
 import com.google.android.libraries.feed.feedsessionmanager.internal.Session;
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionCache;
@@ -127,7 +121,7 @@ public final class FeedSessionManager
 
   // This captures the NO_CARDS_ERROR when a request fails. The request fails in one task and this
   // is sent to the ModelProvider in the populateSessionTask.
-  /*@Nullable*/ @VisibleForTesting ModelError noCardsError;
+  /*@Nullable*/ private ModelError noCardsError;
 
   private final SessionFactory sessionFactory;
   private final SessionManagerMutation sessionManagerMutation;
@@ -273,68 +267,65 @@ public final class FeedSessionManager
   // SchedulerApi to determine how the session is created. It creates a new task to populate the
   // new session.
   private void populateSession(InitializableSession session) {
-    HeadSessionImpl headSession = sessionCache.getHead();
+
+    // Create SessionManagerState and call SchedulerApi to determine what the session-creation
+    // experience should be.
     SessionManagerState sessionManagerState =
         new SessionManagerState(
-            !headSession.isHeadEmpty(),
+            !sessionCache.getHead().isHeadEmpty(),
             sessionCache.getHeadLastAddedTimeMillis(),
             taskQueue.isMakingRequest());
-    @RequestBehavior int behavior = schedulerApi.shouldSessionRequestData(sessionManagerState);
-
-    Runnable timeoutTask = null;
-    if (behavior == REQUEST_WITH_TIMEOUT || behavior == NO_REQUEST_WITH_TIMEOUT) {
-      timeoutTask = () -> populateSessionTask(session, true);
-    }
-    boolean legacyHeadContent =
-        behavior == REQUEST_WITH_CONTENT || behavior == REQUEST_WITH_TIMEOUT;
-    boolean makeRequest =
-        (behavior == REQUEST_WITH_TIMEOUT
-                || behavior == REQUEST_WITH_WAIT
-                || behavior == REQUEST_WITH_CONTENT)
-            && !taskQueue.isMakingRequest();
     Logger.i(
         TAG,
-        "request behavior: %s, making request %s, timeout task %s",
-        behavior,
-        makeRequest,
-        timeoutTask != null);
+        "shouldSessionRequestData; hasContent(%b), contentCreationTime(%d), outstandingRequest(%b)",
+        sessionManagerState.hasContent,
+        sessionManagerState.contentCreationDateTimeMs,
+        sessionManagerState.hasOutstandingRequest);
+    @RequestBehavior int behavior = schedulerApi.shouldSessionRequestData(sessionManagerState);
 
-    // if we are making a request, there are two orders, request -> populate for all cases except
-    // for REQUEST_WITH_CONTENT which is populate -> request
-    if (makeRequest && behavior != REQUEST_WITH_CONTENT) {
-      // determine if we make the request before or after populating a session
-      triggerRefresh(null, RequestReason.OPEN_WITHOUT_CONTENT, UiContext.getDefaultInstance());
+    // Based on sessionManagerState and behavior, determine if FeedSessionManager should start a
+    // request, append an ongoing request to this session, or include a timeout.
+    boolean shouldAppendOutstandingRequest = shouldAppendToSession(sessionManagerState, behavior);
+    boolean shouldStartRequest = shouldStartRequest(sessionManagerState, behavior);
+    Runnable timeoutTask =
+        shouldPopulateWithTimeout(sessionManagerState, behavior)
+            ? () -> populateSessionTask(session, shouldAppendOutstandingRequest)
+            : null;
+    Logger.i(
+        TAG,
+        "shouldSessionRequestDataResult: %s, shouldMakeRequest(%b), withTimeout(%b),"
+            + " withAppend(%b)",
+        requestBehaviorToString(behavior),
+        shouldStartRequest,
+        timeoutTask != null,
+        shouldAppendOutstandingRequest);
+
+    // If we are making a request, there are two orders, request -> populate for all cases except
+    // for REQUEST_WITH_CONTENT which is populate -> request.
+    if (shouldStartRequest && behavior != RequestBehavior.REQUEST_WITH_CONTENT) {
+      triggerRefresh(
+          /* sessionId= */ null,
+          RequestReason.OPEN_WITHOUT_CONTENT,
+          UiContext.getDefaultInstance());
     }
-
-    int taskType = TaskType.USER_FACING;
-    if (behavior == RequestBehavior.NO_REQUEST_WITH_CONTENT
-        && taskQueue.isMakingRequest()
-        && !taskQueue.isDelayed()) {
-      // don't wait for the request to finish, go ahead and show the content
-      taskType = TaskType.IMMEDIATE;
-    } else if (behavior == RequestBehavior.REQUEST_WITH_CONTENT) {
-      // Make sure the populate session runs immediately (before refresh)
-      taskType = TaskType.IMMEDIATE;
-    }
-
-    // Task which creates and populates the newly created session.  This must be done
-    // on the Session Manager thread so it atomic with the mutations.
     taskQueue.execute(
         Task.POPULATE_NEW_SESSION,
-        taskType,
-        () -> populateSessionTask(session, legacyHeadContent),
+        requestBehaviorToTaskType(behavior),
+        () -> populateSessionTask(session, shouldAppendOutstandingRequest),
         timeoutTask,
         sessionPopulationTimeoutMs);
-    if (makeRequest && behavior == REQUEST_WITH_CONTENT) {
-      triggerRefresh(null, RequestReason.OPEN_WITH_CONTENT, UiContext.getDefaultInstance());
+    if (shouldStartRequest && behavior == RequestBehavior.REQUEST_WITH_CONTENT) {
+      triggerRefresh(
+          /* sessionId= */ null, RequestReason.OPEN_WITH_CONTENT, UiContext.getDefaultInstance());
     }
   }
 
-  private void populateSessionTask(InitializableSession session, boolean legacyHeadContent) {
+  private void populateSessionTask(
+      InitializableSession session, boolean shouldAppendOutstandingRequest) {
     threadUtils.checkNotMainThread();
     ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
 
-    if (noCardsError != null) {
+    if (noCardsError != null && sessionCache.getHead().isHeadEmpty()) {
       ModelProvider modelProvider = session.getModelProvider();
       if (modelProvider == null) {
         Logger.e(TAG, "populateSessionTask - noCardsError, modelProvider not found");
@@ -384,7 +375,7 @@ public final class FeedSessionManager
     cachedBindings = contentCache.size() > 0;
     long creationTimeMillis = clock.currentTimeMillis();
     session.populateModelProvider(
-        streamStructuresResult.getValue(), cachedBindings, legacyHeadContent);
+        streamStructuresResult.getValue(), cachedBindings, shouldAppendOutstandingRequest);
     sessionCache.putAttached(sessionId, creationTimeMillis, session);
     synchronized (lock) {
       sessionsUnderConstruction.remove(session);
@@ -445,7 +436,7 @@ public final class FeedSessionManager
     // on the Session Manager thread so it atomic with the mutations.
     taskQueue.execute(
         Task.GET_EXISTING_SESSION,
-        TaskType.USER_FACING,
+        TaskType.IMMEDIATE,
         () -> {
           threadUtils.checkNotMainThread();
           if (!sessionCache.hasSession(sessionId)) {
@@ -888,6 +879,73 @@ public final class FeedSessionManager
           sharedStateCache.put(contentId, payload.getStreamSharedState());
         }
       }
+    }
+  }
+
+  private static boolean shouldAppendToSession(
+      SessionManagerState sessionManagerState, @RequestBehavior int requestBehavior) {
+    switch (requestBehavior) {
+      case RequestBehavior.REQUEST_WITH_CONTENT: // Fall-through
+      case RequestBehavior.REQUEST_WITH_TIMEOUT:
+        return sessionManagerState.hasContent;
+      case RequestBehavior.NO_REQUEST_WITH_CONTENT: // Fall-through
+      case RequestBehavior.NO_REQUEST_WITH_TIMEOUT:
+        return sessionManagerState.hasContent && sessionManagerState.hasOutstandingRequest;
+      default:
+        return false;
+    }
+  }
+
+  private static boolean shouldStartRequest(
+      SessionManagerState sessionManagerState, @RequestBehavior int requestBehavior) {
+    return (requestBehavior == RequestBehavior.REQUEST_WITH_TIMEOUT
+            || requestBehavior == RequestBehavior.REQUEST_WITH_WAIT
+            || requestBehavior == RequestBehavior.REQUEST_WITH_CONTENT)
+        && !sessionManagerState.hasOutstandingRequest;
+  }
+
+  private static boolean shouldPopulateWithTimeout(
+      SessionManagerState sessionManagerState, @RequestBehavior int requestBehavior) {
+    return requestBehavior == RequestBehavior.REQUEST_WITH_TIMEOUT
+        || (requestBehavior == RequestBehavior.NO_REQUEST_WITH_TIMEOUT
+            && sessionManagerState.hasOutstandingRequest);
+  }
+
+  private static String requestBehaviorToString(@RequestBehavior int requestBehavior) {
+    switch (requestBehavior) {
+      case RequestBehavior.NO_REQUEST_WITH_CONTENT:
+        return "NO_REQUEST_WITH_CONTENT";
+      case RequestBehavior.NO_REQUEST_WITH_TIMEOUT:
+        return "NO_REQUEST_WITH_TIMEOUT";
+      case RequestBehavior.NO_REQUEST_WITH_WAIT:
+        return "NO_REQUEST_WITH_WAIT";
+      case RequestBehavior.REQUEST_WITH_CONTENT:
+        return "REQUEST_WITH_CONTENT";
+      case RequestBehavior.REQUEST_WITH_TIMEOUT:
+        return "REQUEST_WITH_TIMEOUT";
+      case RequestBehavior.REQUEST_WITH_WAIT:
+        return "REQUEST_WITH_WAIT";
+      default:
+        return "UNKNOWN";
+    }
+  }
+
+  private static int requestBehaviorToTaskType(@RequestBehavior int requestBehavior) {
+    switch (requestBehavior) {
+      case RequestBehavior.REQUEST_WITH_WAIT: // Fall-through
+      case RequestBehavior.NO_REQUEST_WITH_WAIT:
+        // Wait for the request to complete and then show content.
+        return TaskType.USER_FACING;
+      case RequestBehavior.REQUEST_WITH_CONTENT: // Fall-through
+      case RequestBehavior.NO_REQUEST_WITH_CONTENT:
+        // Show content immediately and append when the request completes.
+        return TaskType.IMMEDIATE;
+      case RequestBehavior.REQUEST_WITH_TIMEOUT: // Fall-through
+      case RequestBehavior.NO_REQUEST_WITH_TIMEOUT:
+        // Wait for the request to complete but show current content if the timeout elapses.
+        return TaskType.USER_FACING;
+      default:
+        return TaskType.USER_FACING;
     }
   }
 

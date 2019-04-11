@@ -1198,6 +1198,7 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
         return;
       }
 
+      // TODO: this logic assumes that parents are passed before children.
       newParents.add(childKey);
       FeatureChangeImpl change = getChange(parentKey);
       if (change != null) {

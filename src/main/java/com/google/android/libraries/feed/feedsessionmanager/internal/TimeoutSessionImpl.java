@@ -51,7 +51,7 @@ public final class TimeoutSessionImpl extends SessionImpl {
       List<StreamStructure> head,
       boolean cachedBindings,
       boolean legacyHeadContent) {
-    Logger.i(TAG, "TimeoutSession.populateModelProvider, legacyHeadContent %s", legacyHeadContent);
+    Logger.i(TAG, "TimeoutSession.populateModelProvider, shouldAppend %s", legacyHeadContent);
     super.populateModelProvider(head, cachedBindings, legacyHeadContent);
   }
 
@@ -63,10 +63,10 @@ public final class TimeoutSessionImpl extends SessionImpl {
     String localSessionId = Validators.checkNotNull(sessionId);
     Logger.i(
         TAG,
-        "TimeoutSession.updateSession, sessionId %s, clearHead %s, legacyHeadContent %s",
-        localSessionId,
+        "updateSession; clearHead(%b), shouldAppend(%b), sessionId(%s)",
         clearHead,
-        legacyHeadContent);
+        legacyHeadContent,
+        localSessionId);
     if (clearHead) {
       if (!legacyHeadContent) {
         if (shouldInvalidateModelProvider(mutationContext, localSessionId)) {
@@ -83,7 +83,7 @@ public final class TimeoutSessionImpl extends SessionImpl {
           }
         } else {
           // Without having legacy HEAD content, don't update the session,
-          Logger.i(TAG, "Session %s not updated due to clearHead", localSessionId);
+          Logger.i(TAG, "Not configured to append: %s", localSessionId);
         }
         return;
       }

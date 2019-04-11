@@ -307,7 +307,7 @@ public class FeedSessionManagerTest {
   }
 
   @Test
-  public void testNoRequestWithContent_populateIsUserFacing() {
+  public void testNoRequestWithContent_populateIsImmediate() {
     when(schedulerApi.shouldSessionRequestData(any(SessionManagerState.class)))
         .thenReturn(RequestBehavior.NO_REQUEST_WITH_CONTENT);
 
@@ -315,12 +315,12 @@ public class FeedSessionManagerTest {
     populateSession(sessionManager, 3, 1, true, null);
     fakeTaskQueue.resetCounts();
 
-    // Population will happen in a user-facing task and no request is sent.
+    // Population will happen in an immediate task and no request is sent.
     ModelProvider modelProvider = getModelProvider(sessionManager);
     assertThat(modelProvider).isNotNull();
-    assertThat(fakeTaskQueue.getImmediateTaskCount()).isEqualTo(0);
+    assertThat(fakeTaskQueue.getImmediateTaskCount()).isEqualTo(1);
     assertThat(fakeTaskQueue.getBackgroundTaskCount()).isEqualTo(0);
-    assertThat(fakeTaskQueue.getUserFacingTaskCount()).isEqualTo(1);
+    assertThat(fakeTaskQueue.getUserFacingTaskCount()).isEqualTo(0);
     assertThat(fakeTaskQueue.isMakingRequest()).isFalse();
   }
 
@@ -361,16 +361,55 @@ public class FeedSessionManagerTest {
   }
 
   @Test
+  public void testGetExistingSession_populateIsImmediate() {
+    FeedSessionManager sessionManager = getInitializedSessionManager();
+    populateSession(
+        sessionManager,
+        /* featureCnt= */ 2,
+        /* idStart= */ 1,
+        /* reset= */ true,
+        /* sharedStateId= */ null);
+    ModelProvider modelProvider = getModelProvider(sessionManager);
+    String sessionId = modelProvider.getSessionId();
+    modelProvider.detachModelProvider();
+    fakeTaskQueue.resetCounts();
+
+    // Population will happen in an immediate task.
+    modelProvider = getModelProvider(sessionManager, sessionId);
+    assertThat(modelProvider).isNotNull();
+    assertThat(fakeTaskQueue.getImmediateTaskCount()).isEqualTo(1);
+    assertThat(fakeTaskQueue.getBackgroundTaskCount()).isEqualTo(0);
+    assertThat(fakeTaskQueue.getUserFacingTaskCount()).isEqualTo(0);
+  }
+
+  @Test
   public void testNoCardsError() {
     FeedSessionManager sessionManager = getInitializedSessionManager();
-    sessionManager.noCardsError = new ModelError(ErrorType.NO_CARDS_ERROR, null);
-    int featureCnt = 2;
-    populateSession(sessionManager, featureCnt, 1, true, null);
+    sessionManager.getUpdateConsumer(EMPTY_MUTATION).accept(Result.failure());
 
-    // We can't verify that raiseError was called on ModelProvider since all of that happens in
-    // the createNew() call due to the single threaded nature.  We may want to have a test method
-    // on the factory to install the observer when creating the ModelProvider.
     ModelProvider modelProvider = getModelProvider(sessionManager);
+    assertThat(modelProvider.getRootFeature()).isNull();
+
+    // Verify the failed session is correct
+    SessionCache sessionCache = sessionManager.getSessionCacheForTest();
+    assertThat(sessionCache.getAttachedSessions()).hasSize(1);
+    Session session = sessionCache.getAttached(modelProvider.getSessionId());
+    assertThat(session).isNotNull();
+  }
+
+  @Test
+  public void testNoCardsError_populatedHeadSuppressesError() {
+    FeedSessionManager sessionManager = getInitializedSessionManager();
+    populateSession(
+        sessionManager,
+        /* featureCnt= */ 2,
+        /* idStart= */ 1,
+        /* reset= */ true,
+        /* sharedStateId= */ null);
+    sessionManager.getUpdateConsumer(EMPTY_MUTATION).accept(Result.failure());
+
+    ModelProvider modelProvider = getModelProvider(sessionManager);
+    assertThat(modelProvider.getRootFeature()).isNotNull();
 
     // Verify the failed session is correct
     SessionCache sessionCache = sessionManager.getSessionCacheForTest();
@@ -780,14 +819,15 @@ public class FeedSessionManagerTest {
     }
     Consumer<Result<List<StreamDataOperation>>> updateConsumer =
         sessionManager.getUpdateConsumer(EMPTY_MUTATION);
-    List<StreamDataOperation> operations = new ArrayList<>();
-    operations.addAll(internalProtocolBuilder.build());
-    Result<List<StreamDataOperation>> result = Result.success(operations);
-    updateConsumer.accept(result);
+    updateConsumer.accept(Result.success(internalProtocolBuilder.build()));
     return operationCount;
   }
 
   private ModelProvider getModelProvider(FeedSessionManager sessionManager) {
+    return getModelProvider(sessionManager, /* sessionId= */ null);
+  }
+
+  private ModelProvider getModelProvider(FeedSessionManager sessionManager, String sessionId) {
     ModelProviderFactory modelProviderFactory =
         new FeedModelProviderFactory(
             sessionManager,
@@ -796,7 +836,11 @@ public class FeedSessionManagerTest {
             fakeTaskQueue,
             fakeMainThreadRunner,
             configuration);
-    return modelProviderFactory.createNew(null);
+    if (sessionId == null) {
+      return modelProviderFactory.createNew(/* viewDepthProvider= */ null);
+    } else {
+      return modelProviderFactory.create(sessionId);
+    }
   }
 
   private FeedSessionManager getInitializedSessionManager() {
