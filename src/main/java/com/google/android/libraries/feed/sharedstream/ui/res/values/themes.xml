@@ -20,14 +20,12 @@
     <item name="feedBlueTitleColor">@color/feed_modern_blue_600</item>
     <item name="feedMoreButtonRipple">@color/feed_alpha_10_modern_blue_600</item>
     <item name="feedTouchNonPressed">@android:color/white</item>
-    <item name="feedContextMenuTextColor">@color/black_alpha_87</item>
   </style>
 
   <style name="Dark">
     <item name="feedBlueTitleColor">@color/feed_modern_blue_300</item>
     <item name="feedMoreButtonRipple">@color/feed_alpha_10_modern_blue_300</item>
     <item name="feedTouchNonPressed">@color/feed_modern_grey_900_white_alpha_4</item>
-    <item name="feedContextMenuTextColor">@color/feed_modern_grey_500</item>
   </style>
 
 </resources>

@@ -19,6 +19,4 @@
   <attr name="feedMoreButtonRipple" format="reference" />
   <!-- Sets the color of the more button when not pressed. -->
   <attr name="feedTouchNonPressed" format="reference" />
-  <!-- Sets the color of the context menu text. -->
-  <attr name="feedContextMenuTextColor" format="reference" />
 </resources>
