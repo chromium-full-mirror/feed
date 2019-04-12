@@ -25,6 +25,7 @@ import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider.ViewDepthProvider;
 import com.google.android.libraries.feed.testing.host.scheduler.FakeSchedulerApi;
 import com.google.android.libraries.feed.testing.modelprovider.FakeViewDepthProvider;
+import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import java.util.List;
 
@@ -75,7 +76,9 @@ public final class SessionTestUtils {
 
   /** Creates a new session and returns the {@link ModelProvider}. */
   public ModelProvider createNewSession() {
-    return scope.getModelProviderFactory().createNew(createViewDepthProvider());
+    return scope
+        .getModelProviderFactory()
+        .createNew(createViewDepthProvider(), UiContext.getDefaultInstance());
   }
 
   /** Populates HEAD with data. */

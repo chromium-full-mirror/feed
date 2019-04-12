@@ -183,7 +183,7 @@ public class BasicStreamTest {
     when(streamConfiguration.getPaddingTop()).thenReturn(TOP_PADDING);
     when(streamConfiguration.getPaddingBottom()).thenReturn(BOTTOM_PADDING);
 
-    when(modelProviderFactory.createNew(any(ViewDepthProvider.class)))
+    when(modelProviderFactory.createNew(any(ViewDepthProvider.class), any(UiContext.class)))
         .thenReturn(initialModelProvider, modelProvider);
 
     when(initialModelProvider.getSessionId()).thenReturn(SESSION_ID);
@@ -212,7 +212,7 @@ public class BasicStreamTest {
     basicStream.onShow();
     reset(adapter);
 
-    basicStream.onSessionStart();
+    basicStream.onSessionStart(UiContext.getDefaultInstance());
 
     verify(streamDriver).onDestroy();
     verify(adapter).setDriver(streamDriver);
@@ -225,7 +225,7 @@ public class BasicStreamTest {
     basicStream.onShow();
 
     clock = clock.set(40);
-    basicStream.onSessionStart();
+    basicStream.onSessionStart(UiContext.getDefaultInstance());
 
     verify(basicLoggingApi).onOpenedWithContent(30, 0);
   }
@@ -233,10 +233,10 @@ public class BasicStreamTest {
   @Test
   public void testOnSessionStart_doesNotLogOnOpenedWithStreamContentAfterInitialOnShow() {
     basicStream.onShow();
-    basicStream.onSessionStart();
+    basicStream.onSessionStart(UiContext.getDefaultInstance());
     reset(basicLoggingApi);
 
-    basicStream.onSessionStart();
+    basicStream.onSessionStart(UiContext.getDefaultInstance());
 
     verify(basicLoggingApi, never()).onOpenedWithContent(anyInt(), anyInt());
   }
@@ -247,7 +247,7 @@ public class BasicStreamTest {
     basicStream.onError(new ModelError(ErrorType.NO_CARDS_ERROR, /* continuationToken= */ null));
     reset(basicLoggingApi);
 
-    basicStream.onSessionStart();
+    basicStream.onSessionStart(UiContext.getDefaultInstance());
 
     verify(basicLoggingApi, never()).onOpenedWithContent(anyInt(), anyInt());
   }
@@ -263,7 +263,7 @@ public class BasicStreamTest {
     when(newStreamDriver.isZeroStateBeingShown()).thenReturn(true);
 
     basicStream.streamDriver = newStreamDriver;
-    basicStream.onSessionStart();
+    basicStream.onSessionStart(UiContext.getDefaultInstance());
 
     verify(streamDriver).setModelProviderForZeroState(initialModelProvider);
     verify(streamDriver, never()).onDestroy();
@@ -279,7 +279,8 @@ public class BasicStreamTest {
 
     verify(scrollRestorer).abandonRestoringScroll();
     verify(initialModelProvider).unregisterObserver(basicStream);
-    verify(modelProviderFactory, times(2)).createNew(any(ViewDepthProvider.class));
+    verify(modelProviderFactory, times(2))
+        .createNew(any(ViewDepthProvider.class), any(UiContext.class));
     verify(modelProvider).registerObserver(basicStream);
   }
 
@@ -313,7 +314,7 @@ public class BasicStreamTest {
 
     basicStream.onShow();
     // Trigger onOpenedWithNoContent logging through updating the driver.
-    basicStream.onSessionStart();
+    basicStream.onSessionStart(UiContext.getDefaultInstance());
     reset(basicLoggingApi);
 
     basicStream.onError(new ModelError(ErrorType.NO_CARDS_ERROR, /* continuationToken= */ null));
@@ -333,7 +334,7 @@ public class BasicStreamTest {
     // Advance so that is has taken long enough that onOpenedWithNoImmediateContent is logged.
     clock.advance(LOGGING_IMMEDIATE_CONTENT_THRESHOLD_MS);
 
-    basicStream.onSessionStart();
+    basicStream.onSessionStart(UiContext.getDefaultInstance());
 
     verify(basicLoggingApi).onOpenedWithNoImmediateContent();
   }
@@ -344,7 +345,7 @@ public class BasicStreamTest {
     when(initialModelProvider.getRootFeature()).thenReturn(null);
     basicStream.onShow();
 
-    basicStream.onSessionStart();
+    basicStream.onSessionStart(UiContext.getDefaultInstance());
 
     verify(basicLoggingApi).onOpenedWithNoContent();
   }
@@ -355,7 +356,7 @@ public class BasicStreamTest {
     when(initialModelProvider.getRootFeature()).thenReturn(null);
     basicStream.onShow();
 
-    basicStream.onSessionStart();
+    basicStream.onSessionStart(UiContext.getDefaultInstance());
 
     verify(basicLoggingApi, never()).onOpenedWithNoContent();
   }
@@ -366,7 +367,7 @@ public class BasicStreamTest {
     when(initialModelProvider.getRootFeature()).thenReturn(modelFeature);
     basicStream.onShow();
 
-    basicStream.onSessionStart();
+    basicStream.onSessionStart(UiContext.getDefaultInstance());
 
     verify(basicLoggingApi, never()).onOpenedWithNoContent();
   }
@@ -381,7 +382,7 @@ public class BasicStreamTest {
     basicStream.onError(new ModelError(ErrorType.NO_CARDS_ERROR, /* continuationToken= */ null));
     reset(basicLoggingApi);
 
-    basicStream.onSessionStart();
+    basicStream.onSessionStart(UiContext.getDefaultInstance());
 
     verify(basicLoggingApi, never()).onOpenedWithNoContent();
   }
@@ -389,10 +390,10 @@ public class BasicStreamTest {
   @Test
   public void testOnSessionStart_doesNotLogOnOpenedWithNoImmediateContentAfterInitialOnShow() {
     basicStream.onShow();
-    basicStream.onSessionStart();
+    basicStream.onSessionStart(UiContext.getDefaultInstance());
     reset(basicLoggingApi);
 
-    basicStream.onSessionStart();
+    basicStream.onSessionStart(UiContext.getDefaultInstance());
 
     verify(basicLoggingApi, never()).onOpenedWithNoImmediateContent();
   }
@@ -450,7 +451,7 @@ public class BasicStreamTest {
   @Test
   public void testOnDestroy_destroysStreamDriver() {
     basicStream.onShow();
-    basicStream.onSessionStart();
+    basicStream.onSessionStart(UiContext.getDefaultInstance());
     reset(streamDriver);
 
     basicStream.onDestroy();
@@ -549,7 +550,8 @@ public class BasicStreamTest {
     basicStream.onHide();
     basicStream.onDestroy();
 
-    when(modelProviderFactory.create(SESSION_ID)).thenReturn(restoredModelProvider);
+    when(modelProviderFactory.create(SESSION_ID, UiContext.getDefaultInstance()))
+        .thenReturn(restoredModelProvider);
 
     basicStream = createBasicStream(new LinearLayoutManagerWithFakePositioning(context));
     basicStream.onCreate(bundle);
@@ -568,7 +570,8 @@ public class BasicStreamTest {
     basicStream.onHide();
     basicStream.onDestroy();
 
-    when(modelProviderFactory.create(SESSION_ID)).thenReturn(restoredModelProvider);
+    when(modelProviderFactory.create(SESSION_ID, UiContext.getDefaultInstance()))
+        .thenReturn(restoredModelProvider);
 
     basicStream = createBasicStream(new LinearLayoutManagerWithFakePositioning(context));
     basicStream.onCreate(savedInstanceState);
@@ -587,7 +590,8 @@ public class BasicStreamTest {
     basicStream.onHide();
     basicStream.onDestroy();
 
-    when(modelProviderFactory.create(SESSION_ID)).thenReturn(restoredModelProvider);
+    when(modelProviderFactory.create(SESSION_ID, UiContext.getDefaultInstance()))
+        .thenReturn(restoredModelProvider);
 
     reset(streamDriver);
     basicStream = createBasicStream(new LinearLayoutManagerWithFakePositioning(context));
@@ -669,7 +673,8 @@ public class BasicStreamTest {
     basicStream.onHide();
     basicStream.onDestroy();
 
-    when(modelProviderFactory.create(SESSION_ID)).thenReturn(restoredModelProvider);
+    when(modelProviderFactory.create(SESSION_ID, UiContext.getDefaultInstance()))
+        .thenReturn(restoredModelProvider);
 
     basicStream = createBasicStream(new LinearLayoutManagerWithFakePositioning(context));
     basicStream.onCreate(bundle);
@@ -688,7 +693,8 @@ public class BasicStreamTest {
     basicStream.onHide();
     basicStream.onDestroy();
 
-    when(modelProviderFactory.create(SESSION_ID)).thenReturn(restoredModelProvider);
+    when(modelProviderFactory.create(SESSION_ID, UiContext.getDefaultInstance()))
+        .thenReturn(restoredModelProvider);
 
     basicStream = createBasicStream(new LinearLayoutManagerWithFakePositioning(context));
     basicStream.onCreate(bundle);
@@ -848,7 +854,7 @@ public class BasicStreamTest {
   }
 
   @Test
-  public void testSetStreamContentVisibility_createsModelProvider_ifContentNowVisible() {
+  public void testSetStreamContentVisibility_createsModelProvider_ifContentNotVisible() {
     basicStream.setStreamContentVisibility(false);
     basicStream.onShow();
 
@@ -856,7 +862,7 @@ public class BasicStreamTest {
 
     basicStream.setStreamContentVisibility(true);
 
-    verify(modelProviderFactory).createNew(any(ViewDepthProvider.class));
+    verify(modelProviderFactory).createNew(any(ViewDepthProvider.class), any(UiContext.class));
   }
 
   @Test
@@ -965,10 +971,10 @@ public class BasicStreamTest {
   @Test
   public void testOnSessionStart_showsContentImmediately_ifNotInitialLoad() {
     basicStream.onShow();
-    basicStream.onSessionStart();
+    basicStream.onSessionStart(UiContext.getDefaultInstance());
     reset(adapter);
 
-    basicStream.onSessionStart();
+    basicStream.onSessionStart(UiContext.getDefaultInstance());
     verify(adapter).setDriver(streamDriver);
   }
 
@@ -983,7 +989,7 @@ public class BasicStreamTest {
     // Advance so that it has shown long enough
     clock.advance(MINIMUM_SPINNER_SHOW_TIME);
 
-    basicStream.onSessionStart();
+    basicStream.onSessionStart(UiContext.getDefaultInstance());
 
     // The adapter should be immediately set in onSesssionStart
     verify(adapter).setDriver(streamDriver);
@@ -998,7 +1004,7 @@ public class BasicStreamTest {
 
     reset(adapter);
 
-    basicStream.onSessionStart();
+    basicStream.onSessionStart(UiContext.getDefaultInstance());
     verify(adapter, never()).setDriver(any(StreamDriver.class));
 
     // Advance so that it has shown long enough.
@@ -1018,7 +1024,7 @@ public class BasicStreamTest {
     // Advance so the spinner is shown.
     clock.advance(MINIMUM_TIME_BEFORE_SHOWING_SPINNER);
 
-    basicStream.onSessionStart();
+    basicStream.onSessionStart(UiContext.getDefaultInstance());
     basicStream.onSessionFinished(UiContext.getDefaultInstance());
 
     // Advance so that it has shown long enough.
@@ -1031,7 +1037,7 @@ public class BasicStreamTest {
   public void testOnSessionStart_showsZeroState_ifFeatureDriversEmpty() {
     basicStream.onShow();
 
-    basicStream.onSessionStart();
+    basicStream.onSessionStart(UiContext.getDefaultInstance());
 
     verify(streamDriver).showZeroState(ZeroStateShowReason.NO_CONTENT);
   }
@@ -1093,12 +1099,12 @@ public class BasicStreamTest {
 
     UiRefreshReason uiRefreshReason =
         UiRefreshReason.newBuilder().setReason(Reason.ZERO_STATE).build();
-    basicStream.onSessionStart();
+    basicStream.onSessionStart(UiContext.getDefaultInstance());
     basicStream.onSessionFinished(
         UiContext.newBuilder()
             .setExtension(UiRefreshReason.uiRefreshReasonExtension, uiRefreshReason)
             .build());
-    basicStream.onSessionStart();
+    basicStream.onSessionStart(UiContext.getDefaultInstance());
 
     assertThat(basicStream.streamDriverUiRefreshReason).isEqualTo(uiRefreshReason);
   }
@@ -1151,7 +1157,7 @@ public class BasicStreamTest {
     clock.advance(MINIMUM_TIME_BEFORE_SHOWING_SPINNER / 2);
 
     // Start the session. At this point, the spinner enqueued by onShow() should never be shown.
-    basicStream.onSessionStart();
+    basicStream.onSessionStart(UiContext.getDefaultInstance());
 
     // Finish the session immediately. As we had started a session and the user had presumably seen
     // content, we shouldn't trigger the spinner enqueued by onShow().
@@ -1168,7 +1174,7 @@ public class BasicStreamTest {
   public void startSession_thenFinish_showsSpinnerAfterDelay() {
     basicStream.onShow();
 
-    basicStream.onSessionStart();
+    basicStream.onSessionStart(UiContext.getDefaultInstance());
     basicStream.onSessionFinished(UiContext.getDefaultInstance());
 
     verify(streamDriver, never()).showSpinner();

@@ -34,6 +34,7 @@ import com.google.android.libraries.feed.internalapi.protocoladapter.ProtocolAda
 import com.google.android.libraries.feed.testing.modelprovider.FakeViewDepthProvider;
 import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
+import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import com.google.search.now.wire.feed.ConsistencyTokenProto.ConsistencyToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import org.junit.Before;
@@ -119,7 +120,8 @@ public class ViewDepthProviderTests {
     when(schedulerApi.shouldSessionRequestData(any(SessionManagerState.class)))
         .thenReturn(RequestBehavior.REQUEST_WITH_CONTENT);
     requestManager.queueResponse(ResponseBuilder.forClearAllWithCards(REQUEST_TWO).build());
-    ModelProvider modelProvider = modelProviderFactory.createNew(viewDepthProvider);
+    ModelProvider modelProvider =
+        modelProviderFactory.createNew(viewDepthProvider, UiContext.getDefaultInstance());
 
     // The second request will be added after the first request, the ViewDepthProvider indicates
     // we only saw [0] and [1] from the first request, so [2] and [3] will be removed.
@@ -149,7 +151,8 @@ public class ViewDepthProviderTests {
         .thenReturn(RequestBehavior.REQUEST_WITH_CONTENT);
     requestManager.queueResponse(
         ResponseBuilder.forClearAllWithCards(REQUEST_TWO_WITH_DUPLICATES).build());
-    ModelProvider modelProvider = modelProviderFactory.createNew(viewDepthProvider);
+    ModelProvider modelProvider =
+        modelProviderFactory.createNew(viewDepthProvider, UiContext.getDefaultInstance());
 
     // The second request will be added after the first request, the ViewDepthProvider indicates
     // we only saw [0] and [1] from the first request, so [2] and [3] will be removed.

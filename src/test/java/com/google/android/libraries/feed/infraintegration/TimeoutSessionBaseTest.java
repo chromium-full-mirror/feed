@@ -103,7 +103,8 @@ public class TimeoutSessionBaseTest {
     // Wait for the request to complete (REQUEST_WITH_WAIT).  This will trigger the request and wait
     // for it to complete to populate the new session.
     fakeSchedulerApi.setRequestBehavior(RequestBehavior.REQUEST_WITH_WAIT);
-    ModelProvider modelProvider = modelProviderFactory.createNew(null);
+    ModelProvider modelProvider =
+        modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
 
     // This will wait for the session to be created and validate the root cursor
     AtomicBoolean finished = new AtomicBoolean(false);
@@ -121,7 +122,7 @@ public class TimeoutSessionBaseTest {
     // Create a new ModelProvider from HEAD (NO_REQUEST_WITH_CONTENT)
     fakeSchedulerApi.setRequestBehavior(RequestBehavior.NO_REQUEST_WITH_CONTENT);
     // This will wait for the session to be created and validate the root cursor
-    modelProvider = modelProviderFactory.createNew(null);
+    modelProvider = modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     assertSessionCreation(modelProvider, finished, requestOne);
     startTimeMs = fakeClock.currentTimeMillis();
     while (!finished.get()) {
@@ -142,7 +143,7 @@ public class TimeoutSessionBaseTest {
     modelProvider.registerObserver(
         new ModelProviderObserver() {
           @Override
-          public void onSessionStart() {
+          public void onSessionStart(UiContext uiContext) {
             System.out.println("onSessionStart");
             finished.set(true);
             modelValidator.assertCursorContents(modelProvider, cards);

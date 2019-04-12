@@ -112,7 +112,8 @@ public class TimeoutSessionWithContentTest {
     // Wait for the request to complete (REQUEST_WITH_CONTENT).  This will trigger the request and
     // wait for it to complete to populate the new session.
     fakeSchedulerApi.setRequestBehavior(RequestBehavior.REQUEST_WITH_WAIT);
-    ModelProvider modelProvider = modelProviderFactory.createNew(null);
+    ModelProvider modelProvider =
+        modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
 
     // This will wait for the session to be created and validate the root cursor
     AtomicBoolean finished = new AtomicBoolean(false);
@@ -132,7 +133,7 @@ public class TimeoutSessionWithContentTest {
         ResponseBuilder.forClearAllWithCards(REQUEST_TWO).build(), /* delayMs= */ 100);
     fakeSchedulerApi.setRequestBehavior(RequestBehavior.REQUEST_WITH_CONTENT);
     // This will wait for the session to be created and validate the root cursor
-    modelProvider = modelProviderFactory.createNew(null);
+    modelProvider = modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     assertSessionCreationWithRequest(modelProvider, finished);
     startTimeMs = fakeClock.currentTimeMillis();
     while (!finished.get()) {
@@ -153,7 +154,7 @@ public class TimeoutSessionWithContentTest {
     modelProvider.registerObserver(
         new ModelProviderObserver() {
           @Override
-          public void onSessionStart() {
+          public void onSessionStart(UiContext uiContext) {
             System.out.println("onSessionStart");
             finished.set(true);
             modelValidator.assertCursorContents(modelProvider, REQUEST_ONE);
@@ -181,7 +182,7 @@ public class TimeoutSessionWithContentTest {
     modelProvider.registerObserver(
         new ModelProviderObserver() {
           @Override
-          public void onSessionStart() {
+          public void onSessionStart(UiContext uiContext) {
             System.out.println("onSessionStart");
             ModelFeature feature = modelProvider.getRootFeature();
             // The second request will cause an change on the root

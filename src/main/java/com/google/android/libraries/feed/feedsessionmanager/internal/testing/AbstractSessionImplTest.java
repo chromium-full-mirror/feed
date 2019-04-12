@@ -30,6 +30,7 @@ import com.google.android.libraries.feed.testing.modelprovider.FakeModelMutation
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelProvider;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
+import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Test;
@@ -67,7 +68,7 @@ public abstract class AbstractSessionImplTest {
     // 3 features
     assertThat(streamStructures).hasSize(featureCnt);
     session.setSessionId(TEST_SESSION_ID);
-    session.populateModelProvider(streamStructures, false, false);
+    session.populateModelProvider(streamStructures, false, false, UiContext.getDefaultInstance());
     FakeModelMutation fakeModelMutation = fakeModelProvider.getLatestModelMutation();
     assertThat(fakeModelMutation.addedChildren).hasSize(featureCnt);
     assertThat(fakeModelMutation.isCommitted()).isTrue();
@@ -87,7 +88,7 @@ public abstract class AbstractSessionImplTest {
   public void testUpdateSession_features() {
     SessionImpl session = getSessionImpl();
     session.setSessionId(TEST_SESSION_ID);
-    session.populateModelProvider(new ArrayList<>(), false, false);
+    session.populateModelProvider(new ArrayList<>(), false, false, UiContext.getDefaultInstance());
     int featureCnt = 3;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder().addClearOperation();
     addFeatures(protocolBuilder, featureCnt, 1);
@@ -108,7 +109,7 @@ public abstract class AbstractSessionImplTest {
   public void testUpdateFromToken() {
     SessionImpl session = getSessionImpl();
     session.setSessionId(TEST_SESSION_ID);
-    session.populateModelProvider(new ArrayList<>(), false, false);
+    session.populateModelProvider(new ArrayList<>(), false, false, UiContext.getDefaultInstance());
     int featureCnt = 3;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder();
     addFeatures(protocolBuilder, featureCnt, 1);
@@ -138,7 +139,7 @@ public abstract class AbstractSessionImplTest {
   public void testUpdateFromToken_notInSession() {
     SessionImpl session = getSessionImpl();
     session.setSessionId(TEST_SESSION_ID);
-    session.populateModelProvider(new ArrayList<>(), false, false);
+    session.populateModelProvider(new ArrayList<>(), false, false, UiContext.getDefaultInstance());
     int featureCnt = 3;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder();
     addFeatures(protocolBuilder, featureCnt, 1);
@@ -157,7 +158,7 @@ public abstract class AbstractSessionImplTest {
   public void testStorageFailure() {
     SessionImpl session = getSessionImpl();
     session.setSessionId(TEST_SESSION_ID);
-    session.populateModelProvider(new ArrayList<>(), false, false);
+    session.populateModelProvider(new ArrayList<>(), false, false, UiContext.getDefaultInstance());
     int featureCnt = 3;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder();
     addFeatures(protocolBuilder, featureCnt, 1);
@@ -173,7 +174,7 @@ public abstract class AbstractSessionImplTest {
   public void testRemove() {
     SessionImpl session = getSessionImpl();
     session.setSessionId(TEST_SESSION_ID);
-    session.populateModelProvider(new ArrayList<>(), false, false);
+    session.populateModelProvider(new ArrayList<>(), false, false, UiContext.getDefaultInstance());
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder();
     int featureCnt = 2;
     addFeatures(protocolBuilder, featureCnt, 1);

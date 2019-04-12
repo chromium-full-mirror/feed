@@ -113,7 +113,7 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
   private final List<WeakReference<ModelCursorImpl>> cursors = new ArrayList<>();
 
   @GuardedBy("lock")
-  private @State int currentState = State.INITIALIZING;
+  private ModelState currentState = ModelState.initializing();
 
   // #dump() operation counts
   private int removedChildrenCount = 0;
@@ -262,10 +262,10 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
     super.registerObserver(observer);
     synchronized (lock) {
       // If we are in the ready state, then call the Observer to inform it things are ready.
-      if (currentState == State.READY) {
-        observer.onSessionStart();
-      } else if (currentState == State.INVALIDATED) {
-        observer.onSessionFinished(UiContext.getDefaultInstance());
+      if (currentState.isReady()) {
+        observer.onSessionStart(currentState.uiContext);
+      } else if (currentState.isInvalidated()) {
+        observer.onSessionFinished(currentState.uiContext);
       }
     }
   }
@@ -273,7 +273,7 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
   @Override
   public @State int getCurrentState() {
     synchronized (lock) {
-      return currentState;
+      return currentState.getState();
     }
   }
 
@@ -309,7 +309,7 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
 
   @Override
   public void detachModelProvider() {
-    if (!moveToInvalidateState()) {
+    if (!moveToInvalidateState(UiContext.getDefaultInstance())) {
       Logger.e(TAG, "unable to detach FeedModelProvider");
       return;
     }
@@ -327,7 +327,7 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
 
   @Override
   public void invalidate(UiContext uiContext) {
-    if (!moveToInvalidateState()) {
+    if (!moveToInvalidateState(uiContext)) {
       Logger.e(TAG, "unable to invalidate FeedModelProvider");
       return;
     }
@@ -348,14 +348,14 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
         });
   }
 
-  private boolean moveToInvalidateState() {
+  private boolean moveToInvalidateState(UiContext uiContext) {
     synchronized (lock) {
-      if (currentState == State.INVALIDATED) {
+      if (currentState.isInvalidated()) {
         Logger.i(TAG, "Invalidated an already invalid ModelProvider");
         return false;
       }
       Logger.i(TAG, "Moving %s to INVALIDATED", sessionId != null ? sessionId : "No sessionId");
-      currentState = State.INVALIDATED;
+      currentState = ModelState.invalidated(uiContext);
       for (WeakReference<ModelCursorImpl> cursorRef : cursors) {
         ModelCursorImpl cursor = cursorRef.get();
         if (cursor != null) {
@@ -445,7 +445,7 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
   public void dump(Dumper dumper) {
     synchronized (lock) {
       dumper.title(TAG);
-      dumper.forKey("currentState").value(currentState);
+      dumper.forKey("currentState").value(currentState.getState());
       dumper.forKey("contentCount").value(contents.size()).compactPrevious();
       dumper.forKey("containers").value(containers.size()).compactPrevious();
       dumper.forKey("tokens").value(tokens.size()).compactPrevious();
@@ -526,6 +526,7 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
    * update mutation. The default implementation is a no-op.
    */
   abstract static class MutationHandler {
+
     private MutationHandler() {}
 
     /**
@@ -692,11 +693,16 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
             StreamToken mutationSourceToken =
                 mutationContext != null ? mutationContext.getContinuationToken() : null;
             MutationHandler mutationHandler;
-            if (currentState == State.INITIALIZING) {
+            if (currentState.isInitializing()) {
               Validators.checkState(
                   mutationSourceToken == null,
                   "Initializing the Model Provider from a Continuation Token");
-              mutationHandler = new InitializeModel();
+
+              UiContext uiContext =
+                  mutationContext != null
+                      ? mutationContext.getUiContext()
+                      : UiContext.getDefaultInstance();
+              mutationHandler = new InitializeModel(uiContext);
             } else if (mutationSourceToken != null) {
               mutationHandler = new TokenMutation(mutationSourceToken);
               commitTokenCount++;
@@ -740,16 +746,18 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
                         TAG,
                         "Moving %s to INVALIDATED",
                         sessionId != null ? sessionId : "No sessionId");
-                    currentState = State.INVALIDATED;
+
+                    UiContext uiContext =
+                        mutationContext == null
+                            ? UiContext.getDefaultInstance()
+                            : mutationContext.getUiContext();
+                    currentState = ModelState.invalidated(uiContext);
                     mainThreadRunner.execute(
                         TAG + " multipleRootInvalidation",
                         () -> {
                           List<ModelProviderObserver> observerList = getObserversToNotify();
                           for (ModelProviderObserver observer : observerList) {
-                            observer.onSessionFinished(
-                                mutationContext == null
-                                    ? UiContext.getDefaultInstance()
-                                    : mutationContext.getUiContext());
+                            observer.onSessionFinished(uiContext);
                           }
                         });
                     return;
@@ -1076,18 +1084,25 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
    */
   @VisibleForTesting
   final class InitializeModel extends MutationHandler {
+
+    private final UiContext uiContext;
+
+    InitializeModel(UiContext uiContext) {
+      this.uiContext = uiContext;
+    }
+
     @Override
     public void postMutation() {
       Logger.i(TAG, "Moving %s to READY", sessionId != null ? sessionId : "No sessionId");
       synchronized (lock) {
-        currentState = State.READY;
+        currentState = ModelState.ready(uiContext);
       }
       mainThreadRunner.execute(
           TAG + " onSessionStart",
           () -> {
             List<ModelProviderObserver> observerList = getObserversToNotify();
             for (ModelProviderObserver observer : observerList) {
-              observer.onSessionStart();
+              observer.onSessionStart(uiContext);
             }
           });
     }
@@ -1365,6 +1380,45 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
       }
 
       containers.remove(root.getContentId());
+    }
+  }
+
+  private static final class ModelState {
+    final UiContext uiContext;
+    @State final int state;
+
+    private ModelState(UiContext uiContext, @State int state) {
+      this.uiContext = uiContext;
+      this.state = state;
+    }
+
+    static ModelState initializing() {
+      return new ModelState(UiContext.getDefaultInstance(), State.INITIALIZING);
+    }
+
+    static ModelState ready(UiContext uiContext) {
+      return new ModelState(uiContext, State.READY);
+    }
+
+    static ModelState invalidated(UiContext uiContext) {
+      return new ModelState(uiContext, State.INVALIDATED);
+    }
+
+    public boolean isReady() {
+      return state == State.READY;
+    }
+
+    public boolean isInvalidated() {
+      return state == State.INVALIDATED;
+    }
+
+    public boolean isInitializing() {
+      return state == State.INITIALIZING;
+    }
+
+    @State
+    public int getState() {
+      return state;
     }
   }
 }

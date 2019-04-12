@@ -32,6 +32,7 @@ import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
 import com.google.protobuf.ByteString;
+import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import java.nio.charset.Charset;
 import org.junit.Before;
@@ -108,7 +109,7 @@ public class MultiSessionPagingTest {
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
 
-    ModelProvider mp1 = modelProviderFactory.createNew(null);
+    ModelProvider mp1 = modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     modelValidator.assertRoot(mp1);
     WireProtocolInfo protocolInfo = s1InitialResponse.getWireProtocolInfo();
     assertThat(protocolInfo.hasToken).isTrue();
@@ -116,7 +117,7 @@ public class MultiSessionPagingTest {
     assertThat(mp1.getCurrentState()).isEqualTo(State.READY);
 
     // Create a second session against the S1 head.
-    ModelProvider mp2 = modelProviderFactory.createNew(null);
+    ModelProvider mp2 = modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     assertThat(mp2.getCurrentState()).isEqualTo(State.READY);
     modelValidator.assertCursorContentsWithToken(mp2, s1Cards);
 
@@ -130,7 +131,7 @@ public class MultiSessionPagingTest {
     assertThat(mp2.getCurrentState()).isEqualTo(State.INVALIDATED);
 
     // Now create a ModelProvider against the new session.
-    mp2 = modelProviderFactory.createNew(null);
+    mp2 = modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     modelValidator.assertRoot(mp2);
     protocolInfo = s1InitialResponse.getWireProtocolInfo();
     assertThat(protocolInfo.hasToken).isTrue();

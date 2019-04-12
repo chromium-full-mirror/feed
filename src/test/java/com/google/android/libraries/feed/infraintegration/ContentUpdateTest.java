@@ -35,6 +35,7 @@ import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider
 import com.google.android.libraries.feed.internalapi.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
+import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import com.google.search.now.wire.feed.ConsistencyTokenProto.ConsistencyToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import java.util.ArrayList;
@@ -76,7 +77,8 @@ public class ContentUpdateTest {
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
-    ModelProvider modelProvider = modelProviderFactory.createNew(null);
+    ModelProvider modelProvider =
+        modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
 
     ModelFeature root = modelProvider.getRootFeature();
     assertThat(root).isNotNull();

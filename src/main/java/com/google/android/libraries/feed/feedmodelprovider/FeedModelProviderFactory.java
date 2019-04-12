@@ -25,6 +25,7 @@ import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider.ViewDepthProvider;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProviderFactory;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
+import com.google.search.now.feed.client.StreamDataProto.UiContext;
 
 /**
  * Factory for creating instances of {@link ModelProviderFactory} using the {@link
@@ -54,23 +55,25 @@ public final class FeedModelProviderFactory implements ModelProviderFactory {
   }
 
   @Override
-  public ModelProvider create(String sessionId) {
+  public ModelProvider create(String sessionId, UiContext uiContext) {
     FeedModelProvider modelProvider =
         new FeedModelProvider(
             sessionManager, threadUtils, timingUtils, taskQueue, mainThreadRunner, null, config);
-    sessionManager.getExistingSession(sessionId, modelProvider);
+    sessionManager.getExistingSession(sessionId, modelProvider, uiContext);
     return modelProvider;
   }
 
   @Override
-  public ModelProvider createNew(/*@Nullable*/ ViewDepthProvider viewDepthProvider) {
-    return createNew(viewDepthProvider, null);
+  public ModelProvider createNew(
+      /*@Nullable*/ ViewDepthProvider viewDepthProvider, UiContext uiContext) {
+    return createNew(viewDepthProvider, null, uiContext);
   }
 
   @Override
   public ModelProvider createNew(
       /*@Nullable*/ ViewDepthProvider viewDepthProvider,
-      /*@Nullable*/ Predicate<StreamStructure> filterPredicate) {
+      /*@Nullable*/ Predicate<StreamStructure> filterPredicate,
+      UiContext uiContext) {
     FeedModelProvider modelProvider =
         new FeedModelProvider(
             sessionManager,
@@ -81,7 +84,7 @@ public final class FeedModelProviderFactory implements ModelProviderFactory {
             filterPredicate,
             config);
     sessionManager.getNewSession(
-        modelProvider, modelProvider.getViewDepthProvider(viewDepthProvider));
+        modelProvider, modelProvider.getViewDepthProvider(viewDepthProvider), uiContext);
     return modelProvider;
   }
 }

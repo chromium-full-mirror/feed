@@ -24,7 +24,7 @@ public interface ModelProviderObserver {
    * the UI. If you register for the ModelProvider after the Session is Ready, we will call the
    * Observer. Otherwise the Observer is called once initialization is finished.
    */
-  void onSessionStart();
+  void onSessionStart(UiContext uiContext);
 
   /**
    * This event is triggered when the Session is invalidated. Once this is called, the UI should no

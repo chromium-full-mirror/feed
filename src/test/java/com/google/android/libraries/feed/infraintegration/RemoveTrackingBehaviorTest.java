@@ -34,6 +34,7 @@ import com.google.android.libraries.feed.internalapi.protocoladapter.ProtocolAda
 import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
+import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.ResponseProto.Response;
 import java.util.List;
@@ -75,7 +76,8 @@ public class RemoveTrackingBehaviorTest {
     loadInitialData();
 
     AtomicBoolean called = new AtomicBoolean(false);
-    ModelProvider modelProvider = modelProviderFactory.createNew(null);
+    ModelProvider modelProvider =
+        modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     modelProvider.enableRemoveTracking(
         getRemoveTrackingFactory(
             (contentIds) -> {
@@ -97,7 +99,8 @@ public class RemoveTrackingBehaviorTest {
     loadInitialData();
 
     AtomicBoolean called = new AtomicBoolean(false);
-    ModelProvider modelProvider = modelProviderFactory.createNew(null);
+    ModelProvider modelProvider =
+        modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     modelProvider.enableRemoveTracking(
         getRemoveTrackingFactory(
             (contentIds) -> {
@@ -125,7 +128,8 @@ public class RemoveTrackingBehaviorTest {
     loadInitialData();
 
     AtomicBoolean called = new AtomicBoolean(false);
-    ModelProvider modelProvider = modelProviderFactory.createNew(null);
+    ModelProvider modelProvider =
+        modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     modelProvider.enableRemoveTracking(
         getRemoveTrackingFactory(
             (contentIds) -> {

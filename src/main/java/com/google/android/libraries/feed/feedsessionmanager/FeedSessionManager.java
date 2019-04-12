@@ -243,7 +243,9 @@ public final class FeedSessionManager
 
   @Override
   public void getNewSession(
-      ModelProvider modelProvider, /*@Nullable*/ ViewDepthProvider viewDepthProvider) {
+      ModelProvider modelProvider,
+      /*@Nullable*/ ViewDepthProvider viewDepthProvider,
+      UiContext uiContext) {
     threadUtils.checkMainThread();
     if (!initialized.get()) {
       Logger.i(TAG, "Lazy initialization triggered, getNewSession");
@@ -257,16 +259,17 @@ public final class FeedSessionManager
 
     if (!sessionCache.isHeadInitialized()) {
       Logger.i(TAG, "Delaying populateSession until initialization is finished");
-      taskQueue.execute(Task.GET_NEW_SESSION, TaskType.IMMEDIATE, () -> populateSession(session));
+      taskQueue.execute(
+          Task.GET_NEW_SESSION, TaskType.IMMEDIATE, () -> populateSession(session, uiContext));
     } else {
-      populateSession(session);
+      populateSession(session, uiContext);
     }
   }
 
   // This method can be run either on the main thread or on the background thread. It calls the
   // SchedulerApi to determine how the session is created. It creates a new task to populate the
   // new session.
-  private void populateSession(InitializableSession session) {
+  private void populateSession(InitializableSession session, UiContext uiContext) {
 
     // Create SessionManagerState and call SchedulerApi to determine what the session-creation
     // experience should be.
@@ -289,7 +292,7 @@ public final class FeedSessionManager
     boolean shouldStartRequest = shouldStartRequest(sessionManagerState, behavior);
     Runnable timeoutTask =
         shouldPopulateWithTimeout(sessionManagerState, behavior)
-            ? () -> populateSessionTask(session, shouldAppendOutstandingRequest)
+            ? () -> populateSessionTask(session, shouldAppendOutstandingRequest, uiContext)
             : null;
     Logger.i(
         TAG,
@@ -303,25 +306,21 @@ public final class FeedSessionManager
     // If we are making a request, there are two orders, request -> populate for all cases except
     // for REQUEST_WITH_CONTENT which is populate -> request.
     if (shouldStartRequest && behavior != RequestBehavior.REQUEST_WITH_CONTENT) {
-      triggerRefresh(
-          /* sessionId= */ null,
-          RequestReason.OPEN_WITHOUT_CONTENT,
-          UiContext.getDefaultInstance());
+      triggerRefresh(/* sessionId= */ null, RequestReason.OPEN_WITHOUT_CONTENT, uiContext);
     }
     taskQueue.execute(
         Task.POPULATE_NEW_SESSION,
         requestBehaviorToTaskType(behavior),
-        () -> populateSessionTask(session, shouldAppendOutstandingRequest),
+        () -> populateSessionTask(session, shouldAppendOutstandingRequest, uiContext),
         timeoutTask,
         sessionPopulationTimeoutMs);
     if (shouldStartRequest && behavior == RequestBehavior.REQUEST_WITH_CONTENT) {
-      triggerRefresh(
-          /* sessionId= */ null, RequestReason.OPEN_WITH_CONTENT, UiContext.getDefaultInstance());
+      triggerRefresh(/* sessionId= */ null, RequestReason.OPEN_WITH_CONTENT, uiContext);
     }
   }
 
   private void populateSessionTask(
-      InitializableSession session, boolean shouldAppendOutstandingRequest) {
+      InitializableSession session, boolean shouldAppendOutstandingRequest, UiContext uiContext) {
     threadUtils.checkNotMainThread();
     ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
 
@@ -375,7 +374,10 @@ public final class FeedSessionManager
     cachedBindings = contentCache.size() > 0;
     long creationTimeMillis = clock.currentTimeMillis();
     session.populateModelProvider(
-        streamStructuresResult.getValue(), cachedBindings, shouldAppendOutstandingRequest);
+        streamStructuresResult.getValue(),
+        cachedBindings,
+        shouldAppendOutstandingRequest,
+        uiContext);
     sessionCache.putAttached(sessionId, creationTimeMillis, session);
     synchronized (lock) {
       sessionsUnderConstruction.remove(session);
@@ -423,7 +425,8 @@ public final class FeedSessionManager
   }
 
   @Override
-  public void getExistingSession(String sessionId, ModelProvider modelProvider) {
+  public void getExistingSession(
+      String sessionId, ModelProvider modelProvider, UiContext uiContext) {
     threadUtils.checkMainThread();
     if (!initialized.get()) {
       Logger.i(TAG, "Lazy initialization triggered, getExistingSession");
@@ -440,14 +443,14 @@ public final class FeedSessionManager
         () -> {
           threadUtils.checkNotMainThread();
           if (!sessionCache.hasSession(sessionId)) {
-            modelProvider.invalidate();
+            modelProvider.invalidate(uiContext);
             return;
           }
           Session existingSession = sessionCache.getAttached(sessionId);
           if (existingSession != null && !existingSession.getContentInSession().isEmpty()) {
             ModelProvider existingModelProvider = existingSession.getModelProvider();
             if (existingModelProvider != null) {
-              existingModelProvider.invalidate();
+              existingModelProvider.invalidate(uiContext);
             }
           }
 
@@ -455,7 +458,8 @@ public final class FeedSessionManager
               store.getStreamStructures(sessionId);
           if (streamStructuresResult.isSuccessful()) {
             session.setSessionId(sessionId);
-            session.populateModelProvider(streamStructuresResult.getValue(), false, false);
+            session.populateModelProvider(
+                streamStructuresResult.getValue(), false, false, uiContext);
             sessionCache.putAttachedAndRetainMetadata(sessionId, session);
             existingSessionCount++;
           } else {
@@ -573,7 +577,8 @@ public final class FeedSessionManager
           requestManager.triggerRefresh(
               requestReason,
               consistencyToken,
-              getCommitter("triggerRefresh", MutationContext.EMPTY_CONTEXT));
+              getCommitter(
+                  "triggerRefresh", new MutationContext.Builder().setUiContext(uiContext).build()));
         });
 
     if (sessionId != null) {

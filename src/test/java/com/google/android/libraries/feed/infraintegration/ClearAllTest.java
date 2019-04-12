@@ -30,6 +30,7 @@ import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider.State;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
+import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import org.junit.Before;
 import org.junit.Test;
@@ -75,9 +76,11 @@ public class ClearAllTest {
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
-    ModelProvider modelProvider1 = modelProviderFactory.createNew(null);
+    ModelProvider modelProvider1 =
+        modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     modelValidator.assertCursorContents(modelProvider1, cards);
-    ModelProvider modelProvider2 = modelProviderFactory.createNew(null);
+    ModelProvider modelProvider2 =
+        modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     modelValidator.assertCursorContents(modelProvider2, cards);
 
     appLifecycleListener.onClearAll();
@@ -102,7 +105,8 @@ public class ClearAllTest {
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
-    ModelProvider modelProvider = modelProviderFactory.createNew(null);
+    ModelProvider modelProvider =
+        modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     modelValidator.assertCursorContents(modelProvider, cards);
     String modelToken = modelProvider.getSessionId();
     appLifecycleListener.onClearAll();
@@ -110,12 +114,12 @@ public class ClearAllTest {
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.INVALIDATED);
 
     // create a new (Empty) ModelProvider
-    modelProvider = modelProviderFactory.createNew(null);
+    modelProvider = modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
     assertThat(modelProvider.getRootFeature()).isNull();
 
     // try to create the old existing ModelProvider
-    modelProvider = modelProviderFactory.create(modelToken);
+    modelProvider = modelProviderFactory.create(modelToken, UiContext.getDefaultInstance());
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.INVALIDATED);
   }
 }

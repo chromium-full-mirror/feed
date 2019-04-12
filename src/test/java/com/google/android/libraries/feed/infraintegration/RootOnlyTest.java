@@ -68,11 +68,12 @@ public class RootOnlyTest {
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
-    ModelProvider modelProvider = modelProviderFactory.createNew(null);
+    ModelProvider modelProvider =
+        modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
 
     ModelProviderObserver changeObserver = mock(ModelProviderObserver.class);
     modelProvider.registerObserver(changeObserver);
-    verify(changeObserver).onSessionStart();
+    verify(changeObserver).onSessionStart(UiContext.getDefaultInstance());
     verify(changeObserver, never()).onSessionFinished(any(UiContext.class));
 
     assertThat(modelProvider).isNotNull();
@@ -93,9 +94,10 @@ public class RootOnlyTest {
     // ModelProvider created from empty $HEAD, followed by a response adding head
     // Verify the observer lifecycle is correctly called
     ModelProviderObserver changeObserver = mock(ModelProviderObserver.class);
-    ModelProvider modelProvider = modelProviderFactory.createNew(null);
+    ModelProvider modelProvider =
+        modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     modelProvider.registerObserver(changeObserver);
-    verify(changeObserver).onSessionStart();
+    verify(changeObserver).onSessionStart(UiContext.getDefaultInstance());
     verify(changeObserver, never()).onSessionFinished(any(UiContext.class));
 
     ResponseBuilder responseBuilder = new ResponseBuilder().addRootFeature();
@@ -130,7 +132,8 @@ public class RootOnlyTest {
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
-    ModelProvider modelProvider = modelProviderFactory.createNew(null);
+    ModelProvider modelProvider =
+        modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     modelProvider.registerObserver(changeObserver);
     modelValidator.assertRoot(modelProvider);
 

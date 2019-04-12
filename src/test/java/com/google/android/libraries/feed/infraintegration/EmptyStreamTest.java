@@ -32,6 +32,7 @@ import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider.State;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProviderObserver;
+import com.google.android.libraries.feed.testing.proto.UiContextForTestProto.UiContextForTest;
 import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
 import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import org.junit.Before;
@@ -61,22 +62,41 @@ public class EmptyStreamTest {
   @Test
   public void emptyStream_observable() {
     // ModelProvider will be initialized from empty $HEAD
-    ModelProvider modelProvider = modelProviderFactory.createNew(null);
+    ModelProvider modelProvider =
+        modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
     assertThat(modelProvider.getRootFeature()).isNull();
     ModelProviderObserver observer = mock(ModelProviderObserver.class);
     modelProvider.registerObserver(observer);
-    verify(observer).onSessionStart();
+    verify(observer).onSessionStart(UiContext.getDefaultInstance());
+  }
+
+  @Test
+  public void emptyStream_usesGivenUiContext() {
+    // ModelProvider will be initialized with the given UiContext.
+    UiContext uiContext =
+        UiContext.newBuilder()
+            .setExtension(
+                UiContextForTest.uiContextForTest,
+                UiContextForTest.newBuilder().setValue(2).build())
+            .build();
+    ModelProvider modelProvider = modelProviderFactory.createNew(null, uiContext);
+    assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
+    assertThat(modelProvider.getRootFeature()).isNull();
+    ModelProviderObserver observer = mock(ModelProviderObserver.class);
+    modelProvider.registerObserver(observer);
+    verify(observer).onSessionStart(uiContext);
   }
 
   @Test
   public void emptyStream_observableInvalidate() {
     // Verify both ModelProviderObserver events are called
-    ModelProvider modelProvider = modelProviderFactory.createNew(null);
+    ModelProvider modelProvider =
+        modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
     ModelProviderObserver observer = mock(ModelProviderObserver.class);
     modelProvider.registerObserver(observer);
-    verify(observer).onSessionStart();
+    verify(observer).onSessionStart(UiContext.getDefaultInstance());
     modelProvider.invalidate();
     verify(observer).onSessionFinished(UiContext.getDefaultInstance());
   }
@@ -84,11 +104,12 @@ public class EmptyStreamTest {
   @Test
   public void emptyStream_unregisterObservable() {
     // Verify unregister works, so the ModelProviderObserver is not called for invalidate
-    ModelProvider modelProvider = modelProviderFactory.createNew(null);
+    ModelProvider modelProvider =
+        modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
     ModelProviderObserver observer = mock(ModelProviderObserver.class);
     modelProvider.registerObserver(observer);
-    verify(observer).onSessionStart();
+    verify(observer).onSessionStart(UiContext.getDefaultInstance());
     modelProvider.unregisterObserver(observer);
     modelProvider.invalidate();
     verify(observer, never()).onSessionFinished(UiContext.getDefaultInstance());
@@ -102,9 +123,10 @@ public class EmptyStreamTest {
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
-    // TODO: the empty response is missing CLEAR_ALL, so the TaskQueue is delaying.
+
     fakeClock.advance(TaskQueue.STARVATION_TIMEOUT_MS);
-    ModelProvider modelProvider = modelProviderFactory.createNew(null);
+    ModelProvider modelProvider =
+        modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
 
     assertThat(modelProvider).isNotNull();
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);

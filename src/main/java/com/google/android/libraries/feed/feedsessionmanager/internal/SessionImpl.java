@@ -32,6 +32,7 @@ import com.google.android.libraries.feed.internalapi.store.SessionMutation;
 import com.google.android.libraries.feed.internalapi.store.Store;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
+import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import java.util.List;
 import java.util.Set;
 
@@ -91,7 +92,10 @@ public class SessionImpl implements InitializableSession, Dumpable {
 
   @Override
   public void populateModelProvider(
-      List<StreamStructure> head, boolean cachedBindings, boolean legacyHeadContent) {
+      List<StreamStructure> head,
+      boolean cachedBindings,
+      boolean legacyHeadContent,
+      UiContext uiContext) {
     Logger.i(TAG, "PopulateModelProvider %s items", head.size());
     this.legacyHeadContent = legacyHeadContent;
     threadUtils.checkNotMainThread();
@@ -99,7 +103,11 @@ public class SessionImpl implements InitializableSession, Dumpable {
 
     if (modelProvider != null) {
       ModelMutation modelMutation =
-          modelProvider.edit().hasCachedBindings(cachedBindings).setSessionId(sessionId);
+          modelProvider
+              .edit()
+              .hasCachedBindings(cachedBindings)
+              .setSessionId(sessionId)
+              .setMutationContext(new MutationContext.Builder().setUiContext(uiContext).build());
 
       // Walk through head and add all the DataOperations to the session.
       for (StreamStructure streamStructure : head) {

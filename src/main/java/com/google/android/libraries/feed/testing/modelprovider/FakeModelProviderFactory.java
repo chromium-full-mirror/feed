@@ -19,6 +19,7 @@ import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider.ViewDepthProvider;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProviderFactory;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
+import com.google.search.now.feed.client.StreamDataProto.UiContext;
 
 /**
  * Fake for tests using {@link ModelProviderFactory}. Functionality should be added to this class as
@@ -31,14 +32,15 @@ public class FakeModelProviderFactory implements ModelProviderFactory {
   /*@Nullable*/ private ViewDepthProvider viewDepthProvider;
 
   @Override
-  public ModelProvider create(String sessionId) {
+  public ModelProvider create(String sessionId, UiContext uiContext) {
     this.modelProvider = new FakeModelProvider();
     this.createSessionId = sessionId;
     return modelProvider;
   }
 
   @Override
-  public ModelProvider createNew(/*@Nullable*/ ViewDepthProvider viewDepthProvider) {
+  public ModelProvider createNew(
+      /*@Nullable*/ ViewDepthProvider viewDepthProvider, UiContext uiContext) {
     this.viewDepthProvider = viewDepthProvider;
     this.modelProvider = new FakeModelProvider();
     return modelProvider;
@@ -47,7 +49,8 @@ public class FakeModelProviderFactory implements ModelProviderFactory {
   @Override
   public ModelProvider createNew(
       /*@Nullable*/ ViewDepthProvider viewDepthProvider,
-      /*@Nullable*/ Predicate<StreamStructure> filterPredicate) {
+      /*@Nullable*/ Predicate<StreamStructure> filterPredicate,
+      UiContext uiContext) {
     this.viewDepthProvider = viewDepthProvider;
     this.modelProvider = new FakeModelProvider();
     return modelProvider;

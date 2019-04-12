@@ -17,6 +17,8 @@ package com.google.android.libraries.feed.feedsessionmanager;
 import static com.google.android.libraries.feed.internalapi.store.Store.HEAD_SESSION_ID;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -52,6 +54,8 @@ import com.google.android.libraries.feed.internalapi.modelprovider.ModelError;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelError.ErrorType;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProviderFactory;
+import com.google.android.libraries.feed.internalapi.modelprovider.ModelProviderObserver;
+import com.google.android.libraries.feed.testing.proto.UiContextForTestProto.UiContextForTest;
 import com.google.android.libraries.feed.testing.protocoladapter.FakeProtocolAdapter;
 import com.google.android.libraries.feed.testing.requestmanager.FakeActionUploadRequestManager;
 import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
@@ -375,7 +379,7 @@ public class FeedSessionManagerTest {
     fakeTaskQueue.resetCounts();
 
     // Population will happen in an immediate task.
-    modelProvider = getModelProvider(sessionManager, sessionId);
+    modelProvider = getModelProvider(sessionManager, sessionId, UiContext.getDefaultInstance());
     assertThat(modelProvider).isNotNull();
     assertThat(fakeTaskQueue.getImmediateTaskCount()).isEqualTo(1);
     assertThat(fakeTaskQueue.getBackgroundTaskCount()).isEqualTo(0);
@@ -794,6 +798,26 @@ public class FeedSessionManagerTest {
     assertThat(internedThird).isSameAs(third);
   }
 
+  @Test
+  public void testGetNewSession() {
+    FeedSessionManager sessionManager = getInitializedSessionManager();
+
+    UiContext uiContext =
+        UiContext.newBuilder()
+            .setExtension(
+                UiContextForTest.uiContextForTest,
+                UiContextForTest.newBuilder().setValue(3).build())
+            .build();
+
+    ModelProvider modelProvider = getModelProvider(sessionManager, uiContext);
+
+    sessionManager.getNewSession(modelProvider, /* viewDepthProvider= */ null, uiContext);
+    ModelProviderObserver modelProviderObserver = mock(ModelProviderObserver.class);
+    modelProvider.registerObserver(modelProviderObserver);
+
+    verify(modelProviderObserver).onSessionStart(uiContext);
+  }
+
   private int populateSession(
       FeedSessionManager sessionManager,
       int featureCnt,
@@ -824,10 +848,15 @@ public class FeedSessionManagerTest {
   }
 
   private ModelProvider getModelProvider(FeedSessionManager sessionManager) {
-    return getModelProvider(sessionManager, /* sessionId= */ null);
+    return getModelProvider(sessionManager, /* sessionId= */ null, UiContext.getDefaultInstance());
   }
 
-  private ModelProvider getModelProvider(FeedSessionManager sessionManager, String sessionId) {
+  private ModelProvider getModelProvider(FeedSessionManager sessionManager, UiContext uiContext) {
+    return getModelProvider(sessionManager, /* sessionId= */ null, uiContext);
+  }
+
+  private ModelProvider getModelProvider(
+      FeedSessionManager sessionManager, String sessionId, UiContext uiContext) {
     ModelProviderFactory modelProviderFactory =
         new FeedModelProviderFactory(
             sessionManager,
@@ -837,9 +866,9 @@ public class FeedSessionManagerTest {
             fakeMainThreadRunner,
             configuration);
     if (sessionId == null) {
-      return modelProviderFactory.createNew(/* viewDepthProvider= */ null);
+      return modelProviderFactory.createNew(/* viewDepthProvider= */ null, uiContext);
     } else {
-      return modelProviderFactory.create(sessionId);
+      return modelProviderFactory.create(sessionId, uiContext);
     }
   }
 

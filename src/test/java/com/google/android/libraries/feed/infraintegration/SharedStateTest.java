@@ -28,6 +28,7 @@ import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider
 import com.google.android.libraries.feed.internalapi.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
+import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -63,7 +64,8 @@ public class SharedStateTest {
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
 
-    ModelProvider modelProvider = modelProviderFactory.createNew(null);
+    ModelProvider modelProvider =
+        modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     StreamSharedState sharedState = modelProvider.getSharedState(ResponseBuilder.PIET_SHARED_STATE);
     assertThat(sharedState).isNotNull();
     modelValidator.assertStreamContentId(
@@ -74,7 +76,8 @@ public class SharedStateTest {
   @Test
   public void sharedState_headAfterModelProvider() {
     // ModelProvider is created from empty $HEAD, simple shared state added
-    ModelProvider modelProvider = modelProviderFactory.createNew(null);
+    ModelProvider modelProvider =
+        modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     StreamSharedState sharedState = modelProvider.getSharedState(ResponseBuilder.PIET_SHARED_STATE);
     assertThat(sharedState).isNull();
 

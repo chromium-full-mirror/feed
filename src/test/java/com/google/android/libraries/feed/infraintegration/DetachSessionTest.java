@@ -30,6 +30,7 @@ import com.google.android.libraries.feed.internalapi.modelprovider.ModelChild;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
+import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import org.junit.Before;
 import org.junit.Test;
@@ -95,11 +96,11 @@ public class DetachSessionTest {
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
 
     // Create the sessionOne from page1 and a token
-    ModelProvider sessionOne = modelProviderFactory.createNew(null);
+    ModelProvider sessionOne = modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     ModelChild tokenChild = modelValidator.assertCursorContentsWithToken(sessionOne, PAGE_1);
 
     // Create the sessionTwo matching sessionOne
-    ModelProvider sessionTwo = modelProviderFactory.createNew(null);
+    ModelProvider sessionTwo = modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     modelValidator.assertCursorContentsWithToken(sessionTwo, PAGE_1);
 
     // Detach sessionOne
@@ -107,7 +108,8 @@ public class DetachSessionTest {
     sessionOne.detachModelProvider();
 
     // recreate sessionOne as existingSession
-    ModelProvider existingSession = modelProviderFactory.create(sessionId);
+    ModelProvider existingSession =
+        modelProviderFactory.create(sessionId, UiContext.getDefaultInstance());
     modelValidator.assertCursorContentsWithToken(existingSession, PAGE_1);
 
     // page the sessionTwo
@@ -144,11 +146,11 @@ public class DetachSessionTest {
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
 
     // Create the sessionOne from page1 and a token
-    ModelProvider sessionOne = modelProviderFactory.createNew(null);
+    ModelProvider sessionOne = modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     ModelChild tokenChild = modelValidator.assertCursorContentsWithToken(sessionOne, PAGE_1);
 
     // Create the sessionTwo matching sessionOne
-    ModelProvider sessionTwo = modelProviderFactory.createNew(null);
+    ModelProvider sessionTwo = modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     modelValidator.assertCursorContentsWithToken(sessionTwo, PAGE_1);
 
     // Detach sessionOne
@@ -160,7 +162,8 @@ public class DetachSessionTest {
     sessionTwo.handleToken(tokenChild.getModelToken());
 
     // recreate sessionOne as existingSession
-    ModelProvider existingSession = modelProviderFactory.create(sessionId);
+    ModelProvider existingSession =
+        modelProviderFactory.create(sessionId, UiContext.getDefaultInstance());
 
     // verify that existingSession and sessionTwo match
     modelValidator.assertCursorContents(

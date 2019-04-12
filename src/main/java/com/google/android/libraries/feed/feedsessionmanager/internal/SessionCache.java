@@ -37,6 +37,7 @@ import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSessions;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
+import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -384,7 +385,8 @@ public final class SessionCache implements Dumpable {
         unboundSession.populateModelProvider(
             streamStructuresResult.getValue(),
             /* cachedBindings= */ false,
-            /* legacyHeadContent= */ false);
+            /* legacyHeadContent= */ false,
+            UiContext.getDefaultInstance());
       } else {
         Logger.e(TAG, "Failed to read unbound session state, ignored");
       }

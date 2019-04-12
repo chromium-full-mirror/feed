@@ -367,15 +367,15 @@ public class FeedModelProviderTest {
     FeedModelProvider modelProvider = createFeedModelProviderWithConfig();
     ModelProviderObserver observer1 = mock(ModelProviderObserver.class);
     modelProvider.registerObserver(observer1);
-    verify(observer1, never()).onSessionStart();
+    verify(observer1, never()).onSessionStart(UiContext.getDefaultInstance());
 
     StreamFeature rootStreamFeature = getRootFeature();
     modelProvider.edit().addChild(createStreamStructureAndBinding(rootStreamFeature)).commit();
-    verify(observer1).onSessionStart();
+    verify(observer1).onSessionStart(UiContext.getDefaultInstance());
 
     ModelProviderObserver observer2 = mock(ModelProviderObserver.class);
     modelProvider.registerObserver(observer2);
-    verify(observer2).onSessionStart();
+    verify(observer2).onSessionStart(UiContext.getDefaultInstance());
 
     modelProvider.invalidate();
     verify(observer1).onSessionFinished(UiContext.getDefaultInstance());
@@ -391,11 +391,11 @@ public class FeedModelProviderTest {
     FeedModelProvider modelProvider = createFeedModelProviderWithConfig();
     ModelProviderObserver observer = mock(ModelProviderObserver.class);
     modelProvider.registerObserver(observer);
-    verify(observer, never()).onSessionStart();
+    verify(observer, never()).onSessionStart(UiContext.getDefaultInstance());
 
     StreamFeature rootStreamFeature = getRootFeature();
     modelProvider.edit().addChild(createStreamStructureAndBinding(rootStreamFeature)).commit();
-    verify(observer).onSessionStart();
+    verify(observer).onSessionStart(UiContext.getDefaultInstance());
 
     String anotherRootId = idGenerators.createRootContentId(100);
     rootStreamFeature = StreamFeature.newBuilder().setContentId(anotherRootId).build();
@@ -450,10 +450,11 @@ public class FeedModelProviderTest {
     modelProvider.registerObserver(observer);
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.INITIALIZING);
 
-    InitializeModel initializeModel = modelProvider.new InitializeModel();
+    InitializeModel initializeModel =
+        modelProvider.new InitializeModel(UiContext.getDefaultInstance());
     initializeModel.postMutation();
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
-    verify(observer).onSessionStart();
+    verify(observer).onSessionStart(UiContext.getDefaultInstance());
   }
 
   @Test

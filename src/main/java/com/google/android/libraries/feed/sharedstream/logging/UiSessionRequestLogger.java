@@ -48,7 +48,7 @@ public class UiSessionRequestLogger implements ModelProviderObserver {
   }
 
   @Override
-  public void onSessionStart() {
+  public void onSessionStart(UiContext uiContext) {
     if (sessionRequestState == null) {
       Logger.wtf(TAG, "onSessionStart() called without SessionRequestState.");
       return;

@@ -36,6 +36,7 @@ import com.google.android.libraries.feed.internalapi.modelprovider.ModelToken;
 import com.google.android.libraries.feed.internalapi.modelprovider.TokenCompleted;
 import com.google.android.libraries.feed.internalapi.modelprovider.TokenCompletedObserver;
 import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
+import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import org.junit.Before;
 import org.junit.Test;
@@ -94,7 +95,8 @@ public class StreamPagingTest {
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
-    ModelProvider modelProvider = modelProviderFactory.createNew(null);
+    ModelProvider modelProvider =
+        modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     modelValidator.assertRoot(modelProvider);
 
     // Validate the structure of the stream after the initial response
@@ -158,7 +160,8 @@ public class StreamPagingTest {
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
-    ModelProvider modelProvider = modelProviderFactory.createNew(null);
+    ModelProvider modelProvider =
+        modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     ModelFeature rootFeature = modelProvider.getRootFeature();
     assertThat(rootFeature).isNotNull();
     ModelCursor cursor = rootFeature.getCursor();
@@ -168,7 +171,7 @@ public class StreamPagingTest {
     modelValidator.assertCursorContents(cursor, cards[0], cards[1], pageCards[0], pageCards[1]);
 
     // Now create a second ModelProvider and verify the cursor.
-    ModelProvider session2 = modelProviderFactory.createNew(null);
+    ModelProvider session2 = modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     rootFeature = session2.getRootFeature();
     assertThat(rootFeature).isNotNull();
     cursor = rootFeature.getCursor();

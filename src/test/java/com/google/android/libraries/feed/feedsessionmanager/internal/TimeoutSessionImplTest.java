@@ -34,6 +34,7 @@ import com.google.android.libraries.feed.testing.modelprovider.FakeModelToken;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
+import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Before;
@@ -68,7 +69,7 @@ public class TimeoutSessionImplTest extends AbstractSessionImplTest {
   public void testClearHead() {
     SessionImpl session = getSessionImpl();
     session.setSessionId(TEST_SESSION_ID);
-    session.populateModelProvider(new ArrayList<>(), false, true);
+    session.populateModelProvider(new ArrayList<>(), false, true, UiContext.getDefaultInstance());
     int featureCnt = 3;
     int featureId = 5;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder().addClearOperation();
@@ -90,7 +91,7 @@ public class TimeoutSessionImplTest extends AbstractSessionImplTest {
   public void testClearHead_onPaginationRequest() {
     SessionImpl session = getSessionImpl();
     session.setSessionId(TEST_SESSION_ID);
-    session.populateModelProvider(new ArrayList<>(), false, true);
+    session.populateModelProvider(new ArrayList<>(), false, true, UiContext.getDefaultInstance());
     int featureCnt = 3;
     int featureId = 5;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder().addClearOperation();
@@ -98,7 +99,7 @@ public class TimeoutSessionImplTest extends AbstractSessionImplTest {
     List<StreamStructure> streamStructures = protocolBuilder.buildAsStreamStructure();
 
     session.bindModelProvider(fakeModelProvider, viewDepthProvider);
-    session.populateModelProvider(new ArrayList<>(), false, false);
+    session.populateModelProvider(new ArrayList<>(), false, false, UiContext.getDefaultInstance());
     session.updateSession(
         true,
         streamStructures,
@@ -117,7 +118,7 @@ public class TimeoutSessionImplTest extends AbstractSessionImplTest {
 
     session.setSessionId(TEST_SESSION_ID);
     session.bindModelProvider(fakeModelProvider, viewDepthProvider);
-    session.populateModelProvider(new ArrayList<>(), false, true);
+    session.populateModelProvider(new ArrayList<>(), false, true, UiContext.getDefaultInstance());
     assertThat(session.legacyHeadContent).isTrue();
     assertThat(session.viewDepthProvider).isEqualTo(viewDepthProvider);
   }
@@ -263,6 +264,9 @@ public class TimeoutSessionImplTest extends AbstractSessionImplTest {
     session.setSessionId(TEST_SESSION_ID);
     session.bindModelProvider(fakeModelProvider, viewDepthProvider);
     session.populateModelProvider(
-        new ArrayList<>(), /* cachedBindings= */ false, /* legacyHeadContent= */ true);
+        new ArrayList<>(),
+        /* cachedBindings= */ false,
+        /* legacyHeadContent= */ true,
+        UiContext.getDefaultInstance());
   }
 }

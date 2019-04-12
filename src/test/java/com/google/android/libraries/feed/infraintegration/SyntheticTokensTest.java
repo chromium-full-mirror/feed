@@ -46,6 +46,7 @@ import com.google.android.libraries.feed.internalapi.modelprovider.TokenComplete
 import com.google.android.libraries.feed.internalapi.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
+import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import java.util.Arrays;
 import java.util.List;
@@ -127,7 +128,8 @@ public class SyntheticTokensTest {
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
-    ModelProvider modelProvider = modelProviderFactory.createNew(null);
+    ModelProvider modelProvider =
+        modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
 
     ModelFeature root = modelProvider.getRootFeature();
@@ -142,7 +144,7 @@ public class SyntheticTokensTest {
     clearSessionManagerContentCache();
 
     // Create a new ModelProvider and verify the first page size is INITIAL_PAGE_SIZE (4)
-    modelProvider = modelProviderFactory.createNew(null);
+    modelProvider = modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
 
     root = modelProvider.getRootFeature();
@@ -223,7 +225,8 @@ public class SyntheticTokensTest {
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
-    ModelProvider modelProvider = modelProviderFactory.createNew(null);
+    ModelProvider modelProvider =
+        modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
 
     ModelFeature root = modelProvider.getRootFeature();
@@ -235,7 +238,7 @@ public class SyntheticTokensTest {
     assertThat(token.getModelToken().isSynthetic()).isTrue();
 
     // Create a new ModelProvider and verify the first page size is INITIAL_PAGE_SIZE (4)
-    modelProvider = modelProviderFactory.createNew(null);
+    modelProvider = modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
 
     root = modelProvider.getRootFeature();
@@ -317,7 +320,8 @@ public class SyntheticTokensTest {
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
-    ModelProvider modelProvider = modelProviderFactory.createNew(null);
+    ModelProvider modelProvider =
+        modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
 
     ModelFeature root = modelProvider.getRootFeature();
@@ -386,7 +390,8 @@ public class SyntheticTokensTest {
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
-    ModelProvider modelProvider = modelProviderFactory.createNew(null);
+    ModelProvider modelProvider =
+        modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
     String sessionId = modelProvider.getSessionId();
 
@@ -406,7 +411,7 @@ public class SyntheticTokensTest {
     assertThat(tokenFeature.getModelToken().isSynthetic()).isTrue();
 
     // now restore the session and see what we have
-    modelProvider = modelProviderFactory.create(sessionId);
+    modelProvider = modelProviderFactory.create(sessionId, UiContext.getDefaultInstance());
     root = modelProvider.getRootFeature();
     assertThat(root).isNotNull();
     cursor = root.getCursor();
@@ -460,7 +465,8 @@ public class SyntheticTokensTest {
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
-    ModelProvider modelProvider = modelProviderFactory.createNew(null);
+    ModelProvider modelProvider =
+        modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
 
     // Prep for sending modifications to the model provider

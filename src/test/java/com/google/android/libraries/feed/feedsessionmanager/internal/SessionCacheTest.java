@@ -36,6 +36,7 @@ import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSessions;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
+import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Before;
@@ -406,7 +407,7 @@ public class SessionCacheTest {
     }
     session.setSessionId("stream:" + id);
     session.bindModelProvider(fakeModelProvider, mock(ViewDepthProvider.class));
-    session.populateModelProvider(head, true, false);
+    session.populateModelProvider(head, true, false, UiContext.getDefaultInstance());
 
     if (commitToStore) {
       fakeStore.setStreamStructures(session.getSessionId(), head);

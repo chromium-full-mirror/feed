@@ -95,8 +95,7 @@ public class FakeModelProvider implements ModelProvider {
 
   @Override
   public void triggerRefresh(@RequestReason int requestReason) {
-    wasRefreshTriggered = true;
-    lastRequestReason = requestReason;
+    triggerRefresh(requestReason, UiContext.getDefaultInstance());
   }
 
   @Override
@@ -139,7 +138,7 @@ public class FakeModelProvider implements ModelProvider {
   public void registerObserver(ModelProviderObserver observer) {
     if (immediateSessionStartModel != null) {
       this.rootFeature = immediateSessionStartModel;
-      observer.onSessionStart();
+      observer.onSessionStart(UiContext.getDefaultInstance());
     }
 
     observers.add(observer);
@@ -153,7 +152,7 @@ public class FakeModelProvider implements ModelProvider {
   public void triggerOnSessionStart(ModelFeature rootFeature) {
     this.rootFeature = rootFeature;
     for (ModelProviderObserver observer : observers) {
-      observer.onSessionStart();
+      observer.onSessionStart(UiContext.getDefaultInstance());
     }
   }
 

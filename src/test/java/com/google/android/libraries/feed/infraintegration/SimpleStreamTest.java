@@ -31,6 +31,7 @@ import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.internalapi.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
+import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import org.junit.Before;
 import org.junit.Test;
@@ -68,7 +69,8 @@ public class SimpleStreamTest {
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
-    ModelProvider modelProvider = modelProviderFactory.createNew(null);
+    ModelProvider modelProvider =
+        modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     modelValidator.assertRoot(modelProvider);
 
     WireProtocolInfo protocolInfo = responseBuilder.getWireProtocolInfo();
@@ -105,7 +107,8 @@ public class SimpleStreamTest {
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
-    ModelProvider modelProvider = modelProviderFactory.createNew(null);
+    ModelProvider modelProvider =
+        modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     modelValidator.assertRoot(modelProvider);
 
     WireProtocolInfo protocolInfo = responseBuilder.getWireProtocolInfo();

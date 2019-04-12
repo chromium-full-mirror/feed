@@ -26,6 +26,7 @@ import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThrea
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
+import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -60,6 +61,6 @@ public class FeedModelProviderFactoryTest {
     FeedModelProviderFactory factory =
         new FeedModelProviderFactory(
             sessionManager, threadUtils, timingUtils, taskQueue, mainThreadRunner, config);
-    assertThat(factory.createNew(null, null)).isNotNull();
+    assertThat(factory.createNew(null, UiContext.getDefaultInstance())).isNotNull();
   }
 }

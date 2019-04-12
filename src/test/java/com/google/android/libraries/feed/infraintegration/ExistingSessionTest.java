@@ -26,6 +26,7 @@ import com.google.android.libraries.feed.internalapi.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider.State;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProviderFactory;
+import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import org.junit.After;
 import org.junit.Before;
@@ -67,7 +68,8 @@ public class ExistingSessionTest {
 
   @Test
   public void createModelProvider() {
-    ModelProvider modelProvider = modelProviderFactory.createNew(null);
+    ModelProvider modelProvider =
+        modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
 
     ModelFeature initRoot = modelProvider.getRootFeature();
     assertThat(initRoot).isNotNull();
@@ -77,7 +79,8 @@ public class ExistingSessionTest {
     String sessionId = modelProvider.getSessionId();
     assertThat(sessionId).isNotEmpty();
 
-    ModelProvider modelProvider2 = modelProviderFactory.create(sessionId);
+    ModelProvider modelProvider2 =
+        modelProviderFactory.create(sessionId, UiContext.getDefaultInstance());
     assertThat(modelProvider2).isNotNull();
     ModelFeature root2 = modelProvider2.getRootFeature();
     assertThat(root2).isNotNull();
@@ -93,19 +96,22 @@ public class ExistingSessionTest {
 
   @Test
   public void createModelProvider_restoreSession() {
-    ModelProvider modelProvider = modelProviderFactory.createNew(null);
+    ModelProvider modelProvider =
+        modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     String sessionId = modelProvider.getSessionId();
     modelProvider.detachModelProvider();
 
     // Restore the session.
-    ModelProvider restoredModelProvider = modelProviderFactory.create(sessionId);
+    ModelProvider restoredModelProvider =
+        modelProviderFactory.create(sessionId, UiContext.getDefaultInstance());
     assertThat(restoredModelProvider).isNotNull();
     assertThat(restoredModelProvider.getAllRootChildren()).hasSize(CARDS.length);
   }
 
   @Test
   public void createModelProvider_restoreSessionWithOutstandingRequest() {
-    ModelProvider modelProvider = modelProviderFactory.createNew(null);
+    ModelProvider modelProvider =
+        modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     String sessionId = modelProvider.getSessionId();
     modelProvider.detachModelProvider();
 
@@ -118,7 +124,8 @@ public class ExistingSessionTest {
             scope.getSessionManager().getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
 
     // Restore the session.
-    ModelProvider restoredModelProvider = modelProviderFactory.create(sessionId);
+    ModelProvider restoredModelProvider =
+        modelProviderFactory.create(sessionId, UiContext.getDefaultInstance());
     assertThat(restoredModelProvider.getAllRootChildren()).hasSize(CARDS.length);
 
     // Advance the clock to process the outstanding request.
@@ -127,7 +134,8 @@ public class ExistingSessionTest {
 
   @Test
   public void createModelProvider_unknownSession() {
-    ModelProvider modelProvider = modelProviderFactory.createNew(null);
+    ModelProvider modelProvider =
+        modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
 
     ModelFeature initRoot = modelProvider.getRootFeature();
     assertThat(initRoot).isNotNull();
@@ -138,12 +146,13 @@ public class ExistingSessionTest {
     assertThat(sessionId).isNotEmpty();
 
     // Create a second model provider using an unknown session token, this should return null
-    ModelProvider modelProvider2 = modelProviderFactory.create("unknown-session");
+    ModelProvider modelProvider2 =
+        modelProviderFactory.create("unknown-session", UiContext.getDefaultInstance());
     assertThat(modelProvider2).isNotNull();
     assertThat(modelProvider2.getCurrentState()).isEqualTo(State.INVALIDATED);
 
     // Now create one from head
-    modelProvider2 = modelProviderFactory.createNew(null);
+    modelProvider2 = modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     assertThat(modelProvider2).isNotNull();
     ModelFeature root2 = modelProvider2.getRootFeature();
     assertThat(root2).isNotNull();
@@ -158,7 +167,8 @@ public class ExistingSessionTest {
 
   @Test
   public void createModelProvider_invalidatedSession() {
-    ModelProvider modelProvider = modelProviderFactory.createNew(null);
+    ModelProvider modelProvider =
+        modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     assertThat(modelProvider).isNotNull();
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
     String sessionId = modelProvider.getSessionId();
@@ -169,14 +179,16 @@ public class ExistingSessionTest {
 
     // Attempt to connect with the session token we just invalidated.  This will result in a
     // INVALIDATED ModelProvider.
-    ModelProvider modelProvider2 = modelProviderFactory.create(sessionId);
+    ModelProvider modelProvider2 =
+        modelProviderFactory.create(sessionId, UiContext.getDefaultInstance());
     assertThat(modelProvider2).isNotNull();
     assertThat(modelProvider2.getCurrentState()).isEqualTo(State.INVALIDATED);
   }
 
   @Test
   public void createModelProvider_detachSession() {
-    ModelProvider modelProvider = modelProviderFactory.createNew(null);
+    ModelProvider modelProvider =
+        modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     assertThat(modelProvider).isNotNull();
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
     String sessionId = modelProvider.getSessionId();
@@ -186,7 +198,8 @@ public class ExistingSessionTest {
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.INVALIDATED);
 
     // Attempt to connect with the session token we just detached.  This will work as expected.
-    ModelProvider modelProvider2 = modelProviderFactory.create(sessionId);
+    ModelProvider modelProvider2 =
+        modelProviderFactory.create(sessionId, UiContext.getDefaultInstance());
     assertThat(modelProvider2).isNotNull();
     assertThat(modelProvider2.getCurrentState()).isEqualTo(State.READY);
   }

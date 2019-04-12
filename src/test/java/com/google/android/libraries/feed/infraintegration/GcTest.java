@@ -24,6 +24,7 @@ import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.logging.RequestReason;
+import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.ResponseProto.Response;
 import java.time.Duration;
@@ -63,7 +64,10 @@ public final class GcTest {
             scope.getSessionManager().getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
 
     // Create a new session based on this request.
-    scope.getModelProviderFactory().createNew(/* viewDepthProvider= */ null).detachModelProvider();
+    scope
+        .getModelProviderFactory()
+        .createNew(/* viewDepthProvider= */ null, UiContext.getDefaultInstance())
+        .detachModelProvider();
     assertPayloads(REQUEST_1, scope, /* shouldExist= */ true);
 
     // Populate HEAD with new data.
@@ -91,7 +95,10 @@ public final class GcTest {
             scope.getSessionManager().getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
 
     // Create a new session based on this request.
-    scope.getModelProviderFactory().createNew(/* viewDepthProvider= */ null).detachModelProvider();
+    scope
+        .getModelProviderFactory()
+        .createNew(/* viewDepthProvider= */ null, UiContext.getDefaultInstance())
+        .detachModelProvider();
     assertPayloads(REQUEST_1, scope, /* shouldExist= */ true);
 
     // Populate HEAD with new data.

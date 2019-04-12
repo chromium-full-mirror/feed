@@ -49,13 +49,16 @@ public interface SessionManager extends Resettable {
    * the stream. It will also decide which changes should be made to existing sessions and the life
    * time of existing sessions.
    */
-  void getNewSession(ModelProvider modelProvider, /*@Nullable*/ ViewDepthProvider viewDepthProvider);
+  void getNewSession(
+      ModelProvider modelProvider,
+      /*@Nullable*/ ViewDepthProvider viewDepthProvider,
+      UiContext uiContext);
 
   /**
    * Create a new Session attached to the ModelProvider for an existing sessionId. This will
    * invalidate any existing ModelProvider instances attached to the session.
    */
-  void getExistingSession(String sessionId, ModelProvider modelProvider);
+  void getExistingSession(String sessionId, ModelProvider modelProvider, UiContext uiContext);
 
   /** This is called by the ModelProvider when it is invalidated. */
   void invalidateSession(String sessionId);
@@ -64,8 +67,9 @@ public interface SessionManager extends Resettable {
   void detachSession(String sessionId);
 
   /**
-   * This method will invalidate head. All {@link #getNewSession(ModelProvider, ViewDepthProvider)}
-   * will block until a new a response updates the SessionManager providing the new head.
+   * This method will invalidate head. All {@link #getNewSession(ModelProvider, ViewDepthProvider,
+   * UiContext)} will block until a new a response updates the SessionManager providing the new
+   * head.
    */
   void invalidateHead();
 

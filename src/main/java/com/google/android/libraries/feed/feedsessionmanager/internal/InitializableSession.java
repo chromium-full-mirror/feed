@@ -17,6 +17,7 @@ package com.google.android.libraries.feed.feedsessionmanager.internal;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider.ViewDepthProvider;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
+import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import java.util.List;
 
 /** A {@link Session} which supports initialization from $HEAD. */
@@ -36,5 +37,6 @@ public interface InitializableSession extends Session {
   void populateModelProvider(
       List<StreamStructure> session,
       boolean cachedBindings,
-      boolean legacyHeadContent);
+      boolean legacyHeadContent,
+      UiContext uiContext);
 }

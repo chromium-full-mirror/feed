@@ -28,6 +28,7 @@ import com.google.android.libraries.feed.internalapi.modelprovider.ModelChild;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
+import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import org.junit.Before;
 import org.junit.Test;
@@ -77,11 +78,11 @@ public class LimitedPagingTest {
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
 
     // Create the sessionOne from page1 and a token
-    ModelProvider sessionOne = modelProviderFactory.createNew(null);
+    ModelProvider sessionOne = modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     ModelChild tokenChild = modelValidator.assertCursorContentsWithToken(sessionOne, PAGE_1);
 
     // Create the sessionTwo matching sessionOne
-    ModelProvider sessionTwo = modelProviderFactory.createNew(null);
+    ModelProvider sessionTwo = modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     modelValidator.assertCursorContentsWithToken(sessionTwo, PAGE_1);
 
     // Now Page session one and verify both session are as expected, only session one will contain
@@ -95,7 +96,8 @@ public class LimitedPagingTest {
     modelValidator.assertCursorContentsWithToken(sessionTwo, PAGE_1);
 
     // Now create a new session from $HEAD to verify that the page response was added to $HEAD
-    ModelProvider sessionThree = modelProviderFactory.createNew(null);
+    ModelProvider sessionThree =
+        modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     modelValidator.assertCursorContents(
         sessionThree, PAGE_1[0], PAGE_1[1], PAGE_1[2], PAGE_2[0], PAGE_2[1], PAGE_2[2]);
 
@@ -110,7 +112,8 @@ public class LimitedPagingTest {
         sessionThree, PAGE_1[0], PAGE_1[1], PAGE_1[2], PAGE_2[0], PAGE_2[1], PAGE_2[2]);
 
     // Verify that paging session two did not update $HEAD
-    ModelProvider sessionFour = modelProviderFactory.createNew(null);
+    ModelProvider sessionFour =
+        modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     modelValidator.assertCursorContents(
         sessionFour, PAGE_1[0], PAGE_1[1], PAGE_1[2], PAGE_2[0], PAGE_2[1], PAGE_2[2]);
   }

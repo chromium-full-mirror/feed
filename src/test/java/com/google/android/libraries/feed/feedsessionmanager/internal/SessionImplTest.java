@@ -29,6 +29,7 @@ import com.google.android.libraries.feed.testing.modelprovider.FakeModelMutation
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
+import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Before;
@@ -60,7 +61,7 @@ public class SessionImplTest extends AbstractSessionImplTest {
   public void testClearHead() {
     SessionImpl session = getSessionImpl();
     session.setSessionId(TEST_SESSION_ID);
-    session.populateModelProvider(new ArrayList<>(), false, false);
+    session.populateModelProvider(new ArrayList<>(), false, false, UiContext.getDefaultInstance());
     int featureCnt = 3;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder().addClearOperation();
     addFeatures(protocolBuilder, featureCnt, 1);
@@ -81,7 +82,7 @@ public class SessionImplTest extends AbstractSessionImplTest {
     ViewDepthProvider mockDepthProvider = mock(ViewDepthProvider.class);
     session.setSessionId(TEST_SESSION_ID);
     session.bindModelProvider(fakeModelProvider, mockDepthProvider);
-    session.populateModelProvider(new ArrayList<>(), false, false);
+    session.populateModelProvider(new ArrayList<>(), false, false, UiContext.getDefaultInstance());
     int featureCnt = 3;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder().addClearOperation();
     addFeatures(protocolBuilder, featureCnt, 1);

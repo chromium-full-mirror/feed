@@ -50,9 +50,10 @@ public final class TimeoutSessionImpl extends SessionImpl {
   public void populateModelProvider(
       List<StreamStructure> head,
       boolean cachedBindings,
-      boolean legacyHeadContent) {
+      boolean legacyHeadContent,
+      UiContext uiContext) {
     Logger.i(TAG, "TimeoutSession.populateModelProvider, shouldAppend %s", legacyHeadContent);
-    super.populateModelProvider(head, cachedBindings, legacyHeadContent);
+    super.populateModelProvider(head, cachedBindings, legacyHeadContent, uiContext);
   }
 
   @Override

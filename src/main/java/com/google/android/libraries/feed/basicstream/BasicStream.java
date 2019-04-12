@@ -616,7 +616,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
   }
 
   @Override
-  public void onSessionStart() {
+  public void onSessionStart(UiContext uiContext) {
     threadUtils.checkMainThread();
 
     if (cancellableShowSpinnerRunnable != null) {
@@ -699,7 +699,10 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
       modelProvider.unregisterObserver(this);
     }
     uiRefreshReason = uiContext.getExtension(UiRefreshReason.uiRefreshReasonExtension);
-    modelProvider = modelProviderFactory.createNew(deepestContentTracker);
+
+    // TODO: Instead of setting the refresh reseason, pipe the UiContext through here.
+    modelProvider =
+        modelProviderFactory.createNew(deepestContentTracker, UiContext.getDefaultInstance());
 
     registerObserversOnModelProvider(modelProvider);
   }
@@ -729,14 +732,16 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
       String localSavedSessionId = savedSessionId;
       if (localSavedSessionId != null) {
         isRestoring = true;
-        Logger.d(TAG, "Attempting to restoring session token: %s.", localSavedSessionId);
-        localModelProvider = modelProviderFactory.create(localSavedSessionId);
+        Logger.d(TAG, "Attempting to restoring session with id: %s.", localSavedSessionId);
+        localModelProvider =
+            modelProviderFactory.create(localSavedSessionId, UiContext.getDefaultInstance());
       }
 
       if (localModelProvider == null) {
         // If a session is no longer valid then a ModelProvider will not have been created above.
         Logger.d(TAG, "Creating new session for showing.");
-        localModelProvider = modelProviderFactory.createNew(deepestContentTracker);
+        localModelProvider =
+            modelProviderFactory.createNew(deepestContentTracker, UiContext.getDefaultInstance());
         sessionStartTimestamp = clock.currentTimeMillis();
       }
 
