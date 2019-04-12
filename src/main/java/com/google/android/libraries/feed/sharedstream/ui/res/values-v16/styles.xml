@@ -55,7 +55,7 @@
 
   <!-- Blue Text Styles -->
   <style name="FeedBlueTitle" parent="FeedRobotoMediumStyle">
-    <item name="android:textColor">?feedBlueTitleColor</item>
+    <item name="android:textColor">@color/feed_modern_blue_600</item>
     <item name="android:textSize">@dimen/text_size_medium</item>
   </style>
 

@@ -19,7 +19,6 @@ import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 import android.content.Context;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
-import android.view.ContextThemeWrapper;
 import android.view.View;
 import android.view.ViewParent;
 import android.view.WindowManager.LayoutParams;
@@ -200,8 +199,7 @@ public class ContextMenuManagerImpl implements ContextMenuManager {
       ListView listView, Size measurements, Context context) {
     // Note: We are intentionally using contextPopupMenuStyle, which allows hosts to modify the
     // style of context menus. This should not be changed without speaking with host teams.
-    PopupWindow popupWindow =
-        new PopupWindow(getBaseContext(context), null, android.R.attr.contextPopupMenuStyle);
+    PopupWindow popupWindow = new PopupWindow(context, null, android.R.attr.contextPopupMenuStyle);
     Drawable background = popupWindow.getBackground();
     Rect backgroundPadding = new Rect();
     background.getPadding(backgroundPadding);
@@ -237,13 +235,6 @@ public class ContextMenuManagerImpl implements ContextMenuManager {
                 + (backgroundPadding.height() + background.getMinimumHeight()) / 2);
 
     return new PopupWindowWithDimensions(popupWindow, popupAndBackgroundSize);
-  }
-
-  private Context getBaseContext(Context context) {
-    if (context instanceof ContextThemeWrapper) {
-      return ((ContextThemeWrapper) context).getBaseContext();
-    }
-    return context;
   }
 
   private ListView createListView(ArrayAdapter<String> adapter, Context context) {

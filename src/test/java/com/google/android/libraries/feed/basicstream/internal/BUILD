@@ -60,7 +60,6 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/sharedstream/deepestcontenttracker",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/piet",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/scroll",
-        "//src/main/java/com/google/android/libraries/feed/sharedstream/ui",
         "//third_party:robolectric",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_android_support_recyclerview_v7",

@@ -55,7 +55,6 @@ public class ContinuationViewHolderTest {
     initMocks(this);
     cardConfiguration = new FakeCardConfiguration();
     context = Robolectric.buildActivity(Activity.class).get();
-    context.setTheme(R.style.Light);
     frameLayout = new FrameLayout(context);
     frameLayout.setLayoutParams(new MarginLayoutParams(100, 100));
     continuationViewHolder =

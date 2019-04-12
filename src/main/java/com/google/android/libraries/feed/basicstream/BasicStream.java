@@ -27,7 +27,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Base64;
-import android.view.ContextThemeWrapper;
 import android.view.View;
 import android.view.View.OnLayoutChangeListener;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
@@ -107,7 +106,6 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
 
   private final CardConfiguration cardConfiguration;
   private final Clock clock;
-  private final Context context;
   private final ThreadUtils threadUtils;
   private final PietManager pietManager;
   private final ModelProviderFactory modelProviderFactory;
@@ -126,6 +124,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
   private final ViewLoggingUpdater viewLoggingUpdater;
   private final TooltipApi tooltipApi;
   private final UiSessionRequestLogger uiSessionRequestLogger;
+  private final Context context;
   private final StreamConfiguration streamConfiguration;
 
   private RecyclerView recyclerView;
@@ -182,6 +181,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
     this.clock = clock;
     this.threadUtils = threadUtils;
     this.streamOfflineMonitor = new StreamOfflineMonitor(offlineIndicatorApi);
+    this.context = context;
     this.headers = headers;
     this.modelProviderFactory = modelProviderFactory;
     this.streamConfiguration = streamConfiguration;
@@ -214,8 +214,6 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
             streamOfflineMonitor,
             configuration,
             isBackgroundDark);
-    this.context =
-        new ContextThemeWrapper(context, (isBackgroundDark ? R.style.Dark : R.style.Light));
   }
 
   @VisibleForTesting
