@@ -74,9 +74,10 @@ public class TextElementAdapterTest {
   private Context context;
 
   private TextElementAdapter adapter;
+  private int emptyTextElementLineHeight;
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     initMocks(this);
     context = Robolectric.buildActivity(Activity.class).get();
 
@@ -94,6 +95,13 @@ public class TextElementAdapterTest {
             null,
             null,
             new FakeClock());
+
+    TextElementAdapter adapterForEmptyElement =
+        new TestTextElementAdapter(context, adapterParameters);
+    // Get emptyTextElementHeight based on a text element with no content or styles set.
+    Element textElement = getBaseTextElement();
+    adapterForEmptyElement.createAdapter(textElement, frameContext);
+    emptyTextElementLineHeight = adapterForEmptyElement.getBaseView().getLineHeight();
 
     adapter = new TestTextElementAdapter(context, adapterParameters);
   }
@@ -313,10 +321,9 @@ public class TextElementAdapterTest {
 
   @Test
   public void testGetExtraLineHeight_roundDown() {
-    // This text element doesn't actually have text, so the initial height is 0, meaning the extra
-    // height is 40.2 - 0 = 40.2. This gets rounded down between the lines (to 40) and rounded up
+    // Extra height is 40.2px. This gets rounded down between the lines (to 40) and rounded up
     // for top and bottom padding (for 21 + 20 = 41).
-    initializeAdapterWithLineHeightPx(40.2f);
+    initializeAdapterWithExtraLineHeightPx(40.2f);
 
     TextElementAdapter.ExtraLineHeight extraLineHeight = adapter.getExtraLineHeight();
 
@@ -328,11 +335,10 @@ public class TextElementAdapterTest {
   @Config(sdk = VERSION_CODES.KITKAT)
   @Test
   public void testGetExtraLineHeight_roundDown_kitkat() {
-    // This text element doesn't actually have text, so the initial height is 0, meaning the extra
-    // height is 40.2 - 0 = 40.2. In KitKat and lower, 40 pixels (the amount added between lines)
+    // Extra height is 40.2px. In KitKat and lower, 40 pixels (the amount added between lines)
     // will have already been added to the bottom. To get to our desired value of 21 bottom pixels,
     // the actual bottom padding must be -19 (40 - 19 = 21).
-    initializeAdapterWithLineHeightPx(40.2f);
+    initializeAdapterWithExtraLineHeightPx(40.2f);
 
     TextElementAdapter.ExtraLineHeight extraLineHeight = adapter.getExtraLineHeight();
 
@@ -343,10 +349,9 @@ public class TextElementAdapterTest {
 
   @Test
   public void testGetExtraLineHeight_noRound() {
-    // This text element doesn't actually have text, so the initial height is 0, meaning the extra
-    // height is 40 - 0 = 40. 40 pixels will be added between each line, and that amount is split
+    // Extra height is 40px. 40 pixels will be added between each line, and that amount is split
     // (20 and 20) to be added to the top and bottom of the text element.
-    initializeAdapterWithLineHeightPx(40.0f);
+    initializeAdapterWithExtraLineHeightPx(40.0f);
 
     TextElementAdapter.ExtraLineHeight extraLineHeight = adapter.getExtraLineHeight();
 
@@ -358,11 +363,10 @@ public class TextElementAdapterTest {
   @Config(sdk = VERSION_CODES.KITKAT)
   @Test
   public void testGetExtraLineHeight_noRound_kitkat() {
-    // This text element doesn't actually have text, so the initial height is 0, meaning the extra
-    // height is 40 - 0 = 40. In KitKat and lower, 40 pixels (the amount added between lines) will
+    // Extra height is 40px. In KitKat and lower, 40 pixels (the amount added between lines) will
     // have already been added to the bottom. To get to our desired value of 20 bottom pixels, the
     // actual bottom padding must be -20 (40 - 20 = 20).
-    initializeAdapterWithLineHeightPx(40.0f);
+    initializeAdapterWithExtraLineHeightPx(40.0f);
 
     TextElementAdapter.ExtraLineHeight extraLineHeight = adapter.getExtraLineHeight();
 
@@ -373,10 +377,9 @@ public class TextElementAdapterTest {
 
   @Test
   public void testGetExtraLineHeight_roundUp() {
-    // This text element doesn't actually have text, so the initial height is 0, meaning the extra
-    // height is 40.8 - 0 = 40.8. This gets rounded up between the lines (to 41) and rounded down
+    // Extra height is 40.8px. This gets rounded up between the lines (to 41) and rounded down
     // for top and bottom padding (for 20 + 20 = 40).
-    initializeAdapterWithLineHeightPx(40.8f);
+    initializeAdapterWithExtraLineHeightPx(40.8f);
 
     TextElementAdapter.ExtraLineHeight extraLineHeight = adapter.getExtraLineHeight();
 
@@ -388,11 +391,10 @@ public class TextElementAdapterTest {
   @Config(sdk = VERSION_CODES.KITKAT)
   @Test
   public void testGetExtraLineHeight_roundUp_kitkat() {
-    // This text element doesn't actually have text, so the initial height is 0, meaning the extra
-    // height is 40.8 - 0 = 40.8. In KitKat and lower, 41 pixels (the amount added between lines)
+    // Extra height is 40.8px. In KitKat and lower, 41 pixels (the amount added between lines)
     // will have already been added to the bottom. To get to our desired value of 20 bottom pixels,
     // the actual bottom padding must be -21 (41 - 21 = 20).
-    initializeAdapterWithLineHeightPx(40.8f);
+    initializeAdapterWithExtraLineHeightPx(40.8f);
 
     TextElementAdapter.ExtraLineHeight extraLineHeight = adapter.getExtraLineHeight();
 
@@ -401,10 +403,13 @@ public class TextElementAdapterTest {
     assertThat(extraLineHeight.topPaddingPx()).isEqualTo(20);
   }
 
-  private void initializeAdapterWithLineHeightPx(float lineHeightPx) {
+  private void initializeAdapterWithExtraLineHeightPx(float lineHeightPx) {
     // Line height is specified in sp, so line height px = scaledDensity  x line height sp
+    // These tests set display density because, in order to test the rounding behavior of
+    // extraLineHeight, we need a lineHeight integer (in sp) that results in a decimal value in px.
     int lineHeightSp = 10;
-    context.getResources().getDisplayMetrics().scaledDensity = lineHeightPx / lineHeightSp;
+    float totalLineHeightPx = emptyTextElementLineHeight + lineHeightPx;
+    context.getResources().getDisplayMetrics().scaledDensity = totalLineHeightPx / lineHeightSp;
     Style lineHeightStyle1 =
         Style.newBuilder().setFont(Font.newBuilder().setLineHeight(lineHeightSp)).build();
     StyleProvider styleProvider1 = new StyleProvider(lineHeightStyle1, mockAssetProvider);
@@ -420,7 +425,10 @@ public class TextElementAdapterTest {
     context.getResources().getDisplayMetrics().scaledDensity = 1.01f;
     Style lineHeightStyle1 =
         Style.newBuilder()
-            .setFont(Font.newBuilder().setLineHeight(10).setLineHeightRatio(2.0f))
+            .setFont(
+                Font.newBuilder()
+                    .setLineHeight(10 + emptyTextElementLineHeight)
+                    .setLineHeightRatio(2.0f))
             .build();
     StyleProvider styleProvider1 = new StyleProvider(lineHeightStyle1, mockAssetProvider);
     Element textElement = getBaseTextElement(styleProvider1);
@@ -439,11 +447,10 @@ public class TextElementAdapterTest {
     // The line spacing is 150%. The extra 50% gets split between padding at the top and bottom of
     // the view, so since the text size is 100, there is an extra 25 at top and bottom.
     Style lineHeightStyle1 =
-        Style.newBuilder().setFont(Font.newBuilder().setLineHeightRatio(1.5f)).build();
+        Style.newBuilder().setFont(Font.newBuilder().setSize(100).setLineHeightRatio(1.5f)).build();
     StyleProvider styleProvider1 = new StyleProvider(lineHeightStyle1, mockAssetProvider);
     Element textElement = getBaseTextElement(styleProvider1);
     adapter.createAdapter(textElement, frameContext);
-    adapter.getBaseView().setTextSize(100.0f);
 
     TextElementAdapter.ExtraLineHeight extraLineHeight = adapter.getExtraLineHeight();
 
@@ -459,11 +466,10 @@ public class TextElementAdapterTest {
     // and lower, extra line spacing equal to that extra 50% is already added to the bottom. That
     // means padding needs to be taken away from the bottom, to make bottom padding the same as top.
     Style lineHeightStyle1 =
-        Style.newBuilder().setFont(Font.newBuilder().setLineHeightRatio(1.5f)).build();
+        Style.newBuilder().setFont(Font.newBuilder().setSize(100).setLineHeightRatio(1.5f)).build();
     StyleProvider styleProvider1 = new StyleProvider(lineHeightStyle1, mockAssetProvider);
     Element textElement = getBaseTextElement(styleProvider1);
     adapter.createAdapter(textElement, frameContext);
-    adapter.getBaseView().setTextSize(100.0f);
 
     TextElementAdapter.ExtraLineHeight extraLineHeight = adapter.getExtraLineHeight();
 
@@ -477,11 +483,10 @@ public class TextElementAdapterTest {
     // the view, so since the text size is 100, we take away an extra 25 at top and bottom, making
     // top and bottom padding negative.
     Style lineHeightStyle1 =
-        Style.newBuilder().setFont(Font.newBuilder().setLineHeightRatio(0.5f)).build();
+        Style.newBuilder().setFont(Font.newBuilder().setSize(100).setLineHeightRatio(0.5f)).build();
     StyleProvider styleProvider1 = new StyleProvider(lineHeightStyle1, mockAssetProvider);
     Element textElement = getBaseTextElement(styleProvider1);
     adapter.createAdapter(textElement, frameContext);
-    adapter.getBaseView().setTextSize(100.0f);
 
     TextElementAdapter.ExtraLineHeight extraLineHeight = adapter.getExtraLineHeight();
 
@@ -497,11 +502,10 @@ public class TextElementAdapterTest {
     // and lower, line spacing equal to that 50% deficit is already taken away from the bottom. That
     // means padding needs to be added to the bottom, to make bottom padding the same as top.
     Style lineHeightStyle1 =
-        Style.newBuilder().setFont(Font.newBuilder().setLineHeightRatio(0.5f)).build();
+        Style.newBuilder().setFont(Font.newBuilder().setSize(100).setLineHeightRatio(0.5f)).build();
     StyleProvider styleProvider1 = new StyleProvider(lineHeightStyle1, mockAssetProvider);
     Element textElement = getBaseTextElement(styleProvider1);
     adapter.createAdapter(textElement, frameContext);
-    adapter.getBaseView().setTextSize(100.0f);
 
     TextElementAdapter.ExtraLineHeight extraLineHeight = adapter.getExtraLineHeight();
 
