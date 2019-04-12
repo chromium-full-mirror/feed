@@ -26,7 +26,6 @@ import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.internalapi.store.Store;
 import com.google.android.libraries.feed.testing.store.FakeStore;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import java.util.List;
@@ -50,10 +49,7 @@ public class HeadSessionImplTest {
   public void setUp() {
     initMocks(this);
     fakeStore =
-        new FakeStore(
-            fakeThreadUtils,
-            new FakeTaskQueue(MoreExecutors.directExecutor(), fakeClock, fakeThreadUtils),
-            fakeClock);
+        new FakeStore(fakeThreadUtils, new FakeTaskQueue(fakeClock, fakeThreadUtils), fakeClock);
   }
 
   @Test

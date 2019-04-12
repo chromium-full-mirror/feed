@@ -35,7 +35,6 @@ import com.google.android.libraries.feed.testing.actionmanager.FakeActionReader;
 import com.google.android.libraries.feed.testing.network.FakeNetworkClient;
 import com.google.android.libraries.feed.testing.protocoladapter.FakeProtocolAdapter;
 import com.google.android.libraries.feed.testing.store.FakeStore;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.CodedOutputStream;
 import com.google.protobuf.ExtensionRegistryLite;
@@ -106,7 +105,7 @@ public class FeedActionUploadRequestManagerTest {
     fakeActionReader = new FakeActionReader();
     fakeThreadUtils = FakeThreadUtils.withThreadChecks();
     fakeNetworkClient = new FakeNetworkClient(fakeThreadUtils);
-    fakeTaskQueue = new FakeTaskQueue(MoreExecutors.directExecutor(), fakeClock, fakeThreadUtils);
+    fakeTaskQueue = new FakeTaskQueue(fakeClock, fakeThreadUtils);
     fakeProtocolAdapter = new FakeProtocolAdapter();
     fakeStore = new FakeStore(fakeThreadUtils, fakeTaskQueue, fakeClock);
     consumer =

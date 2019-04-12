@@ -42,11 +42,7 @@ public class TaskQueueTest {
   private final FakeMainThreadRunner fakeMainThreadRunner = FakeMainThreadRunner.create(fakeClock);
   private final TaskQueue taskQueue =
       new TaskQueue(
-          fakeBasicLoggingApi,
-          MoreExecutors.directExecutor(),
-          fakeMainThreadRunner,
-          fakeClock,
-          /* checkStarvation= */ true);
+          fakeBasicLoggingApi, MoreExecutors.directExecutor(), fakeMainThreadRunner, fakeClock);
 
   private boolean delayedTaskHasRun = false;
   private boolean delayedTaskHasTimedOut = false;

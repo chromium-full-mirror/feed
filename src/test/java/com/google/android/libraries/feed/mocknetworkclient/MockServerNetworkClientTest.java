@@ -45,7 +45,6 @@ import com.google.android.libraries.feed.internalapi.protocoladapter.ProtocolAda
 import com.google.android.libraries.feed.testing.conformance.network.NetworkClientConformanceTest;
 import com.google.android.libraries.feed.testing.host.logging.FakeBasicLoggingApi;
 import com.google.common.truth.extensions.proto.LiteProtoTruth;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.CodedInputStream;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
@@ -249,8 +248,7 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
   }
 
   private FakeTaskQueue getTaskQueue() {
-    FakeTaskQueue taskQueue =
-        new FakeTaskQueue(MoreExecutors.directExecutor(), fakeClock, fakeThreadUtils);
+    FakeTaskQueue taskQueue = new FakeTaskQueue(fakeClock, fakeThreadUtils);
     taskQueue.initialize(() -> {});
     return taskQueue;
   }

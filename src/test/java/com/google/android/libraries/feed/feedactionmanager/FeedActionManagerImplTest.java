@@ -33,7 +33,6 @@ import com.google.android.libraries.feed.internalapi.actionmanager.ActionManager
 import com.google.android.libraries.feed.internalapi.store.LocalActionMutation;
 import com.google.android.libraries.feed.internalapi.store.LocalActionMutation.ActionType;
 import com.google.android.libraries.feed.internalapi.store.Store;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
@@ -216,8 +215,7 @@ public class FeedActionManagerImplTest {
   }
 
   private FakeTaskQueue getTaskQueue() {
-    FakeTaskQueue fakeTaskQueue =
-        new FakeTaskQueue(MoreExecutors.directExecutor(), fakeClock, fakeThreadUtils);
+    FakeTaskQueue fakeTaskQueue = new FakeTaskQueue(fakeClock, fakeThreadUtils);
     fakeTaskQueue.initialize(() -> {});
     return fakeTaskQueue;
   }

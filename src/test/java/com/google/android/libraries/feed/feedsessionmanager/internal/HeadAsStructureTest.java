@@ -28,7 +28,6 @@ import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.feedsessionmanager.internal.HeadAsStructure.TreeNode;
 import com.google.android.libraries.feed.internalapi.store.Store;
 import com.google.android.libraries.feed.testing.store.FakeStore;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import java.util.List;
@@ -53,10 +52,7 @@ public class HeadAsStructureTest {
   public void setUp() {
     initMocks(this);
     fakeStore =
-        new FakeStore(
-            fakeThreadUtils,
-            new FakeTaskQueue(MoreExecutors.directExecutor(), fakeClock, fakeThreadUtils),
-            fakeClock);
+        new FakeStore(fakeThreadUtils, new FakeTaskQueue(fakeClock, fakeThreadUtils), fakeClock);
     fakeThreadUtils.enforceMainThread(false);
   }
 

@@ -29,7 +29,6 @@ import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
 import com.google.android.libraries.feed.internalapi.store.Store;
 import com.google.android.libraries.feed.testing.host.logging.FakeBasicLoggingApi;
-import com.google.common.util.concurrent.MoreExecutors;
 import java.util.ArrayList;
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -55,8 +54,7 @@ public class FeedStoreEphemeralModeTest extends AbstractFeedStoreTest {
 
   @Override
   protected Store getStore(MainThreadRunner mainThreadRunner) {
-    FakeTaskQueue fakeTaskQueue =
-        new FakeTaskQueue(MoreExecutors.directExecutor(), fakeClock, fakeThreadUtils);
+    FakeTaskQueue fakeTaskQueue = new FakeTaskQueue(fakeClock, fakeThreadUtils);
     fakeTaskQueue.initialize(() -> {});
     FeedStore feedStore =
         new FeedStore(

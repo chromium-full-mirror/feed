@@ -19,6 +19,7 @@ import com.google.android.libraries.feed.api.lifecycle.AppLifecycleListener;
 import com.google.android.libraries.feed.api.scope.ClearAllListener;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeDirectExecutor;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
@@ -44,11 +45,10 @@ import com.google.android.libraries.feed.testing.host.logging.FakeBasicLoggingAp
 import com.google.android.libraries.feed.testing.host.scheduler.FakeSchedulerApi;
 import com.google.android.libraries.feed.testing.requestmanager.FakeActionUploadRequestManager;
 import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.GeneratedMessageLite.GeneratedExtension;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -66,7 +66,7 @@ public class InfraIntegrationScope {
 
   private final Configuration configuration;
   private final ContentStorageDirect contentStorage;
-  private final ExecutorService executorService;
+  private final Executor executor;
   private final FakeClock fakeClock;
   private final FakeMainThreadRunner fakeMainThreadRunner;
   private final FakeRequestManager fakeRequestManager;
@@ -82,7 +82,7 @@ public class InfraIntegrationScope {
 
   private InfraIntegrationScope(
       ThreadUtils threadUtils,
-      ExecutorService executorService,
+      Executor executor,
       SchedulerApi schedulerApi,
       FakeClock fakeClock,
       Configuration configuration,
@@ -92,7 +92,7 @@ public class InfraIntegrationScope {
     this.fakeClock = fakeClock;
     this.configuration = configuration;
     this.contentStorage = contentStorage;
-    this.executorService = executorService;
+    this.executor = executor;
     this.journalStorage = journalStorage;
     this.fakeMainThreadRunner = fakeMainThreadRunner;
     this.schedulerApi = schedulerApi;
@@ -102,13 +102,7 @@ public class InfraIntegrationScope {
     FakeBasicLoggingApi fakeBasicLoggingApi = new FakeBasicLoggingApi();
 
     FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(new ExtensionProvider());
-    taskQueue =
-        new TaskQueue(
-            fakeBasicLoggingApi,
-            executorService,
-            fakeMainThreadRunner,
-            fakeClock,
-            /* checkStarvation= */ true);
+    taskQueue = new TaskQueue(fakeBasicLoggingApi, executor, fakeMainThreadRunner, fakeClock);
     store =
         new FeedStore(
             timingUtils,
@@ -195,7 +189,7 @@ public class InfraIntegrationScope {
   public InfraIntegrationScope clone() {
     return new InfraIntegrationScope(
         threadUtils,
-        executorService,
+        executor,
         schedulerApi,
         fakeClock,
         configuration,
@@ -216,10 +210,10 @@ public class InfraIntegrationScope {
     private final FakeClock fakeClock = new FakeClock();
     private final FakeMainThreadRunner fakeMainThreadRunner =
         FakeMainThreadRunner.create(fakeClock);
-    private final ThreadUtils threadUtils = FakeThreadUtils.withoutThreadChecks();
+    private final FakeThreadUtils fakeThreadUtils = FakeThreadUtils.withoutThreadChecks();
 
     private Configuration configuration = Configuration.getDefaultInstance();
-    private SchedulerApi schedulerApi = new FakeSchedulerApi(threadUtils);
+    private SchedulerApi schedulerApi = new FakeSchedulerApi(fakeThreadUtils);
 
     public Builder() {}
 
@@ -244,8 +238,8 @@ public class InfraIntegrationScope {
 
     public InfraIntegrationScope build() {
       return new InfraIntegrationScope(
-          threadUtils,
-          MoreExecutors.newDirectExecutorService(),
+          fakeThreadUtils,
+          new FakeDirectExecutor(fakeThreadUtils),
           schedulerApi,
           fakeClock,
           configuration,

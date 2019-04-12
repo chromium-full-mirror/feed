@@ -15,45 +15,21 @@
 package com.google.android.libraries.feed.common.concurrent.testing;
 
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
-import com.google.android.libraries.feed.common.time.Clock;
+import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.testing.host.logging.FakeBasicLoggingApi;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.concurrent.Executor;
 
-/**
- * A fake {@link TaskQueue} implementation that uses a {@link FakeThreadUtils} instance to manage
- * the thread policy.
- */
+/** A fake {@link TaskQueue} implementation. */
 public final class FakeTaskQueue extends TaskQueue {
-  private final FakeThreadUtils fakeThreadUtils;
-
-  /** A last-in, first-out stack of thread policies to restore. */
-  private final Deque<Boolean> threadPolicies = new ArrayDeque<>();
 
   private boolean resetWasCalled = false;
   private boolean completeResetWasCalled = false;
 
-  public FakeTaskQueue(Executor executor, Clock clock, FakeThreadUtils fakeThreadUtils) {
+  public FakeTaskQueue(FakeClock fakeClock, FakeThreadUtils fakeThreadUtils) {
     super(
         new FakeBasicLoggingApi(),
-        executor,
-        FakeMainThreadRunner.runTasksImmediately(),
-        clock,
-        /* checkStarvation= */ false);
-    this.fakeThreadUtils = fakeThreadUtils;
-  }
-
-  @Override
-  protected void onPreTaskRun() {
-    boolean policy = fakeThreadUtils.enforceMainThread(false);
-    threadPolicies.push(policy);
-  }
-
-  @Override
-  protected void onPostTaskRun() {
-    boolean policy = threadPolicies.pop();
-    fakeThreadUtils.enforceMainThread(policy);
+        new FakeDirectExecutor(fakeThreadUtils),
+        FakeMainThreadRunner.create(fakeClock),
+        fakeClock);
   }
 
   @Override

@@ -53,7 +53,6 @@ import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider.State;
 import com.google.android.libraries.feed.internalapi.store.Store;
 import com.google.android.libraries.feed.testing.host.logging.FakeBasicLoggingApi;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
@@ -102,7 +101,7 @@ public class SessionManagerMutationTest {
     initMocks(this);
     storeSpy = null;
     notifySession = null;
-    fakeTaskQueue = new FakeTaskQueue(MoreExecutors.directExecutor(), fakeClock, fakeThreadUtils);
+    fakeTaskQueue = new FakeTaskQueue(fakeClock, fakeThreadUtils);
     fakeTaskQueue.initialize(() -> {});
     fakeThreadUtils.enforceMainThread(false);
     Store store =

@@ -50,7 +50,6 @@ import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage
 import com.google.android.libraries.feed.internalapi.store.LocalActionMutation.ActionType;
 import com.google.android.libraries.feed.internalapi.store.Store;
 import com.google.android.libraries.feed.internalapi.store.StoreListener;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
@@ -96,7 +95,7 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
   public void setUp() throws Exception {
     initMocks(this);
     when(configuration.getValueOrDefault(ConfigKey.USE_DIRECT_STORAGE, false)).thenReturn(false);
-    taskQueue = new FakeTaskQueue(MoreExecutors.directExecutor(), fakeClock, fakeThreadUtils);
+    taskQueue = new FakeTaskQueue(fakeClock, fakeThreadUtils);
     taskQueue.initialize(() -> {});
     mainThreadRunner = FakeMainThreadRunner.runTasksImmediately();
     fakeThreadUtils.enforceMainThread(false);

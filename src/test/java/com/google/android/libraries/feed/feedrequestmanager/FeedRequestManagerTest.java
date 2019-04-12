@@ -50,7 +50,6 @@ import com.google.android.libraries.feed.testing.host.logging.FakeBasicLoggingAp
 import com.google.android.libraries.feed.testing.host.stream.FakeTooltipSupportedApi;
 import com.google.android.libraries.feed.testing.network.FakeNetworkClient;
 import com.google.android.libraries.feed.testing.protocoladapter.FakeProtocolAdapter;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.CodedOutputStream;
 import com.google.protobuf.ExtensionRegistryLite;
@@ -147,7 +146,7 @@ public class FeedRequestManagerTest {
     fakeNetworkClient = new FakeNetworkClient(fakeThreadUtils);
     fakeNetworkClient.setDefaultResponse(
         createHttpResponse(/* responseCode= */ 200, Response.getDefaultInstance()));
-    fakeTaskQueue = new FakeTaskQueue(MoreExecutors.directExecutor(), fakeClock, fakeThreadUtils);
+    fakeTaskQueue = new FakeTaskQueue(fakeClock, fakeThreadUtils);
     fakeTaskQueue.initialize(() -> {});
     fakeTooltipSupportedApi = new FakeTooltipSupportedApi(fakeThreadUtils);
     failingResponse =

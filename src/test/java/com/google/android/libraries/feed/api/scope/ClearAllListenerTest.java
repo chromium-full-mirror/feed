@@ -26,7 +26,6 @@ import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUti
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.feedapplifecyclelistener.FeedAppLifecycleListener;
 import com.google.android.libraries.feed.host.logging.RequestReason;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import org.junit.Before;
 import org.junit.Test;
@@ -48,7 +47,7 @@ public class ClearAllListenerTest {
   @Before
   public void setUp() {
     initMocks(this);
-    fakeTaskQueue = new FakeTaskQueue(MoreExecutors.directExecutor(), fakeClock, fakeThreadUtils);
+    fakeTaskQueue = new FakeTaskQueue(fakeClock, fakeThreadUtils);
     fakeTaskQueue.initialize(() -> {});
     appLifecycleListener = new FeedAppLifecycleListener(fakeThreadUtils);
   }

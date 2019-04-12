@@ -60,7 +60,6 @@ import com.google.android.libraries.feed.testing.protocoladapter.FakeProtocolAda
 import com.google.android.libraries.feed.testing.requestmanager.FakeActionUploadRequestManager;
 import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
 import com.google.android.libraries.feed.testing.store.FakeStore;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
@@ -129,7 +128,7 @@ public class FeedSessionManagerTest {
     fakeThreadUtils = FakeThreadUtils.withThreadChecks();
     fakeMainThreadRunner =
         FakeMainThreadRunner.runTasksImmediatelyWithThreadChecks(fakeThreadUtils);
-    fakeTaskQueue = new FakeTaskQueue(MoreExecutors.directExecutor(), fakeClock, fakeThreadUtils);
+    fakeTaskQueue = new FakeTaskQueue(fakeClock, fakeThreadUtils);
     appLifecycleListener = new FeedAppLifecycleListener(fakeThreadUtils);
     fakeActionUploadRequestManager = new FakeActionUploadRequestManager(fakeThreadUtils);
     fakeStore = new FakeStore(fakeThreadUtils, fakeTaskQueue, fakeClock);

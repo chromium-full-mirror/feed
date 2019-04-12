@@ -29,7 +29,6 @@ import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider
 import com.google.android.libraries.feed.internalapi.store.Store;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelProvider;
 import com.google.android.libraries.feed.testing.store.FakeStore;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.google.search.now.feed.client.StreamDataProto.SessionMetadata;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
@@ -65,7 +64,7 @@ public class SessionCacheTest {
   @Before
   public void setUp() {
     initMocks(this);
-    fakeTaskQueue = new FakeTaskQueue(MoreExecutors.directExecutor(), fakeClock, fakeThreadUtils);
+    fakeTaskQueue = new FakeTaskQueue(fakeClock, fakeThreadUtils);
     fakeStore = new FakeStore(fakeThreadUtils, fakeTaskQueue, fakeClock);
     fakeThreadUtils.enforceMainThread(false);
     fakeTaskQueue.initialize(() -> {});

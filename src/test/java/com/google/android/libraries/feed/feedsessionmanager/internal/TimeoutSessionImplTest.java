@@ -31,7 +31,6 @@ import com.google.android.libraries.feed.testing.modelprovider.FakeModelCursor;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelFeature;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelMutation;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelToken;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.feed.client.StreamDataProto.UiContext;
@@ -245,8 +244,7 @@ public class TimeoutSessionImplTest extends AbstractSessionImplTest {
 
   @Override
   protected TimeoutSessionImpl getSessionImpl() {
-    FakeTaskQueue fakeTaskQueue =
-        new FakeTaskQueue(MoreExecutors.directExecutor(), fakeClock, fakeThreadUtils);
+    FakeTaskQueue fakeTaskQueue = new FakeTaskQueue(fakeClock, fakeThreadUtils);
     fakeTaskQueue.initialize(() -> {});
     TimeoutSessionImpl session =
         new TimeoutSessionImpl(store, false, fakeTaskQueue, timingUtils, fakeThreadUtils);

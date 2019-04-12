@@ -128,7 +128,6 @@ public class TaskQueue implements Dumpable {
   private final BasicLoggingApi basicLoggingApi;
   private final Executor executor;
   private final Clock clock;
-  private final boolean checkStarvation;
   private final MainThreadRunner mainThreadRunner;
 
   // counters used for dump
@@ -144,22 +143,15 @@ public class TaskQueue implements Dumpable {
   protected int maxUserFacingTasks = 0;
   protected int maxBackgroundTasks = 0;
 
-  /**
-   * @param checkStarvation This should be set to {@code false} in tests to disable Starvation
-   *     checks during tests. Starvation checks on the Main Thread Executor (used by tests) will
-   *     result in an infinite loop if the queue is ever delayed.
-   */
   public TaskQueue(
       BasicLoggingApi basicLoggingApi,
       Executor executor,
       MainThreadRunner mainThreadRunner,
-      Clock clock,
-      boolean checkStarvation) {
+      Clock clock) {
     this.basicLoggingApi = basicLoggingApi;
     this.executor = executor;
     this.mainThreadRunner = mainThreadRunner;
     this.clock = clock;
-    this.checkStarvation = checkStarvation;
   }
 
   /** Returns {@code true} if we are delaying for a request */
@@ -255,10 +247,7 @@ public class TaskQueue implements Dumpable {
 
   private void startStarvationCheck() {
     synchronized (lock) {
-      if (!checkStarvation) {
-        Logger.i(TAG, "Starvation Checks are disabled");
-        return;
-      } else if (starvationCheckTask != null) {
+      if (starvationCheckTask != null) {
         Logger.i(TAG, "Starvation Checks are already running");
         return;
       }
@@ -445,18 +434,6 @@ public class TaskQueue implements Dumpable {
   }
 
   /**
-   * Called before any task runnable is executed. This method is executed on the same thread as the
-   * task runnable.
-   */
-  protected void onPreTaskRun() {}
-
-  /**
-   * Called after any task runnable is executed. This method is executed on the same thread as the
-   * task runnable.
-   */
-  protected void onPostTaskRun() {}
-
-  /**
    * This class wraps the Runnable as a Runnable. It provides common handling of all tasks. This is
    * the default which supports the basic Task, subclasses will manage state changes.
    */
@@ -497,10 +474,8 @@ public class TaskQueue implements Dumpable {
       // maintain the currentTask on the stack encase we queue multiple tasks to the Executor
       TaskWrapper saveTask = currentTask;
       currentTask = this;
-      onPreTaskRun();
       runnable.run();
       postRunnableRun();
-      onPostTaskRun();
 
       currentTask = saveTask;
 

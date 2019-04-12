@@ -38,7 +38,6 @@ import com.google.android.libraries.feed.internalapi.actionmanager.ActionReader;
 import com.google.android.libraries.feed.internalapi.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.internalapi.store.LocalActionMutation.ActionType;
 import com.google.android.libraries.feed.internalapi.store.Store;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.google.search.now.feed.client.StreamDataProto.StreamLocalAction;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import java.util.Arrays;
@@ -291,8 +290,7 @@ public class FeedActionReaderTest {
   }
 
   private FakeTaskQueue getTaskQueue() {
-    FakeTaskQueue fakeTaskQueue =
-        new FakeTaskQueue(MoreExecutors.directExecutor(), fakeClock, fakeThreadUtils);
+    FakeTaskQueue fakeTaskQueue = new FakeTaskQueue(fakeClock, fakeThreadUtils);
     fakeTaskQueue.initialize(() -> {});
     return fakeTaskQueue;
   }

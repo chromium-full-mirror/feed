@@ -26,7 +26,6 @@ import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.feedsessionmanager.internal.testing.AbstractSessionImplTest;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider.ViewDepthProvider;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelMutation;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.feed.client.StreamDataProto.UiContext;
@@ -113,8 +112,7 @@ public class SessionImplTest extends AbstractSessionImplTest {
 
   @Override
   protected SessionImpl getSessionImpl() {
-    FakeTaskQueue fakeTaskQueue =
-        new FakeTaskQueue(MoreExecutors.directExecutor(), fakeClock, fakeThreadUtils);
+    FakeTaskQueue fakeTaskQueue = new FakeTaskQueue(fakeClock, fakeThreadUtils);
     fakeTaskQueue.initialize(() -> {});
     SessionImpl session =
         new SessionImpl(store, false, fakeTaskQueue, timingUtils, fakeThreadUtils);
