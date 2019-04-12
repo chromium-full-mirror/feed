@@ -14,15 +14,20 @@
 
 package com.google.android.libraries.feed.common.time.testing;
 
+import static com.google.common.truth.Truth.assertThat;
+
+import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.Clock;
 import java.util.HashSet;
 import java.util.Set;
 
 /** Fake implementation of {@link Clock} for testing. */
 public class FakeClock implements Clock {
+  private static final String TAG = "FakeClock";
+
+  private final Set<ClockUpdateListener> listeners;
   private long currentTime;
   private long elapsedRealtimeMs;
-  private final Set<ClockUpdateListener> listeners;
 
   public FakeClock() {
     this(0, 0);
@@ -57,9 +62,20 @@ public class FakeClock implements Clock {
   }
 
   public void advance(long millis) {
+    assertThat(millis).isAtLeast(0L);
     currentTime += millis;
     elapsedRealtimeMs += millis;
+
+    Logger.i(TAG, "Advancing clock to %d", currentTime);
     onClockUpdated(currentTime, elapsedRealtimeMs);
+  }
+
+  /**
+   * Advance the clock forward to the specified time. This will fail if {@link currentTimeMillis} is
+   * not the current time or in the future.
+   */
+  public void advanceTo(long currentTimeMillis) {
+    advance(currentTimeMillis - currentTimeMillis());
   }
 
   @Override

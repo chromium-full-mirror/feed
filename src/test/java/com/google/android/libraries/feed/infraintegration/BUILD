@@ -134,16 +134,13 @@ android_local_test(
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/common",
-        "//src/main/java/com/google/android/libraries/feed/api/sessionmanager",
         "//src/main/java/com/google/android/libraries/feed/common/testing",
         "//src/main/java/com/google/android/libraries/feed/host/logging",
         "//src/main/java/com/google/android/libraries/feed/internalapi/modelprovider",
-        "//src/main/java/com/google/android/libraries/feed/testing/requestmanager",
         "//src/main/proto/search/now/wire/feed:feed_java_proto_lite",
         "//third_party:robolectric",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_truth_truth",
-        "@maven//:org_mockito_mockito_core",
         "@robolectric//bazel:android-all",
     ],
 )
@@ -237,6 +234,114 @@ android_local_test(
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_truth_truth",
         "@maven//:org_mockito_mockito_core",
+        "@robolectric//bazel:android-all",
+    ],
+)
+
+android_local_test(
+    name = "NoRequestWithContentTest",
+    size = "small",
+    timeout = "moderate",
+    srcs = ["NoRequestWithContentTest.java"],
+    aapt_version = "aapt2",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
+    deps = [
+        "//src/main/java/com/google/android/libraries/feed/common/testing",
+        "//src/main/java/com/google/android/libraries/feed/host/scheduler",
+        "//src/main/java/com/google/android/libraries/feed/internalapi/modelprovider",
+        "//third_party:robolectric",
+        "@com_google_protobuf_javalite//:protobuf_java_lite",
+        "@maven//:com_google_truth_truth",
+        "@robolectric//bazel:android-all",
+    ],
+)
+
+android_local_test(
+    name = "NoRequestWithTimeoutTest",
+    size = "small",
+    timeout = "moderate",
+    srcs = ["NoRequestWithTimeoutTest.java"],
+    aapt_version = "aapt2",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
+    deps = [
+        "//src/main/java/com/google/android/libraries/feed/common/testing",
+        "//src/main/java/com/google/android/libraries/feed/host/scheduler",
+        "//src/main/java/com/google/android/libraries/feed/internalapi/modelprovider",
+        "//third_party:robolectric",
+        "@com_google_protobuf_javalite//:protobuf_java_lite",
+        "@maven//:com_google_truth_truth",
+        "@robolectric//bazel:android-all",
+    ],
+)
+
+android_local_test(
+    name = "NoRequestWithWaitTest",
+    size = "small",
+    timeout = "moderate",
+    srcs = ["NoRequestWithWaitTest.java"],
+    aapt_version = "aapt2",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
+    deps = [
+        "//src/main/java/com/google/android/libraries/feed/common/testing",
+        "//src/main/java/com/google/android/libraries/feed/host/scheduler",
+        "//src/main/java/com/google/android/libraries/feed/internalapi/modelprovider",
+        "//third_party:robolectric",
+        "@com_google_protobuf_javalite//:protobuf_java_lite",
+        "@maven//:com_google_truth_truth",
+        "@robolectric//bazel:android-all",
+    ],
+)
+
+android_local_test(
+    name = "RequestWithContentTest",
+    size = "small",
+    timeout = "moderate",
+    srcs = ["RequestWithContentTest.java"],
+    aapt_version = "aapt2",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
+    deps = [
+        "//src/main/java/com/google/android/libraries/feed/common/testing",
+        "//src/main/java/com/google/android/libraries/feed/host/scheduler",
+        "//src/main/java/com/google/android/libraries/feed/internalapi/modelprovider",
+        "//third_party:robolectric",
+        "@com_google_protobuf_javalite//:protobuf_java_lite",
+        "@maven//:com_google_truth_truth",
+        "@robolectric//bazel:android-all",
+    ],
+)
+
+android_local_test(
+    name = "RequestWithTimeoutTest",
+    size = "small",
+    timeout = "moderate",
+    srcs = ["RequestWithTimeoutTest.java"],
+    aapt_version = "aapt2",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
+    deps = [
+        "//src/main/java/com/google/android/libraries/feed/common/testing",
+        "//src/main/java/com/google/android/libraries/feed/host/scheduler",
+        "//src/main/java/com/google/android/libraries/feed/internalapi/modelprovider",
+        "//third_party:robolectric",
+        "@com_google_protobuf_javalite//:protobuf_java_lite",
+        "@maven//:com_google_truth_truth",
+        "@robolectric//bazel:android-all",
+    ],
+)
+
+android_local_test(
+    name = "RequestWithWaitTest",
+    size = "small",
+    timeout = "moderate",
+    srcs = ["RequestWithWaitTest.java"],
+    aapt_version = "aapt2",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
+    deps = [
+        "//src/main/java/com/google/android/libraries/feed/common/testing",
+        "//src/main/java/com/google/android/libraries/feed/host/scheduler",
+        "//src/main/java/com/google/android/libraries/feed/internalapi/modelprovider",
+        "//third_party:robolectric",
+        "@com_google_protobuf_javalite//:protobuf_java_lite",
+        "@maven//:com_google_truth_truth",
         "@robolectric//bazel:android-all",
     ],
 )
@@ -459,7 +564,6 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/common/testing",
         "//src/main/java/com/google/android/libraries/feed/common/time/testing",
         "//src/main/java/com/google/android/libraries/feed/feedsessionmanager",
-        "//src/main/java/com/google/android/libraries/feed/host/config",
         "//src/main/java/com/google/android/libraries/feed/host/scheduler",
         "//src/main/java/com/google/android/libraries/feed/internalapi/modelprovider",
         "//src/main/java/com/google/android/libraries/feed/testing/host/scheduler",
@@ -485,7 +589,6 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/common/concurrent/testing",
         "//src/main/java/com/google/android/libraries/feed/common/testing",
         "//src/main/java/com/google/android/libraries/feed/common/time/testing",
-        "//src/main/java/com/google/android/libraries/feed/host/config",
         "//src/main/java/com/google/android/libraries/feed/host/scheduler",
         "//src/main/java/com/google/android/libraries/feed/internalapi/modelprovider",
         "//src/main/java/com/google/android/libraries/feed/internalapi/protocoladapter",
@@ -512,7 +615,6 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/api/common",
         "//src/main/java/com/google/android/libraries/feed/api/sessionmanager",
         "//src/main/java/com/google/android/libraries/feed/common/testing",
-        "//src/main/java/com/google/android/libraries/feed/host/config",
         "//src/main/java/com/google/android/libraries/feed/host/logging",
         "//src/main/java/com/google/android/libraries/feed/host/scheduler",
         "//src/main/java/com/google/android/libraries/feed/internalapi/modelprovider",

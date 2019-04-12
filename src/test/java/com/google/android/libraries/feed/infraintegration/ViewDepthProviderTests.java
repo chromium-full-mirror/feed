@@ -23,7 +23,6 @@ import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
 import com.google.android.libraries.feed.common.testing.ResponseBuilder;
-import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi.RequestBehavior;
@@ -88,11 +87,10 @@ public class ViewDepthProviderTests {
   @Before
   public void setUp() {
     initMocks(this);
-    Configuration configuration = InfraIntegrationScope.getTimeoutSchedulerConfig();
     InfraIntegrationScope scope =
         new InfraIntegrationScope.Builder()
-            .setConfiguration(configuration)
             .setSchedulerApi(schedulerApi)
+            .withTimeoutSessionConfiguration(2L)
             .build();
     requestManager = scope.getRequestManager();
     modelProviderFactory = scope.getModelProviderFactory();

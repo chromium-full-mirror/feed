@@ -57,7 +57,6 @@ import java.util.concurrent.TimeUnit;
  */
 public class InfraIntegrationScope {
   private static final boolean USE_TIMEOUT_SCHEDULER = true;
-  private static final long TIMEOUT_TIMEOUT_MS = 2;
 
   /**
    * For the TimeoutSession tests, this is how long we allow it to run before declaring a timeout
@@ -172,6 +171,10 @@ public class InfraIntegrationScope {
     return fakeClock;
   }
 
+  public FakeMainThreadRunner getFakeMainThreadRunner() {
+    return fakeMainThreadRunner;
+  }
+
   public FeedStore getStore() {
     return store;
   }
@@ -208,14 +211,6 @@ public class InfraIntegrationScope {
     }
   }
 
-  public static Configuration getTimeoutSchedulerConfig() {
-    return new Configuration.Builder()
-        .put(ConfigKey.USE_TIMEOUT_SCHEDULER, USE_TIMEOUT_SCHEDULER)
-        .put(ConfigKey.TIMEOUT_TIMEOUT_MS, TIMEOUT_TIMEOUT_MS)
-        .put(ConfigKey.USE_DIRECT_STORAGE, Boolean.FALSE)
-        .build();
-  }
-
   /** Builder for creating the {@link InfraIntegrationScope} */
   public static class Builder {
     private final FakeClock fakeClock = new FakeClock();
@@ -235,6 +230,15 @@ public class InfraIntegrationScope {
 
     public Builder setSchedulerApi(SchedulerApi schedulerApi) {
       this.schedulerApi = schedulerApi;
+      return this;
+    }
+
+    public Builder withTimeoutSessionConfiguration(long timeoutMs) {
+      this.configuration =
+          new Configuration.Builder()
+              .put(ConfigKey.USE_TIMEOUT_SCHEDULER, USE_TIMEOUT_SCHEDULER)
+              .put(ConfigKey.TIMEOUT_TIMEOUT_MS, timeoutMs)
+              .build();
       return this;
     }
 

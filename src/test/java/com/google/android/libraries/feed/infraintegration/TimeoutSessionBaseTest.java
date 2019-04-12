@@ -24,7 +24,6 @@ import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
 import com.google.android.libraries.feed.common.testing.ResponseBuilder;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManager;
-import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi.RequestBehavior;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelError;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider;
@@ -66,11 +65,10 @@ public class TimeoutSessionBaseTest {
   @Before
   public void setUp() {
     initMocks(this);
-    Configuration configuration = InfraIntegrationScope.getTimeoutSchedulerConfig();
     InfraIntegrationScope scope =
         new InfraIntegrationScope.Builder()
-            .setConfiguration(configuration)
             .setSchedulerApi(fakeSchedulerApi)
+            .withTimeoutSessionConfiguration(2L)
             .build();
     fakeClock = scope.getFakeClock();
     requestManager = scope.getRequestManager();

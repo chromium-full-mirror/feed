@@ -15,10 +15,8 @@
 package com.google.android.libraries.feed.infraintegration;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.MutationContext;
-import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
 import com.google.android.libraries.feed.common.testing.ResponseBuilder;
@@ -28,8 +26,8 @@ import com.google.android.libraries.feed.internalapi.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider.State;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProviderFactory;
-import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,34 +36,37 @@ import org.robolectric.RobolectricTestRunner;
 /** Tests which verify creating a new Model Provider from an existing session. */
 @RunWith(RobolectricTestRunner.class)
 public class ExistingSessionTest {
-  private FakeRequestManager requestManager;
-  private SessionManager sessionManager;
-  private ModelProviderFactory modelProviderFactory;
-  private ModelProviderValidator modelValidator;
+  private static final ContentId[] CARDS =
+      new ContentId[] {
+        ResponseBuilder.createFeatureContentId(1),
+        ResponseBuilder.createFeatureContentId(2),
+        ResponseBuilder.createFeatureContentId(3)
+      };
+
+  private final InfraIntegrationScope scope = new InfraIntegrationScope.Builder().build();
+  private final ModelProviderFactory modelProviderFactory = scope.getModelProviderFactory();
+  private final ModelProviderValidator modelValidator =
+      new ModelProviderValidator(scope.getProtocolAdapter());
 
   @Before
   public void setUp() {
-    initMocks(this);
-    InfraIntegrationScope scope = new InfraIntegrationScope.Builder().build();
-    requestManager = scope.getRequestManager();
-    sessionManager = scope.getSessionManager();
-    modelProviderFactory = scope.getModelProviderFactory();
-    modelValidator = new ModelProviderValidator(scope.getProtocolAdapter());
+    // Create a simple stream with a root and three features
+    scope
+        .getRequestManager()
+        .queueResponse(ResponseBuilder.forClearAllWithCards(CARDS).build())
+        .triggerRefresh(
+            RequestReason.OPEN_WITHOUT_CONTENT,
+            scope.getSessionManager().getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+  }
+
+  @After
+  public void tearDown() {
+    assertThat(scope.getTaskQueue().hasBacklog()).isFalse();
+    assertThat(scope.getFakeMainThreadRunner().hasPendingTasks()).isFalse();
   }
 
   @Test
   public void createModelProvider() {
-    // Create a simple stream with a root and three features
-    ContentId[] cards =
-        new ContentId[] {
-          ResponseBuilder.createFeatureContentId(1),
-          ResponseBuilder.createFeatureContentId(2),
-          ResponseBuilder.createFeatureContentId(3)
-        };
-    requestManager.queueResponse(ResponseBuilder.forClearAllWithCards(cards).build());
-    requestManager.triggerRefresh(
-        RequestReason.OPEN_WITHOUT_CONTENT,
-        sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
     ModelProvider modelProvider = modelProviderFactory.createNew(null);
 
     ModelFeature initRoot = modelProvider.getRootFeature();
@@ -83,7 +84,7 @@ public class ExistingSessionTest {
     ModelCursor cursor2 = root2.getCursor();
     assertThat(cursor2).isNotNull();
     assertThat(modelProvider2.getSessionId()).isEqualTo(sessionId);
-    modelValidator.assertCursorContents(cursor2, cards);
+    modelValidator.assertCursorContents(cursor2, CARDS);
 
     // Creating the new session will invalidate the previous ModelProvider and Cursor
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.INVALIDATED);
@@ -91,18 +92,41 @@ public class ExistingSessionTest {
   }
 
   @Test
+  public void createModelProvider_restoreSession() {
+    ModelProvider modelProvider = modelProviderFactory.createNew(null);
+    String sessionId = modelProvider.getSessionId();
+    modelProvider.detachModelProvider();
+
+    // Restore the session.
+    ModelProvider restoredModelProvider = modelProviderFactory.create(sessionId);
+    assertThat(restoredModelProvider).isNotNull();
+    assertThat(restoredModelProvider.getAllRootChildren()).hasSize(CARDS.length);
+  }
+
+  @Test
+  public void createModelProvider_restoreSessionWithOutstandingRequest() {
+    ModelProvider modelProvider = modelProviderFactory.createNew(null);
+    String sessionId = modelProvider.getSessionId();
+    modelProvider.detachModelProvider();
+
+    // Start a request.
+    scope
+        .getRequestManager()
+        .queueResponse(ResponseBuilder.forClearAllWithCards(CARDS).build(), /* delayMs= */ 100)
+        .triggerRefresh(
+            RequestReason.OPEN_WITHOUT_CONTENT,
+            scope.getSessionManager().getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+
+    // Restore the session.
+    ModelProvider restoredModelProvider = modelProviderFactory.create(sessionId);
+    assertThat(restoredModelProvider.getAllRootChildren()).hasSize(CARDS.length);
+
+    // Advance the clock to process the outstanding request.
+    scope.getFakeClock().advance(100);
+  }
+
+  @Test
   public void createModelProvider_unknownSession() {
-    // Create a simple stream with a root and three features
-    ContentId[] cards =
-        new ContentId[] {
-          ResponseBuilder.createFeatureContentId(1),
-          ResponseBuilder.createFeatureContentId(2),
-          ResponseBuilder.createFeatureContentId(3)
-        };
-    requestManager.queueResponse(ResponseBuilder.forClearAllWithCards(cards).build());
-    requestManager.triggerRefresh(
-        RequestReason.OPEN_WITHOUT_CONTENT,
-        sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
     ModelProvider modelProvider = modelProviderFactory.createNew(null);
 
     ModelFeature initRoot = modelProvider.getRootFeature();
@@ -125,7 +149,7 @@ public class ExistingSessionTest {
     assertThat(root2).isNotNull();
     ModelCursor cursor2 = root2.getCursor();
     assertThat(cursor2).isNotNull();
-    modelValidator.assertCursorContents(cursor2, cards);
+    modelValidator.assertCursorContents(cursor2, CARDS);
 
     // two sessions against the same $HEAD instance
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
@@ -134,18 +158,6 @@ public class ExistingSessionTest {
 
   @Test
   public void createModelProvider_invalidatedSession() {
-    // Create a simple stream with a root and three features
-    ContentId[] cards =
-        new ContentId[] {
-          ResponseBuilder.createFeatureContentId(1),
-          ResponseBuilder.createFeatureContentId(2),
-          ResponseBuilder.createFeatureContentId(3)
-        };
-    requestManager.queueResponse(ResponseBuilder.forClearAllWithCards(cards).build());
-    requestManager.triggerRefresh(
-        RequestReason.OPEN_WITHOUT_CONTENT,
-        sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
-
     ModelProvider modelProvider = modelProviderFactory.createNew(null);
     assertThat(modelProvider).isNotNull();
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
@@ -164,18 +176,6 @@ public class ExistingSessionTest {
 
   @Test
   public void createModelProvider_detachSession() {
-    // Create a simple stream with a root and three features
-    ContentId[] cards =
-        new ContentId[] {
-          ResponseBuilder.createFeatureContentId(1),
-          ResponseBuilder.createFeatureContentId(2),
-          ResponseBuilder.createFeatureContentId(3)
-        };
-    requestManager.queueResponse(ResponseBuilder.forClearAllWithCards(cards).build());
-    requestManager.triggerRefresh(
-        RequestReason.OPEN_WITHOUT_CONTENT,
-        sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
-
     ModelProvider modelProvider = modelProviderFactory.createNew(null);
     assertThat(modelProvider).isNotNull();
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
