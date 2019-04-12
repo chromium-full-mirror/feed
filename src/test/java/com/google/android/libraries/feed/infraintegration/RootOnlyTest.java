@@ -19,10 +19,10 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
 import com.google.android.libraries.feed.common.testing.ResponseBuilder;
@@ -37,7 +37,6 @@ import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import com.google.search.now.wire.feed.ConsistencyTokenProto.ConsistencyToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
@@ -45,20 +44,13 @@ import org.robolectric.RobolectricTestRunner;
 /** Tests of a Stream with only a root. */
 @RunWith(RobolectricTestRunner.class)
 public class RootOnlyTest {
-  private FakeRequestManager requestManager;
-  private SessionManager sessionManager;
-  private ModelProviderValidator modelValidator;
-  private ModelProviderFactory modelProviderFactory;
-
-  @Before
-  public void setUp() {
-    initMocks(this);
-    InfraIntegrationScope scope = new InfraIntegrationScope.Builder().build();
-    requestManager = scope.getRequestManager();
-    sessionManager = scope.getSessionManager();
-    modelProviderFactory = scope.getModelProviderFactory();
-    modelValidator = new ModelProviderValidator(scope.getProtocolAdapter());
-  }
+  private final InfraIntegrationScope scope = new InfraIntegrationScope.Builder().build();
+  private final FakeRequestManager requestManager = scope.getRequestManager();
+  private final FakeThreadUtils fakeThreadUtils = scope.getFakeThreadUtils();
+  private final ModelProviderFactory modelProviderFactory = scope.getModelProviderFactory();
+  private final ModelProviderValidator modelValidator =
+      new ModelProviderValidator(scope.getProtocolAdapter());
+  private final SessionManager sessionManager = scope.getSessionManager();
 
   @Test
   public void rootOnlyResponse_beforeSessionWithLifecycle() {
@@ -103,6 +95,7 @@ public class RootOnlyTest {
     ResponseBuilder responseBuilder = new ResponseBuilder().addRootFeature();
     requestManager.queueResponse(responseBuilder.build());
     // TODO: sessions reject updates without a CLEAR_ALL or paging with a different token.
+    fakeThreadUtils.enforceMainThread(false);
     requestManager.loadMore(
         StreamToken.getDefaultInstance(),
         ConsistencyToken.getDefaultInstance(),
@@ -146,6 +139,7 @@ public class RootOnlyTest {
     responseBuilder = new ResponseBuilder().addRootFeature(anotherRoot);
     requestManager.queueResponse(responseBuilder.build());
     // TODO: sessions reject updates without a CLEAR_ALL or paging with a different token.
+    fakeThreadUtils.enforceMainThread(false);
     requestManager.loadMore(
         StreamToken.getDefaultInstance(),
         ConsistencyToken.getDefaultInstance(),

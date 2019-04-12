@@ -38,6 +38,7 @@ android_local_test(
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/common",
         "//src/main/java/com/google/android/libraries/feed/api/sessionmanager",
+        "//src/main/java/com/google/android/libraries/feed/common/concurrent/testing",
         "//src/main/java/com/google/android/libraries/feed/common/testing",
         "//src/main/java/com/google/android/libraries/feed/host/logging",
         "//src/main/java/com/google/android/libraries/feed/internalapi/modelprovider",
@@ -62,6 +63,7 @@ android_local_test(
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/common",
         "//src/main/java/com/google/android/libraries/feed/api/sessionmanager",
+        "//src/main/java/com/google/android/libraries/feed/common/concurrent/testing",
         "//src/main/java/com/google/android/libraries/feed/common/testing",
         "//src/main/java/com/google/android/libraries/feed/host/logging",
         "//src/main/java/com/google/android/libraries/feed/internalapi/modelprovider",
@@ -391,6 +393,7 @@ android_local_test(
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/common",
         "//src/main/java/com/google/android/libraries/feed/api/sessionmanager",
+        "//src/main/java/com/google/android/libraries/feed/common/concurrent/testing",
         "//src/main/java/com/google/android/libraries/feed/common/testing",
         "//src/main/java/com/google/android/libraries/feed/host/logging",
         "//src/main/java/com/google/android/libraries/feed/internalapi/modelprovider",
@@ -425,7 +428,6 @@ android_local_test(
         "//third_party:robolectric",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_truth_truth",
-        "@maven//:org_mockito_mockito_core",
         "@robolectric//bazel:android-all",
     ],
 )
@@ -514,6 +516,7 @@ android_local_test(
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/common",
         "//src/main/java/com/google/android/libraries/feed/api/sessionmanager",
+        "//src/main/java/com/google/android/libraries/feed/common/concurrent/testing",
         "//src/main/java/com/google/android/libraries/feed/common/testing",
         "//src/main/java/com/google/android/libraries/feed/host/logging",
         "//src/main/java/com/google/android/libraries/feed/internalapi/modelprovider",
@@ -623,6 +626,7 @@ android_local_test(
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/common",
         "//src/main/java/com/google/android/libraries/feed/api/sessionmanager",
+        "//src/main/java/com/google/android/libraries/feed/common/concurrent/testing",
         "//src/main/java/com/google/android/libraries/feed/common/testing",
         "//src/main/java/com/google/android/libraries/feed/host/logging",
         "//src/main/java/com/google/android/libraries/feed/host/scheduler",

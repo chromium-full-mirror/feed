@@ -119,6 +119,7 @@ public final class GcTest {
 
   private static void assertPayloads(
       ContentId[] contentIds, InfraIntegrationScope scope, boolean shouldExist) {
+    scope.getFakeThreadUtils().enforceMainThread(false);
     for (ContentId contentId : contentIds) {
       List<PayloadWithId> payloads =
           scope

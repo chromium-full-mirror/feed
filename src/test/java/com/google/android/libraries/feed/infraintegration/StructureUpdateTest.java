@@ -17,10 +17,10 @@ package com.google.android.libraries.feed.infraintegration;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
 import com.google.android.libraries.feed.common.testing.ResponseBuilder;
@@ -39,7 +39,6 @@ import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import com.google.search.now.wire.feed.ConsistencyTokenProto.ConsistencyToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import java.util.List;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -48,22 +47,14 @@ import org.robolectric.RobolectricTestRunner;
 /** Tests which update (append) content to an existing model. */
 @RunWith(RobolectricTestRunner.class)
 public class StructureUpdateTest {
-  private FakeRequestManager requestManager;
-  private SessionManager sessionManager;
-  private ProtocolAdapter protocolAdapter;
-  private ModelProviderFactory modelProviderFactory;
-  private ModelProviderValidator modelValidator;
-
-  @Before
-  public void setUp() {
-    initMocks(this);
-    InfraIntegrationScope scope = new InfraIntegrationScope.Builder().build();
-    requestManager = scope.getRequestManager();
-    sessionManager = scope.getSessionManager();
-    modelProviderFactory = scope.getModelProviderFactory();
-    protocolAdapter = scope.getProtocolAdapter();
-    modelValidator = new ModelProviderValidator(protocolAdapter);
-  }
+  private final InfraIntegrationScope scope = new InfraIntegrationScope.Builder().build();
+  private final FakeRequestManager requestManager = scope.getRequestManager();
+  private final FakeThreadUtils fakeThreadUtils = scope.getFakeThreadUtils();
+  private final ModelProviderFactory modelProviderFactory = scope.getModelProviderFactory();
+  private final ModelProviderValidator modelValidator =
+      new ModelProviderValidator(scope.getProtocolAdapter());
+  private final ProtocolAdapter protocolAdapter = scope.getProtocolAdapter();
+  private final SessionManager sessionManager = scope.getSessionManager();
 
   @Test
   public void appendChildren() {
@@ -94,6 +85,7 @@ public class StructureUpdateTest {
     // Append new children to root
     requestManager.queueResponse(ResponseBuilder.builder().addCardsToRoot(appendedCards).build());
     // TODO: sessions reject updates without a CLEAR_ALL or paging with a different token.
+    fakeThreadUtils.enforceMainThread(false);
     requestManager.loadMore(
         StreamToken.getDefaultInstance(),
         ConsistencyToken.getDefaultInstance(),
@@ -147,6 +139,7 @@ public class StructureUpdateTest {
     // Now append additional children to the stream (and cursor)
     requestManager.queueResponse(ResponseBuilder.builder().addCardsToRoot(appendedCards).build());
     // TODO: sessions reject updates without a CLEAR_ALL or paging with a different token.
+    fakeThreadUtils.enforceMainThread(false);
     requestManager.loadMore(
         StreamToken.getDefaultInstance(),
         ConsistencyToken.getDefaultInstance(),

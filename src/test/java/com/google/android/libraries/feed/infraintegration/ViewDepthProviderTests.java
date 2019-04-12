@@ -20,6 +20,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
 import com.google.android.libraries.feed.common.testing.ResponseBuilder;
@@ -79,6 +80,7 @@ public class ViewDepthProviderTests {
   @Mock private SchedulerApi schedulerApi;
 
   private FakeRequestManager requestManager;
+  private FakeThreadUtils fakeThreadUtils;
   private ModelProviderFactory modelProviderFactory;
   private ProtocolAdapter protocolAdapter;
   private ModelProviderValidator modelValidator;
@@ -93,6 +95,7 @@ public class ViewDepthProviderTests {
             .setSchedulerApi(schedulerApi)
             .withTimeoutSessionConfiguration(2L)
             .build();
+    fakeThreadUtils = scope.getFakeThreadUtils();
     requestManager = scope.getRequestManager();
     modelProviderFactory = scope.getModelProviderFactory();
     protocolAdapter = scope.getProtocolAdapter();
@@ -168,6 +171,7 @@ public class ViewDepthProviderTests {
     requestManager.queueResponse(
         ResponseBuilder.builder().addCardsToRoot(REQUEST_TWO_WITH_DUPLICATES_PAGE).build());
     // TODO: sessions reject updates without a CLEAR_ALL or paging with a different token.
+    fakeThreadUtils.enforceMainThread(false);
     requestManager.loadMore(
         StreamToken.getDefaultInstance(),
         ConsistencyToken.getDefaultInstance(),

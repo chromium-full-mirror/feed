@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.common.testing;
 
-import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.lifecycle.AppLifecycleListener;
 import com.google.android.libraries.feed.api.scope.ClearAllListener;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
@@ -70,6 +69,7 @@ public class InfraIntegrationScope {
   private final FakeClock fakeClock;
   private final FakeMainThreadRunner fakeMainThreadRunner;
   private final FakeRequestManager fakeRequestManager;
+  private final FakeThreadUtils fakeThreadUtils;
   private final FeedAppLifecycleListener appLifecycleListener;
   private final FeedModelProviderFactory modelProviderFactory;
   private final FeedProtocolAdapter feedProtocolAdapter;
@@ -78,10 +78,9 @@ public class InfraIntegrationScope {
   private final JournalStorageDirect journalStorage;
   private final SchedulerApi schedulerApi;
   private final TaskQueue taskQueue;
-  private final ThreadUtils threadUtils;
 
   private InfraIntegrationScope(
-      ThreadUtils threadUtils,
+      FakeThreadUtils fakeThreadUtils,
       Executor executor,
       SchedulerApi schedulerApi,
       FakeClock fakeClock,
@@ -96,9 +95,9 @@ public class InfraIntegrationScope {
     this.journalStorage = journalStorage;
     this.fakeMainThreadRunner = fakeMainThreadRunner;
     this.schedulerApi = schedulerApi;
-    this.threadUtils = threadUtils;
+    this.fakeThreadUtils = fakeThreadUtils;
     TimingUtils timingUtils = new TimingUtils();
-    appLifecycleListener = new FeedAppLifecycleListener(threadUtils);
+    appLifecycleListener = new FeedAppLifecycleListener(fakeThreadUtils);
     FakeBasicLoggingApi fakeBasicLoggingApi = new FakeBasicLoggingApi();
 
     FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(new ExtensionProvider());
@@ -109,7 +108,7 @@ public class InfraIntegrationScope {
             extensionRegistry,
             contentStorage,
             journalStorage,
-            threadUtils,
+            fakeThreadUtils,
             taskQueue,
             fakeClock,
             fakeBasicLoggingApi,
@@ -117,10 +116,7 @@ public class InfraIntegrationScope {
     feedProtocolAdapter = new FeedProtocolAdapter(timingUtils);
     fakeRequestManager =
         new FakeRequestManager(
-            FakeThreadUtils.withoutThreadChecks(),
-            fakeMainThreadRunner,
-            feedProtocolAdapter,
-            taskQueue);
+            fakeThreadUtils, fakeMainThreadRunner, feedProtocolAdapter, taskQueue);
     FakeActionUploadRequestManager fakeActionUploadRequestManager =
         new FakeActionUploadRequestManager(FakeThreadUtils.withThreadChecks());
     feedSessionManager =
@@ -128,7 +124,7 @@ public class InfraIntegrationScope {
                 taskQueue,
                 store,
                 timingUtils,
-                threadUtils,
+                fakeThreadUtils,
                 feedProtocolAdapter,
                 fakeRequestManager,
                 fakeActionUploadRequestManager,
@@ -137,12 +133,13 @@ public class InfraIntegrationScope {
                 fakeClock,
                 appLifecycleListener)
             .create();
-    new ClearAllListener(taskQueue, feedSessionManager, store, threadUtils, appLifecycleListener);
+    new ClearAllListener(
+        taskQueue, feedSessionManager, store, fakeThreadUtils, appLifecycleListener);
     feedSessionManager.initialize();
     modelProviderFactory =
         new FeedModelProviderFactory(
             feedSessionManager,
-            threadUtils,
+            fakeThreadUtils,
             timingUtils,
             taskQueue,
             fakeMainThreadRunner,
@@ -169,6 +166,10 @@ public class InfraIntegrationScope {
     return fakeMainThreadRunner;
   }
 
+  public FakeThreadUtils getFakeThreadUtils() {
+    return fakeThreadUtils;
+  }
+
   public FeedStore getStore() {
     return store;
   }
@@ -188,7 +189,7 @@ public class InfraIntegrationScope {
   @Override
   public InfraIntegrationScope clone() {
     return new InfraIntegrationScope(
-        threadUtils,
+        fakeThreadUtils,
         executor,
         schedulerApi,
         fakeClock,
@@ -210,7 +211,7 @@ public class InfraIntegrationScope {
     private final FakeClock fakeClock = new FakeClock();
     private final FakeMainThreadRunner fakeMainThreadRunner =
         FakeMainThreadRunner.create(fakeClock);
-    private final FakeThreadUtils fakeThreadUtils = FakeThreadUtils.withoutThreadChecks();
+    private final FakeThreadUtils fakeThreadUtils = FakeThreadUtils.withThreadChecks();
 
     private Configuration configuration = Configuration.getDefaultInstance();
     private SchedulerApi schedulerApi = new FakeSchedulerApi(fakeThreadUtils);

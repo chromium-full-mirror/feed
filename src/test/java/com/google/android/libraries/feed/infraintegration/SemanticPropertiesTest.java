@@ -15,7 +15,6 @@
 package com.google.android.libraries.feed.infraintegration;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.SemanticPropertiesWithId;
@@ -32,7 +31,6 @@ import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.ResponseProto.Response;
 import java.util.Collections;
 import java.util.List;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
@@ -40,18 +38,10 @@ import org.robolectric.RobolectricTestRunner;
 /** Tests around Semantic Properties */
 @RunWith(RobolectricTestRunner.class)
 public class SemanticPropertiesTest {
-  private FakeRequestManager requestManager;
-  private SessionManager sessionManager;
-  private Store store;
-
-  @Before
-  public void setUp() {
-    initMocks(this);
-    InfraIntegrationScope scope = new InfraIntegrationScope.Builder().build();
-    requestManager = scope.getRequestManager();
-    sessionManager = scope.getSessionManager();
-    store = scope.getStore();
-  }
+  private final InfraIntegrationScope scope = new InfraIntegrationScope.Builder().build();
+  private final FakeRequestManager requestManager = scope.getRequestManager();
+  private final SessionManager sessionManager = scope.getSessionManager();
+  private final Store store = scope.getStore();
 
   @Test
   public void persistingSemanticProperties() {
@@ -68,6 +58,7 @@ public class SemanticPropertiesTest {
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
 
+    scope.getFakeThreadUtils().enforceMainThread(false);
     ContentIdGenerators idGenerators = new ContentIdGenerators();
     String contentIdString = idGenerators.createContentId(contentId);
     Result<List<SemanticPropertiesWithId>> semanticPropertiesResult =
