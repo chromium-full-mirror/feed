@@ -15,8 +15,10 @@
 package com.google.android.libraries.feed.sharedstream.ui;
 
 import android.content.Context;
+import android.content.res.Resources.Theme;
 import android.support.v7.widget.AppCompatImageView;
 import android.util.AttributeSet;
+import android.util.TypedValue;
 import android.view.View;
 import android.support.v4.widget.CircularProgressDrawable;
 
@@ -41,7 +43,10 @@ public class MaterialSpinnerView extends AppCompatImageView {
     spinner = new CircularProgressDrawable(context);
     spinner.setStyle(CircularProgressDrawable.DEFAULT);
     setImageDrawable(spinner);
-    spinner.setColorSchemeColors(context.getResources().getColor(R.color.google_blue_500));
+    TypedValue typedValue = new TypedValue();
+    Theme theme = context.getTheme();
+    theme.resolveAttribute(R.attr.feedSpinnerColor, typedValue, true);
+    spinner.setColorSchemeColors(typedValue.data);
 
     if (getVisibility() == View.VISIBLE) {
       spinner.start();

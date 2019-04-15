@@ -63,6 +63,7 @@ public class ContextMenuManagerImplTest {
     initMocks(this);
 
     context = Robolectric.buildActivity(Activity.class).get();
+    context.setTheme(R.style.Light);
     parentView = new FrameLayout(context);
     anchorView = new View(context);
     parentView.addView(anchorView);

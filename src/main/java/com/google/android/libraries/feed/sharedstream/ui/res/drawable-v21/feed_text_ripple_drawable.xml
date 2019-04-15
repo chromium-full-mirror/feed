@@ -15,11 +15,11 @@
   limitations under the License.
 -->
 <ripple xmlns:android="http://schemas.android.com/apk/res/android"
-    android:color="@color/feed_alpha_10_modern_blue_600">
+    android:color="?feedMoreButtonRipple">
   <!-- Mask shape, not actually rendered. This just keeps the ripple inside the module. -->
   <item android:id="@android:id/mask">
     <shape>
-      <solid android:color="@android:color/white"/>
+      <solid android:color="?feedTouchNonPressed"/>
       <corners android:radius="@dimen/button_compat_radius"/>
     </shape>
   </item>

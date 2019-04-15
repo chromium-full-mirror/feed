@@ -33,7 +33,7 @@
     <item name="android:paddingStart">8dp</item>
     <item name="android:paddingEnd">8dp</item>
     <item name="android:textAppearance">@style/FeedBlueButtonText2</item>
-    <item name="android:background">@drawable/feed_text_ripple_drawable</item>
+    <item name="android:background">?feedTextRippleDrawable</item>
   </style>
 
   <style name="FeedMoreButtonContainer">

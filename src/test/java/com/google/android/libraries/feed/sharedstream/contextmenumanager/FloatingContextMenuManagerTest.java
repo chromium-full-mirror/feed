@@ -52,6 +52,7 @@ public class FloatingContextMenuManagerTest {
   public void createContextMenuManager() {
     initMocks(this);
     context = Robolectric.buildActivity(Activity.class).get();
+    context.setTheme(R.style.Light);
     contextMenuManager = new FloatingContextMenuManager(context);
     anchorView = new View(context);
   }
