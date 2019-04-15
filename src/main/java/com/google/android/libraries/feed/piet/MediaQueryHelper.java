@@ -76,7 +76,8 @@ public class MediaQueryHelper {
             throw new PietFatalException(
                 ErrorCode.ERR_INVALID_MEDIA_QUERY_CONDITION,
                 String.format(
-                    "Unhandled ComparisonCondition: %s", condition.getFrameWidth().getCondition()));
+                    "Unhandled ComparisonCondition: %s",
+                    condition.getFrameWidth().getCondition().name()));
         }
       case ORIENTATION:
         switch (condition.getOrientation().getOrientation()) {
