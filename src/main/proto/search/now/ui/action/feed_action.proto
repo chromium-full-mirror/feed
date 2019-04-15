@@ -97,9 +97,11 @@ message FeedActionMetadata {
     TOOLTIP = 4;
   }
   // Used by the host to perform Basic logging for views and clicks.
-  optional ElementType element_type = 7;
+  // This should be an ElementType.getNumber() but since proto lite doesn't
+  // handle when it gets added to, we need it to be an int instead of an enum
+  optional int32 element_type_value = 9;
 
-  reserved 5;
+  reserved 5, 7;
 }
 
 // Data needed by the host to handle an OPEN_URL action.
@@ -153,7 +155,12 @@ message NotInterestedInData {
     SOURCE = 2;
   }
   // The type of NotInterested Action that was performed.
-  optional RecordedInterestType interest_type = 4;
+  // This should be an RecordedInterestType.getNumber() but since proto lite
+  // doesn't handle when it gets added to, we need it to be an int instead of
+  // an enum
+  optional int32 interest_type_value = 5;
+
+  reserved 4;
 }
 
 // Data used by the client to show a confirmation message with an action to

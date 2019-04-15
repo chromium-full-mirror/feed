@@ -323,7 +323,8 @@ public class FeedActionParserTest {
                           .setNotInterestedInData(
                               NotInterestedInData.newBuilder()
                                   .addDataOperations(DataOperation.getDefaultInstance())
-                                  .setInterestType(NotInterestedInData.RecordedInterestType.SOURCE)
+                                  .setInterestTypeValue(
+                                      NotInterestedInData.RecordedInterestType.SOURCE.getNumber())
                                   .setPayload(ActionPayload.getDefaultInstance())
                                   .setUndoAction(UNDO_ACTION)))
                   .build())
@@ -337,7 +338,7 @@ public class FeedActionParserTest {
                   .setMetadata(
                       FeedActionMetadata.newBuilder()
                           .setType(Type.VIEW_ELEMENT)
-                          .setElementType(ElementType.INTEREST_HEADER))
+                          .setElementTypeValue(ElementType.INTEREST_HEADER.getNumber()))
                   .build())
           .build();
 
@@ -349,7 +350,7 @@ public class FeedActionParserTest {
                   .setMetadata(
                       FeedActionMetadata.newBuilder()
                           .setType(Type.HIDE_ELEMENT)
-                          .setElementType(ElementType.INTEREST_HEADER))
+                          .setElementTypeValue(ElementType.INTEREST_HEADER.getNumber()))
                   .build())
           .build();
 
@@ -361,7 +362,7 @@ public class FeedActionParserTest {
                   .setMetadata(
                       FeedActionMetadata.newBuilder()
                           .setType(Type.HIDE_ELEMENT)
-                          .setElementType(ElementType.INTEREST_HEADER))
+                          .setElementTypeValue(ElementType.INTEREST_HEADER.getNumber()))
                   .build())
           .build();
 

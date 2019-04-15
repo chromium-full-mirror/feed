@@ -167,7 +167,7 @@ public final class FeedActionParser implements ActionParser {
             streamDataOperationResult.getValue(),
             feedActionMetadata.getNotInterestedInData().getUndoAction(),
             feedActionMetadata.getNotInterestedInData().getPayload(),
-            feedActionMetadata.getNotInterestedInData().getInterestType().getNumber());
+            feedActionMetadata.getNotInterestedInData().getInterestTypeValue());
         break;
 
       case DOWNLOAD:
@@ -197,21 +197,21 @@ public final class FeedActionParser implements ActionParser {
         if (!streamActionApi.canHandleElementView()) {
           Logger.e(TAG, "Cannot log Element View: StreamActionApi does not support it");
           break;
-        } else if (!feedActionMetadata.hasElementType()) {
+        } else if (!feedActionMetadata.hasElementTypeValue()) {
           Logger.e(TAG, "Cannot log ElementView : no Element Type");
           break;
         }
-        streamActionApi.onElementView(feedActionMetadata.getElementType().getNumber());
+        streamActionApi.onElementView(feedActionMetadata.getElementTypeValue());
         break;
       case HIDE_ELEMENT:
         if (!streamActionApi.canHandleElementHide()) {
           Logger.e(TAG, "Cannot log Element Hide: StreamActionApi does not support it");
           break;
-        } else if (!feedActionMetadata.hasElementType()) {
+        } else if (!feedActionMetadata.hasElementTypeValue()) {
           Logger.e(TAG, "Cannot log Element Hide : no Element Type");
           break;
         }
-        streamActionApi.onElementHide(feedActionMetadata.getElementType().getNumber());
+        streamActionApi.onElementHide(feedActionMetadata.getElementTypeValue());
         break;
       case SHOW_TOOLTIP:
         if (!streamActionApi.canShowTooltip()) {
@@ -227,10 +227,10 @@ public final class FeedActionParser implements ActionParser {
     if (actionSource == ActionSource.CLICK) {
       if (!streamActionApi.canHandleElementClick()) {
         Logger.e(TAG, "Cannot log Element Click: StreamActionApi does not support it");
-      } else if (!feedActionMetadata.hasElementType()) {
+      } else if (!feedActionMetadata.hasElementTypeValue()) {
         Logger.e(TAG, "Cannot log Element Click: no Element Type");
       } else {
-        streamActionApi.onElementClick(feedActionMetadata.getElementType().getNumber());
+        streamActionApi.onElementClick(feedActionMetadata.getElementTypeValue());
       }
     }
   }
