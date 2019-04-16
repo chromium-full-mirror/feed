@@ -31,10 +31,10 @@ option cc_enable_arenas = true;
 // shadow type supported by the platform).
 // See [INTERNAL LINK]
 message Shadow {
-  // BoxShadow definition. Supported by the web client.
+  // BoxShadow definition. Supported by the web and iOS clients.
   optional BoxShadow box_shadow = 1;
 
-  // Simple elevation-based shadow. Supported by Android and iOS.
+  // Simple elevation-based shadow. Supported by Android.
   optional ElevationShadow elevation_shadow = 2;
 }
 
@@ -58,10 +58,12 @@ message BoxShadow {
 
   // The spread radius of the shadow. A positive value increases the size of the
   // shadow, a negative value decreases the size of the shadow.
+  // Not supported by iOS.
   optional int32 spread_radius = 4;
 
   // Defines whether the shadow should appear on the inside (is_inset == true),
   // or the outside (is_inset == false).
+  // Not supported by iOS.
   optional bool is_inset = 5;
 
   // The color of the shadow.
