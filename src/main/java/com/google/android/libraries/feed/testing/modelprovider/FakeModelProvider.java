@@ -150,9 +150,13 @@ public class FakeModelProvider implements ModelProvider {
   }
 
   public void triggerOnSessionStart(ModelFeature rootFeature) {
+    triggerOnSessionStart(rootFeature, UiContext.getDefaultInstance());
+  }
+
+  public void triggerOnSessionStart(ModelFeature rootFeature, UiContext uiContext) {
     this.rootFeature = rootFeature;
     for (ModelProviderObserver observer : observers) {
-      observer.onSessionStart(UiContext.getDefaultInstance());
+      observer.onSessionStart(uiContext);
     }
   }
 
