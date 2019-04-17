@@ -27,7 +27,7 @@ import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelChild;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProviderFactory;
-import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
+import com.google.android.libraries.feed.testing.requestmanager.FakeFeedRequestManager;
 import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import org.junit.Before;
@@ -52,7 +52,7 @@ public class LimitedPagingTest {
         ResponseBuilder.createFeatureContentId(6)
       };
 
-  private FakeRequestManager requestManager;
+  private FakeFeedRequestManager fakeFeedRequestManager;
   private SessionManager sessionManager;
   private ModelProviderFactory modelProviderFactory;
   private ModelProviderValidator modelValidator;
@@ -63,7 +63,7 @@ public class LimitedPagingTest {
   public void setUp() {
     initMocks(this);
     InfraIntegrationScope scope = new InfraIntegrationScope.Builder().build();
-    requestManager = scope.getRequestManager();
+    fakeFeedRequestManager = scope.getFakeFeedRequestManager();
     sessionManager = scope.getSessionManager();
     modelProviderFactory = scope.getModelProviderFactory();
     modelValidator = new ModelProviderValidator(scope.getProtocolAdapter());
@@ -72,8 +72,8 @@ public class LimitedPagingTest {
   @Test
   public void testPagingDetachedSession() {
     PagingState s1State = new PagingState(PAGE_1, PAGE_2, 1, contentIdGenerators);
-    requestManager.queueResponse(s1State.initialResponse);
-    requestManager.triggerRefresh(
+    fakeFeedRequestManager.queueResponse(s1State.initialResponse);
+    fakeFeedRequestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
 
@@ -87,7 +87,7 @@ public class LimitedPagingTest {
 
     // Now Page session one and verify both session are as expected, only session one will contain
     // the paged content
-    requestManager.queueResponse(s1State.pageResponse);
+    fakeFeedRequestManager.queueResponse(s1State.pageResponse);
     sessionOne.handleToken(tokenChild.getModelToken());
 
     // Create the sessionOne from page1 and a token
@@ -102,7 +102,7 @@ public class LimitedPagingTest {
         sessionThree, PAGE_1[0], PAGE_1[1], PAGE_1[2], PAGE_2[0], PAGE_2[1], PAGE_2[2]);
 
     // Page session two, this should not change anything else
-    requestManager.queueResponse(s1State.pageResponse);
+    fakeFeedRequestManager.queueResponse(s1State.pageResponse);
     sessionTwo.handleToken(tokenChild.getModelToken());
     modelValidator.assertCursorContents(
         sessionOne, PAGE_1[0], PAGE_1[1], PAGE_1[2], PAGE_2[0], PAGE_2[1], PAGE_2[2]);

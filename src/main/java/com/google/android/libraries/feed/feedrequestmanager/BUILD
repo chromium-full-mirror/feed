@@ -8,6 +8,7 @@ android_library(
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/common",
         "//src/main/java/com/google/android/libraries/feed/api/requestmanager",
+        "//src/main/java/com/google/android/libraries/feed/api/sessionmanager",
         "//src/main/java/com/google/android/libraries/feed/common",
         "//src/main/java/com/google/android/libraries/feed/common/concurrent",
         "//src/main/java/com/google/android/libraries/feed/common/functional",
@@ -24,6 +25,7 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/host/stream",
         "//src/main/java/com/google/android/libraries/feed/internalapi/actionmanager",
         "//src/main/java/com/google/android/libraries/feed/internalapi/protocoladapter",
+        "//src/main/java/com/google/android/libraries/feed/internalapi/requestmanager",
         "//src/main/java/com/google/android/libraries/feed/internalapi/store",
         "//src/main/proto/com/google/android/libraries/feed/internalapi/proto:client_feed_java_proto_lite",
         "//src/main/proto/search/now/wire/feed:feed_java_proto_lite",

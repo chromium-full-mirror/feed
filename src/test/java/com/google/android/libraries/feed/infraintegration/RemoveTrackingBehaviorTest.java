@@ -31,7 +31,7 @@ import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.internalapi.modelprovider.RemoveTracking;
 import com.google.android.libraries.feed.internalapi.protocoladapter.ProtocolAdapter;
-import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
+import com.google.android.libraries.feed.testing.requestmanager.FakeFeedRequestManager;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.feed.client.StreamDataProto.UiContext;
@@ -56,7 +56,7 @@ public class RemoveTrackingBehaviorTest {
         ResponseBuilder.createFeatureContentId(5),
       };
 
-  private FakeRequestManager requestManager;
+  private FakeFeedRequestManager fakeFeedRequestManager;
   private SessionManager sessionManager;
   private ModelProviderFactory modelProviderFactory;
   private ProtocolAdapter protocolAdapter;
@@ -65,7 +65,7 @@ public class RemoveTrackingBehaviorTest {
   public void setUp() {
     initMocks(this);
     InfraIntegrationScope scope = new InfraIntegrationScope.Builder().build();
-    requestManager = scope.getRequestManager();
+    fakeFeedRequestManager = scope.getFakeFeedRequestManager();
     sessionManager = scope.getSessionManager();
     modelProviderFactory = scope.getModelProviderFactory();
     protocolAdapter = scope.getProtocolAdapter();
@@ -185,8 +185,8 @@ public class RemoveTrackingBehaviorTest {
   }
 
   private void loadInitialData() {
-    requestManager.queueResponse(ResponseBuilder.forClearAllWithCards(CARDS).build());
-    requestManager.triggerRefresh(
+    fakeFeedRequestManager.queueResponse(ResponseBuilder.forClearAllWithCards(CARDS).build());
+    fakeFeedRequestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
   }

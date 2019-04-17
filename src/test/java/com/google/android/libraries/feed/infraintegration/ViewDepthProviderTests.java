@@ -33,7 +33,7 @@ import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.internalapi.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.testing.modelprovider.FakeViewDepthProvider;
-import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
+import com.google.android.libraries.feed.testing.requestmanager.FakeFeedRequestManager;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import com.google.search.now.wire.feed.ConsistencyTokenProto.ConsistencyToken;
@@ -79,7 +79,7 @@ public class ViewDepthProviderTests {
 
   @Mock private SchedulerApi schedulerApi;
 
-  private FakeRequestManager requestManager;
+  private FakeFeedRequestManager fakeFeedRequestManager;
   private FakeThreadUtils fakeThreadUtils;
   private ModelProviderFactory modelProviderFactory;
   private ProtocolAdapter protocolAdapter;
@@ -96,7 +96,7 @@ public class ViewDepthProviderTests {
             .withTimeoutSessionConfiguration(2L)
             .build();
     fakeThreadUtils = scope.getFakeThreadUtils();
-    requestManager = scope.getRequestManager();
+    fakeFeedRequestManager = scope.getFakeFeedRequestManager();
     modelProviderFactory = scope.getModelProviderFactory();
     protocolAdapter = scope.getProtocolAdapter();
     modelValidator = new ModelProviderValidator(scope.getProtocolAdapter());
@@ -110,11 +110,11 @@ public class ViewDepthProviderTests {
   public void baseDepthProviderTest() {
 
     // Load up the initial request
-    requestManager.queueResponse(ResponseBuilder.forClearAllWithCards(REQUEST_ONE).build());
+    fakeFeedRequestManager.queueResponse(ResponseBuilder.forClearAllWithCards(REQUEST_ONE).build());
 
     // The REQUEST_ONE content will be added to head, this is then used to create the initial
     // session.
-    requestManager.triggerRefresh(
+    fakeFeedRequestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
 
@@ -122,7 +122,7 @@ public class ViewDepthProviderTests {
     // REQUEST_WITH_CONTENT
     when(schedulerApi.shouldSessionRequestData(any(SessionManagerState.class)))
         .thenReturn(RequestBehavior.REQUEST_WITH_CONTENT);
-    requestManager.queueResponse(ResponseBuilder.forClearAllWithCards(REQUEST_TWO).build());
+    fakeFeedRequestManager.queueResponse(ResponseBuilder.forClearAllWithCards(REQUEST_TWO).build());
     ModelProvider modelProvider =
         modelProviderFactory.createNew(viewDepthProvider, UiContext.getDefaultInstance());
 
@@ -140,11 +140,11 @@ public class ViewDepthProviderTests {
   @Test
   public void testDuplicateEntries() {
     // Load up the initial request
-    requestManager.queueResponse(ResponseBuilder.forClearAllWithCards(REQUEST_ONE).build());
+    fakeFeedRequestManager.queueResponse(ResponseBuilder.forClearAllWithCards(REQUEST_ONE).build());
 
     // The REQUEST_ONE content will be added to head, this is then used to create the initial
     // session.
-    requestManager.triggerRefresh(
+    fakeFeedRequestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
 
@@ -152,7 +152,7 @@ public class ViewDepthProviderTests {
     // REQUEST_WITH_CONTENT
     when(schedulerApi.shouldSessionRequestData(any(SessionManagerState.class)))
         .thenReturn(RequestBehavior.REQUEST_WITH_CONTENT);
-    requestManager.queueResponse(
+    fakeFeedRequestManager.queueResponse(
         ResponseBuilder.forClearAllWithCards(REQUEST_TWO_WITH_DUPLICATES).build());
     ModelProvider modelProvider =
         modelProviderFactory.createNew(viewDepthProvider, UiContext.getDefaultInstance());
@@ -168,11 +168,11 @@ public class ViewDepthProviderTests {
         REQUEST_TWO_WITH_DUPLICATES[2]);
 
     // Now page in the same content, this should all be updates
-    requestManager.queueResponse(
+    fakeFeedRequestManager.queueResponse(
         ResponseBuilder.builder().addCardsToRoot(REQUEST_TWO_WITH_DUPLICATES_PAGE).build());
     // TODO: sessions reject updates without a CLEAR_ALL or paging with a different token.
     fakeThreadUtils.enforceMainThread(false);
-    requestManager.loadMore(
+    fakeFeedRequestManager.loadMore(
         StreamToken.getDefaultInstance(),
         ConsistencyToken.getDefaultInstance(),
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));

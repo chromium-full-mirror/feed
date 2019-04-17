@@ -30,7 +30,7 @@ import com.google.android.libraries.feed.internalapi.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.internalapi.protocoladapter.ProtocolAdapter;
-import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
+import com.google.android.libraries.feed.testing.requestmanager.FakeFeedRequestManager;
 import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import org.junit.Before;
@@ -41,7 +41,7 @@ import org.robolectric.RobolectricTestRunner;
 /** Simple tests of a stream with multiple cards. */
 @RunWith(RobolectricTestRunner.class)
 public class SimpleStreamTest {
-  private FakeRequestManager requestManager;
+  private FakeFeedRequestManager fakeFeedRequestManager;
   private SessionManager sessionManager;
   private ModelProviderFactory modelProviderFactory;
   private ModelProviderValidator modelValidator;
@@ -51,7 +51,7 @@ public class SimpleStreamTest {
   public void setUp() {
     initMocks(this);
     InfraIntegrationScope scope = new InfraIntegrationScope.Builder().build();
-    requestManager = scope.getRequestManager();
+    fakeFeedRequestManager = scope.getFakeFeedRequestManager();
     sessionManager = scope.getSessionManager();
     modelProviderFactory = scope.getModelProviderFactory();
     protocolAdapter = scope.getProtocolAdapter();
@@ -65,8 +65,8 @@ public class SimpleStreamTest {
     ResponseBuilder responseBuilder =
         ResponseBuilder.forClearAllWithCards(
             new ContentId[] {ResponseBuilder.createFeatureContentId(1)});
-    requestManager.queueResponse(responseBuilder.build());
-    requestManager.triggerRefresh(
+    fakeFeedRequestManager.queueResponse(responseBuilder.build());
+    fakeFeedRequestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
     ModelProvider modelProvider =
@@ -103,8 +103,8 @@ public class SimpleStreamTest {
           ResponseBuilder.createFeatureContentId(1), ResponseBuilder.createFeatureContentId(2)
         };
     ResponseBuilder responseBuilder = ResponseBuilder.forClearAllWithCards(cards);
-    requestManager.queueResponse(responseBuilder.build());
-    requestManager.triggerRefresh(
+    fakeFeedRequestManager.queueResponse(responseBuilder.build());
+    fakeFeedRequestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
     ModelProvider modelProvider =

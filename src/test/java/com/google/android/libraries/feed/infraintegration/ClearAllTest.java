@@ -29,7 +29,7 @@ import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider.State;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProviderFactory;
-import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
+import com.google.android.libraries.feed.testing.requestmanager.FakeFeedRequestManager;
 import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import org.junit.Before;
@@ -40,7 +40,7 @@ import org.robolectric.RobolectricTestRunner;
 /** This will test the behavior of clear all. */
 @RunWith(RobolectricTestRunner.class)
 public class ClearAllTest {
-  private FakeRequestManager requestManager;
+  private FakeFeedRequestManager fakeFeedRequestManager;
   private SessionManager sessionManager;
   private ModelProviderFactory modelProviderFactory;
   private ModelProviderValidator modelValidator;
@@ -53,7 +53,7 @@ public class ClearAllTest {
         new Configuration.Builder().put(ConfigKey.LIMIT_PAGE_UPDATES, false).build();
     InfraIntegrationScope scope =
         new InfraIntegrationScope.Builder().setConfiguration(configuration).build();
-    requestManager = scope.getRequestManager();
+    fakeFeedRequestManager = scope.getFakeFeedRequestManager();
     sessionManager = scope.getSessionManager();
     modelProviderFactory = scope.getModelProviderFactory();
     appLifecycleListener = scope.getAppLifecycleListener();
@@ -72,8 +72,8 @@ public class ClearAllTest {
           ResponseBuilder.createFeatureContentId(2),
           ResponseBuilder.createFeatureContentId(3)
         };
-    requestManager.queueResponse(ResponseBuilder.forClearAllWithCards(cards).build());
-    requestManager.triggerRefresh(
+    fakeFeedRequestManager.queueResponse(ResponseBuilder.forClearAllWithCards(cards).build());
+    fakeFeedRequestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
     ModelProvider modelProvider1 =
@@ -101,8 +101,8 @@ public class ClearAllTest {
           ResponseBuilder.createFeatureContentId(2),
           ResponseBuilder.createFeatureContentId(3)
         };
-    requestManager.queueResponse(ResponseBuilder.forClearAllWithCards(cards).build());
-    requestManager.triggerRefresh(
+    fakeFeedRequestManager.queueResponse(ResponseBuilder.forClearAllWithCards(cards).build());
+    fakeFeedRequestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
     ModelProvider modelProvider =

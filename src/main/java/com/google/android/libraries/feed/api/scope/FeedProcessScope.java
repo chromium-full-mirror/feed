@@ -39,7 +39,8 @@ import com.google.android.libraries.feed.feedapplifecyclelistener.FeedAppLifecyc
 import com.google.android.libraries.feed.feedknowncontent.FeedKnownContentApi;
 import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter;
 import com.google.android.libraries.feed.feedrequestmanager.FeedActionUploadRequestManager;
-import com.google.android.libraries.feed.feedrequestmanager.FeedRequestManager;
+import com.google.android.libraries.feed.feedrequestmanager.FeedRequestManagerImpl;
+import com.google.android.libraries.feed.feedrequestmanager.RequestManagerImpl;
 import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManagerFactory;
 import com.google.android.libraries.feed.feedstore.ContentStorageDirectImpl;
 import com.google.android.libraries.feed.feedstore.FeedStore;
@@ -71,6 +72,7 @@ import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage
 import com.google.android.libraries.feed.internalapi.actionmanager.ActionManager;
 import com.google.android.libraries.feed.internalapi.actionmanager.ActionReader;
 import com.google.android.libraries.feed.internalapi.protocoladapter.ProtocolAdapter;
+import com.google.android.libraries.feed.internalapi.requestmanager.FeedRequestManager;
 import com.google.android.libraries.feed.internalapi.store.Store;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
@@ -281,7 +283,7 @@ public final class FeedProcessScope implements Dumpable {
     private final ApplicationInfo applicationInfo;
 
     // Optional fields - if they are not provided, we will use default implementations.
-    /*@MonotonicNonNull*/ private RequestManager requestManager = null;
+    /*@MonotonicNonNull*/ private FeedRequestManager feedRequestManager = null;
     /*@MonotonicNonNull*/ private ActionUploadRequestManager actionUploadRequestManager = null;
     /*@MonotonicNonNull*/ private SessionManager sessionManager = null;
     /*@MonotonicNonNull*/ private ProtocolAdapter protocolAdapter = null;
@@ -324,8 +326,8 @@ public final class FeedProcessScope implements Dumpable {
       return this;
     }
 
-    public Builder setRequestManager(RequestManager requestManager) {
-      this.requestManager = requestManager;
+    public Builder setFeedRequestManager(FeedRequestManager feedRequestManager) {
+      this.feedRequestManager = feedRequestManager;
       return this;
     }
 
@@ -480,9 +482,9 @@ public final class FeedProcessScope implements Dumpable {
       }
       ActionReader actionReader =
           new FeedActionReader(store, clock, protocolAdapter, taskQueue, configuration);
-      if (requestManager == null) {
-        requestManager =
-            new FeedRequestManager(
+      if (feedRequestManager == null) {
+        feedRequestManager =
+            new FeedRequestManagerImpl(
                 configuration,
                 networkClient,
                 protocolAdapter,
@@ -519,7 +521,7 @@ public final class FeedProcessScope implements Dumpable {
                 timingUtils,
                 threadUtils,
                 protocolAdapter,
-                requestManager,
+                feedRequestManager,
                 actionUploadRequestManager,
                 schedulerApi,
                 configuration,
@@ -527,8 +529,8 @@ public final class FeedProcessScope implements Dumpable {
                 lifecycleListener);
         sessionManager = fsmFactory.create();
       }
-      requestManager.setDefaultTriggerRefreshConsumerSupplier(
-          sessionManager.getTriggerRefreshConsumer());
+      RequestManagerImpl clientRequestManager =
+          new RequestManagerImpl(feedRequestManager, sessionManager);
       ActionManager actionManager =
           new FeedActionManagerImpl(
               sessionManager, store, threadUtils, taskQueue, getOrCreateMainThreadRunner());
@@ -544,7 +546,7 @@ public final class FeedProcessScope implements Dumpable {
           basicLoggingApi,
           networkClient,
           Validators.checkNotNull(protocolAdapter),
-          Validators.checkNotNull(requestManager),
+          Validators.checkNotNull(clientRequestManager),
           Validators.checkNotNull(actionUploadRequestManager),
           Validators.checkNotNull(sessionManager),
           store,

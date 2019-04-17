@@ -33,7 +33,7 @@ import com.google.android.libraries.feed.internalapi.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.internalapi.protocoladapter.ProtocolAdapter;
-import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
+import com.google.android.libraries.feed.testing.requestmanager.FakeFeedRequestManager;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import com.google.search.now.wire.feed.ConsistencyTokenProto.ConsistencyToken;
@@ -49,7 +49,7 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class ContentUpdateTest {
   private final InfraIntegrationScope scope = new InfraIntegrationScope.Builder().build();
-  private final FakeRequestManager requestManager = scope.getRequestManager();
+  private final FakeFeedRequestManager fakeFeedRequestManager = scope.getFakeFeedRequestManager();
   private final FakeThreadUtils fakeThreadUtils = scope.getFakeThreadUtils();
   private final ModelProviderFactory modelProviderFactory = scope.getModelProviderFactory();
   private final ModelProviderValidator modelValidator =
@@ -64,8 +64,8 @@ public class ContentUpdateTest {
         new ContentId[] {
           ResponseBuilder.createFeatureContentId(1), ResponseBuilder.createFeatureContentId(2)
         };
-    requestManager.queueResponse(ResponseBuilder.forClearAllWithCards(cards).build());
-    requestManager.triggerRefresh(
+    fakeFeedRequestManager.queueResponse(ResponseBuilder.forClearAllWithCards(cards).build());
+    fakeFeedRequestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
     ModelProvider modelProvider =
@@ -99,10 +99,10 @@ public class ContentUpdateTest {
     assertThat(cursor.isAtEnd()).isTrue();
 
     // Create an update response for the two content items
-    requestManager.queueResponse(ResponseBuilder.builder().addCardsToRoot(cards).build());
+    fakeFeedRequestManager.queueResponse(ResponseBuilder.builder().addCardsToRoot(cards).build());
     // TODO: sessions reject updates without a CLEAR_ALL or paging with a different token.
     fakeThreadUtils.enforceMainThread(false);
-    requestManager.loadMore(
+    fakeFeedRequestManager.loadMore(
         StreamToken.getDefaultInstance(),
         ConsistencyToken.getDefaultInstance(),
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));

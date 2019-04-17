@@ -33,7 +33,7 @@ import com.google.android.libraries.feed.internalapi.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.internalapi.protocoladapter.ProtocolAdapter;
-import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
+import com.google.android.libraries.feed.testing.requestmanager.FakeFeedRequestManager;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import com.google.search.now.wire.feed.ConsistencyTokenProto.ConsistencyToken;
@@ -48,7 +48,7 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class StructureUpdateTest {
   private final InfraIntegrationScope scope = new InfraIntegrationScope.Builder().build();
-  private final FakeRequestManager requestManager = scope.getRequestManager();
+  private final FakeFeedRequestManager fakeFeedRequestManager = scope.getFakeFeedRequestManager();
   private final FakeThreadUtils fakeThreadUtils = scope.getFakeThreadUtils();
   private final ModelProviderFactory modelProviderFactory = scope.getModelProviderFactory();
   private final ModelProviderValidator modelValidator =
@@ -69,8 +69,9 @@ public class StructureUpdateTest {
           ResponseBuilder.createFeatureContentId(3), ResponseBuilder.createFeatureContentId(4)
         };
 
-    requestManager.queueResponse(ResponseBuilder.forClearAllWithCards(startingCards).build());
-    requestManager.triggerRefresh(
+    fakeFeedRequestManager.queueResponse(
+        ResponseBuilder.forClearAllWithCards(startingCards).build());
+    fakeFeedRequestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
     ModelProvider modelProvider =
@@ -83,10 +84,11 @@ public class StructureUpdateTest {
     modelValidator.assertCursorSize(root.getCursor(), startingCards.length);
 
     // Append new children to root
-    requestManager.queueResponse(ResponseBuilder.builder().addCardsToRoot(appendedCards).build());
+    fakeFeedRequestManager.queueResponse(
+        ResponseBuilder.builder().addCardsToRoot(appendedCards).build());
     // TODO: sessions reject updates without a CLEAR_ALL or paging with a different token.
     fakeThreadUtils.enforceMainThread(false);
-    requestManager.loadMore(
+    fakeFeedRequestManager.loadMore(
         StreamToken.getDefaultInstance(),
         ConsistencyToken.getDefaultInstance(),
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
@@ -122,8 +124,9 @@ public class StructureUpdateTest {
           ResponseBuilder.createFeatureContentId(3), ResponseBuilder.createFeatureContentId(4)
         };
 
-    requestManager.queueResponse(ResponseBuilder.forClearAllWithCards(startingCards).build());
-    requestManager.triggerRefresh(
+    fakeFeedRequestManager.queueResponse(
+        ResponseBuilder.forClearAllWithCards(startingCards).build());
+    fakeFeedRequestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
     ModelProvider modelProvider =
@@ -137,10 +140,11 @@ public class StructureUpdateTest {
     cursor.getNextItem();
 
     // Now append additional children to the stream (and cursor)
-    requestManager.queueResponse(ResponseBuilder.builder().addCardsToRoot(appendedCards).build());
+    fakeFeedRequestManager.queueResponse(
+        ResponseBuilder.builder().addCardsToRoot(appendedCards).build());
     // TODO: sessions reject updates without a CLEAR_ALL or paging with a different token.
     fakeThreadUtils.enforceMainThread(false);
-    requestManager.loadMore(
+    fakeFeedRequestManager.loadMore(
         StreamToken.getDefaultInstance(),
         ConsistencyToken.getDefaultInstance(),
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));

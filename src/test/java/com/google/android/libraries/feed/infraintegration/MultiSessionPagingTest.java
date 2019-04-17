@@ -30,7 +30,7 @@ import com.google.android.libraries.feed.internalapi.modelprovider.ModelChild;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider.State;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProviderFactory;
-import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
+import com.google.android.libraries.feed.testing.requestmanager.FakeFeedRequestManager;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
@@ -61,7 +61,7 @@ import org.robolectric.RobolectricTestRunner;
  */
 @RunWith(RobolectricTestRunner.class)
 public class MultiSessionPagingTest {
-  private FakeRequestManager requestManager;
+  private FakeFeedRequestManager fakeFeedRequestManager;
   private SessionManager sessionManager;
   private ModelProviderFactory modelProviderFactory;
   private ModelProviderValidator modelValidator;
@@ -71,7 +71,7 @@ public class MultiSessionPagingTest {
   public void setUp() {
     initMocks(this);
     InfraIntegrationScope scope = new InfraIntegrationScope.Builder().build();
-    requestManager = scope.getRequestManager();
+    fakeFeedRequestManager = scope.getFakeFeedRequestManager();
     sessionManager = scope.getSessionManager();
     modelProviderFactory = scope.getModelProviderFactory();
     modelValidator = new ModelProviderValidator(scope.getProtocolAdapter());
@@ -104,8 +104,8 @@ public class MultiSessionPagingTest {
     PagingState s2State = new PagingState(s2Cards, s2PageCards, 2, contentIdGenerators);
 
     // Create an initial S1 $HEAD session
-    requestManager.queueResponse(s1State.initialResponse);
-    requestManager.triggerRefresh(
+    fakeFeedRequestManager.queueResponse(s1State.initialResponse);
+    fakeFeedRequestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
 
@@ -122,8 +122,8 @@ public class MultiSessionPagingTest {
     modelValidator.assertCursorContentsWithToken(mp2, s1Cards);
 
     // Refresh the Stream with the S2 initial response
-    requestManager.queueResponse(s2State.initialResponse);
-    requestManager.triggerRefresh(
+    fakeFeedRequestManager.queueResponse(s2State.initialResponse);
+    fakeFeedRequestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(
             new MutationContext.Builder().setRequestingSessionId(mp2.getSessionId()).build()));
@@ -143,14 +143,14 @@ public class MultiSessionPagingTest {
     assertThat(mp1.getCurrentState()).isEqualTo(State.READY);
 
     // now page S1
-    requestManager.queueResponse(s1State.pageResponse);
+    fakeFeedRequestManager.queueResponse(s1State.pageResponse);
     mp1.handleToken(mp1Token.getModelToken());
     modelValidator.assertCursorContents(
         mp1, s1Cards[0], s1Cards[1], s1PageCards[0], s1PageCards[1]);
     modelValidator.assertCursorContentsWithToken(mp2, s2Cards);
 
     // now page S2
-    requestManager.queueResponse(s2State.pageResponse);
+    fakeFeedRequestManager.queueResponse(s2State.pageResponse);
     mp2.handleToken(mp2Token.getModelToken());
     modelValidator.assertCursorContents(
         mp1, s1Cards[0], s1Cards[1], s1PageCards[0], s1PageCards[1]);

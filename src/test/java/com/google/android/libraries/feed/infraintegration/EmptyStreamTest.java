@@ -33,7 +33,7 @@ import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProviderObserver;
 import com.google.android.libraries.feed.testing.proto.UiContextForTestProto.UiContextForTest;
-import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
+import com.google.android.libraries.feed.testing.requestmanager.FakeFeedRequestManager;
 import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import org.junit.Before;
 import org.junit.Test;
@@ -45,7 +45,7 @@ import org.robolectric.RobolectricTestRunner;
 public class EmptyStreamTest {
 
   private FakeClock fakeClock;
-  private FakeRequestManager requestManager;
+  private FakeFeedRequestManager fakeFeedRequestManager;
   private SessionManager sessionManager;
   private ModelProviderFactory modelProviderFactory;
 
@@ -54,7 +54,7 @@ public class EmptyStreamTest {
     initMocks(this);
     InfraIntegrationScope scope = new InfraIntegrationScope.Builder().build();
     fakeClock = scope.getFakeClock();
-    requestManager = scope.getRequestManager();
+    fakeFeedRequestManager = scope.getFakeFeedRequestManager();
     sessionManager = scope.getSessionManager();
     modelProviderFactory = scope.getModelProviderFactory();
   }
@@ -119,8 +119,8 @@ public class EmptyStreamTest {
   public void emptyStream_emptyResponse() {
     // Create an empty stream through a response
     ResponseBuilder responseBuilder = new ResponseBuilder();
-    requestManager.queueResponse(responseBuilder.build());
-    requestManager.triggerRefresh(
+    fakeFeedRequestManager.queueResponse(responseBuilder.build());
+    fakeFeedRequestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
 

@@ -24,7 +24,7 @@ import com.google.android.libraries.feed.common.functional.Function;
 import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ResponseBuilder;
 import com.google.android.libraries.feed.host.logging.RequestReason;
-import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
+import com.google.android.libraries.feed.testing.requestmanager.FakeFeedRequestManager;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
@@ -36,14 +36,14 @@ import org.robolectric.RobolectricTestRunner;
 /** Tests of the {@link SessionManager#getStreamFeaturesFromHead(Function, Consumer)} method. */
 @RunWith(RobolectricTestRunner.class)
 public class FilterHeadTest {
-  private FakeRequestManager requestManager;
+  private FakeFeedRequestManager fakeFeedRequestManager;
   private SessionManager sessionManager;
 
   @Before
   public void setUp() {
     initMocks(this);
     InfraIntegrationScope scope = new InfraIntegrationScope.Builder().build();
-    requestManager = scope.getRequestManager();
+    fakeFeedRequestManager = scope.getFakeFeedRequestManager();
     sessionManager = scope.getSessionManager();
   }
 
@@ -58,8 +58,8 @@ public class FilterHeadTest {
           ResponseBuilder.createFeatureContentId(5),
         };
 
-    requestManager.queueResponse(ResponseBuilder.forClearAllWithCards(cards).build());
-    requestManager.triggerRefresh(
+    fakeFeedRequestManager.queueResponse(ResponseBuilder.forClearAllWithCards(cards).build());
+    fakeFeedRequestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
 

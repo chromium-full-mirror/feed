@@ -25,7 +25,7 @@ import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ResponseBuilder;
 import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.android.libraries.feed.internalapi.store.Store;
-import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
+import com.google.android.libraries.feed.testing.requestmanager.FakeFeedRequestManager;
 import com.google.protobuf.ByteString;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.ResponseProto.Response;
@@ -39,7 +39,7 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class SemanticPropertiesTest {
   private final InfraIntegrationScope scope = new InfraIntegrationScope.Builder().build();
-  private final FakeRequestManager requestManager = scope.getRequestManager();
+  private final FakeFeedRequestManager fakeFeedRequestManager = scope.getFakeFeedRequestManager();
   private final SessionManager sessionManager = scope.getSessionManager();
   private final Store store = scope.getStore();
 
@@ -53,8 +53,8 @@ public class SemanticPropertiesTest {
             .addClearOperation()
             .addCardWithSemanticData(contentId, semanticData)
             .build();
-    requestManager.queueResponse(response);
-    requestManager.triggerRefresh(
+    fakeFeedRequestManager.queueResponse(response);
+    fakeFeedRequestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
 

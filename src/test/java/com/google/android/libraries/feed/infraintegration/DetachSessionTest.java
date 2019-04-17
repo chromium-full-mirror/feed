@@ -29,7 +29,7 @@ import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelChild;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProviderFactory;
-import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
+import com.google.android.libraries.feed.testing.requestmanager.FakeFeedRequestManager;
 import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import org.junit.Before;
@@ -54,7 +54,7 @@ public class DetachSessionTest {
         ResponseBuilder.createFeatureContentId(6)
       };
 
-  private FakeRequestManager requestManager;
+  private FakeFeedRequestManager fakeFeedRequestManager;
   private SessionManager sessionManager;
   private ModelProviderFactory modelProviderFactory;
   private ModelProviderValidator modelValidator;
@@ -68,7 +68,7 @@ public class DetachSessionTest {
         new Configuration.Builder().put(ConfigKey.LIMIT_PAGE_UPDATES, false).build();
     InfraIntegrationScope scope =
         new InfraIntegrationScope.Builder().setConfiguration(configuration).build();
-    requestManager = scope.getRequestManager();
+    fakeFeedRequestManager = scope.getFakeFeedRequestManager();
     sessionManager = scope.getSessionManager();
     modelProviderFactory = scope.getModelProviderFactory();
     modelValidator = new ModelProviderValidator(scope.getProtocolAdapter());
@@ -90,8 +90,8 @@ public class DetachSessionTest {
   public void testPagingDetachedSession() {
     PagingState s1State = new PagingState(PAGE_1, PAGE_2, 1, contentIdGenerators);
 
-    requestManager.queueResponse(s1State.initialResponse);
-    requestManager.triggerRefresh(
+    fakeFeedRequestManager.queueResponse(s1State.initialResponse);
+    fakeFeedRequestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
 
@@ -113,7 +113,7 @@ public class DetachSessionTest {
     modelValidator.assertCursorContentsWithToken(existingSession, PAGE_1);
 
     // page the sessionTwo
-    requestManager.queueResponse(s1State.pageResponse);
+    fakeFeedRequestManager.queueResponse(s1State.pageResponse);
     sessionTwo.handleToken(tokenChild.getModelToken());
 
     // verify that existingSession and sessionTwo match
@@ -140,8 +140,8 @@ public class DetachSessionTest {
   public void testPagingDetachedSession_pageWhileDetached() {
     PagingState s1State = new PagingState(PAGE_1, PAGE_2, 1, contentIdGenerators);
 
-    requestManager.queueResponse(s1State.initialResponse);
-    requestManager.triggerRefresh(
+    fakeFeedRequestManager.queueResponse(s1State.initialResponse);
+    fakeFeedRequestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
 
@@ -158,7 +158,7 @@ public class DetachSessionTest {
     sessionOne.detachModelProvider();
 
     // page the sessionTwo
-    requestManager.queueResponse(s1State.pageResponse);
+    fakeFeedRequestManager.queueResponse(s1State.pageResponse);
     sessionTwo.handleToken(tokenChild.getModelToken());
 
     // recreate sessionOne as existingSession

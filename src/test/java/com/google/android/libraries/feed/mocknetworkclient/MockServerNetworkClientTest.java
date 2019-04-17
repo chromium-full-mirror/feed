@@ -32,7 +32,7 @@ import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
-import com.google.android.libraries.feed.feedrequestmanager.FeedRequestManager;
+import com.google.android.libraries.feed.feedrequestmanager.FeedRequestManagerImpl;
 import com.google.android.libraries.feed.host.config.ApplicationInfo;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.network.HttpRequest;
@@ -169,8 +169,8 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
     MockServerNetworkClient networkClient =
         new MockServerNetworkClient(
             context, mockServerBuilder.build(), /* responseDelayMillis= */ 0L);
-    FeedRequestManager feedRequestManager =
-        new FeedRequestManager(
+    FeedRequestManagerImpl feedRequestManager =
+        new FeedRequestManagerImpl(
             configuration,
             networkClient,
             protocolAdapter,
@@ -213,8 +213,8 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
     MockServerNetworkClient networkClient =
         new MockServerNetworkClient(
             context, mockServerBuilder.build(), /* responseDelayMillis= */ 0L);
-    FeedRequestManager feedRequestManager =
-        new FeedRequestManager(
+    FeedRequestManagerImpl feedRequestManager =
+        new FeedRequestManagerImpl(
             configuration,
             networkClient,
             protocolAdapter,

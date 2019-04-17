@@ -26,7 +26,7 @@ import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.internalapi.protocoladapter.ProtocolAdapter;
-import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
+import com.google.android.libraries.feed.testing.requestmanager.FakeFeedRequestManager;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import org.junit.Before;
@@ -37,7 +37,7 @@ import org.robolectric.RobolectricTestRunner;
 /** Tests of accessing shared state. */
 @RunWith(RobolectricTestRunner.class)
 public class SharedStateTest {
-  private FakeRequestManager requestManager;
+  private FakeFeedRequestManager fakeFeedRequestManager;
   private SessionManager sessionManager;
   private ProtocolAdapter protocolAdapter;
   private ModelProviderFactory modelProviderFactory;
@@ -47,7 +47,7 @@ public class SharedStateTest {
   public void setUp() {
     initMocks(this);
     InfraIntegrationScope scope = new InfraIntegrationScope.Builder().build();
-    requestManager = scope.getRequestManager();
+    fakeFeedRequestManager = scope.getFakeFeedRequestManager();
     sessionManager = scope.getSessionManager();
     modelProviderFactory = scope.getModelProviderFactory();
     protocolAdapter = scope.getProtocolAdapter();
@@ -59,8 +59,8 @@ public class SharedStateTest {
     // ModelProvider is created from $HEAD containing content, simple shared state added
     ResponseBuilder responseBuilder =
         new ResponseBuilder().addClearOperation().addPietSharedState().addRootFeature();
-    requestManager.queueResponse(responseBuilder.build());
-    requestManager.triggerRefresh(
+    fakeFeedRequestManager.queueResponse(responseBuilder.build());
+    fakeFeedRequestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
 
@@ -83,8 +83,8 @@ public class SharedStateTest {
 
     ResponseBuilder responseBuilder =
         new ResponseBuilder().addClearOperation().addPietSharedState().addRootFeature();
-    requestManager.queueResponse(responseBuilder.build());
-    requestManager.triggerRefresh(
+    fakeFeedRequestManager.queueResponse(responseBuilder.build());
+    fakeFeedRequestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
 

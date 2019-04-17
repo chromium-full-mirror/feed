@@ -57,7 +57,7 @@ public final class GcTest {
   @Test
   public void testGc_contentInLiveSessionRetained() {
     scope
-        .getRequestManager()
+        .getFakeFeedRequestManager()
         .queueResponse(createResponse(REQUEST_1))
         .triggerRefresh(
             RequestReason.OPEN_WITHOUT_CONTENT,
@@ -72,7 +72,7 @@ public final class GcTest {
 
     // Populate HEAD with new data.
     scope
-        .getRequestManager()
+        .getFakeFeedRequestManager()
         .queueResponse(createResponse(REQUEST_2))
         .triggerRefresh(
             RequestReason.OPEN_WITHOUT_CONTENT,
@@ -88,7 +88,7 @@ public final class GcTest {
   @Test
   public void testGc_contentInExpiredSessionDeleted() {
     scope
-        .getRequestManager()
+        .getFakeFeedRequestManager()
         .queueResponse(createResponse(REQUEST_1))
         .triggerRefresh(
             RequestReason.OPEN_WITHOUT_CONTENT,
@@ -103,7 +103,7 @@ public final class GcTest {
 
     // Populate HEAD with new data.
     scope
-        .getRequestManager()
+        .getFakeFeedRequestManager()
         .queueResponse(createResponse(REQUEST_2))
         .triggerRefresh(
             RequestReason.OPEN_WITHOUT_CONTENT,

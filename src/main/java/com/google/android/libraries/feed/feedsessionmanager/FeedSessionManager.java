@@ -20,7 +20,6 @@ import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.knowncontent.KnownContentApi.KnownContentListener;
 import com.google.android.libraries.feed.api.requestmanager.ActionUploadRequestManager;
-import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.Validators;
@@ -29,7 +28,6 @@ import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
 import com.google.android.libraries.feed.common.feedobservable.FeedObservable;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.functional.Function;
-import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.intern.HashPoolInterner;
 import com.google.android.libraries.feed.common.intern.InternedMap;
 import com.google.android.libraries.feed.common.intern.Interner;
@@ -62,6 +60,7 @@ import com.google.android.libraries.feed.internalapi.modelprovider.ModelError.Er
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider.ViewDepthProvider;
 import com.google.android.libraries.feed.internalapi.protocoladapter.ProtocolAdapter;
+import com.google.android.libraries.feed.internalapi.requestmanager.FeedRequestManager;
 import com.google.android.libraries.feed.internalapi.store.Store;
 import com.google.android.libraries.feed.internalapi.store.StoreListener;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
@@ -129,7 +128,7 @@ public final class FeedSessionManager
   private final ThreadUtils threadUtils;
   private final TimingUtils timingUtils;
   private final ProtocolAdapter protocolAdapter;
-  private final RequestManager requestManager;
+  private final FeedRequestManager feedRequestManager;
   private final ActionUploadRequestManager actionUploadRequestManager;
   private final SchedulerApi schedulerApi;
   private final TaskQueue taskQueue;
@@ -156,7 +155,7 @@ public final class FeedSessionManager
       TimingUtils timingUtils,
       ThreadUtils threadUtils,
       ProtocolAdapter protocolAdapter,
-      RequestManager requestManager,
+      FeedRequestManager feedRequestManager,
       ActionUploadRequestManager actionUploadRequestManager,
       SchedulerApi schedulerApi,
       Configuration configuration,
@@ -172,7 +171,7 @@ public final class FeedSessionManager
     this.timingUtils = timingUtils;
     this.threadUtils = threadUtils;
     this.protocolAdapter = protocolAdapter;
-    this.requestManager = requestManager;
+    this.feedRequestManager = feedRequestManager;
     this.actionUploadRequestManager = actionUploadRequestManager;
     this.schedulerApi = schedulerApi;
     this.clock = clock;
@@ -198,11 +197,6 @@ public final class FeedSessionManager
     }
     store.registerObserver(this);
     taskQueue.initialize(this::initializationTask);
-  }
-
-  @Override
-  public Supplier<Consumer<Result<List<StreamDataOperation>>>> getTriggerRefreshConsumer() {
-    return () -> getCommitter("triggerRefresh", MutationContext.EMPTY_CONTEXT);
   }
 
   // Task which initializes the Session Manager.  This must be the first task run on the
@@ -522,7 +516,7 @@ public final class FeedSessionManager
               getConsistencyToken(),
               result -> {
                 ConsistencyToken token = handleUpdateConsistencyToken(result);
-                requestManager.loadMore(
+                feedRequestManager.loadMore(
                     streamToken, token, getCommitter("handleToken", mutationContext));
               });
         });
@@ -574,7 +568,7 @@ public final class FeedSessionManager
         getConsistencyToken(),
         result -> {
           ConsistencyToken consistencyToken = handleUpdateConsistencyToken(result);
-          requestManager.triggerRefresh(
+          feedRequestManager.triggerRefresh(
               requestReason,
               consistencyToken,
               getCommitter(

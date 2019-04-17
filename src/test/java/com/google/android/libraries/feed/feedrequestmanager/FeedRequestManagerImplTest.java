@@ -94,9 +94,9 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 import org.robolectric.util.ReflectionHelpers;
 
-/** Test of the {@link FeedRequestManager} class. */
+/** Test of the {@link FeedRequestManagerImpl} class. */
 @RunWith(RobolectricTestRunner.class)
-public class FeedRequestManagerTest {
+public class FeedRequestManagerImplTest {
 
   private static final int NOT_FOUND = 404;
   private static final String TABLE = "table";
@@ -116,7 +116,7 @@ public class FeedRequestManagerTest {
 
   private Context context;
   private ExtensionRegistryLite registry;
-  private FeedRequestManager requestManager;
+  private FeedRequestManagerImpl requestManager;
   private FakeActionReader fakeActionReader;
   private FakeMainThreadRunner fakeMainThreadRunner;
   private FakeProtocolAdapter fakeProtocolAdapter;
@@ -165,7 +165,7 @@ public class FeedRequestManagerTest {
     when(applicationInfo.getBuildType()).thenReturn(ApplicationInfo.BuildType.DEV);
     when(applicationInfo.getVersionString()).thenReturn(APP_VERSION_STRING);
     requestManager =
-        new FeedRequestManager(
+        new FeedRequestManagerImpl(
             configuration,
             fakeNetworkClient,
             fakeProtocolAdapter,
@@ -244,32 +244,6 @@ public class FeedRequestManagerTest {
   @Test
   public void testTriggerRefresh_articleSnippetsAdded() throws Exception {
     testCapabilityAdded(ConfigKey.SNIPPETS_ENABLED, Capability.ARTICLE_SNIPPETS);
-  }
-
-  @Test
-  public void testTriggerRefresh_defaultConsumer() throws Exception {
-    RequiredConsumer<Result<List<StreamDataOperation>>> consumer =
-        new RequiredConsumer<>(input -> {});
-    requestManager.setDefaultTriggerRefreshConsumerSupplier(() -> consumer);
-    requestManager.triggerRefresh(RequestReason.HOST_REQUESTED);
-
-    HttpRequest httpRequest = fakeNetworkClient.getLatestRequest();
-    assertHttpRequestFormattedCorrectly(httpRequest, context);
-
-    Request request = getRequestFromHttpRequest(httpRequest);
-    Request expectedRequest =
-        Request.newBuilder()
-            .setRequestVersion(RequestVersion.FEED_QUERY)
-            .setExtension(
-                FeedRequest.feedRequest,
-                getTestFeedRequestBuilder()
-                    .setFeedQuery(
-                        FeedQuery.newBuilder().setReason(FeedQuery.RequestReason.SCHEDULED_REFRESH))
-                    .addClientCapability(Capability.BASE_UI)
-                    .build())
-            .build();
-    assertThat(request).isEqualTo(expectedRequest);
-    assertThat(consumer.isCalled()).isTrue();
   }
 
   @Test
@@ -877,7 +851,7 @@ public class FeedRequestManagerTest {
   private void testCapabilityAdded(String configKey, Capability capability) throws Exception {
     Configuration configuration = new Configuration.Builder().put(configKey, true).build();
     requestManager =
-        new FeedRequestManager(
+        new FeedRequestManagerImpl(
             configuration,
             fakeNetworkClient,
             fakeProtocolAdapter,

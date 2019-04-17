@@ -32,7 +32,7 @@ import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProviderObserver;
 import com.google.android.libraries.feed.internalapi.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.testing.host.scheduler.FakeSchedulerApi;
-import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
+import com.google.android.libraries.feed.testing.requestmanager.FakeFeedRequestManager;
 import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import java.util.concurrent.TimeoutException;
@@ -70,7 +70,7 @@ public class TimeoutSessionWithContentTest {
       new FakeSchedulerApi(FakeThreadUtils.withoutThreadChecks());
 
   private FakeClock fakeClock;
-  private FakeRequestManager requestManager;
+  private FakeFeedRequestManager fakeFeedRequestManager;
   private ModelProviderFactory modelProviderFactory;
   private ProtocolAdapter protocolAdapter;
   private ModelProviderValidator modelValidator;
@@ -85,7 +85,7 @@ public class TimeoutSessionWithContentTest {
             .withTimeoutSessionConfiguration(2L)
             .build();
     fakeClock = scope.getFakeClock();
-    requestManager = scope.getRequestManager();
+    fakeFeedRequestManager = scope.getFakeFeedRequestManager();
     modelProviderFactory = scope.getModelProviderFactory();
     protocolAdapter = scope.getProtocolAdapter();
     modelValidator = new ModelProviderValidator(scope.getProtocolAdapter());
@@ -97,7 +97,7 @@ public class TimeoutSessionWithContentTest {
    * <ol>
    *   <li>Create the initial ModelProvider from $HEAD with a REQUEST_WITH_WAIT which makes the
    *       request before the session is populated.
-   *   <li>Load the second request into the RequestManager
+   *   <li>Load the second request into the FeedRequestManager
    *   <li>Create a second ModelProvider using REQUEST_WITH_CONTENT which displays the initial $HEAD
    *       but makes a request. The second request will be appended to and update the ModelProvider.
    * </ol>
@@ -106,7 +106,7 @@ public class TimeoutSessionWithContentTest {
   public void testRequestWithWait() throws TimeoutException {
 
     // Load up the initial request
-    requestManager.queueResponse(
+    fakeFeedRequestManager.queueResponse(
         ResponseBuilder.forClearAllWithCards(REQUEST_ONE).build(), /* delayMs= */ 100);
 
     // Wait for the request to complete (REQUEST_WITH_CONTENT).  This will trigger the request and
@@ -129,7 +129,7 @@ public class TimeoutSessionWithContentTest {
     assertThat(fakeClock.currentTimeMillis() - startTimeMs).isAtLeast(100L);
 
     // Create a new ModelProvider from HEAD (REQUEST_WITH_CONTENT)
-    requestManager.queueResponse(
+    fakeFeedRequestManager.queueResponse(
         ResponseBuilder.forClearAllWithCards(REQUEST_TWO).build(), /* delayMs= */ 100);
     fakeSchedulerApi.setRequestBehavior(RequestBehavior.REQUEST_WITH_CONTENT);
     // This will wait for the session to be created and validate the root cursor

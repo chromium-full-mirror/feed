@@ -44,7 +44,7 @@ import com.google.android.libraries.feed.internalapi.modelprovider.ModelToken;
 import com.google.android.libraries.feed.internalapi.modelprovider.TokenCompleted;
 import com.google.android.libraries.feed.internalapi.modelprovider.TokenCompletedObserver;
 import com.google.android.libraries.feed.internalapi.protocoladapter.ProtocolAdapter;
-import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
+import com.google.android.libraries.feed.testing.requestmanager.FakeFeedRequestManager;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
@@ -64,7 +64,7 @@ public class SyntheticTokensTest {
   private static final int MIN_PAGE_SIZE = 2;
 
   private FakeClock fakeClock;
-  private FakeRequestManager requestManager;
+  private FakeFeedRequestManager fakeFeedRequestManager;
   private SessionManager sessionManager;
   private ModelProviderFactory modelProviderFactory;
   private ModelProviderValidator modelValidator;
@@ -83,7 +83,7 @@ public class SyntheticTokensTest {
     InfraIntegrationScope scope =
         new InfraIntegrationScope.Builder().setConfiguration(configuration).build();
     fakeClock = scope.getFakeClock();
-    requestManager = scope.getRequestManager();
+    fakeFeedRequestManager = scope.getFakeFeedRequestManager();
     sessionManager = scope.getSessionManager();
     modelProviderFactory = scope.getModelProviderFactory();
     protocolAdapter = scope.getProtocolAdapter();
@@ -124,8 +124,8 @@ public class SyntheticTokensTest {
 
     // Create 13 cards (initial page size + page size + page size and slope of 1)
     // Initial model will have all the cards
-    requestManager.queueResponse(ResponseBuilder.forClearAllWithCards(cards).build());
-    requestManager.triggerRefresh(
+    fakeFeedRequestManager.queueResponse(ResponseBuilder.forClearAllWithCards(cards).build());
+    fakeFeedRequestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
     ModelProvider modelProvider =
@@ -221,8 +221,8 @@ public class SyntheticTokensTest {
 
     // Create 13 cards (initial page size + page size + page size and slope of 1)
     // Initial model will have all the cards
-    requestManager.queueResponse(ResponseBuilder.forClearAllWithCards(cards).build());
-    requestManager.triggerRefresh(
+    fakeFeedRequestManager.queueResponse(ResponseBuilder.forClearAllWithCards(cards).build());
+    fakeFeedRequestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
     ModelProvider modelProvider =
@@ -315,9 +315,9 @@ public class SyntheticTokensTest {
         };
 
     PagingState state = new PagingState(cards, pageCards, 1, contentIdGenerators);
-    requestManager.queueResponse(state.initialResponse);
-    requestManager.queueResponse(state.pageResponse);
-    requestManager.triggerRefresh(
+    fakeFeedRequestManager.queueResponse(state.initialResponse);
+    fakeFeedRequestManager.queueResponse(state.pageResponse);
+    fakeFeedRequestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
     ModelProvider modelProvider =
@@ -385,9 +385,9 @@ public class SyntheticTokensTest {
         };
 
     PagingState state = new PagingState(cards, pageCards, 1, contentIdGenerators);
-    requestManager.queueResponse(state.initialResponse);
-    requestManager.queueResponse(state.pageResponse);
-    requestManager.triggerRefresh(
+    fakeFeedRequestManager.queueResponse(state.initialResponse);
+    fakeFeedRequestManager.queueResponse(state.pageResponse);
+    fakeFeedRequestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
     ModelProvider modelProvider =
@@ -461,8 +461,8 @@ public class SyntheticTokensTest {
         };
 
     // Create an initial root with a single item in it.
-    requestManager.queueResponse(ResponseBuilder.forClearAllWithCards(cards).build());
-    requestManager.triggerRefresh(
+    fakeFeedRequestManager.queueResponse(ResponseBuilder.forClearAllWithCards(cards).build());
+    fakeFeedRequestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
     ModelProvider modelProvider =
@@ -519,8 +519,8 @@ public class SyntheticTokensTest {
   private void clearSessionManagerContentCache() {
     // This is a bit of hack, which will clear the content cache and indicate to the
     // FeedSessionManager that we are in the non-cached mode.
-    requestManager.queueResponse(new ResponseBuilder().build());
-    requestManager.triggerRefresh(
+    fakeFeedRequestManager.queueResponse(new ResponseBuilder().build());
+    fakeFeedRequestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
     fakeClock.advance(TaskQueue.STARVATION_TIMEOUT_MS);

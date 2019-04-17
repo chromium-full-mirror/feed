@@ -32,7 +32,7 @@ import com.google.android.libraries.feed.internalapi.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProviderFactory;
-import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
+import com.google.android.libraries.feed.testing.requestmanager.FakeFeedRequestManager;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import com.google.search.now.wire.feed.ConsistencyTokenProto.ConsistencyToken;
@@ -47,7 +47,7 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class ContentRemoveTest {
   private final InfraIntegrationScope scope = new InfraIntegrationScope.Builder().build();
-  private final FakeRequestManager requestManager = scope.getRequestManager();
+  private final FakeFeedRequestManager fakeFeedRequestManager = scope.getFakeFeedRequestManager();
   private final FakeThreadUtils fakeThreadUtils = scope.getFakeThreadUtils();
   private final SessionManager sessionManager = scope.getSessionManager();
   private final ModelProviderFactory modelProviderFactory = scope.getModelProviderFactory();
@@ -64,8 +64,8 @@ public class ContentRemoveTest {
           ResponseBuilder.createFeatureContentId(3),
           ResponseBuilder.createFeatureContentId(4)
         };
-    requestManager.queueResponse(ResponseBuilder.forClearAllWithCards(cards).build());
-    requestManager.triggerRefresh(
+    fakeFeedRequestManager.queueResponse(ResponseBuilder.forClearAllWithCards(cards).build());
+    fakeFeedRequestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
 
@@ -84,11 +84,11 @@ public class ContentRemoveTest {
     ModelCursor advancedCursor3 = advanceCursor(rootFeature.getCursor(), 3);
     ModelCursor advancedCursor4 = advanceCursor(rootFeature.getCursor(), 4);
 
-    requestManager.queueResponse(
+    fakeFeedRequestManager.queueResponse(
         ResponseBuilder.builder().removeFeature(cards[1], ROOT_CONTENT_ID).build());
     // TODO: sessions reject removes without a CLEAR_ALL or paging with a different token.
     fakeThreadUtils.enforceMainThread(false);
-    requestManager.loadMore(
+    fakeFeedRequestManager.loadMore(
         StreamToken.getDefaultInstance(),
         ConsistencyToken.getDefaultInstance(),
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));

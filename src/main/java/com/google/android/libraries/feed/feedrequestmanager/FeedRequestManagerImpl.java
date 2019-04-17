@@ -19,13 +19,11 @@ import android.os.Build;
 import android.util.DisplayMetrics;
 import com.google.android.libraries.feed.api.common.DismissActionWithSemanticProperties;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
-import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
 import com.google.android.libraries.feed.common.functional.Consumer;
-import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.locale.LocaleUtils;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
@@ -46,6 +44,7 @@ import com.google.android.libraries.feed.host.stream.TooltipInfo.FeatureName;
 import com.google.android.libraries.feed.host.stream.TooltipSupportedApi;
 import com.google.android.libraries.feed.internalapi.actionmanager.ActionReader;
 import com.google.android.libraries.feed.internalapi.protocoladapter.ProtocolAdapter;
+import com.google.android.libraries.feed.internalapi.requestmanager.FeedRequestManager;
 import com.google.android.libraries.feed.internalapi.store.LocalActionMutation.ActionType;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
@@ -77,9 +76,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/** Default implementation of RequestManager. */
-public final class FeedRequestManager implements RequestManager {
-  private static final String TAG = "FeedRequestManager";
+/** Default implementation of FeedRequestManager. */
+public final class FeedRequestManagerImpl implements FeedRequestManager {
+  private static final String TAG = "FeedRequestManagerImpl";
 
   private final Configuration configuration;
   private final NetworkClient networkClient;
@@ -96,11 +95,7 @@ public final class FeedRequestManager implements RequestManager {
   private final TooltipSupportedApi tooltipSupportedApi;
   private final ApplicationInfo applicationInfo;
 
-  /*@Nullable*/
-  private Supplier<Consumer<Result<List<StreamDataOperation>>>>
-      defaultTriggerRefreshConsumerSupplier;
-
-  public FeedRequestManager(
+  public FeedRequestManagerImpl(
       Configuration configuration,
       NetworkClient networkClient,
       ProtocolAdapter protocolAdapter,
@@ -138,7 +133,7 @@ public final class FeedRequestManager implements RequestManager {
       Consumer<Result<List<StreamDataOperation>>> consumer) {
     threadUtils.checkNotMainThread();
 
-    Logger.i(TAG, "Task: FeedRequestManager LoadMore");
+    Logger.i(TAG, "Task: FeedRequestManagerImpl LoadMore");
     ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
     RequestBuilder request =
         newDefaultRequest(RequestReason.MANUAL_CONTINUATION)
@@ -146,7 +141,7 @@ public final class FeedRequestManager implements RequestManager {
             .setConsistencyToken(token);
     executeRequest(request, consumer);
     timeTracker.stop(
-        "task", "FeedRequestManager LoadMore", "token", streamToken.getNextPageToken());
+        "task", "FeedRequestManagerImpl LoadMore", "token", streamToken.getNextPageToken());
   }
 
   @Override
@@ -173,22 +168,6 @@ public final class FeedRequestManager implements RequestManager {
     } else {
       executeRequest(request, consumer);
     }
-  }
-
-  @Override
-  public void triggerRefresh(@RequestReason int reason) {
-    if (defaultTriggerRefreshConsumerSupplier == null) {
-      throw new IllegalStateException(
-          "Must set defaultTriggerRefreshConsumerSupplier before calling "
-              + "triggerRefresh(RequestReason).");
-    }
-    triggerRefresh(reason, defaultTriggerRefreshConsumerSupplier.get());
-  }
-
-  @Override
-  public void setDefaultTriggerRefreshConsumerSupplier(
-      Supplier<Consumer<Result<List<StreamDataOperation>>>> consumerSupplier) {
-    this.defaultTriggerRefreshConsumerSupplier = consumerSupplier;
   }
 
   private RequestBuilder newDefaultRequest(@RequestReason int requestReason) {
@@ -327,7 +306,7 @@ public final class FeedRequestManager implements RequestManager {
             contextResult = Result.failure();
           }
           mainThreadRunner.execute(
-              "FeedRequestManager consumer", () -> consumer.accept(contextResult));
+              "FeedRequestManagerImpl consumer", () -> consumer.accept(contextResult));
         });
   }
 

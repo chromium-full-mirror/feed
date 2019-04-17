@@ -43,7 +43,7 @@ import com.google.android.libraries.feed.internalapi.protocoladapter.ProtocolAda
 import com.google.android.libraries.feed.testing.host.logging.FakeBasicLoggingApi;
 import com.google.android.libraries.feed.testing.host.scheduler.FakeSchedulerApi;
 import com.google.android.libraries.feed.testing.requestmanager.FakeActionUploadRequestManager;
-import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
+import com.google.android.libraries.feed.testing.requestmanager.FakeFeedRequestManager;
 import com.google.protobuf.GeneratedMessageLite.GeneratedExtension;
 import java.util.ArrayList;
 import java.util.List;
@@ -68,7 +68,7 @@ public class InfraIntegrationScope {
   private final Executor executor;
   private final FakeClock fakeClock;
   private final FakeMainThreadRunner fakeMainThreadRunner;
-  private final FakeRequestManager fakeRequestManager;
+  private final FakeFeedRequestManager fakeFeedRequestManager;
   private final FakeThreadUtils fakeThreadUtils;
   private final FeedAppLifecycleListener appLifecycleListener;
   private final FeedModelProviderFactory modelProviderFactory;
@@ -114,8 +114,8 @@ public class InfraIntegrationScope {
             fakeBasicLoggingApi,
             fakeMainThreadRunner);
     feedProtocolAdapter = new FeedProtocolAdapter(timingUtils);
-    fakeRequestManager =
-        new FakeRequestManager(
+    fakeFeedRequestManager =
+        new FakeFeedRequestManager(
             fakeThreadUtils, fakeMainThreadRunner, feedProtocolAdapter, taskQueue);
     FakeActionUploadRequestManager fakeActionUploadRequestManager =
         new FakeActionUploadRequestManager(FakeThreadUtils.withThreadChecks());
@@ -126,7 +126,7 @@ public class InfraIntegrationScope {
                 timingUtils,
                 fakeThreadUtils,
                 feedProtocolAdapter,
-                fakeRequestManager,
+                fakeFeedRequestManager,
                 fakeActionUploadRequestManager,
                 schedulerApi,
                 configuration,
@@ -178,8 +178,8 @@ public class InfraIntegrationScope {
     return taskQueue;
   }
 
-  public FakeRequestManager getRequestManager() {
-    return fakeRequestManager;
+  public FakeFeedRequestManager getFakeFeedRequestManager() {
+    return fakeFeedRequestManager;
   }
 
   public AppLifecycleListener getAppLifecycleListener() {

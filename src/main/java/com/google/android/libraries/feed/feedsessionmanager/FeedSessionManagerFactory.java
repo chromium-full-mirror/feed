@@ -16,7 +16,6 @@ package com.google.android.libraries.feed.feedsessionmanager;
 
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.requestmanager.ActionUploadRequestManager;
-import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.feedobservable.FeedObservable;
 import com.google.android.libraries.feed.common.time.Clock;
@@ -30,6 +29,7 @@ import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.internalapi.protocoladapter.ProtocolAdapter;
+import com.google.android.libraries.feed.internalapi.requestmanager.FeedRequestManager;
 import com.google.android.libraries.feed.internalapi.store.Store;
 import java.util.concurrent.TimeUnit;
 
@@ -46,7 +46,7 @@ public final class FeedSessionManagerFactory {
   private final TimingUtils timingUtils;
   private final ThreadUtils threadUtils;
   private final ProtocolAdapter protocolAdapter;
-  private final RequestManager requestManager;
+  private final FeedRequestManager feedRequestManager;
   private final ActionUploadRequestManager actionUploadRequestManager;
   private final SchedulerApi schedulerApi;
   private final Configuration configuration;
@@ -59,7 +59,7 @@ public final class FeedSessionManagerFactory {
       TimingUtils timingUtils,
       ThreadUtils threadUtils,
       ProtocolAdapter protocolAdapter,
-      RequestManager requestManager,
+      FeedRequestManager feedRequestManager,
       ActionUploadRequestManager actionUploadRequestManager,
       SchedulerApi schedulerApi,
       Configuration configuration,
@@ -70,7 +70,7 @@ public final class FeedSessionManagerFactory {
     this.timingUtils = timingUtils;
     this.threadUtils = threadUtils;
     this.protocolAdapter = protocolAdapter;
-    this.requestManager = requestManager;
+    this.feedRequestManager = feedRequestManager;
     this.actionUploadRequestManager = actionUploadRequestManager;
     this.schedulerApi = schedulerApi;
     this.configuration = configuration;
@@ -109,7 +109,7 @@ public final class FeedSessionManagerFactory {
         timingUtils,
         threadUtils,
         protocolAdapter,
-        requestManager,
+        feedRequestManager,
         actionUploadRequestManager,
         schedulerApi,
         configuration,

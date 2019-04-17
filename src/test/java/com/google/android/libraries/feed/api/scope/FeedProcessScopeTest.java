@@ -23,7 +23,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import android.app.Activity;
 import android.content.Context;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
-import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.scope.FeedProcessScope.Builder;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
@@ -41,6 +40,7 @@ import com.google.android.libraries.feed.host.storage.JournalStorage;
 import com.google.android.libraries.feed.host.storage.JournalStorageDirect;
 import com.google.android.libraries.feed.host.stream.TooltipSupportedApi;
 import com.google.android.libraries.feed.internalapi.protocoladapter.ProtocolAdapter;
+import com.google.android.libraries.feed.internalapi.requestmanager.FeedRequestManager;
 import com.google.common.util.concurrent.MoreExecutors;
 import java.util.ArrayList;
 import org.junit.Before;
@@ -63,7 +63,7 @@ public class FeedProcessScopeTest {
 
   // Mocks for optional fields
   @Mock private ProtocolAdapter protocolAdapter;
-  @Mock private RequestManager requestManager;
+  @Mock private FeedRequestManager feedRequestManager;
   @Mock private SessionManager sessionManager;
   @Mock private ThreadUtils threadUtils;
 
@@ -125,14 +125,14 @@ public class FeedProcessScopeTest {
                 applicationInfo,
                 tooltipSupportedApi)
             .setProtocolAdapter(protocolAdapter)
-            .setRequestManager(requestManager)
+            .setFeedRequestManager(feedRequestManager)
             .setSessionManager(sessionManager)
             .setProtoExtensionProvider(protoExtensionProvider)
             .setClock(fakeClock)
             .build();
 
     assertThat(processScope.getProtocolAdapter()).isEqualTo(protocolAdapter);
-    assertThat(processScope.getRequestManager()).isEqualTo(requestManager);
+    assertThat(processScope.getRequestManager()).isNotNull();
     assertThat(processScope.getSessionManager()).isEqualTo(sessionManager);
     assertThat(processScope.getClock()).isEqualTo(fakeClock);
     assertThat(processScope.getAppLifecycleListener()).isNotNull();

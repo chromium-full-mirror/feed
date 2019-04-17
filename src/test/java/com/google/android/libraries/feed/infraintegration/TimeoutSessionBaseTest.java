@@ -30,7 +30,7 @@ import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProviderObserver;
 import com.google.android.libraries.feed.testing.host.scheduler.FakeSchedulerApi;
-import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
+import com.google.android.libraries.feed.testing.requestmanager.FakeFeedRequestManager;
 import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import java.util.concurrent.TimeoutException;
@@ -56,7 +56,7 @@ public class TimeoutSessionBaseTest {
       new FakeSchedulerApi(FakeThreadUtils.withoutThreadChecks());
 
   private FakeClock fakeClock;
-  private FakeRequestManager requestManager;
+  private FakeFeedRequestManager fakeFeedRequestManager;
   private SessionManager sessionManager;
   private ModelProviderFactory modelProviderFactory;
   private ModelProviderValidator modelValidator;
@@ -71,7 +71,7 @@ public class TimeoutSessionBaseTest {
             .withTimeoutSessionConfiguration(2L)
             .build();
     fakeClock = scope.getFakeClock();
-    requestManager = scope.getRequestManager();
+    fakeFeedRequestManager = scope.getFakeFeedRequestManager();
     sessionManager = scope.getSessionManager();
     modelProviderFactory = scope.getModelProviderFactory();
     modelValidator = new ModelProviderValidator(scope.getProtocolAdapter());
@@ -97,7 +97,7 @@ public class TimeoutSessionBaseTest {
         };
 
     // Load up the initial request
-    requestManager.queueResponse(
+    fakeFeedRequestManager.queueResponse(
         ResponseBuilder.forClearAllWithCards(requestOne).build(), /* delayMs= */ 100);
 
     // Wait for the request to complete (REQUEST_WITH_WAIT).  This will trigger the request and wait

@@ -84,7 +84,7 @@ public final class SessionTestUtils {
   /** Populates HEAD with data. */
   public void populateHead() {
     scope
-        .getRequestManager()
+        .getFakeFeedRequestManager()
         .queueResponse(ResponseBuilder.forClearAllWithCards(REQUEST_1).build())
         .triggerRefresh(
             RequestReason.OPEN_WITHOUT_CONTENT,
@@ -93,14 +93,14 @@ public final class SessionTestUtils {
 
   /** Enqueues an error response and returns the delay in milliseconds. */
   public long queueError() {
-    scope.getRequestManager().queueError(currentDelay);
+    scope.getFakeFeedRequestManager().queueError(currentDelay);
     return currentDelay;
   }
 
   /** Enqueues a response and returns the delay in milliseconds. */
   public long queueRequest() {
     scope
-        .getRequestManager()
+        .getFakeFeedRequestManager()
         .queueResponse(ResponseBuilder.forClearAllWithCards(REQUEST_2).build(), currentDelay);
     return currentDelay;
   }
@@ -109,7 +109,7 @@ public final class SessionTestUtils {
   public long startOutstandingRequestWithError() {
     long delayMs = queueError();
     scope
-        .getRequestManager()
+        .getFakeFeedRequestManager()
         .triggerRefresh(
             RequestReason.OPEN_WITHOUT_CONTENT,
             scope.getSessionManager().getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
@@ -120,7 +120,7 @@ public final class SessionTestUtils {
   public long startOutstandingRequest() {
     long delayMs = queueRequest();
     scope
-        .getRequestManager()
+        .getFakeFeedRequestManager()
         .triggerRefresh(
             RequestReason.OPEN_WITHOUT_CONTENT,
             scope.getSessionManager().getUpdateConsumer(MutationContext.EMPTY_CONTEXT));

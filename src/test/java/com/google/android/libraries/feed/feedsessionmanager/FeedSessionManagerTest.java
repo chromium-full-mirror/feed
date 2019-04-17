@@ -58,7 +58,7 @@ import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider
 import com.google.android.libraries.feed.testing.proto.UiContextForTestProto.UiContextForTest;
 import com.google.android.libraries.feed.testing.protocoladapter.FakeProtocolAdapter;
 import com.google.android.libraries.feed.testing.requestmanager.FakeActionUploadRequestManager;
-import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
+import com.google.android.libraries.feed.testing.requestmanager.FakeFeedRequestManager;
 import com.google.android.libraries.feed.testing.store.FakeStore;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
@@ -115,7 +115,7 @@ public class FeedSessionManagerTest {
   private FakeActionUploadRequestManager fakeActionUploadRequestManager;
   private FakeMainThreadRunner fakeMainThreadRunner;
   private FakeProtocolAdapter fakeProtocolAdapter;
-  private FakeRequestManager fakeRequestManager;
+  private FakeFeedRequestManager fakeFeedRequestManager;
   private FakeStore fakeStore;
   private FakeTaskQueue fakeTaskQueue;
   private FakeThreadUtils fakeThreadUtils;
@@ -133,10 +133,10 @@ public class FeedSessionManagerTest {
     fakeActionUploadRequestManager = new FakeActionUploadRequestManager(fakeThreadUtils);
     fakeStore = new FakeStore(fakeThreadUtils, fakeTaskQueue, fakeClock);
     fakeProtocolAdapter = new FakeProtocolAdapter();
-    fakeRequestManager =
-        new FakeRequestManager(
+    fakeFeedRequestManager =
+        new FakeFeedRequestManager(
             fakeThreadUtils, fakeMainThreadRunner, fakeProtocolAdapter, fakeTaskQueue);
-    fakeRequestManager.queueResponse(Response.getDefaultInstance());
+    fakeFeedRequestManager.queueResponse(Response.getDefaultInstance());
     when(schedulerApi.shouldSessionRequestData(any(SessionManagerState.class)))
         .thenReturn(RequestBehavior.NO_REQUEST_WITH_CONTENT);
   }
@@ -162,7 +162,7 @@ public class FeedSessionManagerTest {
                 timingUtils,
                 fakeThreadUtils,
                 fakeProtocolAdapter,
-                fakeRequestManager,
+                fakeFeedRequestManager,
                 fakeActionUploadRequestManager,
                 schedulerApi,
                 configuration,
@@ -234,7 +234,7 @@ public class FeedSessionManagerTest {
                 timingUtils,
                 fakeThreadUtils,
                 fakeProtocolAdapter,
-                fakeRequestManager,
+                fakeFeedRequestManager,
                 fakeActionUploadRequestManager,
                 schedulerApi,
                 configuration,
@@ -267,7 +267,7 @@ public class FeedSessionManagerTest {
                 timingUtils,
                 fakeThreadUtils,
                 fakeProtocolAdapter,
-                fakeRequestManager,
+                fakeFeedRequestManager,
                 fakeActionUploadRequestManager,
                 schedulerApi,
                 configuration,
@@ -448,7 +448,7 @@ public class FeedSessionManagerTest {
     FeedSessionManager sessionManager = getInitializedSessionManager();
     sessionManager.handleToken(SESSION_ID, streamToken);
 
-    assertThat(fakeRequestManager.getLatestStreamToken()).isEqualTo(streamToken);
+    assertThat(fakeFeedRequestManager.getLatestStreamToken()).isEqualTo(streamToken);
   }
 
   @Test
@@ -457,7 +457,7 @@ public class FeedSessionManagerTest {
     sessionManager.triggerRefresh(
         SESSION_ID, RequestReason.ZERO_STATE, UiContext.getDefaultInstance());
 
-    assertThat(fakeRequestManager.getLatestRequestReason()).isEqualTo(RequestReason.ZERO_STATE);
+    assertThat(fakeFeedRequestManager.getLatestRequestReason()).isEqualTo(RequestReason.ZERO_STATE);
   }
 
   @Test
@@ -466,7 +466,8 @@ public class FeedSessionManagerTest {
     sessionManager.triggerRefresh(
         SESSION_ID, RequestReason.HOST_REQUESTED, UiContext.getDefaultInstance());
 
-    assertThat(fakeRequestManager.getLatestRequestReason()).isEqualTo(RequestReason.HOST_REQUESTED);
+    assertThat(fakeFeedRequestManager.getLatestRequestReason())
+        .isEqualTo(RequestReason.HOST_REQUESTED);
   }
 
   @Test
@@ -544,7 +545,7 @@ public class FeedSessionManagerTest {
                 timingUtils,
                 fakeThreadUtils,
                 fakeProtocolAdapter,
-                fakeRequestManager,
+                fakeFeedRequestManager,
                 fakeActionUploadRequestManager,
                 schedulerApi,
                 configuration,
@@ -586,7 +587,7 @@ public class FeedSessionManagerTest {
                 timingUtils,
                 fakeThreadUtils,
                 fakeProtocolAdapter,
-                fakeRequestManager,
+                fakeFeedRequestManager,
                 fakeActionUploadRequestManager,
                 schedulerApi,
                 configuration,
@@ -883,7 +884,7 @@ public class FeedSessionManagerTest {
                 timingUtils,
                 fakeThreadUtils,
                 fakeProtocolAdapter,
-                fakeRequestManager,
+                fakeFeedRequestManager,
                 fakeActionUploadRequestManager,
                 schedulerApi,
                 config,
@@ -901,7 +902,7 @@ public class FeedSessionManagerTest {
             timingUtils,
             fakeThreadUtils,
             fakeProtocolAdapter,
-            fakeRequestManager,
+            fakeFeedRequestManager,
             fakeActionUploadRequestManager,
             schedulerApi,
             configuration,

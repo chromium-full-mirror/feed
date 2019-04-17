@@ -35,7 +35,7 @@ import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelToken;
 import com.google.android.libraries.feed.internalapi.modelprovider.TokenCompleted;
 import com.google.android.libraries.feed.internalapi.modelprovider.TokenCompletedObserver;
-import com.google.android.libraries.feed.testing.requestmanager.FakeRequestManager;
+import com.google.android.libraries.feed.testing.requestmanager.FakeFeedRequestManager;
 import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import org.junit.Before;
@@ -47,7 +47,7 @@ import org.robolectric.RobolectricTestRunner;
 /** Test of handling paging operations within the Stream. */
 @RunWith(RobolectricTestRunner.class)
 public class StreamPagingTest {
-  private FakeRequestManager requestManager;
+  private FakeFeedRequestManager fakeFeedRequestManager;
   private SessionManager sessionManager;
   private ModelProviderFactory modelProviderFactory;
   private ModelProviderValidator modelValidator;
@@ -57,7 +57,7 @@ public class StreamPagingTest {
   public void setUp() {
     initMocks(this);
     InfraIntegrationScope scope = new InfraIntegrationScope.Builder().build();
-    requestManager = scope.getRequestManager();
+    fakeFeedRequestManager = scope.getFakeFeedRequestManager();
     sessionManager = scope.getSessionManager();
     modelProviderFactory = scope.getModelProviderFactory();
     modelValidator = new ModelProviderValidator(scope.getProtocolAdapter());
@@ -68,7 +68,7 @@ public class StreamPagingTest {
    *
    * <ol>
    *   <li>Setup the initial response and the paged response
-   *   <li>Setup the paging handling for the RequestManager
+   *   <li>Setup the paging handling for the FeedRequestManager
    *   <li>Create the Initial $HEAD from the initial response
    *   <li>Create a Session/ModelProvider
    *   <li>Setup the MutationContext and the ModelToken observer
@@ -88,11 +88,11 @@ public class StreamPagingTest {
           ResponseBuilder.createFeatureContentId(3), ResponseBuilder.createFeatureContentId(4)
         };
     PagingState state = new PagingState(cards, pageCards, 1, contentIdGenerators);
-    requestManager.queueResponse(state.initialResponse);
-    requestManager.queueResponse(state.pageResponse);
+    fakeFeedRequestManager.queueResponse(state.initialResponse);
+    fakeFeedRequestManager.queueResponse(state.pageResponse);
 
     // Create an initial model
-    requestManager.triggerRefresh(
+    fakeFeedRequestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
     ModelProvider modelProvider =
@@ -134,7 +134,7 @@ public class StreamPagingTest {
    *
    * <ul>
    *   <li>Setup the initial response and the paged response
-   *   <li>Setup the paging handling for the RequestManager
+   *   <li>Setup the paging handling for the FeedRequestManager
    *   <li>Create the Initial $HEAD from the initial response
    *   <li>Create a Session/ModelProvider
    *   <li>Page the Session/ModelProvider
@@ -153,11 +153,11 @@ public class StreamPagingTest {
           ResponseBuilder.createFeatureContentId(3), ResponseBuilder.createFeatureContentId(4)
         };
     PagingState state = new PagingState(cards, pageCards, 1, contentIdGenerators);
-    requestManager.queueResponse(state.initialResponse);
-    requestManager.queueResponse(state.pageResponse);
+    fakeFeedRequestManager.queueResponse(state.initialResponse);
+    fakeFeedRequestManager.queueResponse(state.pageResponse);
 
     // Create an initial model
-    requestManager.triggerRefresh(
+    fakeFeedRequestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
     ModelProvider modelProvider =

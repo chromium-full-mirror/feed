@@ -53,7 +53,7 @@ public class ExistingSessionTest {
   public void setUp() {
     // Create a simple stream with a root and three features
     scope
-        .getRequestManager()
+        .getFakeFeedRequestManager()
         .queueResponse(ResponseBuilder.forClearAllWithCards(CARDS).build())
         .triggerRefresh(
             RequestReason.OPEN_WITHOUT_CONTENT,
@@ -117,7 +117,7 @@ public class ExistingSessionTest {
 
     // Start a request.
     scope
-        .getRequestManager()
+        .getFakeFeedRequestManager()
         .queueResponse(ResponseBuilder.forClearAllWithCards(CARDS).build(), /* delayMs= */ 100)
         .triggerRefresh(
             RequestReason.OPEN_WITHOUT_CONTENT,

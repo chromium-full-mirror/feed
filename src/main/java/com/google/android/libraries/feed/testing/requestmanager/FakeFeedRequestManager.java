@@ -14,17 +14,16 @@
 
 package com.google.android.libraries.feed.testing.requestmanager;
 
-import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.functional.Consumer;
-import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.android.libraries.feed.host.logging.Task;
 import com.google.android.libraries.feed.internalapi.protocoladapter.ProtocolAdapter;
+import com.google.android.libraries.feed.internalapi.requestmanager.FeedRequestManager;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.wire.feed.ConsistencyTokenProto.ConsistencyToken;
@@ -34,11 +33,11 @@ import java.util.List;
 import java.util.Queue;
 
 /**
- * Fake implementation of a {@link RequestManager}. This acts a Queue of responses which will be
+ * Fake implementation of a {@link FeedRequestManager}. This acts a Queue of responses which will be
  * sent through the {@link ProtocolAdapter} to create the {@code List<StreamDataOperation>} which is
  * then returned as a {@link Result} to the {@link Consumer}.
  */
-public class FakeRequestManager implements RequestManager {
+public class FakeFeedRequestManager implements FeedRequestManager {
   private final FakeThreadUtils fakeThreadUtils;
   private final MainThreadRunner mainThreadRunner;
   private final ProtocolAdapter protocolAdapter;
@@ -47,11 +46,7 @@ public class FakeRequestManager implements RequestManager {
   /*@Nullable*/ private StreamToken latestStreamToken = null;
   @RequestReason private int latestRequestReason = RequestReason.UNKNOWN;
 
-  /*@Nullable*/
-  private Supplier<Consumer<Result<List<StreamDataOperation>>>>
-      defaultTriggerRefreshConsumerSupplier;
-
-  public FakeRequestManager(
+  public FakeFeedRequestManager(
       FakeThreadUtils fakeThreadUtils,
       MainThreadRunner mainThreadRunner,
       ProtocolAdapter protocolAdapter,
@@ -64,23 +59,23 @@ public class FakeRequestManager implements RequestManager {
 
   // TODO: queue responses for action uploads
   /** Adds a Response to the queue. */
-  public FakeRequestManager queueResponse(Response response) {
+  public FakeFeedRequestManager queueResponse(Response response) {
     return queueResponse(response, /* delayMs= */ 0);
   }
 
   /** Adds a Response to the queue with a delay. */
-  public FakeRequestManager queueResponse(Response response, long delayMs) {
+  public FakeFeedRequestManager queueResponse(Response response, long delayMs) {
     responses.add(new ResponseWithDelay(response, delayMs));
     return this;
   }
 
   /** Adds an error to the queue. */
-  public FakeRequestManager queueError() {
+  public FakeFeedRequestManager queueError() {
     return queueError(/* delayMs= */ 0);
   }
 
   /** Adds an error to the queue with a delay. */
-  public FakeRequestManager queueError(long delayMs) {
+  public FakeFeedRequestManager queueError(long delayMs) {
     responses.add(new ResponseWithDelay(delayMs));
     return this;
   }
@@ -120,7 +115,7 @@ public class FakeRequestManager implements RequestManager {
       ResponseWithDelay responseWithDelay, Consumer<Result<List<StreamDataOperation>>> consumer) {
     if (responseWithDelay.delayMs > 0) {
       mainThreadRunner.executeWithDelay(
-          "FakeRequestManager#consumer",
+          "FakeFeedRequestManager#consumer",
           () -> {
             invokeConsumer(responseWithDelay, consumer);
           },
@@ -141,30 +136,14 @@ public class FakeRequestManager implements RequestManager {
     fakeThreadUtils.enforceMainThread(policy);
   }
 
-  @Override
-  public void triggerRefresh(@RequestReason int reason) {
-    if (defaultTriggerRefreshConsumerSupplier == null) {
-      throw new IllegalStateException(
-          "Must set defaultTriggerRefreshConsumerSupplier before calling"
-              + " triggerRefresh(RequestReason).");
-    }
-    triggerRefresh(reason, defaultTriggerRefreshConsumerSupplier.get());
-  }
-
-  @Override
-  public void setDefaultTriggerRefreshConsumerSupplier(
-      Supplier<Consumer<Result<List<StreamDataOperation>>>> consumerSupplier) {
-    this.defaultTriggerRefreshConsumerSupplier = consumerSupplier;
-  }
-
-  /** Returns the latest {@link StreamToken} passed in to the {@link RequestManager}. */
+  /** Returns the latest {@link StreamToken} passed in to the {@link FeedRequestManager}. */
   /*@Nullable*/
   public StreamToken getLatestStreamToken() {
     return latestStreamToken;
   }
 
   /**
-   * Returns the latest {@link RequestReason} passed in to the {@link RequestManager}. Returns
+   * Returns the latest {@link RequestReason} passed in to the {@link FeedRequestManager}. Returns
    * {@literal RequestReason.UNKNOWN} if the request manager has not been invoked.
    */
   @RequestReason
