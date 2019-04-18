@@ -35,6 +35,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.view.ViewGroup.MarginLayoutParams;
+import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.FrameLayout;
 import com.google.android.libraries.feed.common.functional.Suppliers;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
@@ -46,6 +47,7 @@ import com.google.android.libraries.feed.piet.ui.RoundedCornerMaskCache;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerWrapperView;
 import com.google.android.libraries.feed.testing.shadows.ExtendedShadowView;
 import com.google.search.now.ui.piet.AccessibilityProto.Accessibility;
+import com.google.search.now.ui.piet.AccessibilityProto.AccessibilityRole;
 import com.google.search.now.ui.piet.ActionsProto.Action;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.ActionsProto.VisibilityAction;
@@ -777,12 +779,15 @@ public class ElementAdapterTest {
         Element.newBuilder()
             .setAccessibility(
                 Accessibility.newBuilder()
+                    .addRoles(AccessibilityRole.HEADER)
                     .setDescription(ParameterizedText.newBuilder().setText("Accessible!")))
             .build();
 
     adapter.bindModel(accessibilityElement, frameContext);
-
     assertThat(adapter.getView().getContentDescription().toString()).isEqualTo("Accessible!");
+    final AccessibilityNodeInfo nodeInfo = AccessibilityNodeInfo.obtain();
+    adapter.getView().onInitializeAccessibilityNodeInfo(nodeInfo);
+    assertThat(nodeInfo.getCollectionItemInfo().isHeading()).isTrue();
   }
 
   @Test
@@ -1410,4 +1415,5 @@ public class ElementAdapterTest {
       heightPx = height;
     }
   }
+
 }

@@ -18,14 +18,17 @@ import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 import static com.google.android.libraries.feed.piet.StyleProvider.DIMENSION_NOT_SET;
 
 import android.content.Context;
+import android.os.Build;
 import android.support.annotation.VisibleForTesting;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
+import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.FrameLayout;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerWrapperView;
 import com.google.search.now.ui.piet.AccessibilityProto.Accessibility;
+import com.google.search.now.ui.piet.AccessibilityProto.AccessibilityRole;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.ActionsProto.VisibilityAction;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
@@ -156,7 +159,6 @@ abstract class ElementAdapter<V extends View, M> {
     initializeOverflow(baseElement);
 
     elementStyle.applyElementStyles(this);
-
     created = true;
   }
 
@@ -249,6 +251,42 @@ abstract class ElementAdapter<V extends View, M> {
     // Reapply styles if we have style bindings
     if (getElementStyleIdsStack().hasStyleBinding()) {
       elementStyle.applyElementStyles(this);
+    }
+    for (AccessibilityRole role : baseElement.getAccessibility().getRolesList()) {
+      switch (role) {
+        case HEADER:
+          getBaseView().setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
+          getBaseView().setFocusable(true);
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            getBaseView()
+                .setAccessibilityDelegate(
+                    new View.AccessibilityDelegate() {
+                      @Override
+                      public void onInitializeAccessibilityNodeInfo(
+                          View host, AccessibilityNodeInfo info) {
+                        super.onInitializeAccessibilityNodeInfo(host, info);
+                        info.setHeading(true);
+                      }
+                    });
+          } else {
+            getBaseView()
+                .setAccessibilityDelegate(
+                    new View.AccessibilityDelegate() {
+                      @Override
+                      public void onInitializeAccessibilityNodeInfo(
+                          View host, AccessibilityNodeInfo info) {
+                        super.onInitializeAccessibilityNodeInfo(host, info);
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                          info.setCollectionItemInfo(
+                              AccessibilityNodeInfo.CollectionItemInfo.obtain(-1, 0, 0, 0, true));
+                        }
+                      }
+                    });
+          }
+          break;
+        default:
+          // Do nothing
+      }
     }
 
     getBaseView()
