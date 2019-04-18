@@ -14,12 +14,13 @@
 
 syntax = "proto2";
 
-import "src/main/proto/search/now/ui/piet/piet.proto";
-import "src/main/proto/search/now/wire/feed/content_id.proto";
-import "src/main/proto/search/now/wire/feed/feature.proto";
 package search.now.ui.stream;
 
 option optimize_for=LITE_RUNTIME;
+
+import "src/main/proto/search/now/ui/piet/piet.proto";
+import "src/main/proto/search/now/wire/feed/content_id.proto";
+import "src/main/proto/search/now/wire/feed/feature.proto";
 
 option java_package = "com.google.search.now.ui.stream";
 option java_outer_classname = "StreamStructureProto";
@@ -45,6 +46,17 @@ message Cluster {
   // Empty for now as we don't support any custom information.
 }
 
+// Experimental feature which represents a carousel in a Stream. May have a list
+// of Cards or Content as children.
+message Carousel {
+  extend search.now.wire.feed.Feature {
+    optional Carousel carousel_extension = 244251946;
+  }
+
+  // Please use CL numbers you own for extension numbers.
+  extensions 10000 to max;
+}
+
 // Feature which represents a full card in a Stream.  Allows metadata to be sent
 // to describe how to render the card.
 message Card {
@@ -58,7 +70,6 @@ message Card {
 
 // Metadata object providing basic information for logging content.
 message BasicLoggingMetadata {
-
   // Score given by NowStream
   optional float score = 2;
 
