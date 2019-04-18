@@ -247,6 +247,11 @@ public class FeedRequestManagerImplTest {
   }
 
   @Test
+  public void testTriggerRefresh_enableCarouselsAdded() throws Exception {
+    testCapabilityAdded(ConfigKey.ENABLE_CAROUSELS, Capability.CAROUSELS);
+  }
+
+  @Test
   public void testActionData_simpleDismiss() throws Exception {
     fakeActionReader.addDismissActionsWithSemanticProperties(
         buildDismissAction(ID, CONTENT_DOMAIN, TABLE, null));

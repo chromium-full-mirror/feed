@@ -90,6 +90,8 @@ public class Configuration {
     ConfigKey.FEED_ACTION_MAX_UPLOAD_ATTEMPTS,
     // Ttl of an action that has failed to be uploaded.
     ConfigKey.FEED_ACTION_TTL_SECONDS,
+    // When enabled, will ask server to add carousels in response.
+    ConfigKey.ENABLE_CAROUSELS,
   })
   public @interface ConfigKey {
     String ABANDON_RESTORE_BELOW_FOLD = "abandon_restore_below_fold";
@@ -130,6 +132,7 @@ public class Configuration {
     String FEED_ACTION_SERVER_MAX_SIZE_PER_REQUEST = "feed_action_server_max_size_per_request";
     String FEED_ACTION_MAX_UPLOAD_ATTEMPTS = "feed_action_max_upload_attempts";
     String FEED_ACTION_TTL_SECONDS = "feed_action_ttl_seconds";
+    String ENABLE_CAROUSELS = "enable_carousels";
   }
 
   private final HashMap<String, Object> values;

@@ -398,6 +398,8 @@ public final class FeedRequestManagerImpl implements FeedRequestManager {
           feedRequestBuilder, ConfigKey.UNDOABLE_ACTIONS_ENABLED, Capability.UNDOABLE_ACTIONS);
       addCapabilityIfConfigEnabled(
           feedRequestBuilder, ConfigKey.MANAGE_INTERESTS_ENABLED, Capability.MANAGE_INTERESTS);
+      addCapabilityIfConfigEnabled(
+          feedRequestBuilder, ConfigKey.ENABLE_CAROUSELS, Capability.CAROUSELS);
       if (cardMenuTooltipWouldTrigger) {
         addCapabilityIfConfigEnabled(
             feedRequestBuilder, ConfigKey.CARD_MENU_TOOLTIP_ELIGIBLE, Capability.CARD_MENU_TOOLTIP);
