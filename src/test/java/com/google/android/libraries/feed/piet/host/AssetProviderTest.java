@@ -83,8 +83,14 @@ public class AssetProviderTest {
   @Test
   public void testNullTypefaceProvider() {
     TypefaceProvider typefaceProvider = new NullTypefaceProvider();
+    final Object[] consumedObject = {""};
 
-    assertThat(typefaceProvider.getTypeface("GOOGLE_SANS_MEDIUM", false)).isNull();
+    // Make sure the object isn't already null, or we'll get a false positive.
+    assertThat(consumedObject[0]).isNotNull();
+    // The consumer passed in just saves the value that is consumed, so we can check that it's null.
+    typefaceProvider.getTypeface(
+        "GOOGLE_SANS_MEDIUM", false, typeface -> consumedObject[0] = typeface);
+    assertThat(consumedObject[0]).isNull();
   }
 
   @Test

@@ -19,6 +19,10 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -34,11 +38,13 @@ import android.text.TextUtils.TruncateAt;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.TextView;
+import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.android.libraries.feed.piet.TextElementAdapter.TextElementKey;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
+import com.google.android.libraries.feed.piet.host.TypefaceProvider;
 import com.google.android.libraries.feed.piet.host.TypefaceProvider.GoogleSansTypeface;
 import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.CustomElement;
@@ -56,6 +62,8 @@ import com.google.search.now.ui.piet.StylesProto.Typeface.CommonTypeface;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentMatchers;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
@@ -68,6 +76,7 @@ public class TextElementAdapterTest {
   @Mock private StyleProvider mockStyleProvider;
   @Mock private HostProviders mockHostProviders;
   @Mock private AssetProvider mockAssetProvider;
+  @Mock private TypefaceProvider mockTypefaceProvider;
 
   private AdapterParameters adapterParameters;
 
@@ -142,7 +151,8 @@ public class TextElementAdapterTest {
 
     adapter.setValuesUsedInRecyclerKey(key, frameContext);
 
-    verify(mockAssetProvider, never()).getTypeface(any(), anyBoolean());
+    verify(mockAssetProvider, never())
+        .getTypeface(anyString(), anyBoolean(), ArgumentMatchers.<Consumer<Typeface>>any());
   }
 
   @Test
@@ -151,15 +161,12 @@ public class TextElementAdapterTest {
         Font.newBuilder()
             .addTypeface(StylesProto.Typeface.newBuilder().setCustomTypeface("goodfont"))
             .build();
-    Typeface hostTypeface = Typeface.create("host", Typeface.BOLD_ITALIC);
-    when(mockAssetProvider.getTypeface("goodfont", false)).thenReturn(hostTypeface);
-
     TextElementKey key = new TextElementKey(font);
 
     adapter.setValuesUsedInRecyclerKey(key, frameContext);
-    Typeface typeface = adapter.getBaseView().getTypeface();
 
-    assertThat(typeface).isEqualTo(hostTypeface);
+    verify(mockAssetProvider, atLeastOnce())
+        .getTypeface(eq("goodfont"), eq(false), ArgumentMatchers.<Consumer<Typeface>>any());
   }
 
   @Test
@@ -170,15 +177,12 @@ public class TextElementAdapterTest {
             .addTypeface(StylesProto.Typeface.newBuilder().setCustomTypeface("badfont"))
             .setItalic(true)
             .build();
-    Typeface hostTypeface = Typeface.create("host", Typeface.BOLD_ITALIC);
-    when(mockAssetProvider.getTypeface("goodfont", true)).thenReturn(hostTypeface);
-
     TextElementKey key = new TextElementKey(font);
 
     adapter.setValuesUsedInRecyclerKey(key, frameContext);
-    Typeface typeface = adapter.getBaseView().getTypeface();
 
-    assertThat(typeface).isEqualTo(hostTypeface);
+    verify(mockAssetProvider, atLeastOnce())
+        .getTypeface(eq("goodfont"), eq(true), ArgumentMatchers.<Consumer<Typeface>>any());
   }
 
   @Test
@@ -188,15 +192,38 @@ public class TextElementAdapterTest {
             .addTypeface(StylesProto.Typeface.newBuilder().setCustomTypeface("badfont"))
             .addTypeface(StylesProto.Typeface.newBuilder().setCustomTypeface("goodfont"))
             .build();
-    Typeface hostTypeface = Typeface.create("host", Typeface.BOLD_ITALIC);
-    when(mockAssetProvider.getTypeface("goodfont", false)).thenReturn(hostTypeface);
-
     TextElementKey key = new TextElementKey(font);
+    // Consumer accepts null for badfont
+    doAnswer(
+            answer -> {
+              Consumer<Typeface> typefaceConsumer = answer.getArgument(2);
+              typefaceConsumer.accept(null);
+              return null;
+            })
+        .when(mockAssetProvider)
+        .getTypeface(eq("badfont"), eq(false), ArgumentMatchers.<Consumer<Typeface>>any());
+    // Consumer accepts hosttypeface for goodfont
+    Typeface hostTypeface = Typeface.create("host", Typeface.BOLD_ITALIC);
+    doAnswer(
+            answer -> {
+              Consumer<Typeface> typefaceConsumer = answer.getArgument(2);
+              typefaceConsumer.accept(hostTypeface);
+              return null;
+            })
+        .when(mockAssetProvider)
+        .getTypeface(eq("goodfont"), eq(false), ArgumentMatchers.<Consumer<Typeface>>any());
 
     adapter.setValuesUsedInRecyclerKey(key, frameContext);
-    Typeface typeface = adapter.getBaseView().getTypeface();
 
+    Typeface typeface = adapter.getBaseView().getTypeface();
     assertThat(typeface).isEqualTo(hostTypeface);
+    InOrder inOrder = inOrder(mockAssetProvider);
+    inOrder
+        .verify(mockAssetProvider, atLeastOnce())
+        .getTypeface(eq("badfont"), eq(false), ArgumentMatchers.<Consumer<Typeface>>any());
+    inOrder
+        .verify(mockAssetProvider, atLeastOnce())
+        .getTypeface(eq("goodfont"), eq(false), ArgumentMatchers.<Consumer<Typeface>>any());
   }
 
   @Test
@@ -205,13 +232,24 @@ public class TextElementAdapterTest {
         Font.newBuilder()
             .addTypeface(StylesProto.Typeface.newBuilder().setCustomTypeface("notvalid"))
             .build();
-    when(mockAssetProvider.getTypeface(anyString(), anyBoolean())).thenReturn(null);
-
+    doAnswer(
+            answer -> {
+              Consumer<Typeface> typefaceConsumer = answer.getArgument(2);
+              typefaceConsumer.accept(null);
+              return null;
+            })
+        .when(mockAssetProvider)
+        .getTypeface(eq("notvalid"), eq(false), ArgumentMatchers.<Consumer<Typeface>>any());
     TextElementKey key = new TextElementKey(font);
 
     adapter.setValuesUsedInRecyclerKey(key, frameContext);
     Typeface typeface = adapter.getBaseView().getTypeface();
 
+    verify(frameContext)
+        .reportMessage(
+            MessageType.WARNING,
+            ErrorCode.ERR_MISSING_FONTS,
+            "Could not load specified typefaces.");
     assertThat(typeface).isEqualTo(new TextView(context).getTypeface());
   }
 
@@ -223,36 +261,15 @@ public class TextElementAdapterTest {
                 StylesProto.Typeface.newBuilder()
                     .setCommonTypeface(CommonTypeface.GOOGLE_SANS_MEDIUM))
             .build();
-    Typeface hostTypeface = Typeface.create("fakegooglesans", Typeface.BOLD_ITALIC);
-    when(mockAssetProvider.getTypeface(GoogleSansTypeface.GOOGLE_SANS_MEDIUM, false))
-        .thenReturn(hostTypeface);
-
-    TextElementKey key = new TextElementKey(font);
-
-    adapter.setValuesUsedInRecyclerKey(key, frameContext);
-    Typeface typeface = adapter.getBaseView().getTypeface();
-
-    assertThat(typeface).isEqualTo(hostTypeface);
-  }
-
-  @Test
-  public void testSetFont_reportsFailureWithGoogleSans() {
-    Font font =
-        Font.newBuilder()
-            .addTypeface(
-                StylesProto.Typeface.newBuilder()
-                    .setCommonTypeface(CommonTypeface.GOOGLE_SANS_MEDIUM))
-            .build();
-    when(mockAssetProvider.getTypeface(GoogleSansTypeface.GOOGLE_SANS_MEDIUM, false))
-        .thenReturn(null);
-
     TextElementKey key = new TextElementKey(font);
 
     adapter.setValuesUsedInRecyclerKey(key, frameContext);
 
-    verify(frameContext)
-        .reportMessage(
-            MessageType.ERROR, ErrorCode.ERR_MISSING_FONTS, "Could not load Google Sans");
+    verify(mockAssetProvider, atLeastOnce())
+        .getTypeface(
+            eq(GoogleSansTypeface.GOOGLE_SANS_MEDIUM),
+            eq(false),
+            ArgumentMatchers.<Consumer<Typeface>>any());
   }
 
   @Test
@@ -684,9 +701,7 @@ public class TextElementAdapterTest {
     }
 
     @Override
-    void setTextOnView(FrameContext frameContext, TextElement textElement) {
-      return;
-    }
+    void setTextOnView(FrameContext frameContext, TextElement textElement) {}
 
     @Override
     TextElementKey createKey(Font font) {

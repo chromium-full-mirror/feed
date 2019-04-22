@@ -26,6 +26,7 @@ import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.TextView;
+import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.AdapterFactory.AdapterKeySupplier;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
@@ -249,6 +250,179 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
     return intWithRegularRounding;
   }
 
+  @VisibleForTesting
+  // LINT.IfChange
+  void setValuesUsedInRecyclerKey(TextElementKey fontKey, FrameContext frameContext) {
+    TextView textView = getBaseView();
+    textView.setTextSize(fontKey.getSize());
+    if (!fontKey.typefaces.isEmpty()) {
+      FontDetails fontDetails =
+          new FontDetails(fontKey.typefaces, fontKey.isItalic(), frameContext);
+      loadFont(textView, fontDetails);
+    } else {
+      makeFontItalic(textView, fontKey.isItalic());
+    }
+  }
+
+  private void loadFont(TextView textView, FontDetails fontDetails) {
+    StylesProto.Typeface typeface = fontDetails.getTypefaceToLoad();
+    if (typeface == null) {
+      fontDetails
+          .getFrameContext()
+          .reportMessage(
+              MessageType.WARNING,
+              ErrorCode.ERR_MISSING_FONTS,
+              "Could not load specified typefaces.");
+      // We didn't load a typeface, but we can at least respect italicization.
+      makeFontItalic(textView, fontDetails.isItalic());
+      return;
+    }
+    switch (typeface.getTypefaceSpecifierCase()) {
+      case COMMON_TYPEFACE:
+        loadCommonTypeface(typeface.getCommonTypeface(), fontDetails, textView);
+        break;
+      case CUSTOM_TYPEFACE:
+        loadCustomTypeface(typeface.getCustomTypeface(), fontDetails, textView);
+        break;
+      default:
+        // do nothing
+    }
+  }
+
+  /** Load one of the typefaces from the {@link CommonTypeface} enum. */
+  private void loadCommonTypeface(
+      CommonTypeface commonTypeface, FontDetails fontDetails, TextView textView) {
+    switch (commonTypeface) {
+      case PLATFORM_DEFAULT_LIGHT:
+        TextViewCompat.setTextAppearance(textView, R.style.gm_font_weight_light);
+        break;
+      case PLATFORM_DEFAULT_REGULAR:
+        TextViewCompat.setTextAppearance(textView, R.style.gm_font_weight_regular);
+        break;
+      case PLATFORM_DEFAULT_MEDIUM:
+        TextViewCompat.setTextAppearance(textView, R.style.gm_font_weight_medium);
+        break;
+      case GOOGLE_SANS_MEDIUM:
+      case GOOGLE_SANS_REGULAR:
+        loadCustomTypeface(googleSansEnumToStringDef(commonTypeface), fontDetails, textView);
+        // The host should take care of italicization for custom fonts, so return here.
+        return;
+      default:
+        // Unrecognized common typeface. Try to load the next typeface from fontDetails.
+        // This should never happen.
+        fontDetails.currentTypefaceFailedToLoad();
+        loadFont(textView, fontDetails);
+        return;
+    }
+    makeFontItalic(textView, fontDetails.isItalic());
+  }
+
+  /** Ask the host to load a typeface by string identifier. */
+  private void loadCustomTypeface(
+      String customTypefaceName, FontDetails fontDetails, TextView textView) {
+    TypefaceCallback typefaceCallback = new TypefaceCallback(textView, fontDetails);
+    getParameters()
+        .hostProviders
+        .getAssetProvider()
+        .getTypeface(customTypefaceName, fontDetails.isItalic(), typefaceCallback);
+  }
+
+  /**
+   * Conversion method to avoid version skew issues if we would ever change the enum names in the
+   * CommonTypeface proto, so we don't need to change all the hosts or old clients.
+   */
+  @VisibleForTesting
+  @GoogleSansTypeface
+  static String googleSansEnumToStringDef(CommonTypeface googleSansType) {
+    switch (googleSansType) {
+      case GOOGLE_SANS_MEDIUM:
+        return GoogleSansTypeface.GOOGLE_SANS_MEDIUM;
+      case GOOGLE_SANS_REGULAR:
+        return GoogleSansTypeface.GOOGLE_SANS_REGULAR;
+      default:
+        return GoogleSansTypeface.UNDEFINED;
+    }
+  }
+
+  private static void makeFontItalic(TextView textView, boolean isItalic) {
+    if (isItalic) {
+      textView.setTypeface(textView.getTypeface(), Typeface.ITALIC);
+    } else {
+      textView.setTypeface(Typeface.create(textView.getTypeface(), Typeface.NORMAL));
+    }
+  }
+
+  private static TextView createView(Context context) {
+    TextView view = new TextView(context);
+    if (Build.VERSION.SDK_INT >= VERSION_CODES.M) {
+      view.setBreakStrategy(Layout.BREAK_STRATEGY_SIMPLE);
+    }
+    return view;
+  }
+
+  TextElementKey createKey(Font font) {
+    return new TextElementKey(font);
+  }
+
+  abstract static class TextElementKeySupplier<A extends TextElementAdapter>
+      implements AdapterKeySupplier<A, TextElement> {
+    @Override
+    public TextElementKey getKey(FrameContext frameContext, TextElement model) {
+      StyleProvider styleProvider = frameContext.makeStyleFor(model.getStyleReferences());
+      return new TextElementKey(styleProvider.getFont());
+    }
+  }
+
+  /** We will Key TextViews off of Font Size, Typefaces and Italics. */
+  // LINT.IfChange
+  static class TextElementKey extends RecyclerKey {
+    private final int size;
+    private final boolean italic;
+    private final List<StylesProto.Typeface> typefaces;
+
+    TextElementKey(Font font) {
+      size = font.getSize();
+      italic = font.getItalic();
+      typefaces = font.getTypefaceList();
+    }
+
+    public int getSize() {
+      return size;
+    }
+
+    public boolean isItalic() {
+      return italic;
+    }
+
+    @Override
+    public int hashCode() {
+      // Can't use Objects.hash() as it is only available in KK+ and can't use Guava's impl either.
+      int result = size;
+      result = 31 * result + (italic ? 1 : 0);
+      result = 31 * result + typefaces.hashCode();
+      return result;
+    }
+
+    @Override
+    public boolean equals(/*@Nullable*/ Object obj) {
+      if (obj == this) {
+        return true;
+      }
+
+      if (obj == null) {
+        return false;
+      }
+
+      if (!(obj instanceof TextElementKey)) {
+        return false;
+      }
+
+      TextElementKey key = (TextElementKey) obj;
+      return key.size == size && key.italic == italic && typefaces.equals(key.typefaces);
+    }
+  }
+  // LINT.ThenChange
+
   static class ExtraLineHeight {
     private final int topPaddingPx;
     private final int bottomPaddingPx;
@@ -302,194 +476,58 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
     }
   }
 
-  @VisibleForTesting
-  // LINT.IfChange
-  void setValuesUsedInRecyclerKey(TextElementKey fontKey, FrameContext frameContext) {
-    // TODO: Implement typefaces
-    TextView textView = getBaseView();
-    textView.setTextSize(fontKey.getSize());
+  static class FontDetails {
+    private int fontIndexToLoad;
+    private final List<StylesProto.Typeface> typefaceList;
+    private final boolean isItalic;
+    private final FrameContext frameContextForErrors;
 
-    for (StylesProto.Typeface typeface : fontKey.typefaces) {
-      switch (typeface.getTypefaceSpecifierCase()) {
-        case COMMON_TYPEFACE:
-          if (loadCommonTypeface(
-              typeface.getCommonTypeface(), textView, fontKey.isItalic(), frameContext)) {
-            return;
-          }
-          break;
-        case CUSTOM_TYPEFACE:
-          if (loadCustomTypeface(typeface.getCustomTypeface(), textView, fontKey.isItalic())) {
-            return;
-          }
-          break;
-        default:
-          // do nothing
+    FontDetails(
+        List<StylesProto.Typeface> typefaceList, boolean isItalic, FrameContext frameContext) {
+      this.typefaceList = typefaceList;
+      this.isItalic = isItalic;
+      this.frameContextForErrors = frameContext;
+    }
+
+    FrameContext getFrameContext() {
+      return frameContextForErrors;
+    }
+
+    StylesProto./*@Nullable*/ Typeface getTypefaceToLoad() {
+      if (typefaceList.size() <= fontIndexToLoad) {
+        return null;
       }
-    }
-    // We didn't load a font, but we can at least respect italicization.
-    makeFontItalic(textView, fontKey.isItalic());
-  }
-
-  /**
-   * Load one of the typefaces from the {@link CommonTypeface} enum.
-   *
-   * @return true for success, false for failure
-   */
-  private boolean loadCommonTypeface(
-      CommonTypeface commonTypeface,
-      TextView textView,
-      boolean isItalic,
-      FrameContext frameContext) {
-    switch (commonTypeface) {
-      case PLATFORM_DEFAULT_LIGHT:
-        TextViewCompat.setTextAppearance(textView, R.style.gm_font_weight_light);
-        break;
-      case PLATFORM_DEFAULT_REGULAR:
-        TextViewCompat.setTextAppearance(textView, R.style.gm_font_weight_regular);
-        break;
-      case PLATFORM_DEFAULT_MEDIUM:
-        TextViewCompat.setTextAppearance(textView, R.style.gm_font_weight_medium);
-        break;
-      case GOOGLE_SANS_MEDIUM:
-      case GOOGLE_SANS_REGULAR:
-        return loadGoogleSans(commonTypeface, textView, isItalic, frameContext);
-      default:
-        return false;
+      return typefaceList.get(fontIndexToLoad);
     }
 
-    makeFontItalic(textView, isItalic);
-    return true;
-  }
-
-  /**
-   * Ask the host to load a typeface by string identifier.
-   *
-   * @return true for success, false for failure
-   */
-  private boolean loadCustomTypeface(String customTypeface, TextView textView, boolean isItalic) {
-    Typeface hostTypeface =
-        getParameters().hostProviders.getAssetProvider().getTypeface(customTypeface, isItalic);
-    if (hostTypeface != null) {
-      textView.setTypeface(hostTypeface);
-      return true;
+    void currentTypefaceFailedToLoad() {
+      fontIndexToLoad++;
     }
-    return false;
-  }
 
-  /**
-   * Ask the host to load a Google Sans variant. These typefaces are expected to be present, but
-   * can't be included in the Piet library.
-   *
-   * @return true for success, false for failure
-   */
-  private boolean loadGoogleSans(
-      CommonTypeface googleSansType,
-      TextView textView,
-      boolean isItalic,
-      FrameContext frameContext) {
-    boolean success =
-        loadCustomTypeface(googleSansEnumToStringDef(googleSansType), textView, isItalic);
-    if (!success) {
-      frameContext.reportMessage(
-          MessageType.ERROR, ErrorCode.ERR_MISSING_FONTS, "Could not load Google Sans");
-    }
-    return success;
-  }
-  // LINT.ThenChange
-
-  /**
-   * Conversion method to avoid version skew issues if we would ever change the enum names in the
-   * CommonTypeface proto, so we don't need to change all the hosts or old clients.
-   */
-  @VisibleForTesting
-  @GoogleSansTypeface
-  static String googleSansEnumToStringDef(CommonTypeface googleSansType) {
-    switch (googleSansType) {
-      case GOOGLE_SANS_MEDIUM:
-        return GoogleSansTypeface.GOOGLE_SANS_MEDIUM;
-      case GOOGLE_SANS_REGULAR:
-        return GoogleSansTypeface.GOOGLE_SANS_REGULAR;
-      default:
-        return GoogleSansTypeface.UNDEFINED;
+    boolean isItalic() {
+      return isItalic;
     }
   }
 
-  private static void makeFontItalic(TextView textView, boolean isItalic) {
-    if (isItalic) {
-      textView.setTypeface(textView.getTypeface(), Typeface.ITALIC);
-    } else {
-      textView.setTypeface(Typeface.create(textView.getTypeface(), Typeface.NORMAL));
-    }
-  }
+  class TypefaceCallback implements Consumer</*@Nullable*/ Typeface> {
+    private final TextView textView;
+    private final FontDetails fontDetails;
 
-  private static TextView createView(Context context) {
-    TextView view = new TextView(context);
-    if (Build.VERSION.SDK_INT >= VERSION_CODES.M) {
-      view.setBreakStrategy(Layout.BREAK_STRATEGY_SIMPLE);
-    }
-    return view;
-  }
-
-  TextElementKey createKey(Font font) {
-    return new TextElementKey(font);
-  }
-
-  abstract static class TextElementKeySupplier<A extends TextElementAdapter>
-      implements AdapterKeySupplier<A, TextElement> {
-    @Override
-    public TextElementKey getKey(FrameContext frameContext, TextElement model) {
-      StyleProvider styleProvider = frameContext.makeStyleFor(model.getStyleReferences());
-      return new TextElementKey(styleProvider.getFont());
-    }
-  }
-
-  /** We will Key TextViews off of the Ellipsizing, Font Size and FontWeight, and Italics. */
-  // LINT.IfChange
-  static class TextElementKey extends RecyclerKey {
-    private final int size;
-    private final boolean italic;
-    private final List<StylesProto.Typeface> typefaces;
-
-    TextElementKey(Font font) {
-      size = font.getSize();
-      italic = font.getItalic();
-      typefaces = font.getTypefaceList();
-    }
-
-    public int getSize() {
-      return size;
-    }
-
-    public boolean isItalic() {
-      return italic;
+    TypefaceCallback(TextView textView, FontDetails fontDetails) {
+      this.textView = textView;
+      this.fontDetails = fontDetails;
     }
 
     @Override
-    public int hashCode() {
-      // Can't use Objects.hash() as it is only available in KK+ and can't use Guava's impl either.
-      int result = size;
-      result = 31 * result + (italic ? 1 : 0);
-      result = 31 * result + typefaces.hashCode();
-      return result;
-    }
-
-    @Override
-    public boolean equals(/*@Nullable*/ Object obj) {
-      if (obj == this) {
-        return true;
+    public void accept(/*@Nullable*/ Typeface typeface) {
+      if (typeface == null) {
+        fontDetails.currentTypefaceFailedToLoad();
+        loadFont(textView, fontDetails);
+        return;
       }
-
-      if (obj == null) {
-        return false;
+      if (!textView.getTypeface().equals(typeface)) {
+        textView.setTypeface(typeface);
       }
-
-      if (!(obj instanceof TextElementKey)) {
-        return false;
-      }
-
-      TextElementKey key = (TextElementKey) obj;
-      return key.size == size && key.italic == italic && typefaces.equals(key.typefaces);
     }
   }
-  // LINT.ThenChange
 }

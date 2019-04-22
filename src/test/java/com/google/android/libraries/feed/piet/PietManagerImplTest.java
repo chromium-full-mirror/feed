@@ -21,6 +21,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -206,8 +207,9 @@ public class PietManagerImplTest {
     assetProvider.getRelativeElapsedString(789);
     verify(stringFormatter).getRelativeElapsedString(789);
 
-    assetProvider.getTypeface("blah", true);
-    verify(typefaceProvider).getTypeface("blah", true);
+    Consumer<Typeface> typefaceConsumer = typeface -> {};
+    assetProvider.getTypeface("blah", false, typefaceConsumer);
+    verify(typefaceProvider).getTypeface("blah", false, typefaceConsumer);
 
     assertThat(assetProvider.isDarkTheme()).isEqualTo(isDarkTheme);
     assertThat(assetProvider.isRtL()).isEqualTo(isRtL);

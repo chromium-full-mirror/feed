@@ -103,9 +103,9 @@ public class AssetProvider {
    * the {@link GoogleSansTypeface} StringDef. Piet will report errors if Google Sans is requested
    * and not found.
    */
-  /*@Nullable*/
-  public Typeface getTypeface(String typeface, boolean isItalic) {
-    return typefaceProvider.getTypeface(typeface, isItalic);
+  public void getTypeface(
+      String typeface, boolean isItalic, Consumer</*@Nullable*/ Typeface> consumer) {
+    typefaceProvider.getTypeface(typeface, isItalic, consumer);
   }
 
   /** Returns whether Piet should render layouts using a right-to-left orientation. */

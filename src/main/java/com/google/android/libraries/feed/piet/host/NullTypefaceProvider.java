@@ -15,13 +15,14 @@
 package com.google.android.libraries.feed.piet.host;
 
 import android.graphics.Typeface;
+import com.google.android.libraries.feed.common.functional.Consumer;
 
 /** Typeface provider that does not provide any typefaces; for use as a default implementation. */
 public class NullTypefaceProvider implements TypefaceProvider {
 
   @Override
-  /*@Nullable*/
-  public Typeface getTypeface(String typeface, boolean isItalic) {
-    return null;
+  public void getTypeface(
+      String typeface, boolean isItalic, Consumer</*@Nullable*/ Typeface> consumer) {
+    consumer.accept(null);
   }
 }
