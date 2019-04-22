@@ -16,7 +16,7 @@ package com.google.android.libraries.feed.feedsessionmanager;
 
 import static com.google.android.libraries.feed.internalapi.store.Store.HEAD_SESSION_ID;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;

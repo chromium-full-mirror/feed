@@ -16,7 +16,7 @@ package com.google.android.libraries.feed.feedsessionmanager.internal;
 
 import static com.google.android.libraries.feed.api.common.MutationContext.EMPTY_CONTEXT;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Matchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
