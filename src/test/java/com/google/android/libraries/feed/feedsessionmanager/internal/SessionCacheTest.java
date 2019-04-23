@@ -186,7 +186,7 @@ public class SessionCacheTest {
 
     List<Session> allSessions = new ArrayList<>(sessionCache.getAllSessions());
     assertThat(allSessions).hasSize(3);
-    assertThat(allSessions).containsAllOf(s2, headSession);
+    assertThat(allSessions).containsAtLeast(s2, headSession);
     allSessions.remove(s2);
     allSessions.remove(headSession);
 

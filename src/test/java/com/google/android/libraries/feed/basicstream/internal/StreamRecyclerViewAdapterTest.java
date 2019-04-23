@@ -256,7 +256,7 @@ public class StreamRecyclerViewAdapterTest {
     streamRecyclerViewAdapter.notifyContentsAdded(
         1, Lists.newArrayList(featureDriver1, featureDriver2));
     assertThat(streamRecyclerViewAdapter.getLeafFeatureDrivers())
-        .containsAllOf(initialFeatureDriver, featureDriver1, featureDriver2);
+        .containsAtLeast(initialFeatureDriver, featureDriver1, featureDriver2);
   }
 
   @Test
@@ -264,7 +264,7 @@ public class StreamRecyclerViewAdapterTest {
     streamRecyclerViewAdapter.notifyContentsAdded(
         0, Lists.newArrayList(featureDriver1, featureDriver2));
     assertThat(streamRecyclerViewAdapter.getLeafFeatureDrivers())
-        .containsAllOf(featureDriver1, featureDriver2, initialFeatureDriver);
+        .containsAtLeast(featureDriver1, featureDriver2, initialFeatureDriver);
   }
 
   @Test

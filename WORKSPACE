@@ -38,7 +38,7 @@ maven_install(
         "com.google.dagger:dagger-producers:2.17",
         "com.google.guava:guava:27.0.1-android",
         "com.google.guava:guava-testlib:27.0.1-android",
-        "com.google.truth:truth:0.42",
+        "com.google.truth:truth:0.44",
         "junit:junit:4.12",
         "org.mockito:mockito-core:2.24.0",
         get_robolectric_dependency("annotations"),
@@ -111,7 +111,7 @@ maven_jar(
 
 maven_jar(
     name = "com_google_truth_liteproto_extension",
-    artifact = "com.google.truth.extensions:truth-liteproto-extension:0.42"
+    artifact = "com.google.truth.extensions:truth-liteproto-extension:0.44"
 )
 
 maven_jar(

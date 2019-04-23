@@ -391,7 +391,7 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
     assertThat(uploadableActionsResult.isSuccessful()).isTrue();
     assertThat(uploadableActionsResult.getValue()).hasSize(2);
     assertThat(uploadableActionsResult.getValue())
-        .containsAllOf(
+        .containsAtLeast(
             StreamUploadableAction.newBuilder().setFeatureContentId(CONTENT_ID).build(),
             StreamUploadableAction.newBuilder().setFeatureContentId(CONTENT_ID_2).build());
   }
