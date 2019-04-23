@@ -75,7 +75,7 @@ import com.google.android.libraries.feed.internalapi.protocoladapter.ProtocolAda
 import com.google.android.libraries.feed.internalapi.requestmanager.FeedRequestManager;
 import com.google.android.libraries.feed.internalapi.store.Store;
 import java.util.ArrayList;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executor;
 
 /**
  * Per-process instance of the feed library.
@@ -273,7 +273,7 @@ public final class FeedProcessScope implements Dumpable {
 
     // Required fields.
     private final Configuration configuration;
-    final ExecutorService singleThreadExecutor;
+    final Executor singleThreadExecutor;
     private final BasicLoggingApi basicLoggingApi;
     private final TooltipSupportedApi tooltipSupportedApi;
     private final NetworkClient unwrappedNetworkClient;
@@ -302,7 +302,7 @@ public final class FeedProcessScope implements Dumpable {
     /** The APIs are all required to construct the scope. */
     public Builder(
         Configuration configuration,
-        ExecutorService singleThreadExecutor,
+        Executor singleThreadExecutor,
         BasicLoggingApi basicLoggingApi,
         NetworkClient networkClient,
         SchedulerApi schedulerApi,
