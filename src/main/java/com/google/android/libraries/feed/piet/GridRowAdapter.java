@@ -148,7 +148,8 @@ class GridRowAdapter extends ElementContainerAdapter<GridRowView, GridRow> {
               frameContext.reportMessage(
                   MessageType.WARNING,
                   ERR_GRID_CELL_WIDTH_WITHOUT_CONTENTS,
-                  String.format("Invalid content width: %s", gridCellWidth.getContentWidth()));
+                  String.format(
+                      "Invalid content width: %s", gridCellWidth.getContentWidth().name()));
           }
           break;
         case DP:
@@ -164,7 +165,7 @@ class GridRowAdapter extends ElementContainerAdapter<GridRowView, GridRow> {
           frameContext.reportMessage(
               MessageType.WARNING,
               ERR_GRID_CELL_WIDTH_WITHOUT_CONTENTS,
-              String.format("Invalid content width: %s", gridCellWidth.getContentWidth()));
+              String.format("Invalid content width: %s", gridCellWidth.getContentWidth().name()));
       }
     }
 
