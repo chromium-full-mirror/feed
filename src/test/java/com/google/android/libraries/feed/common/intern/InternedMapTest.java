@@ -54,7 +54,7 @@ public class InternedMapTest {
             .setParentContentId("baz")
             .setOperation(Operation.UPDATE_OR_APPEND)
             .build();
-    assertThat(first).isNotSameAs(second);
+    assertThat(first).isNotSameInstanceAs(second);
     assertThat(first).isEqualTo(second);
     assertThat(first).isNotEqualTo(third);
 

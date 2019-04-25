@@ -194,7 +194,7 @@ public class SessionCacheTest {
     Session unboundSession = allSessions.get(0);
     assertThat(unboundSession.getSessionId()).isEqualTo(s1.getSessionId());
     assertThat(unboundSession.getContentInSession()).isEqualTo(s1.getContentInSession());
-    assertThat(unboundSession).isNotSameAs(s1);
+    assertThat(unboundSession).isNotSameInstanceAs(s1);
   }
 
   @Test

@@ -210,7 +210,7 @@ public class FeedSessionManagerTest {
     assertThat(sharedState1.getPietSharedStateItem())
         .isEqualTo(sharedState2.getPietSharedStateItem());
     assertThat(sharedState1.getPietSharedStateItem())
-        .isNotSameAs(sharedState2.getPietSharedStateItem());
+        .isNotSameInstanceAs(sharedState2.getPietSharedStateItem());
 
     StreamStructure operation =
         StreamStructure.newBuilder()
@@ -773,7 +773,7 @@ public class FeedSessionManagerTest {
                         PietSharedState.newBuilder()
                             .addTemplates(Template.newBuilder().setTemplateId("different"))))
             .build();
-    assertThat(first).isNotSameAs(second);
+    assertThat(first).isNotSameInstanceAs(second);
     assertThat(first.getPietSharedStateItem()).isEqualTo(second.getPietSharedStateItem());
     assertThat(first).isNotEqualTo(third);
     assertThat(first.getPietSharedStateItem()).isNotEqualTo(third.getPietSharedStateItem());
@@ -788,7 +788,7 @@ public class FeedSessionManagerTest {
     assertThat(interner.size()).isEqualTo(1);
     // The returned proto is equal to second, but its internal PietSharedStateItem is the same as
     // the one in first (memoized).
-    assertThat(internedSecond).isNotSameAs(second);
+    assertThat(internedSecond).isNotSameInstanceAs(second);
     assertThat(internedSecond).isEqualTo(second);
     assertThat(internedSecond.getPietSharedStateItem()).isSameAs(first.getPietSharedStateItem());
 

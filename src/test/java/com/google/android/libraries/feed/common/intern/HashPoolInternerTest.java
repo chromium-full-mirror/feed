@@ -64,9 +64,9 @@ public class HashPoolInternerTest {
                         .setStylesheets(Stylesheets.newBuilder().addStylesheetIds("bar")))
                 .addStylesheets(Stylesheet.newBuilder().setStylesheetId("bay"))
                 .build());
-    assertThat(first).isNotSameAs(second);
-    assertThat(first).isNotSameAs(third);
-    assertThat(second).isNotSameAs(third);
+    assertThat(first).isNotSameInstanceAs(second);
+    assertThat(first).isNotSameInstanceAs(third);
+    assertThat(second).isNotSameInstanceAs(third);
 
     // Pool is empty so first is added/returned.
     PietSharedStateWrapper internedFirst = interner.intern(first);

@@ -494,11 +494,11 @@ public class ViewUtilsTest {
     Drawable result1 = ViewUtils.applyOverlayColor(original, overlayColor1);
     Drawable result2 = ViewUtils.applyOverlayColor(original, overlayColor2);
 
-    assertThat(result1).isNotSameAs(original);
+    assertThat(result1).isNotSameInstanceAs(original);
     assertThat(result1.getColorFilter())
         .isEqualTo(new PorterDuffColorFilter(overlayColor1, Mode.SRC_IN));
 
-    assertThat(result2).isNotSameAs(original);
+    assertThat(result2).isNotSameInstanceAs(original);
     assertThat(result2.getColorFilter())
         .isEqualTo(new PorterDuffColorFilter(overlayColor2, Mode.SRC_IN));
   }

@@ -708,8 +708,8 @@ public class TemplateBinderTest {
     TemplateAdapterModel model2 =
         new TemplateAdapterModel(
             MODEL_TEMPLATE.toBuilder().build(), MODEL_BINDING_CONTEXT.toBuilder().build());
-    assertThat(model1.getTemplate()).isNotSameAs(model2.getTemplate());
-    assertThat(model1.getBindingContext()).isNotSameAs(model2.getBindingContext());
+    assertThat(model1.getTemplate()).isNotSameInstanceAs(model2.getTemplate());
+    assertThat(model1.getBindingContext()).isNotSameInstanceAs(model2.getBindingContext());
     assertThat(model1).isEqualTo(model2);
     assertThat(model1.hashCode()).isEqualTo(model2.hashCode());
   }

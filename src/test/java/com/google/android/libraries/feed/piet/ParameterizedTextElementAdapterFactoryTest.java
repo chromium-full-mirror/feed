@@ -135,7 +135,7 @@ public class ParameterizedTextElementAdapterFactoryTest {
     // Verify we get a new item when we create another.
     TextElementAdapter textElementAdapter3 = textElementFactory.get(textElement, frameContext);
     assertThat(textElementAdapter3).isSameAs(adapter2);
-    assertThat(textElementAdapter3).isNotSameAs(textElementAdapter);
+    assertThat(textElementAdapter3).isNotSameInstanceAs(textElementAdapter);
   }
 
   private TextElement getBaseTextElement(/*@Nullable*/ StyleProvider styleProvider) {

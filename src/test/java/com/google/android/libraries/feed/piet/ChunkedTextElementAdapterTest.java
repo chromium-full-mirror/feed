@@ -792,7 +792,7 @@ public class ChunkedTextElementAdapterTest {
     imageCallbackCaptor.getValue().accept(imageDrawable);
 
     // Assert that we did NOT set the image on the span
-    assertThat(containerDrawable.getDrawable(SINGLE_LAYER_ID)).isNotSameAs(imageDrawable);
+    assertThat(containerDrawable.getDrawable(SINGLE_LAYER_ID)).isNotSameInstanceAs(imageDrawable);
   }
 
   @Test
