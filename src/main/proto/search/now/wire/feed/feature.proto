@@ -14,11 +14,11 @@
 
 syntax = "proto2";
 
-import "src/main/proto/search/now/wire/feed/content_id.proto";
-
 package search.now.wire.feed;
 
 option optimize_for=LITE_RUNTIME;
+
+import "src/main/proto/search/now/wire/feed/content_id.proto";
 
 option java_package = "com.google.search.now.wire.feed";
 option java_outer_classname = "FeatureProto";
@@ -37,6 +37,8 @@ message Feature {
     CONTENT = 3;
     CLUSTER = 4;
     TOKEN = 5;
+    // Note: This is an experimental feature.
+    CAROUSEL = 6;
   }
   optional RenderableUnit renderable_unit = 2;
 
