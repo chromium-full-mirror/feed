@@ -525,7 +525,7 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
         loadFont(textView, fontDetails);
         return;
       }
-      if (!textView.getTypeface().equals(typeface)) {
+      if (textView.getTypeface() == null || !textView.getTypeface().equals(typeface)) {
         textView.setTypeface(typeface);
       }
     }

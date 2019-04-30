@@ -226,6 +226,50 @@ public class TextElementAdapterTest {
         .getTypeface(eq("goodfont"), eq(false), ArgumentMatchers.<Consumer<Typeface>>any());
   }
 
+  // Same test as above, but on JB. Catches bugs that might only appear on older versions, like
+  // getting NPEs on getTypeface() (which is now fixed).
+  @Config(sdk = VERSION_CODES.JELLY_BEAN)
+  @Test
+  public void testSetFont_callsHostWithFallback_JB() {
+    Font font =
+        Font.newBuilder()
+            .addTypeface(StylesProto.Typeface.newBuilder().setCustomTypeface("badfont"))
+            .addTypeface(StylesProto.Typeface.newBuilder().setCustomTypeface("goodfont"))
+            .build();
+    TextElementKey key = new TextElementKey(font);
+    // Consumer accepts null for badfont
+    doAnswer(
+            answer -> {
+              Consumer<Typeface> typefaceConsumer = answer.getArgument(2);
+              typefaceConsumer.accept(null);
+              return null;
+            })
+        .when(mockAssetProvider)
+        .getTypeface(eq("badfont"), eq(false), ArgumentMatchers.<Consumer<Typeface>>any());
+    // Consumer accepts hosttypeface for goodfont
+    Typeface hostTypeface = Typeface.create("host", Typeface.BOLD_ITALIC);
+    doAnswer(
+            answer -> {
+              Consumer<Typeface> typefaceConsumer = answer.getArgument(2);
+              typefaceConsumer.accept(hostTypeface);
+              return null;
+            })
+        .when(mockAssetProvider)
+        .getTypeface(eq("goodfont"), eq(false), ArgumentMatchers.<Consumer<Typeface>>any());
+
+    adapter.setValuesUsedInRecyclerKey(key, frameContext);
+
+    Typeface typeface = adapter.getBaseView().getTypeface();
+    assertThat(typeface).isEqualTo(hostTypeface);
+    InOrder inOrder = inOrder(mockAssetProvider);
+    inOrder
+        .verify(mockAssetProvider, atLeastOnce())
+        .getTypeface(eq("badfont"), eq(false), ArgumentMatchers.<Consumer<Typeface>>any());
+    inOrder
+        .verify(mockAssetProvider, atLeastOnce())
+        .getTypeface(eq("goodfont"), eq(false), ArgumentMatchers.<Consumer<Typeface>>any());
+  }
+
   @Test
   public void testSetFont_hostReturnsNull() {
     Font font =
