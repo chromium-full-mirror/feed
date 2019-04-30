@@ -453,6 +453,10 @@ public class ChunkedTextElementAdapterTest {
     assertThat(adapter.getBaseView().getText().toString()).isEqualTo(" ");
     assertThat(((SpannedString) adapter.getBaseView().getText()).getSpans(0, 1, ImageSpan.class))
         .hasLength(1);
+    assertThat(
+            ((SpannedString) adapter.getBaseView().getText())
+                .getSpans(0, 1, ImageSpan.class)[0].getVerticalAlignment())
+        .isEqualTo(ImageSpan.ALIGN_BASELINE);
   }
 
   @Test

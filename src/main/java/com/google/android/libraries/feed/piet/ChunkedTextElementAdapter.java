@@ -315,7 +315,7 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
     LayerDrawable wrapper = new LayerDrawable(new Drawable[] {placeholder});
     wrapper.setId(0, SINGLE_LAYER_ID);
     setBounds(wrapper, chunkStyle, textView);
-    ImageSpan imageSpan = new ImageSpan(wrapper);
+    ImageSpan imageSpan = new ImageSpan(wrapper, ImageSpan.ALIGN_BASELINE);
 
     if (chunkStyle.getMargins().hasStart()) {
       addMargin(spannable, chunkStyle.getMargins().getStart());
