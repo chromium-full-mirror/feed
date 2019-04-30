@@ -24,6 +24,7 @@ import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
 import com.google.android.libraries.feed.common.functional.Consumer;
+import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.host.logging.Task;
 import com.google.android.libraries.feed.internalapi.actionmanager.ActionManager;
 import com.google.android.libraries.feed.internalapi.store.LocalActionMutation;
@@ -34,6 +35,7 @@ import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
 import com.google.search.now.wire.feed.ActionPayloadProto.ActionPayload;
 import java.util.HashSet;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /** Default implementation of {@link ActionManager} */
 public class FeedActionManagerImpl implements ActionManager {
@@ -43,18 +45,21 @@ public class FeedActionManagerImpl implements ActionManager {
   private final ThreadUtils threadUtils;
   private final TaskQueue taskQueue;
   private final MainThreadRunner mainThreadRunner;
+  private final Clock clock;
 
   public FeedActionManagerImpl(
       SessionManager sessionManager,
       Store store,
       ThreadUtils threadUtils,
       TaskQueue taskQueue,
-      MainThreadRunner mainThreadRunner) {
+      MainThreadRunner mainThreadRunner,
+      Clock clock) {
     this.sessionManager = sessionManager;
     this.store = store;
     this.threadUtils = threadUtils;
     this.taskQueue = taskQueue;
     this.mainThreadRunner = mainThreadRunner;
+    this.clock = clock;
   }
 
   @Override
@@ -88,10 +93,12 @@ public class FeedActionManagerImpl implements ActionManager {
         TaskType.BACKGROUND,
         () -> {
           HashSet<StreamUploadableAction> actionSet = new HashSet<>();
+          long currentTime = TimeUnit.MILLISECONDS.toSeconds(clock.currentTimeMillis());
           actionSet.add(
               StreamUploadableAction.newBuilder()
                   .setFeatureContentId(contentId)
                   .setPayload(payload)
+                  .setTimestampSeconds(currentTime)
                   .build());
           sessionManager.triggerUploadActions(actionSet);
         });

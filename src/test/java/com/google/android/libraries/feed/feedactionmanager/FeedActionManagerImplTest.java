@@ -40,6 +40,7 @@ import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operati
 import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
 import com.google.search.now.wire.feed.ActionPayloadProto.ActionPayload;
 import com.google.search.now.wire.feed.ConsistencyTokenProto.ConsistencyToken;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -57,6 +58,8 @@ public class FeedActionManagerImplTest {
 
   private static final String CONTENT_ID_STRING = "contentIdString";
   private static final String SESSION_ID = "session";
+  private static final long DEFAULT_TIME = Duration.ofDays(42).toMillis();
+  private static final long DEFAULT_TIME_SECONDS = Duration.ofDays(42).getSeconds();
 
   private final FakeClock fakeClock = new FakeClock();
   private final FakeMainThreadRunner fakeMainThreadRunner =
@@ -81,7 +84,12 @@ public class FeedActionManagerImplTest {
     initMocks(this);
     actionManager =
         new FeedActionManagerImpl(
-            sessionManager, store, fakeThreadUtils, getTaskQueue(), fakeMainThreadRunner);
+            sessionManager,
+            store,
+            fakeThreadUtils,
+            getTaskQueue(),
+            fakeMainThreadRunner,
+            fakeClock);
   }
 
   @Test
@@ -175,10 +183,12 @@ public class FeedActionManagerImplTest {
   @Test
   public void triggerCreateAndUploadAction() throws Exception {
     ActionPayload payload = ActionPayload.getDefaultInstance();
+    fakeClock.set(DEFAULT_TIME);
     actionManager.createAndUploadAction(CONTENT_ID_STRING, payload);
     verify(sessionManager).triggerUploadActions(actionCaptor.capture());
     StreamUploadableAction action = (StreamUploadableAction) actionCaptor.getValue().toArray()[0];
     assertThat(action.getFeatureContentId()).isEqualTo(CONTENT_ID_STRING);
+    assertThat(action.getTimestampSeconds()).isEqualTo(DEFAULT_TIME_SECONDS);
     assertThat(action.getPayload()).isEqualTo(payload);
   }
 
