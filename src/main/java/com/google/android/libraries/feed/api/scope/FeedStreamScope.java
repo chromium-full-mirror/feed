@@ -19,15 +19,16 @@ import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.knowncontent.KnownContentApi;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.api.stream.Stream;
-import com.google.android.libraries.feed.basicstream.BasicStream;
 import com.google.android.libraries.feed.common.Validators;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
+import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedactionparser.FeedActionParserFactory;
 import com.google.android.libraries.feed.feedmodelprovider.FeedModelProviderFactory;
 import com.google.android.libraries.feed.host.action.ActionApi;
+import com.google.android.libraries.feed.host.config.ApplicationInfo;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
@@ -42,9 +43,11 @@ import com.google.android.libraries.feed.internalapi.actionmanager.ActionManager
 import com.google.android.libraries.feed.internalapi.actionparser.ActionParserFactory;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.internalapi.protocoladapter.ProtocolAdapter;
+import com.google.android.libraries.feed.internalapi.stream.BasicStreamFactory;
+import com.google.android.libraries.feed.internalapi.stream.StreamFactory;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
-import java.util.ArrayList;
+import com.google.android.libraries.feed.piet.host.ThrowingCustomElementProvider;
 
 /** Per-stream instance of the feed library. */
 public final class FeedStreamScope {
@@ -81,7 +84,9 @@ public final class FeedStreamScope {
         OfflineIndicatorApi offlineIndicatorApi,
         KnownContentApi knownContentApi,
         TooltipApi tooltipApi,
-        TooltipSupportedApi tooltipSupportedApi) {
+        TooltipSupportedApi tooltipSupportedApi,
+        ApplicationInfo applicationInfo,
+        FeedExtensionRegistry feedExtensionRegistry) {
       this.context = context;
       this.actionApi = actionApi;
       this.imageLoaderApi = imageLoaderApi;
@@ -102,6 +107,8 @@ public final class FeedStreamScope {
       this.offlineIndicatorApi = offlineIndicatorApi;
       this.knownContentApi = knownContentApi;
       this.tooltipApi = tooltipApi;
+      this.applicationInfo = applicationInfo;
+      this.feedExtensionRegistry = feedExtensionRegistry;
     }
 
     public Builder setIsBackgroundDark(boolean isBackgroundDark) {
@@ -109,8 +116,8 @@ public final class FeedStreamScope {
       return this;
     }
 
-    public Builder setStream(Stream stream) {
-      this.stream = stream;
+    public Builder setStreamFactory(StreamFactory streamFactory) {
+      this.streamFactory = streamFactory;
       return this;
     }
 
@@ -138,32 +145,40 @@ public final class FeedStreamScope {
       if (actionParserFactory == null) {
         actionParserFactory = new FeedActionParserFactory(protocolAdapter, basicLoggingApi);
       }
-      if (stream == null) {
-        stream =
-            new BasicStream(
-                context,
-                streamConfiguration,
-                cardConfiguration,
-                imageLoaderApi,
-                Validators.checkNotNull(actionParserFactory),
-                actionApi,
-                customElementProvider,
-                debugBehavior,
-                threadUtils,
-                /* headers = */ new ArrayList<>(0),
-                clock,
-                Validators.checkNotNull(modelProviderFactory),
-                hostBindingProvider,
-                actionManager,
-                config,
-                snackbarApi,
-                basicLoggingApi,
-                offlineIndicatorApi,
-                mainThreadRunner,
-                knownContentApi,
-                tooltipApi,
-                isBackgroundDark);
+      if (customElementProvider == null) {
+        customElementProvider = new ThrowingCustomElementProvider();
       }
+      if (hostBindingProvider == null) {
+        hostBindingProvider = new HostBindingProvider();
+      }
+      if (streamFactory == null) {
+        streamFactory = new BasicStreamFactory();
+      }
+      stream =
+          streamFactory.build(
+              Validators.checkNotNull(actionParserFactory),
+              context,
+              applicationInfo.getBuildType(),
+              cardConfiguration,
+              imageLoaderApi,
+              Validators.checkNotNull(customElementProvider),
+              debugBehavior,
+              clock,
+              Validators.checkNotNull(modelProviderFactory),
+              Validators.checkNotNull(hostBindingProvider),
+              offlineIndicatorApi,
+              config,
+              actionApi,
+              actionManager,
+              snackbarApi,
+              streamConfiguration,
+              feedExtensionRegistry,
+              basicLoggingApi,
+              mainThreadRunner,
+              isBackgroundDark,
+              tooltipApi,
+              threadUtils,
+              knownContentApi);
       return new FeedStreamScope(
           Validators.checkNotNull(stream), Validators.checkNotNull(modelProviderFactory));
     }
@@ -190,12 +205,15 @@ public final class FeedStreamScope {
     private final OfflineIndicatorApi offlineIndicatorApi;
     private final KnownContentApi knownContentApi;
     private final TooltipApi tooltipApi;
+    private final ApplicationInfo applicationInfo;
+    private final FeedExtensionRegistry feedExtensionRegistry;
     private boolean isBackgroundDark;
 
     // Optional internal components to override the default implementations.
     /*@MonotonicNonNull*/ private ActionParserFactory actionParserFactory;
     /*@MonotonicNonNull*/ private ModelProviderFactory modelProviderFactory;
     /*@MonotonicNonNull*/ private Stream stream;
+    /*@MonotonicNonNull*/ private StreamFactory streamFactory;
     /*@MonotonicNonNull*/ private CustomElementProvider customElementProvider;
     /*@MonotonicNonNull*/ private HostBindingProvider hostBindingProvider;
   }

@@ -94,18 +94,10 @@ public class FeedProcessScopeTest {
             .setThreadUtils(threadUtils)
             .build();
 
-    assertThat(processScope.getProtocolAdapter()).isNotNull();
     assertThat(processScope.getRequestManager()).isNotNull();
     assertThat(processScope.getSessionManager()).isNotNull();
     assertThat(processScope.getAppLifecycleListener()).isNotNull();
-    assertThat(processScope.getActionManager()).isNotNull();
-    assertThat(processScope.getClock()).isNotNull();
-    assertThat(processScope.getTimingUtils()).isNotNull();
-    assertThat(processScope.getMainThreadRunner()).isNotNull();
-    assertThat(processScope.getTaskQueue()).isNotNull();
-    assertThat(processScope.getStore()).isNotNull();
     assertThat(processScope.getKnownContentApi()).isNotNull();
-    assertThat(processScope.getFeedExtensionRegistry()).isNotNull();
     assertThat(processScope.getAppLifecycleListener()).isNotNull();
   }
 
@@ -131,12 +123,9 @@ public class FeedProcessScopeTest {
             .setClock(fakeClock)
             .build();
 
-    assertThat(processScope.getProtocolAdapter()).isEqualTo(protocolAdapter);
     assertThat(processScope.getRequestManager()).isNotNull();
     assertThat(processScope.getSessionManager()).isEqualTo(sessionManager);
-    assertThat(processScope.getClock()).isEqualTo(fakeClock);
     assertThat(processScope.getAppLifecycleListener()).isNotNull();
-    assertThat(processScope.getActionManager()).isNotNull();
     assertThat(processScope.getAppLifecycleListener()).isNotNull();
   }
 

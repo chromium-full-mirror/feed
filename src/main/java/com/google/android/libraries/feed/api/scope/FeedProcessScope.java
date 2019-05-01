@@ -89,7 +89,6 @@ public final class FeedProcessScope implements Dumpable {
   private final NetworkClient networkClient;
   private final ProtocolAdapter protocolAdapter;
   private final RequestManager requestManager;
-  private final ActionUploadRequestManager actionUploadRequestManager;
   private final SessionManager sessionManager;
   private final Store store;
   private final TimingUtils timingUtils;
@@ -106,6 +105,7 @@ public final class FeedProcessScope implements Dumpable {
   private final ClearAllListener clearAllListener;
   private final BasicLoggingApi basicLoggingApi;
   private final TooltipSupportedApi tooltipSupportedApi;
+  private final ApplicationInfo applicationInfo;
 
   /**
    * Return a {@link Builder} to create a FeedProcessScope
@@ -142,7 +142,9 @@ public final class FeedProcessScope implements Dumpable {
         offlineIndicatorApi,
         knownContentApi,
         tooltipApi,
-        tooltipSupportedApi);
+        tooltipSupportedApi,
+        applicationInfo,
+        feedExtensionRegistry);
   }
 
   /** Created through the {@link Builder}. */
@@ -151,7 +153,6 @@ public final class FeedProcessScope implements Dumpable {
       NetworkClient networkClient,
       ProtocolAdapter protocolAdapter,
       RequestManager requestManager,
-      ActionUploadRequestManager actionUploadRequestManager,
       SessionManager sessionManager,
       Store store,
       TimingUtils timingUtils,
@@ -166,12 +167,12 @@ public final class FeedProcessScope implements Dumpable {
       KnownContentApi knownContentApi,
       FeedExtensionRegistry feedExtensionRegistry,
       ClearAllListener clearAllListener,
-      TooltipSupportedApi tooltipSupportedApi) {
+      TooltipSupportedApi tooltipSupportedApi,
+      ApplicationInfo applicationInfo) {
     this.basicLoggingApi = basicLoggingApi;
     this.networkClient = networkClient;
     this.protocolAdapter = protocolAdapter;
     this.requestManager = requestManager;
-    this.actionUploadRequestManager = actionUploadRequestManager;
     this.sessionManager = sessionManager;
     this.store = store;
     this.timingUtils = timingUtils;
@@ -187,6 +188,7 @@ public final class FeedProcessScope implements Dumpable {
     this.feedExtensionRegistry = feedExtensionRegistry;
     this.clearAllListener = clearAllListener;
     this.tooltipSupportedApi = tooltipSupportedApi;
+    this.applicationInfo = applicationInfo;
   }
 
   @Override
@@ -216,32 +218,23 @@ public final class FeedProcessScope implements Dumpable {
     }
   }
 
-  public Clock getClock() {
-    return clock;
-  }
-
+  @Deprecated
   public ProtocolAdapter getProtocolAdapter() {
     return protocolAdapter;
   }
 
+
   public RequestManager getRequestManager() {
     return requestManager;
-  }
-
-  public ActionUploadRequestManager getActionUploadRequestManager() {
-    return actionUploadRequestManager;
   }
 
   public SessionManager getSessionManager() {
     return sessionManager;
   }
 
+  @Deprecated
   public TimingUtils getTimingUtils() {
     return timingUtils;
-  }
-
-  public MainThreadRunner getMainThreadRunner() {
-    return mainThreadRunner;
   }
 
   public TaskQueue getTaskQueue() {
@@ -252,18 +245,16 @@ public final class FeedProcessScope implements Dumpable {
     return appLifecycleListener;
   }
 
+  @Deprecated
   public ActionManager getActionManager() {
     return actionManager;
-  }
-
-  public Store getStore() {
-    return store;
   }
 
   public KnownContentApi getKnownContentApi() {
     return knownContentApi;
   }
 
+  @Deprecated
   public FeedExtensionRegistry getFeedExtensionRegistry() {
     return feedExtensionRegistry;
   }
@@ -284,7 +275,6 @@ public final class FeedProcessScope implements Dumpable {
 
     // Optional fields - if they are not provided, we will use default implementations.
     /*@MonotonicNonNull*/ private FeedRequestManager feedRequestManager = null;
-    /*@MonotonicNonNull*/ private ActionUploadRequestManager actionUploadRequestManager = null;
     /*@MonotonicNonNull*/ private SessionManager sessionManager = null;
     /*@MonotonicNonNull*/ private ProtocolAdapter protocolAdapter = null;
     /*@MonotonicNonNull*/ private ProtoExtensionProvider protoExtensionProvider = null;
@@ -328,12 +318,6 @@ public final class FeedProcessScope implements Dumpable {
 
     public Builder setFeedRequestManager(FeedRequestManager feedRequestManager) {
       this.feedRequestManager = feedRequestManager;
-      return this;
-    }
-
-    public Builder setActionUploadRequestManager(
-        ActionUploadRequestManager actionUploadRequestManager) {
-      this.actionUploadRequestManager = actionUploadRequestManager;
       return this;
     }
 
@@ -500,19 +484,17 @@ public final class FeedProcessScope implements Dumpable {
                 basicLoggingApi,
                 tooltipSupportedApi);
       }
-      if (actionUploadRequestManager == null) {
-        actionUploadRequestManager =
-            new FeedActionUploadRequestManager(
-                configuration,
-                networkClient,
-                protocolAdapter,
-                extensionRegistry,
-                taskQueue,
-                threadUtils,
-                actionReader,
-                store,
-                clock);
-      }
+      ActionUploadRequestManager actionUploadRequestManager =
+          new FeedActionUploadRequestManager(
+              configuration,
+              networkClient,
+              protocolAdapter,
+              extensionRegistry,
+              taskQueue,
+              threadUtils,
+              actionReader,
+              store,
+              clock);
       if (sessionManager == null) {
         FeedSessionManagerFactory fsmFactory =
             new FeedSessionManagerFactory(
@@ -547,7 +529,6 @@ public final class FeedProcessScope implements Dumpable {
           networkClient,
           Validators.checkNotNull(protocolAdapter),
           Validators.checkNotNull(clientRequestManager),
-          Validators.checkNotNull(actionUploadRequestManager),
           Validators.checkNotNull(sessionManager),
           store,
           timingUtils,
@@ -562,7 +543,8 @@ public final class FeedProcessScope implements Dumpable {
           knownContentApi,
           extensionRegistry,
           clearAllListener,
-          tooltipSupportedApi);
+          tooltipSupportedApi,
+          applicationInfo);
     }
   }
 }
