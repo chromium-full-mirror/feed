@@ -33,6 +33,7 @@ enum Capability {
   USE_SECONDARY_PAGE_REQUEST = 7;
   ARTICLE_SNIPPETS = 8;
   CAROUSELS = 9;
+  ELEMENTS = 10;
 
   reserved 3;
 }
