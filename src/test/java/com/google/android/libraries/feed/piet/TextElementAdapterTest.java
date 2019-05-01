@@ -681,7 +681,7 @@ public class TextElementAdapterTest {
 
     adapter.unbindModel();
 
-    assertThat(adapter.getBaseView()).isSameAs(adapterView);
+    assertThat(adapter.getBaseView()).isSameInstanceAs(adapterView);
     assertThat(adapterView.getTextAlignment()).isEqualTo(View.TEXT_ALIGNMENT_GRAVITY);
     assertThat(adapterView.getText().toString()).isEmpty();
   }
@@ -698,7 +698,7 @@ public class TextElementAdapterTest {
 
     adapter.createAdapter(textElement, frameContext);
 
-    assertThat(adapter.getElementStyleIdsStack()).isSameAs(elementStyles);
+    assertThat(adapter.getElementStyleIdsStack()).isSameInstanceAs(elementStyles);
   }
 
   @Test
@@ -709,7 +709,7 @@ public class TextElementAdapterTest {
             .build();
 
     Element elementWithModel = Element.newBuilder().setTextElement(model).build();
-    assertThat(adapter.getModelFromElement(elementWithModel)).isSameAs(model);
+    assertThat(adapter.getModelFromElement(elementWithModel)).isSameInstanceAs(model);
 
     Element elementWithWrongModel =
         Element.newBuilder().setCustomElement(CustomElement.getDefaultInstance()).build();

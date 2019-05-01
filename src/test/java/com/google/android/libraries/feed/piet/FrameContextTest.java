@@ -155,8 +155,9 @@ public class FrameContextTest {
     pietSharedStates.add(PietSharedState.newBuilder().addTemplates(sharedStateTemplate).build());
     frameContext = defaultFrameContext();
 
-    assertThat(frameContext.getTemplate(sharedStateTemplateId)).isSameAs(sharedStateTemplate);
-    assertThat(frameContext.getTemplate(DEFAULT_TEMPLATE_ID)).isSameAs(DEFAULT_TEMPLATE);
+    assertThat(frameContext.getTemplate(sharedStateTemplateId))
+        .isSameInstanceAs(sharedStateTemplate);
+    assertThat(frameContext.getTemplate(DEFAULT_TEMPLATE_ID)).isSameInstanceAs(DEFAULT_TEMPLATE);
   }
 
   @Test
@@ -684,17 +685,17 @@ public class FrameContextTest {
     assertThat(
             frameContext.getActionsFromBinding(
                 ActionsBindingRef.newBuilder().setBindingId(BINDING_ID).build()))
-        .isSameAs(actions);
+        .isSameInstanceAs(actions);
     assertThat(
             frameContext.getActionsFromBinding(
                 ActionsBindingRef.newBuilder().setBindingId(INVALID_BINDING_ID).build()))
-        .isSameAs(Actions.getDefaultInstance());
+        .isSameInstanceAs(Actions.getDefaultInstance());
 
     frameContext = makeFrameContextWithNoBindings();
     assertThat(
             frameContext.getActionsFromBinding(
                 ActionsBindingRef.newBuilder().setBindingId(BINDING_ID).build()))
-        .isSameAs(Actions.getDefaultInstance());
+        .isSameInstanceAs(Actions.getDefaultInstance());
   }
 
   @Test

@@ -255,7 +255,7 @@ public class FeedSessionManagerTest {
 
     // Cached PietSharedStateItem messages the same between the 2 shared states (memoized).
     assertThat(cachedSharedState1.getPietSharedStateItem())
-        .isSameAs(cachedSharedState2.getPietSharedStateItem());
+        .isSameInstanceAs(cachedSharedState2.getPietSharedStateItem());
   }
 
   @Test
@@ -781,7 +781,7 @@ public class FeedSessionManagerTest {
     // Pool is empty so first is added/returned.
     StreamSharedState internedFirst = interner.intern(first);
     assertThat(interner.size()).isEqualTo(1);
-    assertThat(internedFirst).isSameAs(first);
+    assertThat(internedFirst).isSameInstanceAs(first);
 
     // Pool already has an identical inner PietSharedStateItem proto, which is used.
     StreamSharedState internedSecond = interner.intern(second);
@@ -790,12 +790,13 @@ public class FeedSessionManagerTest {
     // the one in first (memoized).
     assertThat(internedSecond).isNotSameInstanceAs(second);
     assertThat(internedSecond).isEqualTo(second);
-    assertThat(internedSecond.getPietSharedStateItem()).isSameAs(first.getPietSharedStateItem());
+    assertThat(internedSecond.getPietSharedStateItem())
+        .isSameInstanceAs(first.getPietSharedStateItem());
 
     // Third has a new PietSharedStateItem (not equal with any previous) so it is added to the pool.
     StreamSharedState internedThird = interner.intern(third);
     assertThat(interner.size()).isEqualTo(2);
-    assertThat(internedThird).isSameAs(third);
+    assertThat(internedThird).isSameInstanceAs(third);
   }
 
   @Test

@@ -55,17 +55,17 @@ public class WeakPoolInternerTest {
     // Pool is empty so first is added/returned.
     StreamStructure internedFirst = interner.intern(first);
     assertThat(interner.size()).isEqualTo(1);
-    assertThat(internedFirst).isSameAs(first);
+    assertThat(internedFirst).isSameInstanceAs(first);
 
     // Pool already has an identical proto, which is returned.
     StreamStructure internedSecond = interner.intern(second);
     assertThat(interner.size()).isEqualTo(1);
-    assertThat(internedSecond).isSameAs(first);
+    assertThat(internedSecond).isSameInstanceAs(first);
 
     // Third is a new object (not equal with any previous) so it is added to the pool.
     StreamStructure internedThird = interner.intern(third);
     assertThat(interner.size()).isEqualTo(2);
-    assertThat(internedThird).isSameAs(third);
+    assertThat(internedThird).isSameInstanceAs(third);
 
     interner.clear();
     assertThat(interner.size()).isEqualTo(0);
@@ -73,6 +73,6 @@ public class WeakPoolInternerTest {
     // Pool is empty so second is added/returned.
     internedSecond = interner.intern(second);
     assertThat(interner.size()).isEqualTo(1);
-    assertThat(internedSecond).isSameAs(second);
+    assertThat(internedSecond).isSameInstanceAs(second);
   }
 }

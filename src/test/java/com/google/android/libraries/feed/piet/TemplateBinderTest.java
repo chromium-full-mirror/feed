@@ -166,7 +166,7 @@ public class TemplateBinderTest {
     ElementAdapter<? extends View, ?> adapter =
         templateBinder.createTemplateAdapter(model, frameContext);
 
-    assertThat(adapter).isSameAs(elementListAdapter);
+    assertThat(adapter).isSameInstanceAs(elementListAdapter);
     verify(elementListAdapter).setKey(new TemplateKey(template, sharedStates, new ArrayList<>()));
   }
 
@@ -191,7 +191,7 @@ public class TemplateBinderTest {
     ElementAdapter<? extends View, ?> adapter =
         templateBinder.createTemplateAdapter(model, frameContext);
 
-    assertThat(adapter).isSameAs(templateAdapter);
+    assertThat(adapter).isSameInstanceAs(templateAdapter);
     // We don't need to re-create the adapter; it has already been created.
     verify(templateAdapter, never()).createAdapter(any(Element.class), any());
     verify(templateAdapter, never()).createAdapter(any(), any(), any());
@@ -487,7 +487,7 @@ public class TemplateBinderTest {
     ElementAdapter<? extends View, ?> adapter =
         templateBinder.createAndBindTemplateAdapter(model, frameContext);
 
-    assertThat(adapter).isSameAs(elementListAdapter);
+    assertThat(adapter).isSameInstanceAs(elementListAdapter);
     verify(elementListAdapter).setKey(new TemplateKey(template, sharedStates, new ArrayList<>()));
 
     // Assert that adapter is bound with the template frameContext
@@ -527,7 +527,7 @@ public class TemplateBinderTest {
     // Create adapter and ensure template key is set.
     ElementAdapter<? extends View, ?> adapter =
         templateBinder.createAndBindTemplateAdapter(model, frameContext);
-    assertThat(adapter).isSameAs(elementListAdapter);
+    assertThat(adapter).isSameInstanceAs(elementListAdapter);
 
     // We don't get the adapter from the factory
     verifyZeroInteractions(adapterFactory);
@@ -657,8 +657,8 @@ public class TemplateBinderTest {
   @Test
   public void testTemplateAdapterModel_getters() {
     TemplateAdapterModel model = new TemplateAdapterModel(MODEL_TEMPLATE, MODEL_BINDING_CONTEXT);
-    assertThat(model.getTemplate()).isSameAs(MODEL_TEMPLATE);
-    assertThat(model.getBindingContext()).isSameAs(MODEL_BINDING_CONTEXT);
+    assertThat(model.getTemplate()).isSameInstanceAs(MODEL_TEMPLATE);
+    assertThat(model.getBindingContext()).isSameInstanceAs(MODEL_BINDING_CONTEXT);
   }
 
   @Test
@@ -690,8 +690,8 @@ public class TemplateBinderTest {
     TemplateAdapterModel model =
         new TemplateAdapterModel(
             MODEL_TEMPLATE.getTemplateId(), frameContext, MODEL_BINDING_CONTEXT);
-    assertThat(model.getTemplate()).isSameAs(MODEL_TEMPLATE);
-    assertThat(model.getBindingContext()).isSameAs(MODEL_BINDING_CONTEXT);
+    assertThat(model.getTemplate()).isSameInstanceAs(MODEL_TEMPLATE);
+    assertThat(model.getBindingContext()).isSameInstanceAs(MODEL_BINDING_CONTEXT);
   }
 
   @Test

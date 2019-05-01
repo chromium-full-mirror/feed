@@ -60,20 +60,20 @@ public class InternedMapTest {
 
     // Initially the interner pool is empty so first is added as value.
     map.put("first", first);
-    assertThat(map.get("first")).isSameAs(first);
+    assertThat(map.get("first")).isSameInstanceAs(first);
 
     // The interner pool already has an identical value object so second is not added, first is used
     // instead.
     map.put("second", second);
-    assertThat(map.get("second")).isSameAs(first);
+    assertThat(map.get("second")).isSameInstanceAs(first);
 
     // Third is a new object (not equal with any previous) so it is added to the pool.
     map.put("third", third);
-    assertThat(map.get("third")).isSameAs(third);
+    assertThat(map.get("third")).isSameInstanceAs(third);
 
     // Since the pool is empty, seconds is added to the pool this time.
     map.clear();
     map.put("second", second);
-    assertThat(map.get("second")).isSameAs(second);
+    assertThat(map.get("second")).isSameInstanceAs(second);
   }
 }

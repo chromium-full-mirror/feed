@@ -509,7 +509,7 @@ public class ViewUtilsTest {
 
     Drawable result1 = ViewUtils.applyOverlayColor(original, null);
 
-    assertThat(result1).isSameAs(original);
+    assertThat(result1).isSameInstanceAs(original);
     assertThat(result1.getColorFilter()).isNull();
   }
 

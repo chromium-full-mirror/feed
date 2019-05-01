@@ -104,7 +104,7 @@ public class ElementStackAdapterTest {
     assertThat(adapter.childAdapters.get(0)).isInstanceOf(ElementListAdapter.class);
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(1);
     assertThat(adapter.getBaseView().getChildAt(0))
-        .isSameAs(adapter.childAdapters.get(0).getView());
+        .isSameInstanceAs(adapter.childAdapters.get(0).getView());
   }
 
   @Test
@@ -119,9 +119,9 @@ public class ElementStackAdapterTest {
     assertThat(adapter.childAdapters.get(1)).isInstanceOf(GridRowAdapter.class);
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(2);
     assertThat(adapter.getBaseView().getChildAt(0))
-        .isSameAs(adapter.childAdapters.get(0).getView());
+        .isSameInstanceAs(adapter.childAdapters.get(0).getView());
     assertThat(adapter.getBaseView().getChildAt(1))
-        .isSameAs(adapter.childAdapters.get(1).getView());
+        .isSameInstanceAs(adapter.childAdapters.get(1).getView());
   }
 
   @Test
@@ -200,14 +200,14 @@ public class ElementStackAdapterTest {
     ElementStack model =
         ElementStack.newBuilder().addAllContents(asList(INLINE_CONTENT, BOUND_CONTENT)).build();
 
-    assertThat(adapter.getContentsFromModel(model)).isSameAs(model.getContentsList());
+    assertThat(adapter.getContentsFromModel(model)).isSameInstanceAs(model.getContentsList());
   }
 
   @Test
   public void testGetModelFromElement() {
     Element element = asElement(asList(INLINE_CONTENT, BOUND_CONTENT));
 
-    assertThat(adapter.getModelFromElement(element)).isSameAs(element.getElementStack());
+    assertThat(adapter.getModelFromElement(element)).isSameInstanceAs(element.getElementStack());
   }
 
   private Element asElement(List<Content> contents) {

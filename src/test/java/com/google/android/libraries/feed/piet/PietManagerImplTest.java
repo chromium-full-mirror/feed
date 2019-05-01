@@ -95,7 +95,7 @@ public class PietManagerImplTest {
         (FrameAdapterImpl)
             pietManager.createPietFrameAdapter(
                 cardViewSupplier, actionHandler, eventLogger, context);
-    assertThat(frameAdapter.getParameters().parentViewSupplier).isSameAs(cardViewSupplier);
+    assertThat(frameAdapter.getParameters().parentViewSupplier).isSameInstanceAs(cardViewSupplier);
   }
 
   @Test
@@ -185,9 +185,11 @@ public class PietManagerImplTest {
                 .setClock(clock)
                 .build();
     AdapterParameters parameters = manager.getAdapterParameters(context, Suppliers.of(viewGroup1));
-    assertThat(parameters.hostProviders.getCustomElementProvider()).isSameAs(customElementProvider);
-    assertThat(parameters.hostProviders.getHostBindingProvider()).isSameAs(hostBindingProvider);
-    assertThat(parameters.clock).isSameAs(clock);
+    assertThat(parameters.hostProviders.getCustomElementProvider())
+        .isSameInstanceAs(customElementProvider);
+    assertThat(parameters.hostProviders.getHostBindingProvider())
+        .isSameInstanceAs(hostBindingProvider);
+    assertThat(parameters.clock).isSameInstanceAs(clock);
 
     FrameAdapterImpl frameAdapter =
         (FrameAdapterImpl)

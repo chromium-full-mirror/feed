@@ -130,7 +130,7 @@ public class ElementAdapterFactoryTest {
     CustomElement model = CustomElement.getDefaultInstance();
     Element element = Element.newBuilder().setCustomElement(model).build();
     assertThat(adapterFactory.createAdapterForElement(element, frameContext))
-        .isSameAs(customElementAdapter);
+        .isSameInstanceAs(customElementAdapter);
     verify(customElementFactory).get(model, frameContext);
   }
 
@@ -140,7 +140,7 @@ public class ElementAdapterFactoryTest {
         TextElement.newBuilder().setChunkedText(ChunkedText.getDefaultInstance()).build();
     Element element = Element.newBuilder().setTextElement(model).build();
     assertThat(adapterFactory.createAdapterForElement(element, frameContext))
-        .isSameAs(chunkedTextElementAdapter);
+        .isSameInstanceAs(chunkedTextElementAdapter);
     verify(chunkedTextElementFactory).get(model, frameContext);
   }
 
@@ -152,7 +152,7 @@ public class ElementAdapterFactoryTest {
             .build();
     Element element = Element.newBuilder().setTextElement(model).build();
     assertThat(adapterFactory.createAdapterForElement(element, frameContext))
-        .isSameAs(chunkedTextElementAdapter);
+        .isSameInstanceAs(chunkedTextElementAdapter);
     verify(chunkedTextElementFactory).get(model, frameContext);
   }
 
@@ -164,7 +164,7 @@ public class ElementAdapterFactoryTest {
             .build();
     Element element = Element.newBuilder().setTextElement(model).build();
     assertThat(adapterFactory.createAdapterForElement(element, frameContext))
-        .isSameAs(parameterizedTextElementAdapter);
+        .isSameInstanceAs(parameterizedTextElementAdapter);
     verify(parameterizedTextElementFactory).get(model, frameContext);
   }
 
@@ -176,7 +176,7 @@ public class ElementAdapterFactoryTest {
             .build();
     Element element = Element.newBuilder().setTextElement(model).build();
     assertThat(adapterFactory.createAdapterForElement(element, frameContext))
-        .isSameAs(parameterizedTextElementAdapter);
+        .isSameInstanceAs(parameterizedTextElementAdapter);
     verify(parameterizedTextElementFactory).get(model, frameContext);
   }
 
@@ -197,7 +197,7 @@ public class ElementAdapterFactoryTest {
     ImageElement model = ImageElement.getDefaultInstance();
     Element element = Element.newBuilder().setImageElement(model).build();
     assertThat(adapterFactory.createAdapterForElement(element, frameContext))
-        .isSameAs(imageElementAdapter);
+        .isSameInstanceAs(imageElementAdapter);
     verify(imageElementFactory).get(model, frameContext);
   }
 
@@ -206,7 +206,7 @@ public class ElementAdapterFactoryTest {
     GridRow model = GridRow.getDefaultInstance();
     Element element = Element.newBuilder().setGridRow(model).build();
     assertThat(adapterFactory.createAdapterForElement(element, frameContext))
-        .isSameAs(gridRowAdapter);
+        .isSameInstanceAs(gridRowAdapter);
     verify(gridRowFactory).get(model, frameContext);
   }
 
@@ -215,7 +215,7 @@ public class ElementAdapterFactoryTest {
     ElementList model = ElementList.getDefaultInstance();
     Element element = Element.newBuilder().setElementList(model).build();
     assertThat(adapterFactory.createAdapterForElement(element, frameContext))
-        .isSameAs(elementListAdapter);
+        .isSameInstanceAs(elementListAdapter);
     verify(elementListFactory).get(model, frameContext);
   }
 
@@ -298,7 +298,7 @@ public class ElementAdapterFactoryTest {
     ElementStackAdapter adapter = adapterFactory.createOverlayAdapter(overlays, frameContext);
     verify(elementStackFactory)
         .get(ElementStack.newBuilder().addAllContents(overlays).build(), frameContext);
-    assertThat(adapter).isSameAs(elementStackAdapter);
+    assertThat(adapter).isSameInstanceAs(elementStackAdapter);
   }
 
   @Test

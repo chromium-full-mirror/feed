@@ -152,7 +152,7 @@ public class ImageElementAdapterTest {
   public void testCreateAdapter() {
     setStyle(HEIGHT_DP, WIDTH_DP);
     adapter.createAdapter(DEFAULT_MODEL, frameContext);
-    assertThat(adapter.getModel()).isSameAs(DEFAULT_MODEL.getImageElement());
+    assertThat(adapter.getModel()).isSameInstanceAs(DEFAULT_MODEL.getImageElement());
 
     assertThat(adapter.getView()).isNotNull();
 
@@ -167,7 +167,7 @@ public class ImageElementAdapterTest {
     setStyle(null, null);
     adapter.createAdapter(DEFAULT_MODEL, frameContext);
 
-    assertThat(adapter.getModel()).isSameAs(DEFAULT_MODEL.getImageElement());
+    assertThat(adapter.getModel()).isSameInstanceAs(DEFAULT_MODEL.getImageElement());
 
     assertThat(adapter.getView()).isNotNull();
 
@@ -231,7 +231,7 @@ public class ImageElementAdapterTest {
     verify(assetProvider)
         .getImage(DEFAULT_IMAGE, DIMENSION_UNKNOWN, DIMENSION_UNKNOWN, loadImageCallback);
 
-    assertThat(adapter.getModel()).isSameAs(model.getImageElement());
+    assertThat(adapter.getModel()).isSameInstanceAs(model.getImageElement());
     assertThat(adapter.getElementStyleIdsStack()).isEqualTo(styles);
   }
 
@@ -247,7 +247,7 @@ public class ImageElementAdapterTest {
 
     verify(assetProvider)
         .getImage(DEFAULT_IMAGE, DIMENSION_UNKNOWN, DIMENSION_UNKNOWN, loadImageCallback);
-    assertThat(adapter.getModel()).isSameAs(model.getImageElement());
+    assertThat(adapter.getModel()).isSameInstanceAs(model.getImageElement());
   }
 
   @Test
@@ -326,13 +326,13 @@ public class ImageElementAdapterTest {
         .getImage(Image.getDefaultInstance(), WIDTH_DP, HEIGHT_DP, loadImageCallback);
 
     RecyclerKey key2 = adapter.getKey();
-    assertThat(key1).isSameAs(key2);
-    assertThat(adapter.getModel()).isSameAs(model2.getImageElement());
+    assertThat(key1).isSameInstanceAs(key2);
+    assertThat(adapter.getModel()).isSameInstanceAs(model2.getImageElement());
     assertThat(adapter.getView()).isNotNull();
 
     ImageView imageView2 = adapter.getBaseView();
 
-    assertThat(imageView2).isSameAs(imageView);
+    assertThat(imageView2).isSameInstanceAs(imageView);
   }
 
   @Test
@@ -399,7 +399,7 @@ public class ImageElementAdapterTest {
     // Bind and expect the pre-load fill to be set
     adapter.createAdapter(DEFAULT_MODEL, frameContext);
     adapter.bindModel(DEFAULT_MODEL, frameContext);
-    assertThat(adapter.getBaseView().getDrawable()).isSameAs(preLoadFillDrawable);
+    assertThat(adapter.getBaseView().getDrawable()).isSameInstanceAs(preLoadFillDrawable);
 
     // Load drawable and replace pre-load fill
     verify(assetProvider)
@@ -572,7 +572,7 @@ public class ImageElementAdapterTest {
             .build();
 
     Element elementWithModel = Element.newBuilder().setImageElement(model).build();
-    assertThat(adapter.getModelFromElement(elementWithModel)).isSameAs(model);
+    assertThat(adapter.getModelFromElement(elementWithModel)).isSameInstanceAs(model);
 
     Element elementWithWrongModel =
         Element.newBuilder().setCustomElement(CustomElement.getDefaultInstance()).build();

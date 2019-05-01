@@ -96,7 +96,7 @@ public class RunnableSubjectTest {
             })
         .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
-        .isSameAs(ex);
+        .isSameInstanceAs(ex);
   }
 
   @Test
@@ -145,7 +145,7 @@ public class RunnableSubjectTest {
                 })
             .throwsAnExceptionOfType(IOException.class)
             .getCaught();
-    assertThat(caught).isSameAs(ex);
+    assertThat(caught).isSameInstanceAs(ex);
   }
 
   @Test

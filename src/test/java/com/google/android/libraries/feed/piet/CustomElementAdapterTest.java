@@ -108,8 +108,8 @@ public class CustomElementAdapterTest {
 
     adapter.createAdapter(DEFAULT_MODEL, frameContext);
 
-    assertThat(adapter.getView()).isSameAs(adapterView);
-    assertThat(adapter.getKey()).isSameAs(adapterKey);
+    assertThat(adapter.getView()).isSameInstanceAs(adapterView);
+    assertThat(adapter.getKey()).isSameInstanceAs(adapterKey);
   }
 
   @Test
@@ -219,7 +219,7 @@ public class CustomElementAdapterTest {
             .build();
 
     Element elementWithModel = Element.newBuilder().setCustomElement(model).build();
-    assertThat(adapter.getModelFromElement(elementWithModel)).isSameAs(model);
+    assertThat(adapter.getModelFromElement(elementWithModel)).isSameInstanceAs(model);
 
     Element elementWithWrongModel =
         Element.newBuilder().setTextElement(TextElement.getDefaultInstance()).build();

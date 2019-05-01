@@ -71,17 +71,17 @@ public class HashPoolInternerTest {
     // Pool is empty so first is added/returned.
     PietSharedStateWrapper internedFirst = interner.intern(first);
     assertThat(interner.size()).isEqualTo(1);
-    assertThat(internedFirst).isSameAs(first);
+    assertThat(internedFirst).isSameInstanceAs(first);
 
     // Pool already has an identical proto, which is returned.
     PietSharedStateWrapper internSecond = interner.intern(second);
     assertThat(interner.size()).isEqualTo(1);
-    assertThat(internSecond).isSameAs(first);
+    assertThat(internSecond).isSameInstanceAs(first);
 
     // Third is a new object (not equal with any previous) so it is added to the pool.
     PietSharedStateWrapper internedThird = interner.intern(third);
     assertThat(interner.size()).isEqualTo(2);
-    assertThat(internedThird).isSameAs(third);
+    assertThat(internedThird).isSameInstanceAs(third);
 
     interner.clear();
     assertThat(interner.size()).isEqualTo(0);
@@ -89,7 +89,7 @@ public class HashPoolInternerTest {
     // Pool is empty so second is added/returned.
     internSecond = interner.intern(second);
     assertThat(interner.size()).isEqualTo(1);
-    assertThat(internSecond).isSameAs(second);
+    assertThat(internSecond).isSameInstanceAs(second);
   }
 
   private static class PietSharedStateWrapper {

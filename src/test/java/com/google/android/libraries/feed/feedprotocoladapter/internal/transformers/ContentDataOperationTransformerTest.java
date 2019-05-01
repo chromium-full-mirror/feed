@@ -99,7 +99,7 @@ public class ContentDataOperationTransformerTest {
         contentDataOperationTransformer.transform(
             dataOperation.build(), dataOperationBuilder, FeedResponseMetadata.getDefaultInstance());
 
-    assertThat(operation).isSameAs(dataOperationBuilder);
+    assertThat(operation).isSameInstanceAs(dataOperationBuilder);
   }
 
   @Test
@@ -108,6 +108,6 @@ public class ContentDataOperationTransformerTest {
         contentDataOperationTransformer.transform(
             dataOperation.build(), dataOperationBuilder, METADATA);
 
-    assertThat(operation).isSameAs(dataOperationBuilder);
+    assertThat(operation).isSameInstanceAs(dataOperationBuilder);
   }
 }

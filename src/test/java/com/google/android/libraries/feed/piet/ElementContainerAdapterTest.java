@@ -180,7 +180,7 @@ public class ElementContainerAdapterTest {
     assertThat(adapter.childAdapters.get(0)).isInstanceOf(ElementListAdapter.class);
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(1);
     assertThat(adapter.getBaseView().getChildAt(0))
-        .isSameAs(adapter.childAdapters.get(0).getView());
+        .isSameInstanceAs(adapter.childAdapters.get(0).getView());
     assertThat(adapter.adaptersPerContent).isEqualTo(new int[] {1});
   }
 
@@ -204,9 +204,9 @@ public class ElementContainerAdapterTest {
 
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(2);
     assertThat(adapter.getBaseView().getChildAt(0))
-        .isSameAs(adapter.childAdapters.get(0).getView());
+        .isSameInstanceAs(adapter.childAdapters.get(0).getView());
     assertThat(adapter.getBaseView().getChildAt(1))
-        .isSameAs(adapter.childAdapters.get(1).getView());
+        .isSameInstanceAs(adapter.childAdapters.get(1).getView());
     assertThat(adapter.adaptersPerContent).isEqualTo(new int[] {2});
   }
 
@@ -307,7 +307,7 @@ public class ElementContainerAdapterTest {
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(3);
     for (int i = 0; i < 3; i++) {
       assertThat(adapter.getBaseView().getChildAt(i))
-          .isSameAs(adapter.childAdapters.get(i).getView());
+          .isSameInstanceAs(adapter.childAdapters.get(i).getView());
     }
 
     assertThat(adapter.adaptersPerContent).isEqualTo(new int[] {2, 0, 1});
@@ -416,7 +416,7 @@ public class ElementContainerAdapterTest {
 
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(1);
     assertThat(adapter.getBaseView().getChildAt(0))
-        .isSameAs(adapter.childAdapters.get(0).getView());
+        .isSameInstanceAs(adapter.childAdapters.get(0).getView());
 
     assertThat(adapter.adaptersPerContent).isEqualTo(new int[] {1});
   }
@@ -432,11 +432,11 @@ public class ElementContainerAdapterTest {
 
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(3);
     assertThat(adapter.getBaseView().getChildAt(0))
-        .isSameAs(adapter.childAdapters.get(0).getView());
+        .isSameInstanceAs(adapter.childAdapters.get(0).getView());
     assertThat(adapter.getBaseView().getChildAt(1))
-        .isSameAs(adapter.childAdapters.get(1).getView());
+        .isSameInstanceAs(adapter.childAdapters.get(1).getView());
     assertThat(adapter.getBaseView().getChildAt(2))
-        .isSameAs(adapter.childAdapters.get(2).getView());
+        .isSameInstanceAs(adapter.childAdapters.get(2).getView());
 
     assertThat(adapter.adaptersPerContent).isEqualTo(new int[] {3});
   }
@@ -514,7 +514,7 @@ public class ElementContainerAdapterTest {
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(6);
     for (int i = 0; i < 6; i++) {
       assertThat(adapter.getBaseView().getChildAt(i))
-          .isSameAs(adapter.childAdapters.get(i).getView());
+          .isSameInstanceAs(adapter.childAdapters.get(i).getView());
     }
 
     assertThat(adapter.adaptersPerContent).isEqualTo(new int[] {2, 3, 1});
@@ -544,7 +544,7 @@ public class ElementContainerAdapterTest {
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(3);
     for (int i = 0; i < 3; i++) {
       assertThat(adapter.getBaseView().getChildAt(i))
-          .isSameAs(adapter.childAdapters.get(i).getView());
+          .isSameInstanceAs(adapter.childAdapters.get(i).getView());
     }
 
     assertThat(adapter.adaptersPerContent).isEqualTo(new int[] {2, 1});
@@ -607,7 +607,7 @@ public class ElementContainerAdapterTest {
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(3);
     for (int i = 0; i < 3; i++) {
       assertThat(adapter.getBaseView().getChildAt(i))
-          .isSameAs(adapter.childAdapters.get(i).getView());
+          .isSameInstanceAs(adapter.childAdapters.get(i).getView());
     }
 
     assertThat(adapter.adaptersPerContent).isEqualTo(new int[] {2, 0, 1});

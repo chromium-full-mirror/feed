@@ -56,7 +56,7 @@ public class HeaderViewHolderTest {
   public void testBind() {
     headerViewHolder.bind(header, swipeNotifier);
 
-    assertThat(frameLayout.getChildAt(0)).isSameAs(headerView);
+    assertThat(frameLayout.getChildAt(0)).isSameInstanceAs(headerView);
   }
 
   @Test
@@ -67,7 +67,7 @@ public class HeaderViewHolderTest {
     headerViewHolder.bind(header, swipeNotifier);
 
     assertThat(parentView.getChildCount()).isEqualTo(0);
-    assertThat(frameLayout.getChildAt(0)).isSameAs(headerView);
+    assertThat(frameLayout.getChildAt(0)).isSameInstanceAs(headerView);
   }
 
   @Test

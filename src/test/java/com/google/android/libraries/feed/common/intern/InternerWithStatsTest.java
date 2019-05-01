@@ -59,17 +59,17 @@ public class InternerWithStatsTest {
 
     // Pool is empty so first is added/returned.
     StreamStructure internedFirst = interner.intern(first);
-    assertThat(internedFirst).isSameAs(first);
+    assertThat(internedFirst).isSameInstanceAs(first);
     assertThat(interner.getStats()).isEqualTo("Cache Hit Ratio: 0/1 (0.00)");
 
     // Pool already has an identical proto, which is returned.
     StreamStructure internedSecond = interner.intern(second);
-    assertThat(internedSecond).isSameAs(first);
+    assertThat(internedSecond).isSameInstanceAs(first);
     assertThat(interner.getStats()).isEqualTo("Cache Hit Ratio: 1/2 (0.50)");
 
     // Third is a new object (not equal with any previous) so it is added to the pool.
     StreamStructure internedThird = interner.intern(third);
-    assertThat(internedThird).isSameAs(third);
+    assertThat(internedThird).isSameInstanceAs(third);
     assertThat(interner.getStats()).isEqualTo("Cache Hit Ratio: 1/3 (0.33)");
 
     interner.clear();

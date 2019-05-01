@@ -481,7 +481,7 @@ public class FrameAdapterImplTest {
     assertThat(wrapperView.getElevation()).isWithin(0.1f).of(2);
     assertThat(wrapperView.getAlpha()).isWithin(0.1f).of(1.0f);
 
-    assertThat(wrapperView.getChildAt(0)).isSameAs(imageView);
+    assertThat(wrapperView.getChildAt(0)).isSameInstanceAs(imageView);
     FrameLayout.LayoutParams newImageViewParams =
         (FrameLayout.LayoutParams) imageView.getLayoutParams();
     assertThat(newImageViewParams.leftMargin).isEqualTo(0);
@@ -584,7 +584,7 @@ public class FrameAdapterImplTest {
             frameAdapter.getView());
 
     // These should both pull the same object from the cache.
-    assertThat(frameContext1.stylesHelper).isSameAs(frameContext2.stylesHelper);
+    assertThat(frameContext1.stylesHelper).isSameInstanceAs(frameContext2.stylesHelper);
 
     // This one is different because of the different frame width.
     assertThat(frameContext1.stylesHelper).isNotEqualTo(frameContext3.stylesHelper);
@@ -747,8 +747,8 @@ public class FrameAdapterImplTest {
     frameAdapter.bindModel(frame, FRAME_WIDTH, (ShardingControl) null, pietSharedStates);
 
     assertThat(frameAdapter.getView().getChildCount()).isEqualTo(3);
-    assertThat(frameAdapter.getView().getChildAt(1)).isSameAs(errorView);
-    assertThat(frameAdapter.getView().getChildAt(2)).isSameAs(warningView);
+    assertThat(frameAdapter.getView().getChildAt(1)).isSameInstanceAs(errorView);
+    assertThat(frameAdapter.getView().getChildAt(2)).isSameInstanceAs(warningView);
 
     frameAdapter.unbindModel();
 

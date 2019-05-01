@@ -216,7 +216,7 @@ public class BasicStreamTest {
 
     verify(streamDriver).onDestroy();
     verify(adapter).setDriver(streamDriver);
-    assertThat(basicStream.streamDriverScrollRestorer).isSameAs(scrollRestorer);
+    assertThat(basicStream.streamDriverScrollRestorer).isSameInstanceAs(scrollRestorer);
   }
 
   @Test

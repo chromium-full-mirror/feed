@@ -68,7 +68,7 @@ public class RoundedCornerMaskCacheTest {
 
     RoundedCornerBitmaps masks2 = cache.getMasks(16);
 
-    assertThat(masks1).isSameAs(masks2);
+    assertThat(masks1).isSameInstanceAs(masks2);
   }
 
   @Test

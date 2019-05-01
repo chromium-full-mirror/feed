@@ -413,7 +413,7 @@ public class ElementListAdapterTest {
     assertThat(adapter.getBaseView().getChildAt(0).getLayoutParams())
         .isInstanceOf(MarginLayoutParams.class);
     assertThat(adapter.getBaseView().getChildAt(0).getLayoutParams())
-        .isSameAs(capturedLayoutParams.getValue());
+        .isSameInstanceAs(capturedLayoutParams.getValue());
   }
 
   @Test
@@ -460,7 +460,7 @@ public class ElementListAdapterTest {
             .build();
 
     Element elementWithModel = Element.newBuilder().setElementList(model).build();
-    assertThat(adapter.getModelFromElement(elementWithModel)).isSameAs(model);
+    assertThat(adapter.getModelFromElement(elementWithModel)).isSameInstanceAs(model);
 
     Element elementWithWrongModel =
         Element.newBuilder().setCustomElement(CustomElement.getDefaultInstance()).build();

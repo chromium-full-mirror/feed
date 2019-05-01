@@ -166,7 +166,7 @@ public class GridRowAdapterTest {
     assertThat(adapter.getBaseView().getBaseline()).isEqualTo(-1);
     assertThat(adapter.childAdapters).hasSize(1);
     assertThat(adapter.getBaseView().getChildAt(0))
-        .isSameAs(adapter.childAdapters.get(0).getView());
+        .isSameInstanceAs(adapter.childAdapters.get(0).getView());
   }
 
   @Test
@@ -1005,7 +1005,7 @@ public class GridRowAdapterTest {
             .build();
 
     Element elementWithModel = Element.newBuilder().setGridRow(model).build();
-    assertThat(adapter.getModelFromElement(elementWithModel)).isSameAs(model);
+    assertThat(adapter.getModelFromElement(elementWithModel)).isSameInstanceAs(model);
 
     Element elementWithWrongModel =
         Element.newBuilder().setCustomElement(CustomElement.getDefaultInstance()).build();

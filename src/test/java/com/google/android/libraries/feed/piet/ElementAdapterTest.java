@@ -138,14 +138,15 @@ public class ElementAdapterTest {
 
     adapter.createAdapter(defaultElement, defaultElement, frameContext);
 
-    assertThat(adapter.getContext()).isSameAs(context);
-    assertThat(adapter.getModel()).isSameAs(defaultElement);
-    assertThat(adapter.getRawModel()).isSameAs(defaultElement);
+    assertThat(adapter.getContext()).isSameInstanceAs(context);
+    assertThat(adapter.getModel()).isSameInstanceAs(defaultElement);
+    assertThat(adapter.getRawModel()).isSameInstanceAs(defaultElement);
     assertThat(adapter.getHorizontalGravity(Gravity.CLIP_HORIZONTAL))
         .isEqualTo(Gravity.CENTER_HORIZONTAL);
-    assertThat(adapter.getParameters()).isSameAs(parameters);
-    assertThat(adapter.getTemplatedStringEvaluator()).isSameAs(parameters.templatedStringEvaluator);
-    assertThat(adapter.getElementStyle()).isSameAs(styleProvider);
+    assertThat(adapter.getParameters()).isSameInstanceAs(parameters);
+    assertThat(adapter.getTemplatedStringEvaluator())
+        .isSameInstanceAs(parameters.templatedStringEvaluator);
+    assertThat(adapter.getElementStyle()).isSameInstanceAs(styleProvider);
     assertThat(adapter.getElementStyleIdsStack()).isEqualTo(TestElementAdapter.SUB_ELEMENT_STYLE);
   }
 
@@ -330,7 +331,7 @@ public class ElementAdapterTest {
 
     adapter.createAdapter(elementWithOverlays, elementWithOverlays, frameContext);
 
-    assertThat((((FrameLayout) adapter.getView()).getChildAt(1))).isSameAs(overlayView);
+    assertThat(((FrameLayout) adapter.getView()).getChildAt(1)).isSameInstanceAs(overlayView);
     ArgumentCaptor<LayoutParams> layoutParamsCaptor = ArgumentCaptor.forClass(LayoutParams.class);
     verify(mockOverlayAdapter).setLayoutParams(layoutParamsCaptor.capture());
     assertThat(layoutParamsCaptor.getValue().width).isEqualTo(LayoutParams.MATCH_PARENT);
@@ -549,7 +550,7 @@ public class ElementAdapterTest {
 
     adapter.bindModel(elementWithActions, elementWithActions, frameContext);
     assertThat(adapter.getView().hasOnClickListeners()).isTrue();
-    assertThat(adapter.actions).isSameAs(actions);
+    assertThat(adapter.actions).isSameInstanceAs(actions);
   }
 
   @Test
@@ -568,7 +569,7 @@ public class ElementAdapterTest {
     adapter.bindModel(elementWithActions, elementWithActions, frameContext);
     assertThat(adapter.getView().hasOnClickListeners()).isFalse();
     assertThat(adapter.getBaseView().hasOnClickListeners()).isTrue();
-    assertThat(adapter.actions).isSameAs(actions);
+    assertThat(adapter.actions).isSameInstanceAs(actions);
   }
 
   @Test
@@ -581,7 +582,7 @@ public class ElementAdapterTest {
 
     adapter.bindModel(elementWithActions, elementWithActions, frameContext);
     assertThat(adapter.getView().hasOnClickListeners()).isTrue();
-    assertThat(adapter.actions).isSameAs(actions);
+    assertThat(adapter.actions).isSameInstanceAs(actions);
   }
 
   @Test
@@ -592,11 +593,11 @@ public class ElementAdapterTest {
 
     adapter.bindModel(elementWithActions, elementWithActions, frameContext);
     assertThat(adapter.getView().hasOnClickListeners()).isTrue();
-    assertThat(adapter.actions).isSameAs(actions);
+    assertThat(adapter.actions).isSameInstanceAs(actions);
 
     adapter.bindModel(elementWithoutActions, elementWithoutActions, frameContext);
     assertThat(adapter.getView().hasOnClickListeners()).isFalse();
-    assertThat(adapter.actions).isSameAs(Actions.getDefaultInstance());
+    assertThat(adapter.actions).isSameInstanceAs(Actions.getDefaultInstance());
   }
 
   @Test
@@ -616,13 +617,13 @@ public class ElementAdapterTest {
     adapter.bindModel(elementWithActions, elementWithActions, frameContext);
     assertThat(adapter.getView().hasOnClickListeners()).isFalse();
     assertThat(adapter.getBaseView().hasOnClickListeners()).isTrue();
-    assertThat(adapter.actions).isSameAs(actions);
+    assertThat(adapter.actions).isSameInstanceAs(actions);
 
     adapter.unbindModel();
     adapter.bindModel(elementWithoutActions, elementWithoutActions, frameContext);
     assertThat(adapter.getView().hasOnClickListeners()).isFalse();
     assertThat(adapter.getBaseView().hasOnClickListeners()).isFalse();
-    assertThat(adapter.actions).isSameAs(Actions.getDefaultInstance());
+    assertThat(adapter.actions).isSameInstanceAs(Actions.getDefaultInstance());
   }
 
   @Test
@@ -999,8 +1000,8 @@ public class ElementAdapterTest {
 
     adapter.releaseAdapter();
 
-    assertThat(adapter.getView()).isSameAs(adapterView);
-    assertThat(adapter.getView()).isSameAs(adapter.getBaseView());
+    assertThat(adapter.getView()).isSameInstanceAs(adapterView);
+    assertThat(adapter.getView()).isSameInstanceAs(adapter.getBaseView());
     assertThat(overlayView.getChildCount()).isEqualTo(0);
     verify(mockOverlayAdapter).releaseAdapter();
     assertThat(adapter.overlayAdapter).isNull();
@@ -1307,7 +1308,7 @@ public class ElementAdapterTest {
 
     adapter.createAdapter(Element.getDefaultInstance(), frameContext);
 
-    assertThat(adapter.getView()).isSameAs(roundedCornerWrapperView);
+    assertThat(adapter.getView()).isSameInstanceAs(roundedCornerWrapperView);
   }
 
   @Test
@@ -1345,7 +1346,7 @@ public class ElementAdapterTest {
 
     adapter.bindModel(element, frameContext);
 
-    assertThat(adapter.getView()).isSameAs(roundedCornerWrapperView);
+    assertThat(adapter.getView()).isSameInstanceAs(roundedCornerWrapperView);
   }
 
   @Test
@@ -1355,7 +1356,7 @@ public class ElementAdapterTest {
 
     adapter.createAdapter(elementWithStyle, frameContext);
 
-    assertThat(adapter.getElementStyleIdsStack()).isSameAs(style);
+    assertThat(adapter.getElementStyleIdsStack()).isSameInstanceAs(style);
 
     Element elementWithNoStyle = Element.getDefaultInstance();
 

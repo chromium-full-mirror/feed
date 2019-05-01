@@ -196,16 +196,16 @@ public class PietStylesHelperTest {
     when(assetProvider.isDarkTheme()).thenReturn(true);
     helper = helperFactory.get(Collections.singletonList(sharedState), newMediaQueryHelper());
 
-    assertThat(helper.getTemplate("DARK")).isSameAs(darkTemplate);
+    assertThat(helper.getTemplate("DARK")).isSameInstanceAs(darkTemplate);
     assertThat(helper.getTemplate("LIGHT")).isNull();
-    assertThat(helper.getTemplate("SWITCH")).isSameAs(switchTemplateDark);
+    assertThat(helper.getTemplate("SWITCH")).isSameInstanceAs(switchTemplateDark);
 
     when(assetProvider.isDarkTheme()).thenReturn(false);
     helper = helperFactory.get(Collections.singletonList(sharedState), newMediaQueryHelper());
 
     assertThat(helper.getTemplate("DARK")).isNull();
-    assertThat(helper.getTemplate("LIGHT")).isSameAs(lightTemplate);
-    assertThat(helper.getTemplate("SWITCH")).isSameAs(switchTemplateLight);
+    assertThat(helper.getTemplate("LIGHT")).isSameInstanceAs(lightTemplate);
+    assertThat(helper.getTemplate("SWITCH")).isSameInstanceAs(switchTemplateLight);
   }
 
   @Test
@@ -214,11 +214,11 @@ public class PietStylesHelperTest {
     assertThat(resultMap1).containsExactly(STYLE_ID_1, STYLE_1);
 
     // Retrieve map again to test caching
-    assertThat(helper.getStylesheetMap(STYLESHEET_ID_1)).isSameAs(resultMap1);
+    assertThat(helper.getStylesheetMap(STYLESHEET_ID_1)).isSameInstanceAs(resultMap1);
 
     Map<String, Style> resultMap2 = helper.getStylesheetMap(STYLESHEET_ID_2);
     assertThat(resultMap2).containsExactly(STYLE_ID_2, STYLE_2);
-    assertThat(helper.getStylesheetMap(STYLESHEET_ID_2)).isSameAs(resultMap2);
+    assertThat(helper.getStylesheetMap(STYLESHEET_ID_2)).isSameInstanceAs(resultMap2);
   }
 
   @Test

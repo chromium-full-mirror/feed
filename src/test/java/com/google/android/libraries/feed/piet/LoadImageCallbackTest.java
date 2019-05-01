@@ -99,8 +99,8 @@ public class LoadImageCallbackTest {
 
     TransitionDrawable drawable = (TransitionDrawable) imageView.getDrawable();
 
-    assertThat(drawable.getDrawable(0)).isSameAs(initialDrawable);
-    assertThat(drawable.getDrawable(1)).isSameAs(finalDrawable);
+    assertThat(drawable.getDrawable(0)).isSameInstanceAs(initialDrawable);
+    assertThat(drawable.getDrawable(1)).isSameInstanceAs(finalDrawable);
   }
 
   @Test
@@ -132,7 +132,7 @@ public class LoadImageCallbackTest {
     clock.advance(FADE_IMAGE_THRESHOLD_MS + 1);
     callback.accept(finalDrawable);
 
-    assertThat(imageView.getDrawable()).isSameAs(finalDrawable);
+    assertThat(imageView.getDrawable()).isSameInstanceAs(finalDrawable);
   }
 
   @Test
@@ -146,7 +146,7 @@ public class LoadImageCallbackTest {
     clock.advance(FADE_IMAGE_THRESHOLD_MS - 1);
     callback.accept(finalDrawable);
 
-    assertThat(imageView.getDrawable()).isSameAs(finalDrawable);
+    assertThat(imageView.getDrawable()).isSameInstanceAs(finalDrawable);
   }
 
   @Test
@@ -166,7 +166,7 @@ public class LoadImageCallbackTest {
     // After the delayed task is run, the drawable is set to the finalDrawable instead of the
     // TransitionDrawable to allow for garbage collection of the TransitionDrawable and
     // initialDrawable.
-    assertThat(imageView.getDrawable()).isSameAs(finalDrawable);
+    assertThat(imageView.getDrawable()).isSameInstanceAs(finalDrawable);
   }
 
   @Test

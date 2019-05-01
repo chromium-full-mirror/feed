@@ -98,9 +98,9 @@ public class ContextMenuManagerImplTest {
     PopupWindow popupWindow = shadowOf(context.getApplication()).getLatestPopupWindow();
     ListView listView = (ListView) popupWindow.getContentView();
 
-    assertThat(listView.getAdapter().getItem(0)).isSameAs(adapterItems.get(0));
-    assertThat(listView.getAdapter().getItem(1)).isSameAs(adapterItems.get(1));
-    assertThat(listView.getAdapter().getItem(2)).isSameAs(adapterItems.get(2));
+    assertThat(listView.getAdapter().getItem(0)).isSameInstanceAs(adapterItems.get(0));
+    assertThat(listView.getAdapter().getItem(1)).isSameInstanceAs(adapterItems.get(1));
+    assertThat(listView.getAdapter().getItem(2)).isSameInstanceAs(adapterItems.get(2));
 
     assertThat(popupWindow.isShowing()).isTrue();
     listView.performItemClick(null, /* position= */ 1, NO_ID);

@@ -101,7 +101,7 @@ public class ParameterizedTextElementAdapterFactoryTest {
         textElementFactory.get(textElement, frameContext);
 
     // Verify we get the adapter from the KeySupplier, and we create but not bind it.
-    assertThat(textElementAdapter).isSameAs(adapter);
+    assertThat(textElementAdapter).isSameInstanceAs(adapter);
     verify(adapter, never()).createAdapter(any(), any(), any());
     verify(adapter, never()).bindModel(any(), any(), any());
   }
@@ -117,7 +117,7 @@ public class ParameterizedTextElementAdapterFactoryTest {
 
     ParameterizedTextElementAdapter textElementAdapter =
         textElementFactory.get(textElement, frameContext);
-    assertThat(textElementAdapter).isSameAs(adapter);
+    assertThat(textElementAdapter).isSameInstanceAs(adapter);
     textElementAdapter.createAdapter(
         Element.newBuilder().setTextElement(textElement).build(), frameContext);
 
@@ -127,14 +127,14 @@ public class ParameterizedTextElementAdapterFactoryTest {
 
     // Verify we get the same item when we create it again.
     TextElementAdapter textElementAdapter2 = textElementFactory.get(textElement, frameContext);
-    assertThat(textElementAdapter2).isSameAs(adapter);
+    assertThat(textElementAdapter2).isSameInstanceAs(adapter);
     assertThat(textElementAdapter2).isEqualTo(textElementAdapter);
     verify(adapter, never()).createAdapter(textElement, Element.getDefaultInstance(), frameContext);
     verify(adapter, never()).bindModel(any(), any(), any());
 
     // Verify we get a new item when we create another.
     TextElementAdapter textElementAdapter3 = textElementFactory.get(textElement, frameContext);
-    assertThat(textElementAdapter3).isSameAs(adapter2);
+    assertThat(textElementAdapter3).isSameInstanceAs(adapter2);
     assertThat(textElementAdapter3).isNotSameInstanceAs(textElementAdapter);
   }
 
