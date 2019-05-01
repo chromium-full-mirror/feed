@@ -10,8 +10,8 @@ android_local_test(
     aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
-        "//src/main/java/com/google/android/libraries/feed/api/common/testing",
         "//src/main/java/com/google/android/libraries/feed/feedmodelprovider/internal",
+        "//src/main/java/com/google/android/libraries/feed/internalapi/common/testing",
         "//src/main/java/com/google/android/libraries/feed/internalapi/modelprovider",
         "//src/main/proto/com/google/android/libraries/feed/internalapi/proto:client_feed_java_proto_lite",
         "//third_party:robolectric",
@@ -30,8 +30,8 @@ android_local_test(
     aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
-        "//src/main/java/com/google/android/libraries/feed/api/common/testing",
         "//src/main/java/com/google/android/libraries/feed/feedmodelprovider/internal",
+        "//src/main/java/com/google/android/libraries/feed/internalapi/common/testing",
         "//src/main/java/com/google/android/libraries/feed/internalapi/modelprovider",
         "//third_party:robolectric",
         "@com_google_protobuf_javalite//:protobuf_java_lite",

@@ -18,7 +18,6 @@ import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
-import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.knowncontent.KnownContentApi;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.drivers.ContinuationDriver.CursorChangedListener;
@@ -39,6 +38,7 @@ import com.google.android.libraries.feed.host.stream.SnackbarCallbackApi;
 import com.google.android.libraries.feed.host.stream.TooltipApi;
 import com.google.android.libraries.feed.internalapi.actionmanager.ActionManager;
 import com.google.android.libraries.feed.internalapi.actionparser.ActionParserFactory;
+import com.google.android.libraries.feed.internalapi.common.ThreadUtils;
 import com.google.android.libraries.feed.internalapi.modelprovider.FeatureChange;
 import com.google.android.libraries.feed.internalapi.modelprovider.FeatureChangeObserver;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelChild;

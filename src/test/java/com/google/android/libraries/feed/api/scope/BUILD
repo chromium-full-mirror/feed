@@ -34,7 +34,6 @@ android_local_test(
     aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
-        "//src/main/java/com/google/android/libraries/feed/api/common",
         "//src/main/java/com/google/android/libraries/feed/api/scope",
         "//src/main/java/com/google/android/libraries/feed/api/sessionmanager",
         "//src/main/java/com/google/android/libraries/feed/common/time/testing",
@@ -45,6 +44,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/host/scheduler",
         "//src/main/java/com/google/android/libraries/feed/host/storage",
         "//src/main/java/com/google/android/libraries/feed/host/stream",
+        "//src/main/java/com/google/android/libraries/feed/internalapi/common",
         "//src/main/java/com/google/android/libraries/feed/internalapi/protocoladapter",
         "//src/main/java/com/google/android/libraries/feed/internalapi/requestmanager",
         "//third_party:robolectric",
@@ -64,7 +64,6 @@ android_local_test(
     aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
-        "//src/main/java/com/google/android/libraries/feed/api/common",
         "//src/main/java/com/google/android/libraries/feed/api/knowncontent",
         "//src/main/java/com/google/android/libraries/feed/api/scope",
         "//src/main/java/com/google/android/libraries/feed/api/sessionmanager",
@@ -80,6 +79,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/host/offlineindicator",
         "//src/main/java/com/google/android/libraries/feed/host/stream",
         "//src/main/java/com/google/android/libraries/feed/internalapi/actionmanager",
+        "//src/main/java/com/google/android/libraries/feed/internalapi/common",
         "//src/main/java/com/google/android/libraries/feed/internalapi/modelprovider",
         "//src/main/java/com/google/android/libraries/feed/internalapi/protocoladapter",
         "//src/main/java/com/google/android/libraries/feed/internalapi/stream",

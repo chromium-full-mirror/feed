@@ -16,8 +16,8 @@ package com.google.android.libraries.feed.feedsessionmanager.internal;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
-import com.google.android.libraries.feed.api.common.testing.InternalProtocolBuilder;
+import com.google.android.libraries.feed.internalapi.common.testing.ContentIdGenerators;
+import com.google.android.libraries.feed.internalapi.common.testing.InternalProtocolBuilder;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import java.util.List;
 import org.junit.Before;

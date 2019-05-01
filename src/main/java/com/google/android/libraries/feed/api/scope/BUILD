@@ -6,7 +6,6 @@ android_library(
     name = "scope",
     srcs = glob(["*.java"]),
     deps = [
-        "//src/main/java/com/google/android/libraries/feed/api/common",
         "//src/main/java/com/google/android/libraries/feed/api/knowncontent",
         "//src/main/java/com/google/android/libraries/feed/api/lifecycle",
         "//src/main/java/com/google/android/libraries/feed/api/requestmanager",
@@ -44,6 +43,7 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/hostimpl/storage",
         "//src/main/java/com/google/android/libraries/feed/internalapi/actionmanager",
         "//src/main/java/com/google/android/libraries/feed/internalapi/actionparser",
+        "//src/main/java/com/google/android/libraries/feed/internalapi/common",
         "//src/main/java/com/google/android/libraries/feed/internalapi/modelprovider",
         "//src/main/java/com/google/android/libraries/feed/internalapi/protocoladapter",
         "//src/main/java/com/google/android/libraries/feed/internalapi/requestmanager",

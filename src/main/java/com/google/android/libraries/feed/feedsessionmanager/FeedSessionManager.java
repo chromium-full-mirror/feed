@@ -16,8 +16,6 @@ package com.google.android.libraries.feed.feedsessionmanager;
 
 import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.common.MutationContext;
-import com.google.android.libraries.feed.api.common.PayloadWithId;
-import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.knowncontent.KnownContentApi.KnownContentListener;
 import com.google.android.libraries.feed.api.requestmanager.ActionUploadRequestManager;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
@@ -55,6 +53,8 @@ import com.google.android.libraries.feed.host.logging.Task;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi.RequestBehavior;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi.SessionManagerState;
+import com.google.android.libraries.feed.internalapi.common.PayloadWithId;
+import com.google.android.libraries.feed.internalapi.common.ThreadUtils;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelError;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelError.ErrorType;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider;

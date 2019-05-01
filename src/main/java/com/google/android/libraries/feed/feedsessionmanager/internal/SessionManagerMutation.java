@@ -17,7 +17,6 @@ package com.google.android.libraries.feed.feedsessionmanager.internal;
 import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
 import com.google.android.libraries.feed.api.common.MutationContext;
-import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.knowncontent.KnownContentApi.KnownContentListener;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
@@ -33,6 +32,7 @@ import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTrac
 import com.google.android.libraries.feed.host.logging.Task;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.host.storage.CommitResult;
+import com.google.android.libraries.feed.internalapi.common.ThreadUtils;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelError;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelError.ErrorType;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider;

@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.feedknowncontent;
 
-import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.knowncontent.ContentMetadata;
 import com.google.android.libraries.feed.api.knowncontent.ContentRemoval;
 import com.google.android.libraries.feed.api.knowncontent.KnownContentApi;
@@ -23,6 +22,7 @@ import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.logging.Logger;
+import com.google.android.libraries.feed.internalapi.common.ThreadUtils;
 import com.google.search.now.ui.stream.StreamStructureProto.Content;
 import java.util.HashSet;
 import java.util.List;

@@ -18,8 +18,8 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.feedmodelprovider.internal.ModelCursorImpl.CursorIterator;
+import com.google.android.libraries.feed.internalapi.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelFeature;
 import java.util.ArrayList;
 import java.util.List;

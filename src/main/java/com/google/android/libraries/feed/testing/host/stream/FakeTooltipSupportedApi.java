@@ -14,10 +14,10 @@
 
 package com.google.android.libraries.feed.testing.host.stream;
 
-import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.host.stream.TooltipInfo.FeatureName;
 import com.google.android.libraries.feed.host.stream.TooltipSupportedApi;
+import com.google.android.libraries.feed.internalapi.common.ThreadUtils;
 import java.util.ArrayList;
 
 /** Fake implementation of {@link TooltipSupportedApi}. */

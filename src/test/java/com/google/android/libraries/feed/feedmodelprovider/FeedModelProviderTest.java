@@ -25,9 +25,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.api.common.PayloadWithId;
-import com.google.android.libraries.feed.api.common.ThreadUtils;
-import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
@@ -42,6 +39,9 @@ import com.google.android.libraries.feed.feedmodelprovider.internal.UpdatableMod
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.logging.RequestReason;
+import com.google.android.libraries.feed.internalapi.common.PayloadWithId;
+import com.google.android.libraries.feed.internalapi.common.ThreadUtils;
+import com.google.android.libraries.feed.internalapi.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelChild;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelChild.Type;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelCursor;

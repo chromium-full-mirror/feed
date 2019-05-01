@@ -14,9 +14,9 @@
 
 package com.google.android.libraries.feed.internalapi.actionmanager;
 
-import com.google.android.libraries.feed.api.common.ActionPropertiesWithId;
-import com.google.android.libraries.feed.api.common.DismissActionWithSemanticProperties;
 import com.google.android.libraries.feed.common.Result;
+import com.google.android.libraries.feed.internalapi.common.ActionPropertiesWithId;
+import com.google.android.libraries.feed.internalapi.common.DismissActionWithSemanticProperties;
 import java.util.List;
 
 /** Interface for reading various {@link StreamAction}s. */

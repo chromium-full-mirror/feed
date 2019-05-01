@@ -14,10 +14,6 @@
 
 package com.google.android.libraries.feed.feedstore;
 
-import com.google.android.libraries.feed.api.common.ActionPropertiesWithId;
-import com.google.android.libraries.feed.api.common.PayloadWithId;
-import com.google.android.libraries.feed.api.common.SemanticPropertiesWithId;
-import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.lifecycle.Resettable;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
@@ -41,6 +37,10 @@ import com.google.android.libraries.feed.host.logging.Task;
 import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.host.storage.ContentStorageDirect;
 import com.google.android.libraries.feed.host.storage.JournalStorageDirect;
+import com.google.android.libraries.feed.internalapi.common.ActionPropertiesWithId;
+import com.google.android.libraries.feed.internalapi.common.PayloadWithId;
+import com.google.android.libraries.feed.internalapi.common.SemanticPropertiesWithId;
+import com.google.android.libraries.feed.internalapi.common.ThreadUtils;
 import com.google.android.libraries.feed.internalapi.store.ActionPropertiesMutation;
 import com.google.android.libraries.feed.internalapi.store.ContentMutation;
 import com.google.android.libraries.feed.internalapi.store.LocalActionMutation;

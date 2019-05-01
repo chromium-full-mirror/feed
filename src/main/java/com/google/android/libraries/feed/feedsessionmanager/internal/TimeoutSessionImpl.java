@@ -16,11 +16,11 @@ package com.google.android.libraries.feed.feedsessionmanager.internal;
 
 import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.common.MutationContext;
-import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.common.Validators;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.TimingUtils;
+import com.google.android.libraries.feed.internalapi.common.ThreadUtils;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelChild;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelChild.Type;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider;

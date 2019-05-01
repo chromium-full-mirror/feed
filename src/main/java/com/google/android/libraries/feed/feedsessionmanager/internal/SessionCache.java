@@ -15,8 +15,6 @@
 package com.google.android.libraries.feed.feedsessionmanager.internal;
 
 import android.support.annotation.VisibleForTesting;
-import com.google.android.libraries.feed.api.common.PayloadWithId;
-import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.Validators;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
@@ -30,6 +28,8 @@ import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTracker;
 import com.google.android.libraries.feed.host.logging.Task;
+import com.google.android.libraries.feed.internalapi.common.PayloadWithId;
+import com.google.android.libraries.feed.internalapi.common.ThreadUtils;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.internalapi.store.Store;
 import com.google.search.now.feed.client.StreamDataProto.SessionMetadata;

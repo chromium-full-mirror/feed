@@ -16,7 +16,6 @@ package com.google.android.libraries.feed.api.scope;
 
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
-import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.knowncontent.KnownContentApi;
 import com.google.android.libraries.feed.api.lifecycle.AppLifecycleListener;
 import com.google.android.libraries.feed.api.requestmanager.ActionUploadRequestManager;
@@ -71,6 +70,7 @@ import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
 import com.google.android.libraries.feed.internalapi.actionmanager.ActionManager;
 import com.google.android.libraries.feed.internalapi.actionmanager.ActionReader;
+import com.google.android.libraries.feed.internalapi.common.ThreadUtils;
 import com.google.android.libraries.feed.internalapi.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.internalapi.requestmanager.FeedRequestManager;
 import com.google.android.libraries.feed.internalapi.store.Store;

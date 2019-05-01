@@ -17,11 +17,11 @@ package com.google.android.libraries.feed.internalapi.modelprovider;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.api.common.PayloadWithId;
-import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
-import com.google.android.libraries.feed.api.common.testing.InternalProtocolBuilder;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.functional.Function;
+import com.google.android.libraries.feed.internalapi.common.PayloadWithId;
+import com.google.android.libraries.feed.internalapi.common.testing.ContentIdGenerators;
+import com.google.android.libraries.feed.internalapi.common.testing.InternalProtocolBuilder;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import java.util.List;
 import org.junit.Before;

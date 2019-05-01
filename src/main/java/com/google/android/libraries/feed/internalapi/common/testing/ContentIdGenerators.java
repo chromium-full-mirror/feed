@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.api.common.testing;
+package com.google.android.libraries.feed.internalapi.common.testing;
 
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 

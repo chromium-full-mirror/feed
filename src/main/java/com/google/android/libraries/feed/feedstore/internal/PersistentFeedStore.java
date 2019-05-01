@@ -21,10 +21,6 @@ import static com.google.android.libraries.feed.feedstore.internal.FeedStoreCons
 import static com.google.android.libraries.feed.feedstore.internal.FeedStoreConstants.UPLOADABLE_ACTION_PREFIX;
 
 import android.util.Base64;
-import com.google.android.libraries.feed.api.common.ActionPropertiesWithId;
-import com.google.android.libraries.feed.api.common.PayloadWithId;
-import com.google.android.libraries.feed.api.common.SemanticPropertiesWithId;
-import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.logging.Dumpable;
@@ -41,6 +37,10 @@ import com.google.android.libraries.feed.host.storage.ContentStorageDirect;
 import com.google.android.libraries.feed.host.storage.JournalMutation;
 import com.google.android.libraries.feed.host.storage.JournalStorage;
 import com.google.android.libraries.feed.host.storage.JournalStorageDirect;
+import com.google.android.libraries.feed.internalapi.common.ActionPropertiesWithId;
+import com.google.android.libraries.feed.internalapi.common.PayloadWithId;
+import com.google.android.libraries.feed.internalapi.common.SemanticPropertiesWithId;
+import com.google.android.libraries.feed.internalapi.common.ThreadUtils;
 import com.google.android.libraries.feed.internalapi.store.ActionPropertiesMutation;
 import com.google.android.libraries.feed.internalapi.store.ContentMutation;
 import com.google.android.libraries.feed.internalapi.store.LocalActionMutation;

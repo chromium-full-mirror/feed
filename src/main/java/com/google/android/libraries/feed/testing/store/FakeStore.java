@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.testing.store;
 
-import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
@@ -25,6 +24,7 @@ import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedstore.FeedStore;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
+import com.google.android.libraries.feed.internalapi.common.PayloadWithId;
 import com.google.android.libraries.feed.internalapi.store.ContentMutation;
 import com.google.android.libraries.feed.internalapi.store.SessionMutation;
 import com.google.android.libraries.feed.internalapi.store.UploadableActionMutation;

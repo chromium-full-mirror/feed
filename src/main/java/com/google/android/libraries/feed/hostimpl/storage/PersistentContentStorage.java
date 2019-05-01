@@ -20,7 +20,6 @@ import static com.google.android.libraries.feed.host.storage.ContentOperation.Ty
 import static com.google.android.libraries.feed.host.storage.ContentOperation.Type.UPSERT;
 
 import android.content.Context;
-import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.logging.Logger;
@@ -32,6 +31,7 @@ import com.google.android.libraries.feed.host.storage.ContentOperation.DeleteByP
 import com.google.android.libraries.feed.host.storage.ContentOperation.Upsert;
 import com.google.android.libraries.feed.host.storage.ContentStorage;
 import com.google.android.libraries.feed.host.storage.ContentStorageDirect;
+import com.google.android.libraries.feed.internalapi.common.ThreadUtils;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;

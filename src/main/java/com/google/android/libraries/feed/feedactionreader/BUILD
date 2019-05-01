@@ -6,7 +6,6 @@ android_library(
     name = "feedactionreader",
     srcs = glob(["*.java"]),
     deps = [
-        "//src/main/java/com/google/android/libraries/feed/api/common",
         "//src/main/java/com/google/android/libraries/feed/common",
         "//src/main/java/com/google/android/libraries/feed/common/concurrent",
         "//src/main/java/com/google/android/libraries/feed/common/logging",
@@ -14,6 +13,7 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/host/config",
         "//src/main/java/com/google/android/libraries/feed/host/logging",
         "//src/main/java/com/google/android/libraries/feed/internalapi/actionmanager",
+        "//src/main/java/com/google/android/libraries/feed/internalapi/common",
         "//src/main/java/com/google/android/libraries/feed/internalapi/protocoladapter",
         "//src/main/java/com/google/android/libraries/feed/internalapi/store",
         "//src/main/proto/com/google/android/libraries/feed/internalapi/proto:client_feed_java_proto_lite",

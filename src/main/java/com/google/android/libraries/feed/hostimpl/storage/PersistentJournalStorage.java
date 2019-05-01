@@ -20,7 +20,6 @@ import static com.google.android.libraries.feed.host.storage.JournalOperation.Ty
 
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
-import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.logging.Logger;
@@ -31,6 +30,7 @@ import com.google.android.libraries.feed.host.storage.JournalOperation.Append;
 import com.google.android.libraries.feed.host.storage.JournalOperation.Copy;
 import com.google.android.libraries.feed.host.storage.JournalStorage;
 import com.google.android.libraries.feed.host.storage.JournalStorageDirect;
+import com.google.android.libraries.feed.internalapi.common.ThreadUtils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;

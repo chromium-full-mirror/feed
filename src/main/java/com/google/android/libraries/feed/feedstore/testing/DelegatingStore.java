@@ -14,11 +14,11 @@
 
 package com.google.android.libraries.feed.feedstore.testing;
 
-import com.google.android.libraries.feed.api.common.ActionPropertiesWithId;
-import com.google.android.libraries.feed.api.common.PayloadWithId;
-import com.google.android.libraries.feed.api.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.functional.Supplier;
+import com.google.android.libraries.feed.internalapi.common.ActionPropertiesWithId;
+import com.google.android.libraries.feed.internalapi.common.PayloadWithId;
+import com.google.android.libraries.feed.internalapi.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.internalapi.store.ActionPropertiesMutation;
 import com.google.android.libraries.feed.internalapi.store.ContentMutation;
 import com.google.android.libraries.feed.internalapi.store.LocalActionMutation;

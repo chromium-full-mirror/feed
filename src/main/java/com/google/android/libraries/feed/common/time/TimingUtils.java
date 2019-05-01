@@ -16,10 +16,10 @@ package com.google.android.libraries.feed.common.time;
 
 import android.text.TextUtils;
 import android.util.LongSparseArray;
-import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.common.logging.Dumpable;
 import com.google.android.libraries.feed.common.logging.Dumper;
 import com.google.android.libraries.feed.common.logging.Logger;
+import com.google.android.libraries.feed.internalapi.common.ThreadUtils;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Date;

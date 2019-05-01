@@ -20,9 +20,9 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.MutationContext;
-import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
-import com.google.android.libraries.feed.api.common.testing.InternalProtocolBuilder;
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionImpl;
+import com.google.android.libraries.feed.internalapi.common.testing.ContentIdGenerators;
+import com.google.android.libraries.feed.internalapi.common.testing.InternalProtocolBuilder;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.internalapi.store.SessionMutation;
 import com.google.android.libraries.feed.internalapi.store.Store;

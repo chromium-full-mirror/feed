@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.feedrequestmanager;
 
-import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.requestmanager.ActionUploadRequestManager;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
@@ -31,6 +30,7 @@ import com.google.android.libraries.feed.host.network.HttpRequest.HttpMethod;
 import com.google.android.libraries.feed.host.network.NetworkClient;
 import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.internalapi.actionmanager.ActionReader;
+import com.google.android.libraries.feed.internalapi.common.ThreadUtils;
 import com.google.android.libraries.feed.internalapi.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.internalapi.store.Store;
 import com.google.android.libraries.feed.internalapi.store.UploadableActionMutation;

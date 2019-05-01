@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.api.scope;
 
-import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.lifecycle.Resettable;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
@@ -26,6 +25,7 @@ import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.feedapplifecyclelistener.FeedLifecycleListener;
 import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.android.libraries.feed.host.logging.Task;
+import com.google.android.libraries.feed.internalapi.common.ThreadUtils;
 import com.google.search.now.feed.client.StreamDataProto.UiContext;
 
 /**

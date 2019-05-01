@@ -17,8 +17,8 @@ package com.google.android.libraries.feed.common.testing;
 import static com.google.android.libraries.feed.common.testing.ResponseBuilder.ROOT_CONTENT_ID;
 import static com.google.common.truth.Truth.assertThat;
 
-import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.common.testing.ResponseBuilder.WireProtocolInfo;
+import com.google.android.libraries.feed.internalapi.common.testing.ContentIdGenerators;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;

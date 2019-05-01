@@ -12,23 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.api.common;
+package com.google.android.libraries.feed.internalapi.common;
 
-import com.google.search.now.wire.feed.OpaqueActionDataProto.OpaqueActionData;
 import java.util.Arrays;
 
 /**
- * Structure style class which binds a String contentId with the action properties data for that
+ * Structure style class which binds a String contentId with the semantic properties data for that
  * contentId. The class is immutable and provides access to the fields directly.
  */
-public final class ActionPropertiesWithId {
+public final class SemanticPropertiesWithId {
 
   public final String contentId;
-  public final OpaqueActionData actionData;
+  public final byte[] semanticData;
 
-  public ActionPropertiesWithId(String contentId, OpaqueActionData actionData) {
+  public SemanticPropertiesWithId(String contentId, byte[] semanticData) {
     this.contentId = contentId;
-    this.actionData = actionData;
+    this.semanticData = semanticData;
   }
 
   @Override
@@ -40,16 +39,18 @@ public final class ActionPropertiesWithId {
       return false;
     }
 
-    ActionPropertiesWithId that = (ActionPropertiesWithId) o;
+    SemanticPropertiesWithId that = (SemanticPropertiesWithId) o;
 
-    return contentId.equals(that.contentId)
-        && Arrays.equals(actionData.toByteArray(), that.actionData.toByteArray());
+    if (!contentId.equals(that.contentId)) {
+      return false;
+    }
+    return Arrays.equals(semanticData, that.semanticData);
   }
 
   @Override
   public int hashCode() {
     int result = contentId.hashCode();
-    result = 31 * result + actionData.hashCode();
+    result = 31 * result + Arrays.hashCode(semanticData);
     return result;
   }
 }

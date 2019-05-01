@@ -14,9 +14,6 @@
 
 package com.google.android.libraries.feed.feedactionreader;
 
-import com.google.android.libraries.feed.api.common.ActionPropertiesWithId;
-import com.google.android.libraries.feed.api.common.DismissActionWithSemanticProperties;
-import com.google.android.libraries.feed.api.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
@@ -26,6 +23,9 @@ import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.logging.Task;
 import com.google.android.libraries.feed.internalapi.actionmanager.ActionReader;
+import com.google.android.libraries.feed.internalapi.common.ActionPropertiesWithId;
+import com.google.android.libraries.feed.internalapi.common.DismissActionWithSemanticProperties;
+import com.google.android.libraries.feed.internalapi.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.internalapi.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.internalapi.store.Store;
 import com.google.search.now.feed.client.StreamDataProto.StreamLocalAction;

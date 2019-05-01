@@ -14,18 +14,18 @@
 
 package com.google.android.libraries.feed.feedsessionmanager.internal;
 
-import static com.google.android.libraries.feed.api.common.testing.ContentIdGenerators.ROOT_PREFIX;
+import static com.google.android.libraries.feed.internalapi.common.testing.ContentIdGenerators.ROOT_PREFIX;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
-import com.google.android.libraries.feed.api.common.testing.InternalProtocolBuilder;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeTaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.feedsessionmanager.internal.HeadAsStructure.TreeNode;
+import com.google.android.libraries.feed.internalapi.common.testing.ContentIdGenerators;
+import com.google.android.libraries.feed.internalapi.common.testing.InternalProtocolBuilder;
 import com.google.android.libraries.feed.internalapi.store.Store;
 import com.google.android.libraries.feed.testing.store.FakeStore;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;

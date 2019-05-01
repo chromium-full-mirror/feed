@@ -72,7 +72,6 @@ android_local_test(
     aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
-        "//src/main/java/com/google/android/libraries/feed/api/common",
         "//src/main/java/com/google/android/libraries/feed/common",
         "//src/main/java/com/google/android/libraries/feed/common/concurrent",
         "//src/main/java/com/google/android/libraries/feed/common/concurrent/testing",
@@ -81,6 +80,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/feedstore/testing",
         "//src/main/java/com/google/android/libraries/feed/host/storage",
         "//src/main/java/com/google/android/libraries/feed/hostimpl/storage",
+        "//src/main/java/com/google/android/libraries/feed/internalapi/common",
         "//src/main/java/com/google/android/libraries/feed/internalapi/store",
         "//src/main/proto/com/google/android/libraries/feed/internalapi/proto:client_feed_java_proto_lite",
         "//src/main/proto/search/now/wire/feed:feed_java_proto_lite",
