@@ -37,7 +37,7 @@ option cc_enable_arenas = true;
 // applied. Implementations MUST ignore attributes that cannot be meaningfully
 // applied to a visual element and MUST NOT issue any warnings or errors, to
 // allow for the same style to be reused in other places where those attributes
-// are relevant. E.g. for any style applied to an image-like element, color
+// are relevant. E.g. for any style applied to an image-like element, font
 // should be ignored.
 
 // A stack of style_ids used to evaluate the style of an element. The final
@@ -72,7 +72,12 @@ message Style {
   // their conditions are disjoint.
   repeated MediaQueryCondition conditions = 16;
 
-  // Foreground color (e.g. for text or any other foreground element).
+  // Foreground color for text elements.
+
+  // When applied to an image, this will replace all non-transparent pixels with
+  // the specified color. This is used for changing the color of icons which are
+  // provided as a monochrome bitmap. If this optional field is not provided,
+  // the image will not be modified.
   optional fixed32 color = 2 [default = 0xDE000000];
 
   // Defines the background fill, either as a solid color, or a gradient.

@@ -14,11 +14,11 @@
 
 syntax = "proto2";
 
-import "src/main/proto/search/now/ui/piet/media_queries.proto";
-
 package search.now.ui.piet;
 
 option optimize_for=LITE_RUNTIME;
+
+import "src/main/proto/search/now/ui/piet/media_queries.proto";
 
 option java_package = "com.google.search.now.ui.piet";
 option java_outer_classname = "ImagesProto";
@@ -55,8 +55,11 @@ message Image {
   // Replace all non-transparent pixels of this image with the specified color.
   // This is used for changing the color of icons which are provided as a
   // monochrome bitmap. If this optional field is not provided, the image will
-  // not be modified. See [INTERNAL LINK]
-  optional fixed32 overlay_color = 3;
+  // not be modified.
+
+  // This field is deprecated. Use the 'color' style instead--it will do the
+  // same thing when applied to an image element.
+  optional fixed32 overlay_color = 3 [deprecated = true];
 
   // Reserved tags from deprecated fields
   reserved 2;
