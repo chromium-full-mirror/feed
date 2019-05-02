@@ -166,6 +166,8 @@ public class FrameAdapterImplTest {
     when(frameContext.getDebugLogger()).thenReturn(debugLogger);
     when(frameContext.getDebugBehavior()).thenReturn(DebugBehavior.VERBOSE);
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(styleProvider);
+    when(elementAdapter.getElementStyle()).thenReturn(styleProvider);
+    when(templateAdapter.getElementStyle()).thenReturn(styleProvider);
 
     pietSharedStates = new ArrayList<>();
     frameAdapter =

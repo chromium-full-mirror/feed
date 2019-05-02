@@ -172,6 +172,8 @@ public class FrameAdapterImpl implements FrameAdapter {
 
     LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(width, height);
 
+    childAdapter.getElementStyle().applyMargins(context, params);
+
     params.gravity = childAdapter.getGravity(Gravity.TOP | Gravity.START);
 
     childAdapter.setLayoutParams(params);
