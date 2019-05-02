@@ -77,21 +77,23 @@ public final class RunnableSubject extends Subject<RunnableSubject, ThrowingRunn
   }
 
   public <E extends Throwable> ThrowsThenClause<E> throwsAnExceptionOfType(Class<E> clazz) {
-    return new ThrowsThenClause<>(runAndCaptureOrFail(clazz));
+    return new ThrowsThenClause<>(runAndCaptureOrFail(clazz), "thrownException()");
   }
 
   /**
    * Just a fluent class prompting you to type ".that" before asserting things about the exception.
    */
   public class ThrowsThenClause<E extends Throwable> {
-    protected final E throwable;
+    private final E throwable;
+    private final String description;
 
-    private ThrowsThenClause(E throwable) {
+    private ThrowsThenClause(E throwable, String description) {
       this.throwable = throwable;
+      this.description = description;
     }
 
     public ThrowableSubject that() {
-      return check().that(throwable);
+      return check(description).that(throwable);
     }
 
     public <C extends Throwable> ThrowsThenClause<C> causedByAnExceptionOfType(Class<C> clazz) {
@@ -104,7 +106,7 @@ public final class RunnableSubject extends Subject<RunnableSubject, ThrowingRunn
       @SuppressWarnings("unchecked")
       C cause = (C) throwable.getCause();
 
-      return new ThrowsThenClause<>(cause);
+      return new ThrowsThenClause<>(cause, description + ".getCause()");
     }
 
     public void causedBy(Throwable cause) {
