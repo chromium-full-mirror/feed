@@ -23,6 +23,9 @@ import static com.google.android.libraries.feed.feedstore.internal.FeedStoreCons
 import android.util.Base64;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.functional.Supplier;
+import com.google.android.libraries.feed.common.intern.Interner;
+import com.google.android.libraries.feed.common.intern.InternerWithStats;
+import com.google.android.libraries.feed.common.intern.WeakPoolInterner;
 import com.google.android.libraries.feed.common.logging.Dumpable;
 import com.google.android.libraries.feed.common.logging.Dumper;
 import com.google.android.libraries.feed.common.logging.Logger;
@@ -82,6 +85,15 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
   private final Clock clock;
   private final FeedStoreHelper storeHelper;
 
+  // We use a common string interner pool because the same content IDs are reused across different
+  // protos. The actual proto interners below are backed by thisl common pool.
+  private final InternerWithStats<String> contentIdStringInterner =
+      new InternerWithStats<>(new WeakPoolInterner<>());
+  private final Interner<StreamStructure> streamStructureInterner =
+      new StreamStructureInterner(contentIdStringInterner);
+  private final Interner<StreamPayload> streamPayloadInterner =
+      new StreamPayloadInterner(contentIdStringInterner);
+
   public PersistentFeedStore(
       TimingUtils timingUtils,
       FeedExtensionRegistry extensionRegistry,
@@ -116,7 +128,9 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
     for (Map.Entry<String, byte[]> entry : contentResult.getValue().entrySet()) {
       try {
         StreamPayload streamPayload =
-            StreamPayload.parseFrom(entry.getValue(), extensionRegistry.getExtensionRegistry());
+            streamPayloadInterner.intern(
+                StreamPayload.parseFrom(
+                    entry.getValue(), extensionRegistry.getExtensionRegistry()));
         payloads.add(new PayloadWithId(entry.getKey(), streamPayload));
       } catch (InvalidProtocolBufferException e) {
         Logger.e(TAG, "Couldn't parse content proto for id %s", entry.getKey());
@@ -168,7 +182,7 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
         continue;
       }
       try {
-        streamStructures.add(StreamStructure.parseFrom(bytes));
+        streamStructures.add(streamStructureInterner.intern(StreamStructure.parseFrom(bytes)));
       } catch (InvalidProtocolBufferException e) {
         Logger.e(TAG, e, "Error parsing stream structure.");
       }
@@ -618,6 +632,14 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
     } else {
       dumper.forKey("journalStorage").value("not dumpable");
     }
+    dumper
+        .forKey("contentIdStringInternerSize")
+        .value(contentIdStringInterner.size())
+        .compactPrevious();
+    dumper
+        .forKey("contentIdStringInternerStats")
+        .value(contentIdStringInterner.getStats())
+        .compactPrevious();
   }
 
   /**

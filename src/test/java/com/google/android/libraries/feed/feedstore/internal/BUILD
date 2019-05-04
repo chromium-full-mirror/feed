@@ -92,3 +92,39 @@ android_local_test(
         "@robolectric//bazel:android-all",
     ],
 )
+
+android_local_test(
+    name = "StreamPayloadInternerTest",
+    size = "small",
+    timeout = "moderate",
+    srcs = ["StreamPayloadInternerTest.java"],
+    aapt_version = "aapt2",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
+    deps = [
+        "//src/main/java/com/google/android/libraries/feed/common/intern",
+        "//src/main/java/com/google/android/libraries/feed/feedstore/internal",
+        "//src/main/proto/com/google/android/libraries/feed/internalapi/proto:client_feed_java_proto_lite",
+        "//third_party:robolectric",
+        "@com_google_protobuf_javalite//:protobuf_java_lite",
+        "@maven//:com_google_truth_truth",
+        "@robolectric//bazel:android-all",
+    ],
+)
+
+android_local_test(
+    name = "StreamStructureInternerTest",
+    size = "small",
+    timeout = "moderate",
+    srcs = ["StreamStructureInternerTest.java"],
+    aapt_version = "aapt2",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
+    deps = [
+        "//src/main/java/com/google/android/libraries/feed/common/intern",
+        "//src/main/java/com/google/android/libraries/feed/feedstore/internal",
+        "//src/main/proto/com/google/android/libraries/feed/internalapi/proto:client_feed_java_proto_lite",
+        "//third_party:robolectric",
+        "@com_google_protobuf_javalite//:protobuf_java_lite",
+        "@maven//:com_google_truth_truth",
+        "@robolectric//bazel:android-all",
+    ],
+)
