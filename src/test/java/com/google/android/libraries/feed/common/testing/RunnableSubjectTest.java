@@ -16,6 +16,7 @@ package com.google.android.libraries.feed.common.testing;
 
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.runnables;
+import static com.google.common.truth.ExpectFailure.assertThat;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -48,9 +49,9 @@ public class RunnableSubjectTest {
         .throwsAnExceptionOfType(RuntimeException.class);
 
     verify(run).run();
-    assertThat(expectFailure.getFailure())
-        .hasMessageThat()
-        .contains(" threw a <java.lang.RuntimeException>. It ran to <completion>");
+    AssertionError failure = expectFailure.getFailure();
+    assertThat(failure).factValue("expected to throw").isEqualTo("java.lang.RuntimeException");
+    assertThat(failure).factKeys().contains("but ran to completion");
     verifyNoMoreInteractions(run);
   }
 
@@ -62,9 +63,9 @@ public class RunnableSubjectTest {
         .that(null)
         .throwsAnExceptionOfType(NullPointerException.class);
 
-    assertThat(expectFailure.getFailure())
-        .hasMessageThat()
-        .contains(" threw a <java.lang.NullPointerException>. It couldn't run because it's <null>");
+    AssertionError failure = expectFailure.getFailure();
+    assertThat(failure).factValue("expected to throw").isEqualTo("java.lang.NullPointerException");
+    assertThat(failure).factKeys().contains("but didn't run because it's null");
   }
 
   @Test
@@ -78,11 +79,15 @@ public class RunnableSubjectTest {
             })
         .throwsAnExceptionOfType(NullPointerException.class);
 
-    assertThat(expectFailure.getFailure())
-        .hasMessageThat()
-        .contains(
-            " threw a <java.lang.NullPointerException>. "
-                + "It threw <java.lang.IllegalArgumentException");
+    AssertionError failure = expectFailure.getFailure();
+    assertThat(failure).factValue("value of").isEqualTo("runnable.thrownException()");
+    assertThat(failure)
+        .factValue("expected instance of")
+        .isEqualTo("java.lang.NullPointerException");
+    assertThat(failure)
+        .factValue("but was instance of")
+        .isEqualTo("java.lang.IllegalArgumentException");
+    assertThat(failure).factValue("with value").isEqualTo("java.lang.IllegalArgumentException: a");
   }
 
   @Test
@@ -161,11 +166,17 @@ public class RunnableSubjectTest {
             })
         .throwsAnExceptionOfType(IOException.class)
         .causedByAnExceptionOfType(ExecutionException.class);
-    assertThat(expectFailure.getFailure())
-        .hasMessageThat()
-        .contains(
-            " threw an exception caused by <java.util.concurrent.ExecutionException>. "
-                + "It was caused by <java.lang.IllegalArgumentException");
+    AssertionError failure = expectFailure.getFailure();
+    assertThat(failure).factValue("value of").isEqualTo("runnable.thrownException().getCause()");
+    assertThat(failure)
+        .factValue("expected instance of")
+        .isEqualTo("java.util.concurrent.ExecutionException");
+    assertThat(failure)
+        .factValue("but was instance of")
+        .isEqualTo("java.lang.IllegalArgumentException");
+    assertThat(failure)
+        .factValue("with value")
+        .isEqualTo("java.lang.IllegalArgumentException: boo");
   }
 
   @Test

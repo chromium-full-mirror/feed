@@ -14,6 +14,8 @@
 
 package com.google.android.libraries.feed.common.testing;
 
+import static com.google.common.truth.Fact.fact;
+import static com.google.common.truth.Fact.simpleFact;
 import static com.google.common.truth.Truth.assertAbout;
 
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
@@ -58,7 +60,9 @@ public final class RunnableSubject extends Subject<RunnableSubject, ThrowingRunn
   @SuppressWarnings("unchecked")
   private <E extends Throwable> E runAndCaptureOrFail(Class<E> clazz) {
     if (actual() == null) {
-      failWithBadResults("threw a", clazz.getName(), "couldn't run because it's", "null");
+      failWithoutActual(
+          fact("expected to throw", clazz.getName()),
+          simpleFact("but didn't run because it's null"));
       return null;
     }
 
@@ -66,13 +70,16 @@ public final class RunnableSubject extends Subject<RunnableSubject, ThrowingRunn
       actual().run();
     } catch (Throwable ex) {
       if (!clazz.isInstance(ex)) {
-        failWithBadResults("threw a", clazz.getName(), "threw", ex);
+        check("thrownException()").that(ex).isInstanceOf(clazz); // fails
         return null;
       }
       return (E) ex;
     }
 
-    failWithBadResults("threw a", clazz.getName(), "ran to", "completion");
+    failWithoutActual(
+        fact("expected to throw", clazz.getName()),
+        simpleFact("but ran to completion"),
+        fact("runnable was", actual()));
     return null;
   }
 
@@ -98,8 +105,7 @@ public final class RunnableSubject extends Subject<RunnableSubject, ThrowingRunn
 
     public <C extends Throwable> ThrowsThenClause<C> causedByAnExceptionOfType(Class<C> clazz) {
       if (!clazz.isInstance(throwable.getCause())) {
-        failWithBadResults(
-            "threw an exception caused by", clazz.getName(), "was caused by", throwable.getCause());
+        that().hasCauseThat().isInstanceOf(clazz); // fails
         return null;
       }
 
@@ -110,10 +116,7 @@ public final class RunnableSubject extends Subject<RunnableSubject, ThrowingRunn
     }
 
     public void causedBy(Throwable cause) {
-      if (cause != throwable.getCause()) {
-        failWithBadResults(
-            "threw an exception caused by", cause, "was caused by", throwable.getCause());
-      }
+      that().hasCauseThat().isSameInstanceAs(cause);
     }
 
     public E getCaught() {
