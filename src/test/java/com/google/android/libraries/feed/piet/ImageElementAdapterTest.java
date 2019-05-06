@@ -58,6 +58,7 @@ import com.google.search.now.ui.piet.MediaQueriesProto.MediaQueryCondition;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners.Corners;
 import com.google.search.now.ui.piet.StylesProto.EdgeWidths;
+import com.google.search.now.ui.piet.StylesProto.Style;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import org.junit.Before;
 import org.junit.Test;
@@ -407,24 +408,26 @@ public class ImageElementAdapterTest {
   }
 
   @Test
-  public void testBindModel_overlayColor() {
+  public void testBindModel_color() {
+    int red = 0xFFFF0000;
+    ImageElement defaultImageElement = ImageElement.newBuilder().setImage(DEFAULT_IMAGE).build();
+    StyleProvider redTintStyleProvider =
+        new StyleProvider(
+            Style.newBuilder().setStyleId("red").setColor(red).build(), assetProvider);
+    StyleIdsStack redTintStyle = StyleIdsStack.newBuilder().addStyleIds("red").build();
+    when(frameContext.makeStyleFor(redTintStyle)).thenReturn(redTintStyleProvider);
+
     Element modelWithOverlayColor =
         Element.newBuilder()
-            .setImageElement(
-                ImageElement.newBuilder()
-                    .setImage(DEFAULT_IMAGE.toBuilder().setOverlayColor(0x11223344)))
+            .setStyleReferences(redTintStyle)
+            .setImageElement(defaultImageElement)
             .build();
 
     // Bind and expect tint to be set
     adapter.createAdapter(modelWithOverlayColor, frameContext);
     adapter.bindModel(modelWithOverlayColor, frameContext);
-    assertThat(adapter.overlayColorForCallback).isEqualTo(0x11223344);
-
-    adapter.unbindModel();
-
-    // Bind again and expect tint to be reset
-    adapter.bindModel(DEFAULT_MODEL, frameContext);
-    assertThat(adapter.overlayColorForCallback).isNull();
+    verify(frameContext).makeStyleFor(redTintStyle);
+    assertThat(adapter.overlayColorForCallback).isEqualTo(red);
   }
 
   @Test

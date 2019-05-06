@@ -330,7 +330,7 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
     }
 
     // Start asynchronously loading the real image.
-    Integer overlayColor = image.hasOverlayColor() ? image.getOverlayColor() : null;
+    Integer overlayColor = chunkStyle.hasColor() ? chunkStyle.getColor() : null;
     ImageSpanDrawableCallback imageSpanLoader =
         new ImageSpanDrawableCallback(wrapper, chunkStyle, overlayColor, textView);
     loadingImages.add(imageSpanLoader);

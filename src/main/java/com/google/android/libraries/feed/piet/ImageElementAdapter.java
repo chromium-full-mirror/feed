@@ -106,7 +106,7 @@ class ImageElementAdapter extends ElementAdapter<AspectRatioScalingImageView, Im
     getBaseView().setDefaultAspectRatio(getAspectRatio(image));
 
     checkState(currentlyLoadingImage == null, "An image loading callback exists; unbind first");
-    Integer overlayColor = image.hasOverlayColor() ? image.getOverlayColor() : null;
+    Integer overlayColor = getElementStyle().hasColor() ? getElementStyle().getColor() : null;
     LoadImageCallback loadImageCallback =
         createLoadImageCallback(getElementStyle().getScaleType(), overlayColor, frameContext);
     currentlyLoadingImage = loadImageCallback;

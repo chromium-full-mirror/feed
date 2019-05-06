@@ -656,14 +656,22 @@ public class ChunkedTextElementAdapterTest {
   }
 
   @Test
-  public void testAddImageChunk_overlayColor() {
+  public void testAddImageChunk_tintColor() {
     // Required to set up the local frameContext member var.
     adapter.createAdapter(asElement(TextElement.getDefaultInstance()), frameContext);
 
-    Image tintedImage = IMAGE_CHUNK_IMAGE.toBuilder().setOverlayColor(0xFEEDFACE).build();
+    StyleProvider tintStyleProvider =
+        new StyleProvider(
+            Style.newBuilder().setStyleId("tint").setColor(0xFEEDFACE).build(), mockAssetProvider);
+    StyleIdsStack tintStyle = StyleIdsStack.newBuilder().addStyleIds("tint").build();
+    when(frameContext.makeStyleFor(tintStyle)).thenReturn(tintStyleProvider);
+
     Chunk imageChunk =
         Chunk.newBuilder()
-            .setImageChunk(StyledImageChunk.newBuilder().setImage(tintedImage))
+            .setImageChunk(
+                StyledImageChunk.newBuilder()
+                    .setImage(IMAGE_CHUNK_IMAGE)
+                    .setStyleReferences(tintStyle))
             .build();
 
     adapter.addImageChunk(frameContext, textView, spannable, imageChunk);
@@ -674,7 +682,7 @@ public class ChunkedTextElementAdapterTest {
     ArgumentCaptor<ImageSpanDrawableCallback> imageCallbackCaptor =
         ArgumentCaptor.forClass(ImageSpanDrawableCallback.class);
     verify(mockAssetProvider)
-        .getImage(eq(tintedImage), anyInt(), anyInt(), imageCallbackCaptor.capture());
+        .getImage(eq(IMAGE_CHUNK_IMAGE), anyInt(), anyInt(), imageCallbackCaptor.capture());
 
     // Activate the image loading callback
     imageCallbackCaptor.getValue().accept(drawable);
@@ -691,8 +699,7 @@ public class ChunkedTextElementAdapterTest {
             .setChunkedText(
                 ChunkedText.newBuilder()
                     .addChunks(
-                        IMAGE_CHUNK
-                            .toBuilder()
+                        IMAGE_CHUNK.toBuilder()
                             .setActions(
                                 Actions.newBuilder()
                                     .setOnClickAction(Action.getDefaultInstance()))))
