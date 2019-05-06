@@ -16,18 +16,20 @@ package com.google.android.libraries.feed.sharedstream.scroll;
 
 import static com.google.android.libraries.feed.api.stream.ScrollListener.UNKNOWN_SCROLL_DELTA;
 
-import android.support.annotation.VisibleForTesting;
 import android.support.v7.widget.RecyclerView;
+import android.view.View;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.api.stream.ScrollListener;
 import com.google.android.libraries.feed.api.stream.ScrollListener.ScrollState;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.logging.Logger;
+import com.google.android.libraries.feed.sharedstream.publicapi.scroll.ScrollObservable;
+import com.google.android.libraries.feed.sharedstream.publicapi.scroll.ScrollObserver;
 import java.util.HashSet;
 import java.util.Set;
 
 /** Class which monitors scrolls and notifies listeners on changes. */
-public class StreamScrollMonitor extends RecyclerView.OnScrollListener {
+public class ScrollListenerNotifier implements ScrollObserver {
 
   private static final String TAG = "StreamScrollMonitor";
 
@@ -35,16 +37,18 @@ public class StreamScrollMonitor extends RecyclerView.OnScrollListener {
   private final Set<ScrollListener> scrollListeners;
   private final ContentChangedListener contentChangedListener;
 
-  // Nullness checker doesn't like adding listeners in constructor.  This is OK as RecyclerView will
-  // not call listener when it is added.
+  // Doesn't like adding itself to the scrollobservable
   @SuppressWarnings("initialization")
-  public StreamScrollMonitor(
+  public ScrollListenerNotifier(
       ContentChangedListener childChangeListener,
+      ScrollObservable scrollObservable,
       MainThreadRunner mainThreadRunner) {
     this.contentChangedListener = childChangeListener;
     this.mainThreadRunner = mainThreadRunner;
 
     scrollListeners = new HashSet<>();
+
+    scrollObservable.addScrollObserver(this);
   }
 
   public void addScrollListener(ScrollListener listener) {
@@ -64,32 +68,12 @@ public class StreamScrollMonitor extends RecyclerView.OnScrollListener {
         TAG + " onProgrammaticScroll",
         () -> {
           // Post scroll as this allows users of scroll to retrieve new heights/widths of change.
-          onScrolled(recyclerView, UNKNOWN_SCROLL_DELTA, UNKNOWN_SCROLL_DELTA);
+          onScroll(recyclerView, "", UNKNOWN_SCROLL_DELTA, UNKNOWN_SCROLL_DELTA);
         });
   }
 
-  @Override
-  public void onScrollStateChanged(RecyclerView recyclerView, int state) {
-    if (state == RecyclerView.SCROLL_STATE_IDLE) {
-      contentChangedListener.onContentChanged();
-    }
-
-    int scrollState = convertRecyclerViewScrollStateToListenerState(state);
-    for (ScrollListener scrollListener : scrollListeners) {
-      scrollListener.onScrollStateChanged(scrollState);
-    }
-  }
-
-  @Override
-  public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-    for (ScrollListener scrollListener : scrollListeners) {
-      scrollListener.onScrolled(dx, dy);
-    }
-  }
-
   @ScrollState
-  @VisibleForTesting
-  static int convertRecyclerViewScrollStateToListenerState(int state) {
+  public static int convertRecyclerViewScrollStateToListenerState(int state) {
     switch (state) {
       case RecyclerView.SCROLL_STATE_DRAGGING:
         return ScrollState.DRAGGING;
@@ -103,8 +87,22 @@ public class StreamScrollMonitor extends RecyclerView.OnScrollListener {
     }
   }
 
-  @VisibleForTesting
-  public int getListenerCount() {
-    return scrollListeners.size();
+  @Override
+  public void onScrollStateChanged(View view, String featureId, int newState, long timestamp) {
+    if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+      contentChangedListener.onContentChanged();
+    }
+
+    int scrollState = convertRecyclerViewScrollStateToListenerState(newState);
+    for (ScrollListener scrollListener : scrollListeners) {
+      scrollListener.onScrollStateChanged(scrollState);
+    }
+  }
+
+  @Override
+  public void onScroll(View view, String featureId, int dx, int dy) {
+    for (ScrollListener scrollListener : scrollListeners) {
+      scrollListener.onScrolled(dx, dy);
+    }
   }
 }

@@ -16,7 +16,7 @@ package com.google.android.libraries.feed.sharedstream.scroll;
 
 import static com.google.android.libraries.feed.api.stream.ScrollListener.UNKNOWN_SCROLL_DELTA;
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
-import static org.mockito.Matchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -28,6 +28,8 @@ import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.api.stream.ScrollListener;
 import com.google.android.libraries.feed.api.stream.ScrollListener.ScrollState;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
+import com.google.android.libraries.feed.common.time.testing.FakeClock;
+import com.google.android.libraries.feed.sharedstream.publicapi.scroll.ScrollObservable;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,17 +37,22 @@ import org.mockito.Mock;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 
-/** Tests for {@link StreamScrollMonitor}. */
+/** Tests for {@link ScrollListenerNotifier}. */
 @RunWith(RobolectricTestRunner.class)
-public class StreamScrollMonitorTest {
+public class ScrollListenerNotifierTest {
+
+  private static final String FEATURE_ID = "feature";
+  private static final long TIME = 12345L;
 
   @Mock private ScrollListener scrollListener1;
   @Mock private ScrollListener scrollListener2;
   @Mock private ContentChangedListener contentChangedListener;
+  @Mock private ScrollObservable scrollObservable;
 
-  private StreamScrollMonitor streamScrollMonitor;
+  private ScrollListenerNotifier scrollListenerNotifier;
   private RecyclerView recyclerView;
   private FakeMainThreadRunner mainThreadRunner;
+  private FakeClock clock;
 
   @Before
   public void setUp() {
@@ -54,45 +61,63 @@ public class StreamScrollMonitorTest {
     Context context = Robolectric.buildActivity(Activity.class).get();
     recyclerView = new RecyclerView(context);
     mainThreadRunner = FakeMainThreadRunner.queueAllTasks();
+    clock = new FakeClock();
+    clock.set(TIME);
 
-    streamScrollMonitor = new StreamScrollMonitor(contentChangedListener, mainThreadRunner);
-    streamScrollMonitor.addScrollListener(scrollListener1);
+    scrollListenerNotifier =
+        new ScrollListenerNotifier(contentChangedListener, scrollObservable, mainThreadRunner);
+    scrollListenerNotifier.addScrollListener(scrollListener1);
+  }
+
+  @Test
+  public void testConstructor() {
+    ScrollListenerNotifier notifier =
+        new ScrollListenerNotifier(contentChangedListener, scrollObservable, mainThreadRunner);
+
+    verify(scrollObservable).addScrollObserver(notifier);
   }
 
   @Test
   public void testScrollStateOutputs() {
-    streamScrollMonitor.onScrollStateChanged(recyclerView, RecyclerView.SCROLL_STATE_IDLE);
+    scrollListenerNotifier.onScrollStateChanged(
+        recyclerView, FEATURE_ID, RecyclerView.SCROLL_STATE_IDLE, TIME);
     verify(scrollListener1).onScrollStateChanged(ScrollState.IDLE);
 
-    streamScrollMonitor.onScrollStateChanged(recyclerView, RecyclerView.SCROLL_STATE_DRAGGING);
+    scrollListenerNotifier.onScrollStateChanged(
+        recyclerView, FEATURE_ID, RecyclerView.SCROLL_STATE_DRAGGING, TIME);
     verify(scrollListener1).onScrollStateChanged(ScrollState.DRAGGING);
 
-    streamScrollMonitor.onScrollStateChanged(recyclerView, RecyclerView.SCROLL_STATE_SETTLING);
+    scrollListenerNotifier.onScrollStateChanged(
+        recyclerView, FEATURE_ID, RecyclerView.SCROLL_STATE_SETTLING, TIME);
     verify(scrollListener1).onScrollStateChanged(ScrollState.SETTLING);
 
-    assertThatRunnable(() -> streamScrollMonitor.onScrollStateChanged(recyclerView, -42))
+    assertThatRunnable(
+            () -> scrollListenerNotifier.onScrollStateChanged(recyclerView, FEATURE_ID, -42, TIME))
         .throwsAnExceptionOfType(RuntimeException.class);
   }
 
   @Test
   public void testOnScrollStateChanged() {
-    streamScrollMonitor.onScrollStateChanged(recyclerView, RecyclerView.SCROLL_STATE_IDLE);
+    scrollListenerNotifier.onScrollStateChanged(
+        recyclerView, FEATURE_ID, RecyclerView.SCROLL_STATE_IDLE, TIME);
 
     verify(scrollListener1).onScrollStateChanged(ScrollState.IDLE);
   }
 
   @Test
   public void testOnScrollStateChanged_notifiesObserverOnIdle() {
-    streamScrollMonitor.onScrollStateChanged(recyclerView, RecyclerView.SCROLL_STATE_IDLE);
+    scrollListenerNotifier.onScrollStateChanged(
+        recyclerView, FEATURE_ID, RecyclerView.SCROLL_STATE_IDLE, TIME);
 
     verify(contentChangedListener).onContentChanged();
   }
 
   @Test
   public void testOnScrollStateChanged_multipleListeners() {
-    streamScrollMonitor.addScrollListener(scrollListener2);
+    scrollListenerNotifier.addScrollListener(scrollListener2);
 
-    streamScrollMonitor.onScrollStateChanged(recyclerView, RecyclerView.SCROLL_STATE_IDLE);
+    scrollListenerNotifier.onScrollStateChanged(
+        recyclerView, FEATURE_ID, RecyclerView.SCROLL_STATE_IDLE, TIME);
 
     verify(scrollListener1).onScrollStateChanged(ScrollState.IDLE);
     verify(scrollListener2).onScrollStateChanged(ScrollState.IDLE);
@@ -100,10 +125,11 @@ public class StreamScrollMonitorTest {
 
   @Test
   public void testOnScrollStateChanged_removedListener() {
-    streamScrollMonitor.addScrollListener(scrollListener2);
-    streamScrollMonitor.removeScrollListener(scrollListener1);
+    scrollListenerNotifier.addScrollListener(scrollListener2);
+    scrollListenerNotifier.removeScrollListener(scrollListener1);
 
-    streamScrollMonitor.onScrollStateChanged(recyclerView, RecyclerView.SCROLL_STATE_IDLE);
+    scrollListenerNotifier.onScrollStateChanged(
+        recyclerView, FEATURE_ID, RecyclerView.SCROLL_STATE_IDLE, TIME);
 
     verify(scrollListener1, never()).onScrollStateChanged(anyInt());
     verify(scrollListener2).onScrollStateChanged(ScrollState.IDLE);
@@ -111,15 +137,15 @@ public class StreamScrollMonitorTest {
 
   @Test
   public void testOnScrolled() {
-    streamScrollMonitor.onScrolled(recyclerView, 1, 2);
+    scrollListenerNotifier.onScroll(recyclerView, FEATURE_ID, 1, 2);
 
     verify(scrollListener1).onScrolled(1, 2);
   }
 
   @Test
   public void testOnScrolled_multipleListeners() {
-    streamScrollMonitor.addScrollListener(scrollListener2);
-    streamScrollMonitor.onScrolled(recyclerView, 1, 2);
+    scrollListenerNotifier.addScrollListener(scrollListener2);
+    scrollListenerNotifier.onScroll(recyclerView, FEATURE_ID, 1, 2);
 
     verify(scrollListener1).onScrolled(1, 2);
     verify(scrollListener2).onScrolled(1, 2);
@@ -127,10 +153,10 @@ public class StreamScrollMonitorTest {
 
   @Test
   public void testOnScrolled_removedListener() {
-    streamScrollMonitor.addScrollListener(scrollListener2);
-    streamScrollMonitor.removeScrollListener(scrollListener1);
+    scrollListenerNotifier.addScrollListener(scrollListener2);
+    scrollListenerNotifier.removeScrollListener(scrollListener1);
 
-    streamScrollMonitor.onScrolled(recyclerView, 1, 2);
+    scrollListenerNotifier.onScroll(recyclerView, FEATURE_ID, 1, 2);
 
     verify(scrollListener1, never()).onScrolled(anyInt(), anyInt());
     verify(scrollListener2).onScrolled(1, 2);
@@ -138,7 +164,7 @@ public class StreamScrollMonitorTest {
 
   @Test
   public void onProgrammaticScroll() {
-    streamScrollMonitor.onProgrammaticScroll(recyclerView);
+    scrollListenerNotifier.onProgrammaticScroll(recyclerView);
 
     verify(scrollListener1, never()).onScrolled(anyInt(), anyInt());
 

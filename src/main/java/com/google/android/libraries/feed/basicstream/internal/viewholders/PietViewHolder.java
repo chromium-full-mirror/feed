@@ -18,12 +18,12 @@ import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.LayoutParams;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.FrameLayout;
-import com.google.android.libraries.feed.api.stream.ScrollListener;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.host.action.StreamActionApi;
@@ -38,7 +38,9 @@ import com.google.android.libraries.feed.piet.host.ActionHandler.ActionType;
 import com.google.android.libraries.feed.sharedstream.logging.LoggingListener;
 import com.google.android.libraries.feed.sharedstream.logging.VisibilityMonitor;
 import com.google.android.libraries.feed.sharedstream.piet.PietEventLogger;
-import com.google.android.libraries.feed.sharedstream.scroll.StreamScrollMonitor;
+import com.google.android.libraries.feed.sharedstream.publicapi.scroll.ScrollObservable;
+import com.google.android.libraries.feed.sharedstream.publicapi.scroll.ScrollObserver;
+import com.google.android.libraries.feed.sharedstream.scroll.ScrollListenerNotifier;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
@@ -53,7 +55,7 @@ public class PietViewHolder extends FeedViewHolder implements SwipeableViewHolde
   private static final String TAG = "PietViewHolder";
   private final CardConfiguration cardConfiguration;
   private final FrameLayout cardView;
-  private final StreamScrollMonitor streamScrollMonitor;
+  private final ScrollObservable scrollObservable;
   private final FrameAdapter frameAdapter;
   private final VisibilityMonitor visibilityMonitor;
   private final View viewport;
@@ -63,13 +65,13 @@ public class PietViewHolder extends FeedViewHolder implements SwipeableViewHolde
   /*@Nullable*/ private LoggingListener loggingListener;
   /*@Nullable*/ private StreamActionApi streamActionApi;
   /*@Nullable*/ private FeedActionPayload swipeAction;
-  /*@Nullable*/ private PietViewActionScrollListener scrollListener;
+  /*@Nullable*/ private PietViewActionScrollObserver scrollObserver;
 
   public PietViewHolder(
       CardConfiguration cardConfiguration,
       FrameLayout cardView,
       PietManager pietManager,
-      StreamScrollMonitor streamScrollMonitor,
+      ScrollObservable scrollObservable,
       View viewport,
       Context context,
       Configuration configuration,
@@ -77,7 +79,7 @@ public class PietViewHolder extends FeedViewHolder implements SwipeableViewHolde
     super(cardView);
     this.cardConfiguration = cardConfiguration;
     this.cardView = cardView;
-    this.streamScrollMonitor = streamScrollMonitor;
+    this.scrollObservable = scrollObservable;
     this.viewport = viewport;
     cardView.setId(R.id.feed_content_card);
     this.frameAdapter =
@@ -121,7 +123,7 @@ public class PietViewHolder extends FeedViewHolder implements SwipeableViewHolde
     this.streamActionApi = streamActionApi;
     this.swipeAction = swipeAction;
     this.actionParser = actionParser;
-    scrollListener = new PietViewActionScrollListener(frameAdapter, viewport, loggingListener);
+    scrollObserver = new PietViewActionScrollObserver(frameAdapter, viewport, loggingListener);
     // Need to reset padding here.  Setting a background can affect padding so if we switch from
     // a background which has padding to one that does not, then the padding needs to be removed.
     cardView.setPadding(0, 0, 0, 0);
@@ -148,8 +150,8 @@ public class PietViewHolder extends FeedViewHolder implements SwipeableViewHolde
         0, // TODO: set the frame width here
         null,
         pietSharedStates);
-    if (scrollListener != null) {
-      streamScrollMonitor.addScrollListener(scrollListener);
+    if (scrollObserver != null) {
+      scrollObservable.addScrollObserver(scrollObserver);
     }
 
     bound = true;
@@ -167,8 +169,8 @@ public class PietViewHolder extends FeedViewHolder implements SwipeableViewHolde
     streamActionApi = null;
     swipeAction = null;
     visibilityMonitor.setListener(null);
-    if (scrollListener != null) {
-      streamScrollMonitor.removeScrollListener(scrollListener);
+    if (scrollObserver != null) {
+      scrollObservable.removeScrollObserver(scrollObserver);
     }
     bound = false;
   }
@@ -215,12 +217,12 @@ public class PietViewHolder extends FeedViewHolder implements SwipeableViewHolde
         actionParser, "Action parser can only be retrieved once view holder has been bound");
   }
 
-  static class PietViewActionScrollListener implements ScrollListener {
+  static class PietViewActionScrollObserver implements ScrollObserver {
     private final FrameAdapter frameAdapter;
     private final View viewport;
     private final LoggingListener loggingListener;
 
-    PietViewActionScrollListener(
+    PietViewActionScrollObserver(
         FrameAdapter frameAdapter, View viewport, LoggingListener loggingListener) {
       this.frameAdapter = frameAdapter;
       this.viewport = viewport;
@@ -228,19 +230,20 @@ public class PietViewHolder extends FeedViewHolder implements SwipeableViewHolde
     }
 
     @Override
-    public void onScrollStateChanged(@ScrollState int state) {
+    public void onScrollStateChanged(View view, String featureId, int newState, long timestamp) {
       // There was logic in here previously ensuring that the state had changed; however, you can
       // have a case where the feed is idle and you fling the feed, and it goes to idle again
       // without triggering the observer during scrolling. Just triggering this every time the feed
       // comes to rest appears to have the desired behavior. We can think about also triggering
       // while the feed is scrolling; not sure how frequently the observer triggers during scroll.
-      if (state == ScrollState.IDLE) {
+      if (newState == RecyclerView.SCROLL_STATE_IDLE) {
         frameAdapter.triggerViewActions(viewport);
       }
-      loggingListener.onScrollStateChanged(state);
+      loggingListener.onScrollStateChanged(
+          ScrollListenerNotifier.convertRecyclerViewScrollStateToListenerState(newState));
     }
 
     @Override
-    public void onScrolled(int dx, int dy) {}
+    public void onScroll(View view, String featureId, int dx, int dy) {}
   }
 }

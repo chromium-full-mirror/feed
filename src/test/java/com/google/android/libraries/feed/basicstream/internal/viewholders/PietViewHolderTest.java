@@ -15,9 +15,8 @@
 package com.google.android.libraries.feed.basicstream.internal.viewholders;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -33,10 +32,10 @@ import android.view.ViewGroup;
 import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.FrameLayout;
 import android.widget.TextView;
-import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.actions.StreamActionApiImpl;
-import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
+import com.google.android.libraries.feed.basicstream.internal.scroll.BasicStreamScrollMonitor;
 import com.google.android.libraries.feed.common.functional.Supplier;
+import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
@@ -51,7 +50,6 @@ import com.google.android.libraries.feed.piet.testing.FakeFrameAdapter;
 import com.google.android.libraries.feed.sharedstream.logging.LoggingListener;
 import com.google.android.libraries.feed.sharedstream.logging.VisibilityMonitor;
 import com.google.android.libraries.feed.sharedstream.piet.PietEventLogger;
-import com.google.android.libraries.feed.sharedstream.scroll.StreamScrollMonitor;
 import com.google.android.libraries.feed.testing.host.stream.FakeCardConfiguration;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
 import com.google.search.now.ui.action.FeedActionProto.FeedAction;
@@ -90,7 +88,7 @@ public class PietViewHolderTest {
   @Mock private VisibilityMonitor visibilityMonitor;
   @Mock private BasicLoggingApi basicLoggingApi;
 
-  private StreamScrollMonitor streamScrollMonitor;
+  private BasicStreamScrollMonitor streamScrollMonitor;
   private FakeFrameAdapter frameAdapter;
   private ActionHandler actionHandler;
   private Configuration configuration;
@@ -104,9 +102,7 @@ public class PietViewHolderTest {
   @Before
   public void setUp() {
     initMocks(this);
-    streamScrollMonitor =
-        new StreamScrollMonitor(
-            mock(ContentChangedListener.class), FakeMainThreadRunner.runTasksImmediately());
+    streamScrollMonitor = new BasicStreamScrollMonitor(new FakeClock());
     cardConfiguration = new FakeCardConfiguration();
     context = Robolectric.buildActivity(Activity.class).get();
     frameLayout = new FrameLayout(context);
@@ -269,7 +265,7 @@ public class PietViewHolderTest {
         loggingListener,
         actionParser);
 
-    assertThat(streamScrollMonitor.getListenerCount()).isEqualTo(1);
+    assertThat(streamScrollMonitor.getObserverCount()).isEqualTo(1);
   }
 
   @Test
@@ -314,7 +310,7 @@ public class PietViewHolderTest {
 
     pietViewHolder.unbind();
 
-    assertThat(streamScrollMonitor.getListenerCount()).isEqualTo(0);
+    assertThat(streamScrollMonitor.getObserverCount()).isEqualTo(0);
   }
 
   @Test

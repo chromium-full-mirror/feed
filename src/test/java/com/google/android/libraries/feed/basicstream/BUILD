@@ -41,6 +41,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/sharedstream/offlinemonitor",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/piet",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/publicapi/menumeasurer",
+        "//src/main/java/com/google/android/libraries/feed/sharedstream/publicapi/scroll",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/scroll",
         "//src/main/java/com/google/android/libraries/feed/testing/shadows",
         "//src/main/proto/com/google/android/libraries/feed/basicstream/internal/proto:stream_saved_instance_state_java_proto_lite",

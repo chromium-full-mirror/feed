@@ -14,31 +14,31 @@
 
 package com.google.android.libraries.feed.basicstream.internal.scroll;
 
-import com.google.android.libraries.feed.api.stream.ScrollListener;
-import com.google.android.libraries.feed.api.stream.ScrollListener.ScrollState;
+import android.view.View;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.host.logging.ScrollType;
+import com.google.android.libraries.feed.sharedstream.publicapi.scroll.ScrollObservable;
+import com.google.android.libraries.feed.sharedstream.publicapi.scroll.ScrollObserver;
 import com.google.android.libraries.feed.sharedstream.scroll.ScrollLogger;
 import com.google.android.libraries.feed.sharedstream.scroll.ScrollTracker;
-import com.google.android.libraries.feed.sharedstream.scroll.StreamScrollMonitor;
 
 /** A @link{ScrollTracker} used by BasicStream */
 public class BasicStreamScrollTracker extends ScrollTracker {
   private final ScrollLogger scrollLogger;
-  private final ScrollListener scrollListener;
-  private final StreamScrollMonitor scrollMonitor;
+  private final ScrollObserver scrollObserver;
+  private final ScrollObservable scrollObservable;
 
   public BasicStreamScrollTracker(
       MainThreadRunner mainThreadRunner,
       ScrollLogger scrollLogger,
       Clock clock,
-      StreamScrollMonitor scrollMonitor) {
+      ScrollObservable scrollObservable) {
     super(mainThreadRunner, clock);
     this.scrollLogger = scrollLogger;
-    this.scrollMonitor = scrollMonitor;
-    this.scrollListener = new BasicStreamScrollListener();
-    scrollMonitor.addScrollListener(scrollListener);
+    this.scrollObservable = scrollObservable;
+    this.scrollObserver = new BasicStreamScrollObserver();
+    scrollObservable.addScrollObserver(scrollObserver);
   }
 
   @Override
@@ -49,16 +49,16 @@ public class BasicStreamScrollTracker extends ScrollTracker {
   @Override
   public void onUnbind() {
     super.onUnbind();
-    scrollMonitor.removeScrollListener(scrollListener);
+    scrollObservable.removeScrollObserver(scrollObserver);
   }
 
-  private class BasicStreamScrollListener implements ScrollListener {
+  private class BasicStreamScrollObserver implements ScrollObserver {
 
     @Override
-    public void onScrollStateChanged(@ScrollState int state) {}
+    public void onScrollStateChanged(View view, String featureId, int newState, long timestamp) {}
 
     @Override
-    public void onScrolled(int dx, int dy) {
+    public void onScroll(View view, String featureId, int dx, int dy) {
       trackScroll(dx, dy);
     }
   }

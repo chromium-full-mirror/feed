@@ -53,7 +53,7 @@ import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.EventLogger;
 import com.google.android.libraries.feed.sharedstream.deepestcontenttracker.DeepestContentTracker;
 import com.google.android.libraries.feed.sharedstream.piet.PietEventLogger;
-import com.google.android.libraries.feed.sharedstream.scroll.StreamScrollMonitor;
+import com.google.android.libraries.feed.sharedstream.publicapi.scroll.ScrollObservable;
 import com.google.android.libraries.feed.sharedstream.ui.R;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -93,7 +93,7 @@ public class StreamRecyclerViewAdapterTest {
   @Mock private DeepestContentTracker deepestContentTracker;
   @Mock private Header header1;
   @Mock private Header header2;
-  @Mock private StreamScrollMonitor streamScrollMonitor;
+  @Mock private ScrollObservable scrollObservable;
   @Mock private PietEventLogger pietEventLogger;
 
   private Context context;
@@ -137,7 +137,7 @@ public class StreamRecyclerViewAdapterTest {
             pietManager,
             deepestContentTracker,
             contentChangedListener,
-            streamScrollMonitor,
+            scrollObservable,
             CONFIGURATION,
             pietEventLogger);
     streamRecyclerViewAdapter.setHeaders(headers);
@@ -371,7 +371,7 @@ public class StreamRecyclerViewAdapterTest {
             pietManager,
             deepestContentTracker,
             contentChangedListener,
-            streamScrollMonitor,
+            scrollObservable,
             CONFIGURATION,
             pietEventLogger) {
           @Override
@@ -401,7 +401,7 @@ public class StreamRecyclerViewAdapterTest {
             pietManager,
             deepestContentTracker,
             contentChangedListener,
-            streamScrollMonitor,
+            scrollObservable,
             CONFIGURATION,
             pietEventLogger) {
           @Override
@@ -494,7 +494,7 @@ public class StreamRecyclerViewAdapterTest {
             pietManager,
             deepestContentTracker,
             contentChangedListener,
-            streamScrollMonitor,
+            scrollObservable,
             CONFIGURATION,
             pietEventLogger) {
           @Override

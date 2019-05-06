@@ -22,8 +22,8 @@ import android.support.v7.widget.RecyclerView;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.sharedstream.proto.ScrollStateProto.ScrollState;
+import com.google.android.libraries.feed.sharedstream.scroll.ScrollListenerNotifier;
 import com.google.android.libraries.feed.sharedstream.scroll.ScrollRestoreHelper;
-import com.google.android.libraries.feed.sharedstream.scroll.StreamScrollMonitor;
 
 /**
  * Class which is able to save a scroll position for a RecyclerView and restore to that scroll
@@ -35,7 +35,7 @@ public class ScrollRestorer {
 
   private final Configuration configuration;
   private final RecyclerView recyclerView;
-  private final StreamScrollMonitor streamScrollMonitor;
+  private final ScrollListenerNotifier scrollListenerNotifier;
   private final int scrollPosition;
   private final int scrollOffset;
 
@@ -44,11 +44,11 @@ public class ScrollRestorer {
   public ScrollRestorer(
       Configuration configuration,
       RecyclerView recyclerView,
-      StreamScrollMonitor streamScrollMonitor,
+      ScrollListenerNotifier scrollListenerNotifier,
       /*@Nullable*/ ScrollState scrollState) {
     this.configuration = configuration;
     this.recyclerView = recyclerView;
-    this.streamScrollMonitor = streamScrollMonitor;
+    this.scrollListenerNotifier = scrollListenerNotifier;
 
     if (scrollState != null) {
       canRestore = true;
@@ -63,11 +63,11 @@ public class ScrollRestorer {
   private ScrollRestorer(
       Configuration configuration,
       RecyclerView recyclerView,
-      StreamScrollMonitor streamScrollMonitor) {
+      ScrollListenerNotifier scrollListenerNotifier) {
     canRestore = false;
     this.configuration = configuration;
     this.recyclerView = recyclerView;
-    this.streamScrollMonitor = streamScrollMonitor;
+    this.scrollListenerNotifier = scrollListenerNotifier;
     scrollPosition = 0;
     scrollOffset = 0;
   }
@@ -79,8 +79,8 @@ public class ScrollRestorer {
   public static ScrollRestorer nonRestoringRestorer(
       Configuration configuration,
       RecyclerView recyclerView,
-      StreamScrollMonitor streamScrollMonitor) {
-    return new ScrollRestorer(configuration, recyclerView, streamScrollMonitor);
+      ScrollListenerNotifier scrollListenerNotifier) {
+    return new ScrollRestorer(configuration, recyclerView, scrollListenerNotifier);
   }
 
   /**
@@ -102,7 +102,7 @@ public class ScrollRestorer {
     }
     Logger.d(TAG, "Restoring scroll");
     getLayoutManager().scrollToPositionWithOffset(scrollPosition, scrollOffset);
-    streamScrollMonitor.onProgrammaticScroll(recyclerView);
+    scrollListenerNotifier.onProgrammaticScroll(recyclerView);
     canRestore = false;
   }
 

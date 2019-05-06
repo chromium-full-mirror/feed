@@ -22,6 +22,7 @@ import com.google.android.libraries.feed.api.knowncontent.KnownContentApi;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.drivers.ContinuationDriver.CursorChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.pendingdismiss.PendingDismissHandler;
+import com.google.android.libraries.feed.basicstream.internal.scroll.BasicStreamScrollMonitor;
 import com.google.android.libraries.feed.basicstream.internal.scroll.BasicStreamScrollTracker;
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
 import com.google.android.libraries.feed.basicstream.internal.viewloggingupdater.ViewLoggingUpdater;
@@ -55,7 +56,6 @@ import com.google.android.libraries.feed.sharedstream.proto.UiRefreshReasonProto
 import com.google.android.libraries.feed.sharedstream.removetrackingfactory.StreamRemoveTrackingFactory;
 import com.google.android.libraries.feed.sharedstream.scroll.ScrollLogger;
 import com.google.android.libraries.feed.sharedstream.scroll.ScrollTracker;
-import com.google.android.libraries.feed.sharedstream.scroll.StreamScrollMonitor;
 import com.google.search.now.ui.action.FeedActionProto.UndoAction;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -119,7 +119,7 @@ public class StreamDriver
       ViewLoggingUpdater viewLoggingUpdater,
       TooltipApi tooltipApi,
       UiRefreshReason uiRefreshReason,
-      StreamScrollMonitor scrollMonitor) {
+      BasicStreamScrollMonitor scrollMonitor) {
     this.actionApi = actionApi;
     this.actionManager = actionManager;
     this.actionParserFactory = actionParserFactory;

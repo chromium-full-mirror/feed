@@ -48,7 +48,7 @@ import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.piet.PietManager;
 import com.google.android.libraries.feed.sharedstream.deepestcontenttracker.DeepestContentTracker;
 import com.google.android.libraries.feed.sharedstream.piet.PietEventLogger;
-import com.google.android.libraries.feed.sharedstream.scroll.StreamScrollMonitor;
+import com.google.android.libraries.feed.sharedstream.publicapi.scroll.ScrollObservable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -75,7 +75,7 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
   private boolean shown;
 
   /*@Nullable*/ private StreamDriver streamDriver;
-  private final StreamScrollMonitor streamScrollMonitor;
+  private final ScrollObservable scrollObservable;
 
   // Suppress initialization warnings for calling setHasStableIds on RecyclerView.Adapter
   @SuppressWarnings("initialization")
@@ -86,7 +86,7 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
       PietManager pietManager,
       DeepestContentTracker deepestContentTracker,
       ContentChangedListener contentChangedListener,
-      StreamScrollMonitor streamScrollMonitor,
+      ScrollObservable scrollObservable,
       Configuration configuration,
       PietEventLogger eventLogger) {
     this.context = context;
@@ -101,7 +101,7 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
     boundViewHolderToLeafFeatureDriverMap = new HashMap<>();
     streamContentVisible = true;
     this.deepestContentTracker = deepestContentTracker;
-    this.streamScrollMonitor = streamScrollMonitor;
+    this.scrollObservable = scrollObservable;
     this.eventLogger = eventLogger;
   }
 
@@ -125,7 +125,7 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
         cardConfiguration,
         frameLayout,
         pietManager,
-        streamScrollMonitor,
+        scrollObservable,
         viewport,
         context,
         configuration,

@@ -30,7 +30,7 @@ import android.view.View;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.sharedstream.proto.ScrollStateProto.ScrollState;
-import com.google.android.libraries.feed.sharedstream.scroll.StreamScrollMonitor;
+import com.google.android.libraries.feed.sharedstream.scroll.ScrollListenerNotifier;
 import com.google.android.libraries.feed.testing.android.LinearLayoutManagerForTest;
 import org.junit.Before;
 import org.junit.Test;
@@ -51,7 +51,7 @@ public class ScrollRestorerTest {
   private static final ScrollState SCROLL_STATE =
       ScrollState.newBuilder().setPosition(TOP_POSITION).setOffset(OFFSET).build();
 
-  @Mock private StreamScrollMonitor streamScrollMonitor;
+  @Mock private ScrollListenerNotifier scrollListenerNotifier;
   @Mock private Configuration configuration;
 
   private RecyclerView recyclerView;
@@ -78,10 +78,10 @@ public class ScrollRestorerTest {
   @Test
   public void testRestoreScroll() {
     ScrollRestorer scrollRestorer =
-        new ScrollRestorer(configuration, recyclerView, streamScrollMonitor, SCROLL_STATE);
+        new ScrollRestorer(configuration, recyclerView, scrollListenerNotifier, SCROLL_STATE);
     scrollRestorer.maybeRestoreScroll();
 
-    verify(streamScrollMonitor).onProgrammaticScroll(recyclerView);
+    verify(scrollListenerNotifier).onProgrammaticScroll(recyclerView);
     assertThat(layoutManager.scrolledPosition).isEqualTo(TOP_POSITION);
     assertThat(layoutManager.scrolledOffset).isEqualTo(OFFSET);
   }
@@ -90,13 +90,13 @@ public class ScrollRestorerTest {
   public void testRestoreScroll_repeatedCall() {
     ScrollRestorer scrollRestorer =
         new ScrollRestorer(
-            configuration, recyclerView, streamScrollMonitor, createScrollState(10, 20));
+            configuration, recyclerView, scrollListenerNotifier, createScrollState(10, 20));
     scrollRestorer.maybeRestoreScroll();
 
     layoutManager.scrollToPositionWithOffset(TOP_POSITION, OFFSET);
     scrollRestorer.maybeRestoreScroll();
 
-    verify(streamScrollMonitor).onProgrammaticScroll(recyclerView);
+    verify(scrollListenerNotifier).onProgrammaticScroll(recyclerView);
     assertThat(layoutManager.scrolledPosition).isEqualTo(TOP_POSITION);
     assertThat(layoutManager.scrolledOffset).isEqualTo(OFFSET);
   }
@@ -107,7 +107,7 @@ public class ScrollRestorerTest {
 
     ScrollRestorer scrollRestorer =
         new ScrollRestorer(
-            configuration, recyclerView, streamScrollMonitor, createScrollState(10, 20));
+            configuration, recyclerView, scrollListenerNotifier, createScrollState(10, 20));
     scrollRestorer.abandonRestoringScroll();
     scrollRestorer.maybeRestoreScroll();
 
@@ -123,7 +123,7 @@ public class ScrollRestorerTest {
     view.setTop(OFFSET);
     layoutManager.addChildToPosition(TOP_POSITION, view);
     ScrollState restorerScrollState =
-        nonRestoringRestorer(configuration, recyclerView, streamScrollMonitor)
+        nonRestoringRestorer(configuration, recyclerView, scrollListenerNotifier)
             .getScrollStateForScrollRestore(HEADER_COUNT);
     assertThat(restorerScrollState).isEqualTo(SCROLL_STATE);
   }
@@ -131,7 +131,7 @@ public class ScrollRestorerTest {
   @Test
   public void testGetBundleForScrollPosition_invalidPosition() {
     assertThat(
-            nonRestoringRestorer(configuration, recyclerView, streamScrollMonitor)
+            nonRestoringRestorer(configuration, recyclerView, scrollListenerNotifier)
                 .getScrollStateForScrollRestore(10))
         .isNull();
   }
@@ -148,7 +148,7 @@ public class ScrollRestorerTest {
     view.setTop(OFFSET);
     layoutManager.addChildToPosition(TOP_POSITION, view);
     ScrollState restorerScrollState =
-        nonRestoringRestorer(configuration, recyclerView, streamScrollMonitor)
+        nonRestoringRestorer(configuration, recyclerView, scrollListenerNotifier)
             .getScrollStateForScrollRestore(HEADER_COUNT);
     assertThat(restorerScrollState).isEqualTo(SCROLL_STATE);
   }
@@ -164,7 +164,7 @@ public class ScrollRestorerTest {
     view.setTop(OFFSET);
     layoutManager.addChildToPosition(TOP_POSITION, view);
     ScrollState restorerScrollState =
-        nonRestoringRestorer(configuration, recyclerView, streamScrollMonitor)
+        nonRestoringRestorer(configuration, recyclerView, scrollListenerNotifier)
             .getScrollStateForScrollRestore(HEADER_COUNT);
     assertThat(restorerScrollState).isNull();
   }
@@ -181,7 +181,7 @@ public class ScrollRestorerTest {
     view.setTop(OFFSET);
     layoutManager.addChildToPosition(TOP_POSITION, view);
     ScrollState restorerScrollState =
-        nonRestoringRestorer(configuration, recyclerView, streamScrollMonitor)
+        nonRestoringRestorer(configuration, recyclerView, scrollListenerNotifier)
             .getScrollStateForScrollRestore(HEADER_COUNT);
     assertThat(restorerScrollState).isNull();
   }

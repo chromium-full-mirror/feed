@@ -14,16 +14,16 @@
 
 package com.google.android.libraries.feed.basicstream.internal.scroll;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.api.stream.ScrollListener;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.host.logging.ScrollType;
+import com.google.android.libraries.feed.sharedstream.publicapi.scroll.ScrollObservable;
+import com.google.android.libraries.feed.sharedstream.publicapi.scroll.ScrollObserver;
 import com.google.android.libraries.feed.sharedstream.scroll.ScrollLogger;
-import com.google.android.libraries.feed.sharedstream.scroll.StreamScrollMonitor;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,7 +35,7 @@ import org.robolectric.RobolectricTestRunner;
 public class BasicStreamScrollTrackerTest {
 
   @Mock private ScrollLogger logger;
-  @Mock private StreamScrollMonitor scrollMonitor;
+  @Mock private ScrollObservable scrollObservable;
   private final FakeClock clock = new FakeClock();
 
   private final FakeMainThreadRunner mainThreadRunner = FakeMainThreadRunner.queueAllTasks();
@@ -44,14 +44,14 @@ public class BasicStreamScrollTrackerTest {
   @Before
   public void setUp() {
     initMocks(this);
-    scrollTracker = new BasicStreamScrollTracker(mainThreadRunner, logger, clock, scrollMonitor);
-    verify(scrollMonitor).addScrollListener(any(ScrollListener.class));
+    scrollTracker = new BasicStreamScrollTracker(mainThreadRunner, logger, clock, scrollObservable);
+    verify(scrollObservable).addScrollObserver(any(ScrollObserver.class));
   }
 
   @Test
   public void onUnbind_removedScrollListener() {
     scrollTracker.onUnbind();
-    verify(scrollMonitor).removeScrollListener(any(ScrollListener.class));
+    verify(scrollObservable).removeScrollObserver(any(ScrollObserver.class));
   }
 
   @Test

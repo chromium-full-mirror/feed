@@ -40,6 +40,7 @@ import com.google.android.libraries.feed.basicstream.internal.StreamItemTouchCal
 import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter;
 import com.google.android.libraries.feed.basicstream.internal.StreamSavedInstanceStateProto.StreamSavedInstanceState;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
+import com.google.android.libraries.feed.basicstream.internal.scroll.BasicStreamScrollMonitor;
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
 import com.google.android.libraries.feed.basicstream.internal.viewloggingupdater.ViewLoggingUpdater;
 import com.google.android.libraries.feed.common.concurrent.CancelableTask;
@@ -87,7 +88,8 @@ import com.google.android.libraries.feed.sharedstream.piet.PietStringFormatter;
 import com.google.android.libraries.feed.sharedstream.proto.ScrollStateProto.ScrollState;
 import com.google.android.libraries.feed.sharedstream.proto.UiRefreshReasonProto.UiRefreshReason;
 import com.google.android.libraries.feed.sharedstream.publicapi.menumeasurer.MenuMeasurer;
-import com.google.android.libraries.feed.sharedstream.scroll.StreamScrollMonitor;
+import com.google.android.libraries.feed.sharedstream.publicapi.scroll.ScrollObservable;
+import com.google.android.libraries.feed.sharedstream.scroll.ScrollListenerNotifier;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import java.util.List;
@@ -127,13 +129,14 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
   private final TooltipApi tooltipApi;
   private final UiSessionRequestLogger uiSessionRequestLogger;
   private final StreamConfiguration streamConfiguration;
+  private final BasicStreamScrollMonitor scrollMonitor;
 
   private RecyclerView recyclerView;
   private ContextMenuManager contextMenuManager;
   private List<Header> headers;
   private StreamItemTouchCallbacks itemTouchCallbacks;
   private StreamRecyclerViewAdapter adapter;
-  private StreamScrollMonitor streamScrollMonitor;
+  private ScrollListenerNotifier scrollListenerNotifier;
   private ScrollRestorer scrollRestorer;
   private long sessionStartTimestamp;
   private long initialLoadingSpinnerStartTime;
@@ -216,6 +219,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
             isBackgroundDark);
     this.context =
         new ContextThemeWrapper(context, (isBackgroundDark ? R.style.Dark : R.style.Light));
+    this.scrollMonitor = new BasicStreamScrollMonitor(clock);
   }
 
   @VisibleForTesting
@@ -262,7 +266,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
     setupRecyclerView();
 
     if (savedInstanceState == null) {
-      scrollRestorer = createScrollRestorer(configuration, recyclerView, streamScrollMonitor, null);
+      scrollRestorer =
+          createScrollRestorer(configuration, recyclerView, scrollListenerNotifier, null);
       return;
     }
 
@@ -278,11 +283,12 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
           createScrollRestorer(
               configuration,
               recyclerView,
-              streamScrollMonitor,
+              scrollListenerNotifier,
               streamSavedInstanceState.getScrollState());
     } catch (IllegalArgumentException | InvalidProtocolBufferException e) {
       Logger.wtf(TAG, "Could not parse saved instance state String.");
-      scrollRestorer = createScrollRestorer(configuration, recyclerView, streamScrollMonitor, null);
+      scrollRestorer =
+          createScrollRestorer(configuration, recyclerView, scrollListenerNotifier, null);
     }
   }
 
@@ -454,12 +460,12 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
 
   @Override
   public void addScrollListener(ScrollListener listener) {
-    streamScrollMonitor.addScrollListener(listener);
+    scrollListenerNotifier.addScrollListener(listener);
   }
 
   @Override
   public void removeScrollListener(ScrollListener listener) {
-    streamScrollMonitor.removeScrollListener(listener);
+    scrollListenerNotifier.removeScrollListener(listener);
   }
 
   @Override
@@ -508,8 +514,9 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
 
   private void setupRecyclerView() {
     recyclerView = new RecyclerView(context);
-    streamScrollMonitor = createStreamScrollMonitor(streamContentChangedListener, mainThreadRunner);
-    recyclerView.addOnScrollListener(streamScrollMonitor);
+    scrollListenerNotifier =
+        createScrollListenerNotifier(streamContentChangedListener, scrollMonitor, mainThreadRunner);
+    recyclerView.addOnScrollListener(scrollMonitor);
     adapter =
         createRecyclerViewAdapter(
             context,
@@ -517,7 +524,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
             pietManager,
             deepestContentTracker,
             streamContentChangedListener,
-            streamScrollMonitor,
+            scrollMonitor,
             configuration,
             new PietEventLogger(basicLoggingApi));
     adapter.setHeaders(headers);
@@ -577,7 +584,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
             mainThreadRunner,
             tooltipApi,
             uiRefreshReason,
-            streamScrollMonitor);
+            scrollListenerNotifier);
 
     uiRefreshReason = UiRefreshReason.getDefaultInstance();
 
@@ -757,7 +764,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
       ScrollRestorer initialScrollRestorer =
           modelProvider.getCurrentState() == State.READY
               ? scrollRestorer
-              : createNonRestoringScrollRestorer(configuration, recyclerView, streamScrollMonitor);
+              : createNonRestoringScrollRestorer(
+                  configuration, recyclerView, scrollListenerNotifier);
 
       streamDriver =
           createStreamDriver(
@@ -781,7 +789,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
               mainThreadRunner,
               tooltipApi,
               UiRefreshReason.getDefaultInstance(),
-              streamScrollMonitor);
+              scrollListenerNotifier);
 
       showSpinnerWithDelay();
       adapter.setDriver(streamDriver);
@@ -826,7 +834,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
       MainThreadRunner mainThreadRunner,
       TooltipApi tooltipApi,
       UiRefreshReason uiRefreshReason,
-      StreamScrollMonitor streamScrollMonitor) {
+      ScrollListenerNotifier scrollListenerNotifier) {
     return new StreamDriver(
         actionApi,
         actionManager,
@@ -849,7 +857,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
         viewLoggingUpdater,
         tooltipApi,
         uiRefreshReason,
-        streamScrollMonitor);
+        scrollMonitor);
   }
 
   @VisibleForTesting
@@ -859,7 +867,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
       PietManager pietManager,
       DeepestContentTracker deepestContentTracker,
       StreamContentChangedListener streamContentChangedListener,
-      StreamScrollMonitor streamScrollMonitor,
+      ScrollObservable scrollObservable,
       Configuration configuration,
       PietEventLogger pietEventLogger) {
     return new StreamRecyclerViewAdapter(
@@ -869,15 +877,17 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
         pietManager,
         deepestContentTracker,
         streamContentChangedListener,
-        streamScrollMonitor,
+        scrollObservable,
         configuration,
         pietEventLogger);
   }
 
   @VisibleForTesting
-  StreamScrollMonitor createStreamScrollMonitor(
-      ContentChangedListener contentChangedListener, MainThreadRunner mainThreadRunner) {
-    return new StreamScrollMonitor(contentChangedListener, mainThreadRunner);
+  ScrollListenerNotifier createScrollListenerNotifier(
+      ContentChangedListener contentChangedListener,
+      BasicStreamScrollMonitor scrollMonitor,
+      MainThreadRunner mainThreadRunner) {
+    return new ScrollListenerNotifier(contentChangedListener, scrollMonitor, mainThreadRunner);
   }
 
   @VisibleForTesting
@@ -895,17 +905,17 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
   ScrollRestorer createScrollRestorer(
       Configuration configuration,
       RecyclerView recyclerView,
-      StreamScrollMonitor streamScrollMonitor,
+      ScrollListenerNotifier scrollListenerNotifier,
       /*@Nullable*/ ScrollState scrollState) {
-    return new ScrollRestorer(configuration, recyclerView, streamScrollMonitor, scrollState);
+    return new ScrollRestorer(configuration, recyclerView, scrollListenerNotifier, scrollState);
   }
 
   @VisibleForTesting
   ScrollRestorer createNonRestoringScrollRestorer(
       Configuration configuration,
       RecyclerView recyclerView,
-      StreamScrollMonitor streamScrollMonitor) {
-    return ScrollRestorer.nonRestoringRestorer(configuration, recyclerView, streamScrollMonitor);
+      ScrollListenerNotifier scrollListenerNotifier) {
+    return ScrollRestorer.nonRestoringRestorer(configuration, recyclerView, scrollListenerNotifier);
   }
 
   @VisibleForTesting

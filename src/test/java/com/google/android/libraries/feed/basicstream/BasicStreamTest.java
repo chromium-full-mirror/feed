@@ -21,8 +21,8 @@ import static com.google.android.libraries.feed.basicstream.BasicStream.MINIMUM_
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.common.truth.Truth.assertThat;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
@@ -50,6 +50,7 @@ import com.google.android.libraries.feed.basicstream.internal.StreamItemAnimator
 import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter;
 import com.google.android.libraries.feed.basicstream.internal.StreamSavedInstanceStateProto.StreamSavedInstanceState;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
+import com.google.android.libraries.feed.basicstream.internal.scroll.BasicStreamScrollMonitor;
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
 import com.google.android.libraries.feed.basicstream.internal.viewloggingupdater.ViewLoggingUpdater;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
@@ -93,7 +94,8 @@ import com.google.android.libraries.feed.sharedstream.proto.ScrollStateProto.Scr
 import com.google.android.libraries.feed.sharedstream.proto.UiRefreshReasonProto.UiRefreshReason;
 import com.google.android.libraries.feed.sharedstream.proto.UiRefreshReasonProto.UiRefreshReason.Reason;
 import com.google.android.libraries.feed.sharedstream.publicapi.menumeasurer.MenuMeasurer;
-import com.google.android.libraries.feed.sharedstream.scroll.StreamScrollMonitor;
+import com.google.android.libraries.feed.sharedstream.publicapi.scroll.ScrollObservable;
+import com.google.android.libraries.feed.sharedstream.scroll.ScrollListenerNotifier;
 import com.google.android.libraries.feed.testing.shadows.ShadowRecycledViewPool;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.search.now.feed.client.StreamDataProto.UiContext;
@@ -148,7 +150,7 @@ public class BasicStreamTest {
   @Mock private SnackbarApi snackbarApi;
   @Mock private StreamDriver streamDriver;
   @Mock private StreamRecyclerViewAdapter adapter;
-  @Mock private StreamScrollMonitor streamScrollMonitor;
+  @Mock private ScrollListenerNotifier scrollListenerNotifier;
   @Mock private ScrollRestorer nonRestoringScrollRestorer;
   @Mock private ScrollRestorer scrollRestorer;
   @Mock private BasicLoggingApi basicLoggingApi;
@@ -763,14 +765,14 @@ public class BasicStreamTest {
   public void testAddScrollListener() {
     ScrollListener scrollListener = mock(ScrollListener.class);
     basicStream.addScrollListener(scrollListener);
-    verify(streamScrollMonitor).addScrollListener(scrollListener);
+    verify(scrollListenerNotifier).addScrollListener(scrollListener);
   }
 
   @Test
   public void testRemoveScrollListener() {
     ScrollListener scrollListener = mock(ScrollListener.class);
     basicStream.removeScrollListener(scrollListener);
-    verify(streamScrollMonitor).removeScrollListener(scrollListener);
+    verify(scrollListenerNotifier).removeScrollListener(scrollListener);
   }
 
   @Test
@@ -1308,7 +1310,7 @@ public class BasicStreamTest {
         MainThreadRunner mainThreadRunner,
         TooltipApi tooltipApi,
         UiRefreshReason uiRefreshReason,
-        StreamScrollMonitor streamScrollMonitor) {
+        ScrollListenerNotifier scrollListenerNotifier) {
       streamDriverScrollRestorer = scrollRestorer;
       streamDriverRestoring = restoring;
       this.streamDriverUiRefreshReason = uiRefreshReason;
@@ -1328,16 +1330,18 @@ public class BasicStreamTest {
         PietManager pietManager,
         DeepestContentTracker deepestContentTracker,
         StreamContentChangedListener streamContentChangedListener,
-        StreamScrollMonitor streamScrollMonitor,
+        ScrollObservable scrollObservable,
         Configuration configuration,
         PietEventLogger pietEventLogger) {
       return adapter;
     }
 
     @Override
-    StreamScrollMonitor createStreamScrollMonitor(
-        ContentChangedListener contentChangedListener, MainThreadRunner mainThreadRunner) {
-      return streamScrollMonitor;
+    ScrollListenerNotifier createScrollListenerNotifier(
+        ContentChangedListener contentChangedListener,
+        BasicStreamScrollMonitor scrollMonitor,
+        MainThreadRunner mainThreadRunner) {
+      return scrollListenerNotifier;
     }
 
     @Override
@@ -1349,7 +1353,7 @@ public class BasicStreamTest {
     ScrollRestorer createScrollRestorer(
         Configuration configuration,
         RecyclerView recyclerView,
-        StreamScrollMonitor streamScrollMonitor,
+        ScrollListenerNotifier scrollListenerNotifier,
         /*@Nullable*/ ScrollState scrollState) {
       return scrollRestorer;
     }
@@ -1358,7 +1362,7 @@ public class BasicStreamTest {
     ScrollRestorer createNonRestoringScrollRestorer(
         Configuration configuration,
         RecyclerView recyclerView,
-        StreamScrollMonitor streamScrollMonitor) {
+        ScrollListenerNotifier scrollListenerNotifier) {
       return nonRestoringScrollRestorer;
     }
 

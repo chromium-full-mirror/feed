@@ -35,6 +35,7 @@ import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver.StreamContentListener;
 import com.google.android.libraries.feed.basicstream.internal.drivers.testing.FakeFeatureDriver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.testing.FakeLeafFeatureDriver;
+import com.google.android.libraries.feed.basicstream.internal.scroll.BasicStreamScrollMonitor;
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
 import com.google.android.libraries.feed.basicstream.internal.viewloggingupdater.ViewLoggingUpdater;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
@@ -63,7 +64,6 @@ import com.google.android.libraries.feed.sharedstream.pendingdismiss.PendingDism
 import com.google.android.libraries.feed.sharedstream.proto.UiRefreshReasonProto.UiRefreshReason;
 import com.google.android.libraries.feed.sharedstream.proto.UiRefreshReasonProto.UiRefreshReason.Reason;
 import com.google.android.libraries.feed.sharedstream.removetrackingfactory.StreamRemoveTrackingFactory;
-import com.google.android.libraries.feed.sharedstream.scroll.StreamScrollMonitor;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelChild;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelCursor;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelFeature;
@@ -130,7 +130,7 @@ public class StreamDriverTest {
   @Mock private StreamOfflineMonitor streamOfflineMonitor;
   @Mock private PendingDismissCallback pendingDismissCallback;
   @Mock private TooltipApi tooltipApi;
-  @Mock private StreamScrollMonitor scrollMonitor;
+  @Mock private BasicStreamScrollMonitor scrollMonitor;
 
   @Captor private ArgumentCaptor<List<LeafFeatureDriver>> featureDriversCaptor;
 
