@@ -52,10 +52,10 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Class which implements factory to create the task which commits a mutation to the SessionManager
- * and Sessions. This is created and used by the {@link
- * com.google.android.libraries.feed.feedsessionmanager.FeedSessionManager} to commit a mutation
- * defined as a List of {@link StreamDataOperation}.
+ * Class which implements factory to create the task which commits a mutation to the
+ * FeedSessionManager and Sessions. This is created and used by the {@link
+ * com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager} to commit a
+ * mutation defined as a List of {@link StreamDataOperation}.
  */
 public final class SessionManagerMutation implements Dumpable {
   private static final String TAG = "SessionManagerMutation";
@@ -103,7 +103,7 @@ public final class SessionManagerMutation implements Dumpable {
 
   /**
    * Return a Consumer of StreamDataOperations which will update the {@link
-   * com.google.android.libraries.feed.feedsessionmanager.FeedSessionManager}.
+   * com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager}.
    */
   public Consumer<Result<List<StreamDataOperation>>> createCommitter(
       String task,

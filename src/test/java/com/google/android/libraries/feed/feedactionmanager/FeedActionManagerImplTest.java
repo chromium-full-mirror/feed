@@ -22,7 +22,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.MutationContext;
-import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
+import com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeTaskQueue;
@@ -66,7 +66,7 @@ public class FeedActionManagerImplTest {
       FakeMainThreadRunner.runTasksImmediately();
   private final FakeThreadUtils fakeThreadUtils = FakeThreadUtils.withThreadChecks();
 
-  @Mock private SessionManager sessionManager;
+  @Mock private FeedSessionManager feedSessionManager;
   @Mock private Store store;
   @Mock private LocalActionMutation localActionMutation;
   @Mock private Consumer<Result<List<StreamDataOperation>>> streamDataOperationsConsumer;
@@ -84,7 +84,7 @@ public class FeedActionManagerImplTest {
     initMocks(this);
     actionManager =
         new FeedActionManagerImpl(
-            sessionManager,
+            feedSessionManager,
             store,
             fakeThreadUtils,
             getTaskQueue(),
@@ -133,7 +133,7 @@ public class FeedActionManagerImplTest {
 
     verify(localActionMutation).commit();
 
-    verify(sessionManager).getUpdateConsumer(mutationContextCaptor.capture());
+    verify(feedSessionManager).getUpdateConsumer(mutationContextCaptor.capture());
     assertThat(mutationContextCaptor.getValue().getRequestingSessionId()).isEqualTo(SESSION_ID);
 
     verify(streamDataOperationsConsumer).accept(streamDataOperationsCaptor.capture());
@@ -168,7 +168,7 @@ public class FeedActionManagerImplTest {
 
     actionManager.dismiss(Collections.singletonList(dataOperation), SESSION_ID);
 
-    verify(sessionManager).getUpdateConsumer(mutationContextCaptor.capture());
+    verify(feedSessionManager).getUpdateConsumer(mutationContextCaptor.capture());
     assertThat(mutationContextCaptor.getValue().getRequestingSessionId()).isEqualTo(SESSION_ID);
 
     verify(streamDataOperationsConsumer).accept(streamDataOperationsCaptor.capture());
@@ -185,7 +185,7 @@ public class FeedActionManagerImplTest {
     ActionPayload payload = ActionPayload.getDefaultInstance();
     fakeClock.set(DEFAULT_TIME);
     actionManager.createAndUploadAction(CONTENT_ID_STRING, payload);
-    verify(sessionManager).triggerUploadActions(actionCaptor.capture());
+    verify(feedSessionManager).triggerUploadActions(actionCaptor.capture());
     StreamUploadableAction action = (StreamUploadableAction) actionCaptor.getValue().toArray()[0];
     assertThat(action.getFeatureContentId()).isEqualTo(CONTENT_ID_STRING);
     assertThat(action.getTimestampSeconds()).isEqualTo(DEFAULT_TIME_SECONDS);
@@ -204,7 +204,7 @@ public class FeedActionManagerImplTest {
           assertThat(result).isEqualTo(expectedUrl);
         };
     actionManager.uploadAllActionsAndUpdateUrl(url, param, consumer);
-    verify(sessionManager).fetchActionsAndUpload(consumerCaptor.capture());
+    verify(feedSessionManager).fetchActionsAndUpload(consumerCaptor.capture());
     consumerCaptor.getValue().accept(Result.success(token));
   }
 
@@ -218,7 +218,7 @@ public class FeedActionManagerImplTest {
   }
 
   private void setUpDismissMocks() {
-    when(sessionManager.getUpdateConsumer(any(MutationContext.class)))
+    when(feedSessionManager.getUpdateConsumer(any(MutationContext.class)))
         .thenReturn(streamDataOperationsConsumer);
     when(localActionMutation.add(anyInt(), anyString())).thenReturn(localActionMutation);
     when(store.editLocalActions()).thenReturn(localActionMutation);

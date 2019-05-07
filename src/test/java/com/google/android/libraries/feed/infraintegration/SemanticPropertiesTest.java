@@ -40,7 +40,7 @@ import org.robolectric.RobolectricTestRunner;
 public class SemanticPropertiesTest {
   private final InfraIntegrationScope scope = new InfraIntegrationScope.Builder().build();
   private final FakeFeedRequestManager fakeFeedRequestManager = scope.getFakeFeedRequestManager();
-  private final SessionManager sessionManager = scope.getSessionManager();
+  private final SessionManager sessionManager = scope.getFeedSessionManager();
   private final Store store = scope.getStore();
 
   @Test

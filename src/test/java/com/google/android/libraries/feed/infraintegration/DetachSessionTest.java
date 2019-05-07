@@ -69,7 +69,7 @@ public class DetachSessionTest {
     InfraIntegrationScope scope =
         new InfraIntegrationScope.Builder().setConfiguration(configuration).build();
     fakeFeedRequestManager = scope.getFakeFeedRequestManager();
-    sessionManager = scope.getSessionManager();
+    sessionManager = scope.getFeedSessionManager();
     modelProviderFactory = scope.getModelProviderFactory();
     modelValidator = new ModelProviderValidator(scope.getProtocolAdapter());
   }

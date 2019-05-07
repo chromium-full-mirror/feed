@@ -43,22 +43,22 @@ public interface ModelProvider {
   ModelMutation edit();
 
   /**
-   * This is called to invalidate the model. The SessionManager calls this to free all resources
+   * This is called to invalidate the model. The FeedSessionManager calls this to free all resources
    * held by this ModelProvider instance.
    */
   void invalidate();
 
   /**
-   * This is called to invalidate the model. The SessionManager calls this to free all resources
+   * This is called to invalidate the model. The FeedSessionManager calls this to free all resources
    * held by this ModelProvider instance.
    */
   void invalidate(UiContext uiContext);
 
   /**
-   * This is called to detach the ModelProvider from the SessionManager. The Session will continue
-   * to be persisted, but the SessionManager will drop connections to this ModelProvider. The
-   * ModelProvider will enter a {@code State.INVALIDATED}. This will not call the {@link
-   * ModelProviderObserver#onSessionFinished(UiContext)}.
+   * This is called to detach the ModelProvider from the FeedSessionManager. The Session will
+   * continue to be persisted, but the FeedSessionManager will drop connections to this
+   * ModelProvider. The ModelProvider will enter a {@code State.INVALIDATED}. This will not call the
+   * {@link ModelProviderObserver#onSessionFinished(UiContext)}.
    */
   void detachModelProvider();
 

@@ -19,8 +19,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.api.lifecycle.Resettable;
-import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeTaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
@@ -40,7 +40,7 @@ public class ClearAllListenerTest {
   private final FakeThreadUtils fakeThreadUtils = FakeThreadUtils.withThreadChecks();
 
   @Mock private Resettable store;
-  @Mock private SessionManager sessionManager;
+  @Mock private FeedSessionManager feedSessionManager;
   private FakeTaskQueue fakeTaskQueue;
   private FeedAppLifecycleListener appLifecycleListener;
 
@@ -56,7 +56,7 @@ public class ClearAllListenerTest {
   public void testClearAll() {
     setupClearAllListener();
     appLifecycleListener.onClearAll();
-    verify(sessionManager).reset();
+    verify(feedSessionManager).reset();
     verify(store).reset();
     assertThat(fakeTaskQueue.resetWasCalled()).isTrue();
     assertThat(fakeTaskQueue.completeResetWasCalled()).isTrue();
@@ -66,8 +66,8 @@ public class ClearAllListenerTest {
   public void testClearAllWithRefresh() {
     setupClearAllListener();
     appLifecycleListener.onClearAllWithRefresh();
-    verify(sessionManager).reset();
-    verify(sessionManager)
+    verify(feedSessionManager).reset();
+    verify(feedSessionManager)
         .triggerRefresh(null, RequestReason.CLEAR_ALL, UiContext.getDefaultInstance());
     verify(store).reset();
     assertThat(fakeTaskQueue.resetWasCalled()).isTrue();
@@ -78,12 +78,12 @@ public class ClearAllListenerTest {
   public void testNonClearLifecycld() {
     setupClearAllListener();
     appLifecycleListener.onEnterForeground();
-    verifyZeroInteractions(sessionManager);
+    verifyZeroInteractions(feedSessionManager);
     verifyZeroInteractions(store);
   }
 
   private void setupClearAllListener() {
     new ClearAllListener(
-        fakeTaskQueue, sessionManager, store, fakeThreadUtils, appLifecycleListener);
+        fakeTaskQueue, feedSessionManager, store, fakeThreadUtils, appLifecycleListener);
   }
 }

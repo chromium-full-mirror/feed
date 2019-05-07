@@ -57,7 +57,7 @@ public class ExistingSessionTest {
         .queueResponse(ResponseBuilder.forClearAllWithCards(CARDS).build())
         .triggerRefresh(
             RequestReason.OPEN_WITHOUT_CONTENT,
-            scope.getSessionManager().getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+            scope.getFeedSessionManager().getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
   }
 
   @After
@@ -121,7 +121,7 @@ public class ExistingSessionTest {
         .queueResponse(ResponseBuilder.forClearAllWithCards(CARDS).build(), /* delayMs= */ 100)
         .triggerRefresh(
             RequestReason.OPEN_WITHOUT_CONTENT,
-            scope.getSessionManager().getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+            scope.getFeedSessionManager().getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
 
     // Restore the session.
     ModelProvider restoredModelProvider =

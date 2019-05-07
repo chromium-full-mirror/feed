@@ -14,8 +14,8 @@
 
 package com.google.android.libraries.feed.api.scope;
 
+import com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.api.lifecycle.Resettable;
-import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
 import com.google.android.libraries.feed.common.feedobservable.FeedObservable;
@@ -36,7 +36,7 @@ public final class ClearAllListener implements FeedLifecycleListener, Dumpable {
   private static final String TAG = "ClearAllListener";
 
   private final TaskQueue taskQueue;
-  private final SessionManager sessionManager;
+  private final FeedSessionManager feedSessionManager;
   private final /*@Nullable*/ Resettable store;
   private final ThreadUtils threadUtils;
   private int clearCount = 0;
@@ -45,12 +45,12 @@ public final class ClearAllListener implements FeedLifecycleListener, Dumpable {
   @SuppressWarnings("argument.type.incompatible") // ok call to registerObserver
   public ClearAllListener(
       TaskQueue taskQueue,
-      SessionManager sessionManager,
+      FeedSessionManager feedSessionManager,
       /*@Nullable*/ Resettable store,
       ThreadUtils threadUtils,
       FeedObservable<FeedLifecycleListener> lifecycleListenerObservable) {
     this.taskQueue = taskQueue;
-    this.sessionManager = sessionManager;
+    this.feedSessionManager = feedSessionManager;
     this.store = store;
     this.threadUtils = threadUtils;
 
@@ -80,7 +80,7 @@ public final class ClearAllListener implements FeedLifecycleListener, Dumpable {
     // Clear the task queue first, preventing any tasks from running until initialization
     taskQueue.reset();
     // reset the session state
-    sessionManager.reset();
+    feedSessionManager.reset();
     if (store != null) {
       store.reset();
     }
@@ -91,7 +91,8 @@ public final class ClearAllListener implements FeedLifecycleListener, Dumpable {
   private void clearAllWithRefresh() {
     threadUtils.checkNotMainThread();
     clearAll();
-    sessionManager.triggerRefresh(null, RequestReason.CLEAR_ALL, UiContext.getDefaultInstance());
+    feedSessionManager.triggerRefresh(
+        null, RequestReason.CLEAR_ALL, UiContext.getDefaultInstance());
     refreshCount++;
   }
 

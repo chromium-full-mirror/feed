@@ -17,7 +17,7 @@ package com.google.android.libraries.feed.feedactionmanager;
 import android.net.Uri;
 import android.util.Base64;
 import com.google.android.libraries.feed.api.common.MutationContext;
-import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
+import com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
@@ -40,7 +40,7 @@ import java.util.concurrent.TimeUnit;
 /** Default implementation of {@link ActionManager} */
 public class FeedActionManagerImpl implements ActionManager {
 
-  private final SessionManager sessionManager;
+  private final FeedSessionManager feedSessionManager;
   private final Store store;
   private final ThreadUtils threadUtils;
   private final TaskQueue taskQueue;
@@ -48,13 +48,13 @@ public class FeedActionManagerImpl implements ActionManager {
   private final Clock clock;
 
   public FeedActionManagerImpl(
-      SessionManager sessionManager,
+      FeedSessionManager feedSessionManager,
       Store store,
       ThreadUtils threadUtils,
       TaskQueue taskQueue,
       MainThreadRunner mainThreadRunner,
       Clock clock) {
-    this.sessionManager = sessionManager;
+    this.feedSessionManager = feedSessionManager;
     this.store = store;
     this.threadUtils = threadUtils;
     this.taskQueue = taskQueue;
@@ -100,7 +100,7 @@ public class FeedActionManagerImpl implements ActionManager {
                   .setPayload(payload)
                   .setTimestampSeconds(currentTime)
                   .build());
-          sessionManager.triggerUploadActions(actionSet);
+          feedSessionManager.triggerUploadActions(actionSet);
         });
   }
 
@@ -112,7 +112,7 @@ public class FeedActionManagerImpl implements ActionManager {
         TaskType.BACKGROUND,
         () -> {
           // TODO: figure out spinner and/or timeout conditions
-          sessionManager.fetchActionsAndUpload(
+          feedSessionManager.fetchActionsAndUpload(
               result -> {
                 mainThreadRunner.execute(
                     "Open url",
@@ -148,7 +148,7 @@ public class FeedActionManagerImpl implements ActionManager {
     if (sessionId != null) {
       mutationContextBuilder.setRequestingSessionId(sessionId);
     }
-    sessionManager
+    feedSessionManager
         .getUpdateConsumer(mutationContextBuilder.build())
         .accept(Result.success(streamDataOperations));
   }

@@ -88,7 +88,7 @@ public final class SessionTestUtils {
         .queueResponse(ResponseBuilder.forClearAllWithCards(REQUEST_1).build())
         .triggerRefresh(
             RequestReason.OPEN_WITHOUT_CONTENT,
-            scope.getSessionManager().getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+            scope.getFeedSessionManager().getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
   }
 
   /** Enqueues an error response and returns the delay in milliseconds. */
@@ -112,7 +112,7 @@ public final class SessionTestUtils {
         .getFakeFeedRequestManager()
         .triggerRefresh(
             RequestReason.OPEN_WITHOUT_CONTENT,
-            scope.getSessionManager().getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+            scope.getFeedSessionManager().getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
     return delayMs;
   }
 
@@ -123,7 +123,7 @@ public final class SessionTestUtils {
         .getFakeFeedRequestManager()
         .triggerRefresh(
             RequestReason.OPEN_WITHOUT_CONTENT,
-            scope.getSessionManager().getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+            scope.getFeedSessionManager().getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
     return delayMs;
   }
 

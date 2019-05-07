@@ -16,9 +16,10 @@ package com.google.android.libraries.feed.feedsessionmanager;
 
 import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.client.knowncontent.KnownContent;
+import com.google.android.libraries.feed.api.client.knowncontent.KnownContent.Listener;
 import com.google.android.libraries.feed.api.common.MutationContext;
+import com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.api.requestmanager.ActionUploadRequestManager;
-import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.Validators;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
@@ -85,11 +86,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.concurrent.GuardedBy;
 
-/** Prototype implementation of the SessionManager. All state is kept in memory. */
-public final class FeedSessionManager
-    implements SessionManager, StoreListener, FeedLifecycleListener, Dumpable {
+/** Implementation of the FeedSessionManager. All state is kept in memory. */
+public final class FeedSessionManagerImpl
+    implements FeedSessionManager, StoreListener, FeedLifecycleListener, Dumpable {
 
-  private static final String TAG = "FeedSessionManager";
+  private static final String TAG = "FeedSessionManagerImpl";
 
   private static final long TIMEOUT_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(5);
 
@@ -128,7 +129,7 @@ public final class FeedSessionManager
   private final ThreadUtils threadUtils;
   private final TimingUtils timingUtils;
   private final ProtocolAdapter protocolAdapter;
-  private final FeedRequestManager feedRequestManager;
+  private final FeedRequestManager requestManager;
   private final ActionUploadRequestManager actionUploadRequestManager;
   private final SchedulerApi schedulerApi;
   private final TaskQueue taskQueue;
@@ -142,10 +143,10 @@ public final class FeedSessionManager
   private int newSessionCount = 0;
   private int existingSessionCount = 0;
   private int handleTokenCount = 0;
-  private KnownContent./*@MonotonicNonNull*/ Listener knownContentListener;
+  private Listener knownContentListener;
 
   @SuppressWarnings("argument.type.incompatible") // ok call to registerObserver
-  public FeedSessionManager(
+  public FeedSessionManagerImpl(
       TaskQueue taskQueue,
       SessionFactory sessionFactory,
       SessionCache sessionCache,
@@ -171,7 +172,7 @@ public final class FeedSessionManager
     this.timingUtils = timingUtils;
     this.threadUtils = threadUtils;
     this.protocolAdapter = protocolAdapter;
-    this.feedRequestManager = feedRequestManager;
+    this.requestManager = feedRequestManager;
     this.actionUploadRequestManager = actionUploadRequestManager;
     this.schedulerApi = schedulerApi;
     this.clock = clock;
@@ -180,7 +181,7 @@ public final class FeedSessionManager
     sessionPopulationTimeoutMs =
         configuration.getValueOrDefault(ConfigKey.TIMEOUT_TIMEOUT_MS, TIMEOUT_TIMEOUT_MS);
     lifecycleListenerObservable.registerObserver(this);
-    Logger.i(TAG, "FeedSessionManager has been created");
+    Logger.i(TAG, "FeedSessionManagerImpl has been created");
   }
 
   /**
@@ -192,7 +193,7 @@ public final class FeedSessionManager
   public void initialize() {
     boolean init = initialized.getAndSet(true);
     if (init) {
-      Logger.w(TAG, "FeedSessionManager has previously been initialized");
+      Logger.w(TAG, "FeedSessionManagerImpl has previously been initialized");
       return;
     }
     store.registerObserver(this);
@@ -516,7 +517,7 @@ public final class FeedSessionManager
               getConsistencyToken(),
               result -> {
                 ConsistencyToken token = handleUpdateConsistencyToken(result);
-                feedRequestManager.loadMore(
+                requestManager.loadMore(
                     streamToken, token, getCommitter("handleToken", mutationContext));
               });
         });
@@ -568,7 +569,7 @@ public final class FeedSessionManager
         getConsistencyToken(),
         result -> {
           ConsistencyToken consistencyToken = handleUpdateConsistencyToken(result);
-          feedRequestManager.triggerRefresh(
+          requestManager.triggerRefresh(
               requestReason,
               consistencyToken,
               getCommitter(
@@ -690,7 +691,7 @@ public final class FeedSessionManager
             .createCommitter(
                 taskName,
                 mutationContext,
-                FeedSessionManager.this::modelErrorObserver,
+                FeedSessionManagerImpl.this::modelErrorObserver,
                 knownContentListener)
             .accept(input);
       } else {

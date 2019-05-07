@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.feedsessionmanager;
 
+import com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.api.requestmanager.ActionUploadRequestManager;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.feedobservable.FeedObservable;
@@ -79,7 +80,7 @@ public final class FeedSessionManagerFactory {
   }
 
   /** Creates a new FeedSessionManager and initializes it */
-  public FeedSessionManager create() {
+  public FeedSessionManagerImpl create() {
     long lifetimeMs =
         configuration.getValueOrDefault(ConfigKey.SESSION_LIFETIME_MS, DEFAULT_LIFETIME_MS);
     SessionFactory sessionFactory =
@@ -99,7 +100,7 @@ public final class FeedSessionManagerFactory {
             timingUtils,
             clock);
 
-    return new FeedSessionManager(
+    return new FeedSessionManagerImpl(
         taskQueue,
         sessionFactory,
         sessionCache,

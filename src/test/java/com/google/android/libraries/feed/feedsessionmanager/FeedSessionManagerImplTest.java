@@ -16,13 +16,14 @@ package com.google.android.libraries.feed.feedsessionmanager;
 
 import static com.google.android.libraries.feed.internalapi.store.Store.HEAD_SESSION_ID;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.MutationContext;
+import com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeTaskQueue;
@@ -34,8 +35,8 @@ import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.feedapplifecyclelistener.FeedAppLifecycleListener;
 import com.google.android.libraries.feed.feedapplifecyclelistener.FeedLifecycleListener.LifecycleEvent;
 import com.google.android.libraries.feed.feedmodelprovider.FeedModelProviderFactory;
-import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManager.SessionMutationTracker;
-import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManager.StreamSharedStateInterner;
+import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManagerImpl.SessionMutationTracker;
+import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManagerImpl.StreamSharedStateInterner;
 import com.google.android.libraries.feed.feedsessionmanager.internal.HeadSessionImpl;
 import com.google.android.libraries.feed.feedsessionmanager.internal.Session;
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionCache;
@@ -91,9 +92,9 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
 
-/** Tests of the {@link FeedSessionManager} class. */
+/** Tests of the {@link FeedSessionManagerImpl} class. */
 @RunWith(RobolectricTestRunner.class)
-public class FeedSessionManagerTest {
+public class FeedSessionManagerImplTest {
 
   private static final MutationContext EMPTY_MUTATION = new MutationContext.Builder().build();
   private static final ContentId SHARED_STATE_ID =
@@ -115,7 +116,7 @@ public class FeedSessionManagerTest {
   private FakeActionUploadRequestManager fakeActionUploadRequestManager;
   private FakeMainThreadRunner fakeMainThreadRunner;
   private FakeProtocolAdapter fakeProtocolAdapter;
-  private FakeFeedRequestManager fakeFeedRequestManager;
+  private FakeFeedRequestManager fakeRequestManager;
   private FakeStore fakeStore;
   private FakeTaskQueue fakeTaskQueue;
   private FakeThreadUtils fakeThreadUtils;
@@ -133,10 +134,10 @@ public class FeedSessionManagerTest {
     fakeActionUploadRequestManager = new FakeActionUploadRequestManager(fakeThreadUtils);
     fakeStore = new FakeStore(fakeThreadUtils, fakeTaskQueue, fakeClock);
     fakeProtocolAdapter = new FakeProtocolAdapter();
-    fakeFeedRequestManager =
+    fakeRequestManager =
         new FakeFeedRequestManager(
             fakeThreadUtils, fakeMainThreadRunner, fakeProtocolAdapter, fakeTaskQueue);
-    fakeFeedRequestManager.queueResponse(Response.getDefaultInstance());
+    fakeRequestManager.queueResponse(Response.getDefaultInstance());
     when(schedulerApi.shouldSessionRequestData(any(SessionManagerState.class)))
         .thenReturn(RequestBehavior.NO_REQUEST_WITH_CONTENT);
   }
@@ -155,20 +156,7 @@ public class FeedSessionManagerTest {
             .build();
     fakeStore.setSharedStates(sharedState).setStreamStructures(HEAD_SESSION_ID, operation);
 
-    FeedSessionManager sessionManager =
-        new FeedSessionManagerFactory(
-                fakeTaskQueue,
-                fakeStore,
-                timingUtils,
-                fakeThreadUtils,
-                fakeProtocolAdapter,
-                fakeFeedRequestManager,
-                fakeActionUploadRequestManager,
-                schedulerApi,
-                configuration,
-                fakeClock,
-                appLifecycleListener)
-            .create();
+    FeedSessionManagerImpl sessionManager = createFeedSessionManager(configuration);
     assertThat(sessionManager.initialized.get()).isFalse();
     sessionManager.initialize();
     assertThat(sessionManager.initialized.get()).isTrue();
@@ -210,7 +198,7 @@ public class FeedSessionManagerTest {
     assertThat(sharedState1.getPietSharedStateItem())
         .isEqualTo(sharedState2.getPietSharedStateItem());
     assertThat(sharedState1.getPietSharedStateItem())
-        .isNotSameInstanceAs(sharedState2.getPietSharedStateItem());
+        .isNotSameAs(sharedState2.getPietSharedStateItem());
 
     StreamStructure operation =
         StreamStructure.newBuilder()
@@ -227,20 +215,7 @@ public class FeedSessionManagerTest {
         .addContentId("shared-state-1", contentId1)
         .addContentId("shared-state-2", contentId2);
 
-    FeedSessionManager sessionManager =
-        new FeedSessionManagerFactory(
-                fakeTaskQueue,
-                fakeStore,
-                timingUtils,
-                fakeThreadUtils,
-                fakeProtocolAdapter,
-                fakeFeedRequestManager,
-                fakeActionUploadRequestManager,
-                schedulerApi,
-                configuration,
-                fakeClock,
-                appLifecycleListener)
-            .create();
+    FeedSessionManagerImpl sessionManager = createFeedSessionManager(configuration);
     assertThat(sessionManager.initialized.get()).isFalse();
     sessionManager.initialize();
     assertThat(sessionManager.initialized.get()).isTrue();
@@ -255,25 +230,12 @@ public class FeedSessionManagerTest {
 
     // Cached PietSharedStateItem messages the same between the 2 shared states (memoized).
     assertThat(cachedSharedState1.getPietSharedStateItem())
-        .isSameInstanceAs(cachedSharedState2.getPietSharedStateItem());
+        .isSameAs(cachedSharedState2.getPietSharedStateItem());
   }
 
   @Test
   public void testLifecycleInitialization() {
-    FeedSessionManager sessionManager =
-        new FeedSessionManagerFactory(
-                fakeTaskQueue,
-                fakeStore,
-                timingUtils,
-                fakeThreadUtils,
-                fakeProtocolAdapter,
-                fakeFeedRequestManager,
-                fakeActionUploadRequestManager,
-                schedulerApi,
-                configuration,
-                fakeClock,
-                appLifecycleListener)
-            .create();
+    FeedSessionManagerImpl sessionManager = createFeedSessionManager(configuration);
     assertThat(sessionManager.initialized.get()).isFalse();
     sessionManager.onLifecycleEvent(LifecycleEvent.INITIALIZE);
     assertThat(sessionManager.initialized.get()).isTrue();
@@ -283,7 +245,7 @@ public class FeedSessionManagerTest {
 
   @Test
   public void testSessionWithContent() {
-    FeedSessionManager sessionManager = getInitializedSessionManager();
+    FeedSessionManagerImpl sessionManager = getInitializedSessionManager();
     int featureCnt = 3;
     populateSession(sessionManager, featureCnt, 1, true, null);
 
@@ -314,7 +276,7 @@ public class FeedSessionManagerTest {
     when(schedulerApi.shouldSessionRequestData(any(SessionManagerState.class)))
         .thenReturn(RequestBehavior.NO_REQUEST_WITH_CONTENT);
 
-    FeedSessionManager sessionManager = getInitializedSessionManager();
+    FeedSessionManagerImpl sessionManager = getInitializedSessionManager();
     populateSession(sessionManager, 3, 1, true, null);
     fakeTaskQueue.resetCounts();
 
@@ -332,7 +294,7 @@ public class FeedSessionManagerTest {
     when(schedulerApi.shouldSessionRequestData(any(SessionManagerState.class)))
         .thenReturn(RequestBehavior.REQUEST_WITH_CONTENT);
 
-    FeedSessionManager sessionManager = getInitializedSessionManager();
+    FeedSessionManagerImpl sessionManager = getInitializedSessionManager();
     populateSession(sessionManager, 3, 1, true, null);
     fakeTaskQueue.resetCounts();
 
@@ -350,7 +312,7 @@ public class FeedSessionManagerTest {
     when(schedulerApi.shouldSessionRequestData(any(SessionManagerState.class)))
         .thenReturn(RequestBehavior.REQUEST_WITH_WAIT);
 
-    FeedSessionManager sessionManager = getInitializedSessionManager();
+    FeedSessionManagerImpl sessionManager = getInitializedSessionManager();
     populateSession(sessionManager, 3, 1, true, null);
     fakeTaskQueue.resetCounts();
 
@@ -365,7 +327,7 @@ public class FeedSessionManagerTest {
 
   @Test
   public void testGetExistingSession_populateIsImmediate() {
-    FeedSessionManager sessionManager = getInitializedSessionManager();
+    FeedSessionManagerImpl sessionManager = getInitializedSessionManager();
     populateSession(
         sessionManager,
         /* featureCnt= */ 2,
@@ -387,7 +349,7 @@ public class FeedSessionManagerTest {
 
   @Test
   public void testNoCardsError() {
-    FeedSessionManager sessionManager = getInitializedSessionManager();
+    FeedSessionManagerImpl sessionManager = getInitializedSessionManager();
     sessionManager.getUpdateConsumer(EMPTY_MUTATION).accept(Result.failure());
 
     ModelProvider modelProvider = getModelProvider(sessionManager);
@@ -402,7 +364,7 @@ public class FeedSessionManagerTest {
 
   @Test
   public void testNoCardsError_populatedHeadSuppressesError() {
-    FeedSessionManager sessionManager = getInitializedSessionManager();
+    FeedSessionManagerImpl sessionManager = getInitializedSessionManager();
     populateSession(
         sessionManager,
         /* featureCnt= */ 2,
@@ -423,7 +385,7 @@ public class FeedSessionManagerTest {
 
   @Test
   public void testModelErrorObserver() {
-    FeedSessionManager sessionManager = getInitializedSessionManager();
+    FeedSessionManagerImpl sessionManager = getInitializedSessionManager();
     // verify this runs.  Another method that can'be be verified on a single thread since
     // the noCardsError will be set and unset.
     sessionManager.modelErrorObserver(null, new ModelError(ErrorType.NO_CARDS_ERROR, null));
@@ -431,7 +393,7 @@ public class FeedSessionManagerTest {
 
   @Test
   public void testReset() {
-    FeedSessionManager sessionManager = getInitializedSessionManager();
+    FeedSessionManagerImpl sessionManager = getInitializedSessionManager();
     int featureCnt = 3;
     int fullFeatureCount = populateSession(sessionManager, featureCnt, 1, true, null);
     assertThat(fullFeatureCount).isEqualTo(featureCnt + 1);
@@ -445,34 +407,33 @@ public class FeedSessionManagerTest {
     ByteString bytes = ByteString.copyFrom("continuation", Charset.defaultCharset());
     StreamToken streamToken =
         StreamToken.newBuilder().setNextPageToken(bytes).setParentId(rootContentId).build();
-    FeedSessionManager sessionManager = getInitializedSessionManager();
+    FeedSessionManagerImpl sessionManager = getInitializedSessionManager();
     sessionManager.handleToken(SESSION_ID, streamToken);
 
-    assertThat(fakeFeedRequestManager.getLatestStreamToken()).isEqualTo(streamToken);
+    assertThat(fakeRequestManager.getLatestStreamToken()).isEqualTo(streamToken);
   }
 
   @Test
   public void testForceRefresh() {
-    FeedSessionManager sessionManager = getInitializedSessionManager();
+    FeedSessionManagerImpl sessionManager = getInitializedSessionManager();
     sessionManager.triggerRefresh(
         SESSION_ID, RequestReason.ZERO_STATE, UiContext.getDefaultInstance());
 
-    assertThat(fakeFeedRequestManager.getLatestRequestReason()).isEqualTo(RequestReason.ZERO_STATE);
+    assertThat(fakeRequestManager.getLatestRequestReason()).isEqualTo(RequestReason.ZERO_STATE);
   }
 
   @Test
   public void testForceRefresh_scheduledRefresh() {
-    FeedSessionManager sessionManager = getInitializedSessionManager();
+    FeedSessionManagerImpl sessionManager = getInitializedSessionManager();
     sessionManager.triggerRefresh(
         SESSION_ID, RequestReason.HOST_REQUESTED, UiContext.getDefaultInstance());
 
-    assertThat(fakeFeedRequestManager.getLatestRequestReason())
-        .isEqualTo(RequestReason.HOST_REQUESTED);
+    assertThat(fakeRequestManager.getLatestRequestReason()).isEqualTo(RequestReason.HOST_REQUESTED);
   }
 
   @Test
   public void testGetSharedState() {
-    FeedSessionManager sessionManager = getInitializedSessionManager();
+    FeedSessionManagerImpl sessionManager = getInitializedSessionManager();
     String sharedStateId = idGenerators.createSharedStateContentId(0);
     ContentId undefinedSharedStateId =
         ContentId.newBuilder()
@@ -495,7 +456,7 @@ public class FeedSessionManagerTest {
 
   @Test
   public void testUpdateConsumer() {
-    FeedSessionManager sessionManager = getInitializedSessionManager();
+    FeedSessionManagerImpl sessionManager = getInitializedSessionManager();
     assertThat(sessionManager.outstandingMutations).isEmpty();
     Consumer<Result<List<StreamDataOperation>>> updateConsumer =
         sessionManager.getUpdateConsumer(EMPTY_MUTATION);
@@ -508,7 +469,7 @@ public class FeedSessionManagerTest {
 
   @Test
   public void testUpdateConsumer_clearAll() {
-    FeedSessionManager sessionManager = getInitializedSessionManager();
+    FeedSessionManagerImpl sessionManager = getInitializedSessionManager();
     assertThat(sessionManager.outstandingMutations).isEmpty();
     Consumer<Result<List<StreamDataOperation>>> updateConsumer =
         sessionManager.getUpdateConsumer(EMPTY_MUTATION);
@@ -523,7 +484,7 @@ public class FeedSessionManagerTest {
 
   @Test
   public void testUpdateConsumer_clearAllWithRefresh() {
-    FeedSessionManager sessionManager = getInitializedSessionManager();
+    FeedSessionManagerImpl sessionManager = getInitializedSessionManager();
     assertThat(sessionManager.outstandingMutations).isEmpty();
     Consumer<Result<List<StreamDataOperation>>> updateConsumer =
         sessionManager.getUpdateConsumer(EMPTY_MUTATION);
@@ -538,21 +499,7 @@ public class FeedSessionManagerTest {
 
   @Test
   public void testEdit_actionProperties() {
-    FeedSessionManager sessionManager =
-        new FeedSessionManagerFactory(
-                fakeTaskQueue,
-                fakeStore,
-                timingUtils,
-                fakeThreadUtils,
-                fakeProtocolAdapter,
-                fakeFeedRequestManager,
-                fakeActionUploadRequestManager,
-                schedulerApi,
-                configuration,
-                fakeClock,
-                appLifecycleListener)
-            .create();
-    sessionManager.initialize();
+    FeedSessionManagerImpl sessionManager = getInitializedSessionManager();
 
     OpaqueActionData actionData =
         OpaqueActionData.newBuilder()
@@ -580,21 +527,7 @@ public class FeedSessionManagerTest {
 
   @Test
   public void testEdit_semanticProperties() {
-    FeedSessionManager sessionManager =
-        new FeedSessionManagerFactory(
-                fakeTaskQueue,
-                fakeStore,
-                timingUtils,
-                fakeThreadUtils,
-                fakeProtocolAdapter,
-                fakeFeedRequestManager,
-                fakeActionUploadRequestManager,
-                schedulerApi,
-                configuration,
-                fakeClock,
-                appLifecycleListener)
-            .create();
-    sessionManager.initialize();
+    FeedSessionManagerImpl sessionManager = getInitializedSessionManager();
 
     ByteString semanticData = ByteString.copyFromUtf8("helloWorld");
     StreamDataOperation streamDataOperation =
@@ -617,7 +550,7 @@ public class FeedSessionManagerTest {
 
   @Test
   public void testSwitchToEphemeralMode() {
-    FeedSessionManager sessionManager = getUninitializedSessionManager();
+    FeedSessionManagerImpl sessionManager = getUninitializedSessionManager();
     fakeThreadUtils.enforceMainThread(false);
     sessionManager.switchToEphemeralMode("An Error Message");
     assertThat(fakeStore.isEphemeralMode()).isTrue();
@@ -625,7 +558,7 @@ public class FeedSessionManagerTest {
 
   @Test
   public void testOnSwitchToEphemeralMode() {
-    FeedSessionManager sessionManager = getInitializedSessionManager();
+    FeedSessionManagerImpl sessionManager = getInitializedSessionManager();
     String sharedStateId = idGenerators.createSharedStateContentId(0);
 
     int featureCount = 3;
@@ -655,7 +588,7 @@ public class FeedSessionManagerTest {
   @Test
   public void testErrors_initializationSharedStateError() {
     fakeStore.setAllowGetSharedStates(false);
-    FeedSessionManager sessionManager = getUninitializedSessionManager();
+    FeedSessionManagerImpl sessionManager = getUninitializedSessionManager();
     sessionManager.initialize();
     assertThat(fakeStore.isEphemeralMode()).isTrue();
   }
@@ -663,7 +596,7 @@ public class FeedSessionManagerTest {
   @Test
   public void testErrors_initializationStreamStructureError() {
     fakeStore.setAllowGetStreamStructures(false);
-    FeedSessionManager sessionManager = getUninitializedSessionManager();
+    FeedSessionManagerImpl sessionManager = getUninitializedSessionManager();
     sessionManager.initialize();
     assertThat(fakeStore.isEphemeralMode()).isTrue();
   }
@@ -671,7 +604,7 @@ public class FeedSessionManagerTest {
   @Test
   public void testErrors_createNewSessionError() {
     fakeStore.setAllowCreateNewSession(false);
-    FeedSessionManager sessionManager = getUninitializedSessionManager();
+    FeedSessionManagerImpl sessionManager = getUninitializedSessionManager();
     sessionManager.initialize();
     populateSession(sessionManager, 5, 1, true, null);
 
@@ -681,7 +614,7 @@ public class FeedSessionManagerTest {
 
   @Test
   public void testErrors_getStreamStructuresError() {
-    FeedSessionManager sessionManager = getUninitializedSessionManager();
+    FeedSessionManagerImpl sessionManager = getUninitializedSessionManager();
     sessionManager.initialize();
     fakeStore.setAllowGetStreamStructures(false);
     populateSession(sessionManager, 5, 1, true, null);
@@ -692,7 +625,7 @@ public class FeedSessionManagerTest {
 
   @Test
   public void testTriggerUploadActions() {
-    FeedSessionManager sessionManager =
+    FeedSessionManagerImpl sessionManager =
         getInitializedSessionManager(
             new Configuration.Builder().put(ConfigKey.UNDOABLE_ACTIONS_ENABLED, true).build());
     HashSet<StreamUploadableAction> actionSet = new HashSet<>();
@@ -708,7 +641,7 @@ public class FeedSessionManagerTest {
 
   @Test
   public void testGetConsistencyToken() {
-    FeedSessionManager sessionManager =
+    FeedSessionManagerImpl sessionManager =
         getInitializedSessionManager(
             new Configuration.Builder().put(ConfigKey.UNDOABLE_ACTIONS_ENABLED, true).build());
     ConsistencyToken token =
@@ -720,7 +653,7 @@ public class FeedSessionManagerTest {
 
   @Test
   public void testGetConsistencyTokenEmpty() {
-    FeedSessionManager sessionManager = getInitializedSessionManager();
+    FeedSessionManagerImpl sessionManager = getInitializedSessionManager();
     fakeThreadUtils.enforceMainThread(false);
     assertThat(sessionManager.getConsistencyToken())
         .isEqualTo(ConsistencyToken.getDefaultInstance());
@@ -728,7 +661,7 @@ public class FeedSessionManagerTest {
 
   @Test
   public void testFetchActionsAndUpload() {
-    FeedSessionManager sessionManager = getInitializedSessionManager();
+    FeedSessionManagerImpl sessionManager = getInitializedSessionManager();
     ConsistencyToken token =
         ConsistencyToken.newBuilder().setToken(ByteString.copyFrom(new byte[] {0x1, 0xf})).build();
     Consumer<Result<ConsistencyToken>> consumer =
@@ -773,7 +706,7 @@ public class FeedSessionManagerTest {
                         PietSharedState.newBuilder()
                             .addTemplates(Template.newBuilder().setTemplateId("different"))))
             .build();
-    assertThat(first).isNotSameInstanceAs(second);
+    assertThat(first).isNotSameAs(second);
     assertThat(first.getPietSharedStateItem()).isEqualTo(second.getPietSharedStateItem());
     assertThat(first).isNotEqualTo(third);
     assertThat(first.getPietSharedStateItem()).isNotEqualTo(third.getPietSharedStateItem());
@@ -781,27 +714,26 @@ public class FeedSessionManagerTest {
     // Pool is empty so first is added/returned.
     StreamSharedState internedFirst = interner.intern(first);
     assertThat(interner.size()).isEqualTo(1);
-    assertThat(internedFirst).isSameInstanceAs(first);
+    assertThat(internedFirst).isSameAs(first);
 
     // Pool already has an identical inner PietSharedStateItem proto, which is used.
     StreamSharedState internedSecond = interner.intern(second);
     assertThat(interner.size()).isEqualTo(1);
     // The returned proto is equal to second, but its internal PietSharedStateItem is the same as
     // the one in first (memoized).
-    assertThat(internedSecond).isNotSameInstanceAs(second);
+    assertThat(internedSecond).isNotSameAs(second);
     assertThat(internedSecond).isEqualTo(second);
-    assertThat(internedSecond.getPietSharedStateItem())
-        .isSameInstanceAs(first.getPietSharedStateItem());
+    assertThat(internedSecond.getPietSharedStateItem()).isSameAs(first.getPietSharedStateItem());
 
     // Third has a new PietSharedStateItem (not equal with any previous) so it is added to the pool.
     StreamSharedState internedThird = interner.intern(third);
     assertThat(interner.size()).isEqualTo(2);
-    assertThat(internedThird).isSameInstanceAs(third);
+    assertThat(internedThird).isSameAs(third);
   }
 
   @Test
   public void testGetNewSession() {
-    FeedSessionManager sessionManager = getInitializedSessionManager();
+    FeedSessionManagerImpl sessionManager = getInitializedSessionManager();
 
     UiContext uiContext =
         UiContext.newBuilder()
@@ -820,7 +752,7 @@ public class FeedSessionManagerTest {
   }
 
   private int populateSession(
-      FeedSessionManager sessionManager,
+      FeedSessionManagerImpl sessionManager,
       int featureCnt,
       int idStart,
       boolean reset,
@@ -873,37 +805,28 @@ public class FeedSessionManagerTest {
     }
   }
 
-  private FeedSessionManager getInitializedSessionManager() {
+  private FeedSessionManagerImpl getInitializedSessionManager() {
     return getInitializedSessionManager(configuration);
   }
 
-  private FeedSessionManager getInitializedSessionManager(Configuration config) {
-    FeedSessionManager fsm =
-        new FeedSessionManagerFactory(
-                fakeTaskQueue,
-                fakeStore,
-                timingUtils,
-                fakeThreadUtils,
-                fakeProtocolAdapter,
-                fakeFeedRequestManager,
-                fakeActionUploadRequestManager,
-                schedulerApi,
-                config,
-                fakeClock,
-                appLifecycleListener)
-            .create();
+  private FeedSessionManagerImpl getInitializedSessionManager(Configuration config) {
+    FeedSessionManagerImpl fsm = createFeedSessionManager(config);
     fsm.initialize();
     return fsm;
   }
 
-  private FeedSessionManager getUninitializedSessionManager() {
+  private FeedSessionManagerImpl getUninitializedSessionManager() {
+    return createFeedSessionManager(configuration);
+  }
+
+  private FeedSessionManagerImpl createFeedSessionManager(Configuration configuration) {
     return new FeedSessionManagerFactory(
             fakeTaskQueue,
             fakeStore,
             timingUtils,
             fakeThreadUtils,
             fakeProtocolAdapter,
-            fakeFeedRequestManager,
+            fakeRequestManager,
             fakeActionUploadRequestManager,
             schedulerApi,
             configuration,

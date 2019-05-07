@@ -64,7 +64,7 @@ public class LimitedPagingTest {
     initMocks(this);
     InfraIntegrationScope scope = new InfraIntegrationScope.Builder().build();
     fakeFeedRequestManager = scope.getFakeFeedRequestManager();
-    sessionManager = scope.getSessionManager();
+    sessionManager = scope.getFeedSessionManager();
     modelProviderFactory = scope.getModelProviderFactory();
     modelValidator = new ModelProviderValidator(scope.getProtocolAdapter());
   }

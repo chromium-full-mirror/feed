@@ -16,7 +16,7 @@ package com.google.android.libraries.feed.feedmodelprovider;
 
 import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.common.MutationContext;
-import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
+import com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.Validators;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
@@ -123,7 +123,7 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
   private int commitUpdateCount = 0;
   private int cursorsRemoved = 0;
 
-  private final SessionManager sessionManager;
+  private final FeedSessionManager feedSessionManager;
   private final ThreadUtils threadUtils;
   private final TaskQueue taskQueue;
   private final MainThreadRunner mainThreadRunner;
@@ -147,14 +147,14 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
   private int requestReason = RequestReason.UNKNOWN;
 
   FeedModelProvider(
-      SessionManager sessionManager,
+      FeedSessionManager feedSessionManager,
       ThreadUtils threadUtils,
       TimingUtils timingUtils,
       TaskQueue taskQueue,
       MainThreadRunner mainThreadRunner,
       /*@Nullable*/ Predicate<StreamStructure> filterPredicate,
       Configuration config) {
-    this.sessionManager = sessionManager;
+    this.feedSessionManager = feedSessionManager;
     this.threadUtils = threadUtils;
     this.timingUtils = timingUtils;
     this.taskQueue = taskQueue;
@@ -179,7 +179,7 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
             return cursor;
           }
         };
-    modelChildBinder = new ModelChildBinder(sessionManager, cursorProvider, timingUtils);
+    modelChildBinder = new ModelChildBinder(feedSessionManager, cursorProvider, timingUtils);
   }
 
   @Override
@@ -209,7 +209,7 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
   @Override
   /*@Nullable*/
   public StreamSharedState getSharedState(ContentId contentId) {
-    return sessionManager.getSharedState(contentId);
+    return feedSessionManager.getSharedState(contentId);
   }
 
   @Override
@@ -235,7 +235,7 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
       }
     }
     String sessionId = Validators.checkNotNull(this.sessionId);
-    sessionManager.handleToken(sessionId, modelToken.getStreamToken());
+    feedSessionManager.handleToken(sessionId, modelToken.getStreamToken());
     return true;
   }
 
@@ -254,7 +254,7 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
       }
       return;
     }
-    sessionManager.triggerRefresh(sessionId, requestReason, uiContext);
+    feedSessionManager.triggerRefresh(sessionId, requestReason, uiContext);
   }
 
   @Override
@@ -316,7 +316,7 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
     String sessionId = getSessionId();
     if (sessionId != null) {
       Logger.i(TAG, "Detach the current ModelProvider: session %s", sessionId);
-      sessionManager.detachSession(sessionId);
+      feedSessionManager.detachSession(sessionId);
     }
   }
 
@@ -334,7 +334,7 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
     String sessionId = getSessionId();
     if (sessionId != null) {
       Logger.i(TAG, "Invalidating the current ModelProvider: session %s", sessionId);
-      sessionManager.invalidateSession(sessionId);
+      feedSessionManager.invalidateSession(sessionId);
     }
 
     // Always run the observers on the UI Thread

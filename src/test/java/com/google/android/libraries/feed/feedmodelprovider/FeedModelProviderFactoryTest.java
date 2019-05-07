@@ -18,7 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
+import com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
@@ -39,7 +39,7 @@ public class FeedModelProviderFactoryTest {
 
   @Mock private ThreadUtils threadUtils;
   @Mock private TimingUtils timingUtils;
-  @Mock private SessionManager sessionManager;
+  @Mock private FeedSessionManager feedSessionManager;
   @Mock private Configuration config;
   @Mock private TaskQueue taskQueue;
 
@@ -60,7 +60,7 @@ public class FeedModelProviderFactoryTest {
   public void testModelProviderFactory() {
     FeedModelProviderFactory factory =
         new FeedModelProviderFactory(
-            sessionManager, threadUtils, timingUtils, taskQueue, mainThreadRunner, config);
+            feedSessionManager, threadUtils, timingUtils, taskQueue, mainThreadRunner, config);
     assertThat(factory.createNew(null, UiContext.getDefaultInstance())).isNotNull();
   }
 }

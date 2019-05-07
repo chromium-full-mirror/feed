@@ -54,7 +54,7 @@ public class StructureUpdateTest {
   private final ModelProviderValidator modelValidator =
       new ModelProviderValidator(scope.getProtocolAdapter());
   private final ProtocolAdapter protocolAdapter = scope.getProtocolAdapter();
-  private final SessionManager sessionManager = scope.getSessionManager();
+  private final SessionManager sessionManager = scope.getFeedSessionManager();
 
   @Test
   public void appendChildren() {

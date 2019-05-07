@@ -41,7 +41,11 @@ public interface ModelMutation {
   /** Set the session id of the session backing this ModelProvider. */
   ModelMutation setSessionId(String sessionId);
 
-  /** Indicates that the SessionManager has cached the payload bindings. */
+  /**
+   * Indicates that the {@link
+   * com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager} has cached
+   * the payload bindings.
+   */
   ModelMutation hasCachedBindings(boolean cachedBindings);
 
   /** Commits the pending changes to the store. */

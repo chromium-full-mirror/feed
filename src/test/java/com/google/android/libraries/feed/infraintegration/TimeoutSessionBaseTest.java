@@ -23,7 +23,7 @@ import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
 import com.google.android.libraries.feed.common.testing.ResponseBuilder;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
-import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManager;
+import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManagerImpl;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi.RequestBehavior;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelError;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider;
@@ -72,7 +72,7 @@ public class TimeoutSessionBaseTest {
             .build();
     fakeClock = scope.getFakeClock();
     fakeFeedRequestManager = scope.getFakeFeedRequestManager();
-    sessionManager = scope.getSessionManager();
+    sessionManager = scope.getFeedSessionManager();
     modelProviderFactory = scope.getModelProviderFactory();
     modelValidator = new ModelProviderValidator(scope.getProtocolAdapter());
   }
@@ -147,7 +147,7 @@ public class TimeoutSessionBaseTest {
             System.out.println("onSessionStart");
             finished.set(true);
             modelValidator.assertCursorContents(modelProvider, cards);
-            assertThat(((FeedSessionManager) sessionManager).isDelayed()).isFalse();
+            assertThat(((FeedSessionManagerImpl) sessionManager).isDelayed()).isFalse();
           }
 
           @Override

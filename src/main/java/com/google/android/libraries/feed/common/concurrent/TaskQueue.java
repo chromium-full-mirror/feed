@@ -198,9 +198,8 @@ public class TaskQueue implements Dumpable {
   }
 
   /**
-   * Called to initialize the {@link
-   * com.google.android.libraries.feed.feedsessionmanager.FeedSessionManager}. This needs to be the
-   * first task run, all other tasks are delayed until initialization finishes.
+   * Called to initialize the {@link FeedSessionManager}. This needs to be the first task run, all
+   * other tasks are delayed until initialization finishes.
    */
   public void initialize(Runnable runnable) {
     synchronized (lock) {

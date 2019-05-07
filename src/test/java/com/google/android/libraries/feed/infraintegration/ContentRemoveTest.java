@@ -49,7 +49,7 @@ public class ContentRemoveTest {
   private final InfraIntegrationScope scope = new InfraIntegrationScope.Builder().build();
   private final FakeFeedRequestManager fakeFeedRequestManager = scope.getFakeFeedRequestManager();
   private final FakeThreadUtils fakeThreadUtils = scope.getFakeThreadUtils();
-  private final SessionManager sessionManager = scope.getSessionManager();
+  private final SessionManager sessionManager = scope.getFeedSessionManager();
   private final ModelProviderFactory modelProviderFactory = scope.getModelProviderFactory();
   private final ModelProviderValidator modelValidator =
       new ModelProviderValidator(scope.getProtocolAdapter());

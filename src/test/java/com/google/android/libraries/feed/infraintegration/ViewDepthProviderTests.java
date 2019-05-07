@@ -100,7 +100,7 @@ public class ViewDepthProviderTests {
     modelProviderFactory = scope.getModelProviderFactory();
     protocolAdapter = scope.getProtocolAdapter();
     modelValidator = new ModelProviderValidator(scope.getProtocolAdapter());
-    sessionManager = scope.getSessionManager();
+    sessionManager = scope.getFeedSessionManager();
     viewDepthProvider =
         new FakeViewDepthProvider()
             .setChildViewDepth(protocolAdapter.getStreamContentId(REQUEST_ONE[1]));

@@ -18,7 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.MutationContext;
-import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
+import com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.functional.Function;
 import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
@@ -37,14 +37,15 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class FilterHeadTest {
   private FakeFeedRequestManager fakeFeedRequestManager;
-  private SessionManager sessionManager;
+
+  private FeedSessionManager feedSessionManager;
 
   @Before
   public void setUp() {
     initMocks(this);
     InfraIntegrationScope scope = new InfraIntegrationScope.Builder().build();
     fakeFeedRequestManager = scope.getFakeFeedRequestManager();
-    sessionManager = scope.getSessionManager();
+    feedSessionManager = scope.getFeedSessionManager();
   }
 
   @Test
@@ -61,9 +62,9 @@ public class FilterHeadTest {
     fakeFeedRequestManager.queueResponse(ResponseBuilder.forClearAllWithCards(cards).build());
     fakeFeedRequestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
-        sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+        feedSessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
 
-    sessionManager.getStreamFeaturesFromHead(
+    feedSessionManager.getStreamFeaturesFromHead(
         transformer,
         result -> {
           assertThat(result.isSuccessful()).isTrue();
@@ -71,7 +72,7 @@ public class FilterHeadTest {
         });
 
     // only return the contentId of the Content cards
-    sessionManager.getStreamFeaturesFromHead(
+    feedSessionManager.getStreamFeaturesFromHead(
         toContent,
         result -> {
           assertThat(result.isSuccessful()).isTrue();

@@ -23,7 +23,7 @@ import com.google.android.libraries.feed.internalapi.store.Store;
 
 /**
  * Factory for creating a {@link InitializableSession} instance used in the {@link
- * com.google.android.libraries.feed.feedsessionmanager.FeedSessionManager}.
+ * com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager}.
  */
 public final class SessionFactory {
   private final Store store;

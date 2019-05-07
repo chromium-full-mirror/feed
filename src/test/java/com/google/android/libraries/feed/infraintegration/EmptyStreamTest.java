@@ -55,7 +55,7 @@ public class EmptyStreamTest {
     InfraIntegrationScope scope = new InfraIntegrationScope.Builder().build();
     fakeClock = scope.getFakeClock();
     fakeFeedRequestManager = scope.getFakeFeedRequestManager();
-    sessionManager = scope.getSessionManager();
+    sessionManager = scope.getFeedSessionManager();
     modelProviderFactory = scope.getModelProviderFactory();
   }
 

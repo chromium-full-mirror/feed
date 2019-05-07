@@ -14,7 +14,7 @@
 
 package com.google.android.libraries.feed.feedmodelprovider;
 
-import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
+import com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.functional.Predicate;
@@ -32,7 +32,7 @@ import com.google.search.now.feed.client.StreamDataProto.UiContext;
  * FeedModelProvider}.
  */
 public final class FeedModelProviderFactory implements ModelProviderFactory {
-  private final SessionManager sessionManager;
+  private final FeedSessionManager feedSessionManager;
   private final ThreadUtils threadUtils;
   private final TimingUtils timingUtils;
   private final TaskQueue taskQueue;
@@ -40,13 +40,13 @@ public final class FeedModelProviderFactory implements ModelProviderFactory {
   private final Configuration config;
 
   public FeedModelProviderFactory(
-      SessionManager sessionManager,
+      FeedSessionManager feedSessionManager,
       ThreadUtils threadUtils,
       TimingUtils timingUtils,
       TaskQueue taskQueue,
       MainThreadRunner mainThreadRunner,
       Configuration config) {
-    this.sessionManager = sessionManager;
+    this.feedSessionManager = feedSessionManager;
     this.threadUtils = threadUtils;
     this.timingUtils = timingUtils;
     this.taskQueue = taskQueue;
@@ -58,8 +58,14 @@ public final class FeedModelProviderFactory implements ModelProviderFactory {
   public ModelProvider create(String sessionId, UiContext uiContext) {
     FeedModelProvider modelProvider =
         new FeedModelProvider(
-            sessionManager, threadUtils, timingUtils, taskQueue, mainThreadRunner, null, config);
-    sessionManager.getExistingSession(sessionId, modelProvider, uiContext);
+            feedSessionManager,
+            threadUtils,
+            timingUtils,
+            taskQueue,
+            mainThreadRunner,
+            null,
+            config);
+    feedSessionManager.getExistingSession(sessionId, modelProvider, uiContext);
     return modelProvider;
   }
 
@@ -76,14 +82,14 @@ public final class FeedModelProviderFactory implements ModelProviderFactory {
       UiContext uiContext) {
     FeedModelProvider modelProvider =
         new FeedModelProvider(
-            sessionManager,
+            feedSessionManager,
             threadUtils,
             timingUtils,
             taskQueue,
             mainThreadRunner,
             filterPredicate,
             config);
-    sessionManager.getNewSession(
+    feedSessionManager.getNewSession(
         modelProvider, modelProvider.getViewDepthProvider(viewDepthProvider), uiContext);
     return modelProvider;
   }

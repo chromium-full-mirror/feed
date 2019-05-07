@@ -22,8 +22,8 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
 import android.content.Context;
+import com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.api.scope.FeedProcessScope.Builder;
-import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.host.config.ApplicationInfo;
 import com.google.android.libraries.feed.host.config.Configuration;
@@ -64,7 +64,8 @@ public class FeedProcessScopeTest {
   // Mocks for optional fields
   @Mock private ProtocolAdapter protocolAdapter;
   @Mock private FeedRequestManager feedRequestManager;
-  @Mock private SessionManager sessionManager;
+
+  @Mock private FeedSessionManager feedSessionManager;
   @Mock private ThreadUtils threadUtils;
 
   private final ProtoExtensionProvider protoExtensionProvider = ArrayList::new;
@@ -118,13 +119,13 @@ public class FeedProcessScopeTest {
                 tooltipSupportedApi)
             .setProtocolAdapter(protocolAdapter)
             .setFeedRequestManager(feedRequestManager)
-            .setSessionManager(sessionManager)
+            .setFeedSessionManager(feedSessionManager)
             .setProtoExtensionProvider(protoExtensionProvider)
             .setClock(fakeClock)
             .build();
 
     assertThat(processScope.getRequestManager()).isNotNull();
-    assertThat(processScope.getSessionManager()).isEqualTo(sessionManager);
+    assertThat(processScope.getSessionManager()).isEqualTo(feedSessionManager);
     assertThat(processScope.getAppLifecycleListener()).isNotNull();
     assertThat(processScope.getAppLifecycleListener()).isNotNull();
   }

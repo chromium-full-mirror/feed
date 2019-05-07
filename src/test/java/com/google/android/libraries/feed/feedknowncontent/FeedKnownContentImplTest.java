@@ -25,7 +25,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.google.android.libraries.feed.api.client.knowncontent.ContentMetadata;
 import com.google.android.libraries.feed.api.client.knowncontent.ContentRemoval;
 import com.google.android.libraries.feed.api.client.knowncontent.KnownContent;
-import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
+import com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Consumer;
@@ -57,7 +57,7 @@ public class FeedKnownContentImplTest {
   private static final String URL = "url";
   private static final String TITLE = "title";
 
-  @Mock private SessionManager sessionManager;
+  @Mock private FeedSessionManager feedSessionManager;
   @Mock private KnownContent.Listener listener1;
   @Mock private KnownContent.Listener listener2;
   @Mock private Consumer<List<ContentMetadata>> knownContentConsumer;
@@ -77,12 +77,13 @@ public class FeedKnownContentImplTest {
   public void setUp() {
     initMocks(this);
     when(threadUtils.isMainThread()).thenReturn(true);
-    knownContentApi = new FeedKnownContentImpl(sessionManager, mainThreadRunner, threadUtils);
+    knownContentApi = new FeedKnownContentImpl(feedSessionManager, mainThreadRunner, threadUtils);
   }
 
   @Test
   public void testSetsListenerOnSessionManager() {
-    verify(sessionManager).setKnownContentListener(knownContentApi.getKnownContentHostNotifier());
+    verify(feedSessionManager)
+        .setKnownContentListener(knownContentApi.getKnownContentHostNotifier());
   }
 
   @Test
@@ -128,7 +129,7 @@ public class FeedKnownContentImplTest {
   public void testGetKnownContent_returnsNullForNonContent() {
     knownContentApi.getKnownContent(knownContentConsumer);
 
-    verify(sessionManager)
+    verify(feedSessionManager)
         .getStreamFeaturesFromHead(
             knownContentFunctionCaptor.capture(), contentMetadataResultCaptor.capture());
 
@@ -140,7 +141,7 @@ public class FeedKnownContentImplTest {
   public void testGetKnownContent_returnsContentMetadataFromContent() {
     knownContentApi.getKnownContent(knownContentConsumer);
 
-    verify(sessionManager)
+    verify(feedSessionManager)
         .getStreamFeaturesFromHead(
             knownContentFunctionCaptor.capture(), contentMetadataResultCaptor.capture());
 
@@ -164,7 +165,7 @@ public class FeedKnownContentImplTest {
   public void testGetKnownContent_failure() {
     knownContentApi.getKnownContent(knownContentConsumer);
 
-    verify(sessionManager)
+    verify(feedSessionManager)
         .getStreamFeaturesFromHead(
             knownContentFunctionCaptor.capture(), contentMetadataResultCaptor.capture());
 
@@ -178,7 +179,8 @@ public class FeedKnownContentImplTest {
     FakeMainThreadRunner fakeMainThreadRunner = FakeMainThreadRunner.queueAllTasks();
     when(threadUtils.isMainThread()).thenReturn(false);
 
-    knownContentApi = new FeedKnownContentImpl(sessionManager, fakeMainThreadRunner, threadUtils);
+    knownContentApi =
+        new FeedKnownContentImpl(feedSessionManager, fakeMainThreadRunner, threadUtils);
 
     knownContentApi.addListener(listener1);
 

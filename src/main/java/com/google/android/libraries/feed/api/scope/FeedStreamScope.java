@@ -16,7 +16,7 @@ package com.google.android.libraries.feed.api.scope;
 
 import android.content.Context;
 import com.google.android.libraries.feed.api.internal.knowncontent.FeedKnownContent;
-import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
+import com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.api.stream.Stream;
 import com.google.android.libraries.feed.common.Validators;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
@@ -68,7 +68,7 @@ public final class FeedStreamScope {
         ActionApi actionApi,
         ImageLoaderApi imageLoaderApi,
         ProtocolAdapter protocolAdapter,
-        SessionManager sessionManager,
+        FeedSessionManager feedSessionManager,
         ThreadUtils threadUtils,
         TimingUtils timingUtils,
         TaskQueue taskQueue,
@@ -91,7 +91,7 @@ public final class FeedStreamScope {
       this.actionApi = actionApi;
       this.imageLoaderApi = imageLoaderApi;
       this.protocolAdapter = protocolAdapter;
-      this.sessionManager = sessionManager;
+      this.feedSessionManager = feedSessionManager;
       this.threadUtils = threadUtils;
       this.timingUtils = timingUtils;
       this.taskQueue = taskQueue;
@@ -140,7 +140,7 @@ public final class FeedStreamScope {
       if (modelProviderFactory == null) {
         modelProviderFactory =
             new FeedModelProviderFactory(
-                sessionManager, threadUtils, timingUtils, taskQueue, mainThreadRunner, config);
+                feedSessionManager, threadUtils, timingUtils, taskQueue, mainThreadRunner, config);
       }
       if (actionParserFactory == null) {
         actionParserFactory = new FeedActionParserFactory(protocolAdapter, basicLoggingApi);
@@ -189,7 +189,7 @@ public final class FeedStreamScope {
     private final ImageLoaderApi imageLoaderApi;
 
     private final ProtocolAdapter protocolAdapter;
-    private final SessionManager sessionManager;
+    private final FeedSessionManager feedSessionManager;
     private final ThreadUtils threadUtils;
     private final TimingUtils timingUtils;
     private final TaskQueue taskQueue;

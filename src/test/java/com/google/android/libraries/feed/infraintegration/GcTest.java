@@ -61,7 +61,7 @@ public final class GcTest {
         .queueResponse(createResponse(REQUEST_1))
         .triggerRefresh(
             RequestReason.OPEN_WITHOUT_CONTENT,
-            scope.getSessionManager().getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+            scope.getFeedSessionManager().getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
 
     // Create a new session based on this request.
     scope
@@ -76,7 +76,7 @@ public final class GcTest {
         .queueResponse(createResponse(REQUEST_2))
         .triggerRefresh(
             RequestReason.OPEN_WITHOUT_CONTENT,
-            scope.getSessionManager().getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+            scope.getFeedSessionManager().getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
 
     // Advance the clock without expiring the first session.
     fakeClock.advance(LIFETIME_MS / 2);
@@ -92,7 +92,7 @@ public final class GcTest {
         .queueResponse(createResponse(REQUEST_1))
         .triggerRefresh(
             RequestReason.OPEN_WITHOUT_CONTENT,
-            scope.getSessionManager().getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+            scope.getFeedSessionManager().getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
 
     // Create a new session based on this request.
     scope
@@ -107,7 +107,7 @@ public final class GcTest {
         .queueResponse(createResponse(REQUEST_2))
         .triggerRefresh(
             RequestReason.OPEN_WITHOUT_CONTENT,
-            scope.getSessionManager().getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+            scope.getFeedSessionManager().getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
 
     // Advance the clock to expire the first session, create a new scope that will run
     // initialization and delete content from the expired session.

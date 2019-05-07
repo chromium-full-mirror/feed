@@ -21,7 +21,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.MutationContext;
-import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
+import com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.functional.Consumer;
@@ -65,7 +65,7 @@ public class SyntheticTokensTest {
 
   private FakeClock fakeClock;
   private FakeFeedRequestManager fakeFeedRequestManager;
-  private SessionManager sessionManager;
+  private FeedSessionManager feedSessionManager;
   private ModelProviderFactory modelProviderFactory;
   private ModelProviderValidator modelValidator;
   private ProtocolAdapter protocolAdapter;
@@ -84,7 +84,7 @@ public class SyntheticTokensTest {
         new InfraIntegrationScope.Builder().setConfiguration(configuration).build();
     fakeClock = scope.getFakeClock();
     fakeFeedRequestManager = scope.getFakeFeedRequestManager();
-    sessionManager = scope.getSessionManager();
+    feedSessionManager = scope.getFeedSessionManager();
     modelProviderFactory = scope.getModelProviderFactory();
     protocolAdapter = scope.getProtocolAdapter();
     modelValidator = new ModelProviderValidator(scope.getProtocolAdapter());
@@ -97,11 +97,11 @@ public class SyntheticTokensTest {
    *   <li>Create an initial $HEAD with 13 items
    *   <li>Clear the FeedSessionManager ContentCache to simulate non-cached mode
    *   <li>Create a new session which will have a synthetic token at INITIAL_PAGE_SIZE
-   *   <li>SessionManager.handleToken on the synthetic token, verify full cursor and partial page
-   *       cursor
-   *   <li>SessionManager.handleToken on the next synthetic token, verify we get PAGE_SIZE + slop.
-   *       Verify both the full cursor and the partial page cursor. No further tokens will be in the
-   *       cursor.
+   *   <li>FeedSessionManager.handleToken on the synthetic token, verify full cursor and partial
+   *       page cursor
+   *   <li>FeedSessionManager.handleToken on the next synthetic token, verify we get PAGE_SIZE +
+   *       slop. Verify both the full cursor and the partial page cursor. No further tokens will be
+   *       in the cursor.
    * </ol>
    */
   @Test
@@ -127,7 +127,7 @@ public class SyntheticTokensTest {
     fakeFeedRequestManager.queueResponse(ResponseBuilder.forClearAllWithCards(cards).build());
     fakeFeedRequestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
-        sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+        feedSessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
     ModelProvider modelProvider =
         modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
@@ -194,11 +194,11 @@ public class SyntheticTokensTest {
    *   <li>Create an initial $HEAD with 13 items
    *   <li>Clear the FeedSessionManager ContentCache to simulate non-cached mode
    *   <li>Create a new session which will have a synthetic token at INITIAL_PAGE_SIZE
-   *   <li>SessionManager.handleToken on the synthetic token, verify full cursor and partial page
-   *       cursor
-   *   <li>SessionManager.handleToken on the next synthetic token, verify we get PAGE_SIZE + slop.
-   *       Verify both the full cursor and the partial page cursor. No further tokens will be in the
-   *       cursor.
+   *   <li>FeedSessionManager.handleToken on the synthetic token, verify full cursor and partial
+   *       page cursor
+   *   <li>FeedSessionManager.handleToken on the next synthetic token, verify we get PAGE_SIZE +
+   *       slop. Verify both the full cursor and the partial page cursor. No further tokens will be
+   *       in the cursor.
    * </ol>
    */
   @Test
@@ -224,7 +224,7 @@ public class SyntheticTokensTest {
     fakeFeedRequestManager.queueResponse(ResponseBuilder.forClearAllWithCards(cards).build());
     fakeFeedRequestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
-        sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+        feedSessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
     ModelProvider modelProvider =
         modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
@@ -319,7 +319,7 @@ public class SyntheticTokensTest {
     fakeFeedRequestManager.queueResponse(state.pageResponse);
     fakeFeedRequestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
-        sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+        feedSessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
     ModelProvider modelProvider =
         modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
@@ -389,7 +389,7 @@ public class SyntheticTokensTest {
     fakeFeedRequestManager.queueResponse(state.pageResponse);
     fakeFeedRequestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
-        sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+        feedSessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
     ModelProvider modelProvider =
         modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
@@ -464,7 +464,7 @@ public class SyntheticTokensTest {
     fakeFeedRequestManager.queueResponse(ResponseBuilder.forClearAllWithCards(cards).build());
     fakeFeedRequestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
-        sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+        feedSessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
     ModelProvider modelProvider =
         modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
@@ -479,7 +479,7 @@ public class SyntheticTokensTest {
             ResponseBuilder.builder().removeFeature(cards[0], ROOT_CONTENT_ID).build());
     assertThat(result.isSuccessful()).isTrue();
     Consumer<Result<List<StreamDataOperation>>> updateConsumer =
-        sessionManager.getUpdateConsumer(context);
+        feedSessionManager.getUpdateConsumer(context);
     updateConsumer.accept(Result.success(result.getValue()));
 
     // Verify the empty state
@@ -492,7 +492,7 @@ public class SyntheticTokensTest {
     result =
         protocolAdapter.createModel(ResponseBuilder.builder().addCardsToRoot(cardsTwo).build());
     assertThat(result.isSuccessful()).isTrue();
-    updateConsumer = sessionManager.getUpdateConsumer(context);
+    updateConsumer = feedSessionManager.getUpdateConsumer(context);
     updateConsumer.accept(Result.success(result.getValue()));
 
     // Validate the current model
@@ -522,7 +522,7 @@ public class SyntheticTokensTest {
     fakeFeedRequestManager.queueResponse(new ResponseBuilder().build());
     fakeFeedRequestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
-        sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+        feedSessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
     fakeClock.advance(TaskQueue.STARVATION_TIMEOUT_MS);
   }
 }

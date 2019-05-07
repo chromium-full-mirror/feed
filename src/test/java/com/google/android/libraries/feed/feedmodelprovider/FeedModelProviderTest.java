@@ -25,7 +25,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
+import com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
@@ -86,7 +86,7 @@ public class FeedModelProviderTest {
   private final String rootContentId = idGenerators.createRootContentId(0);
 
   @Mock private TaskQueue taskQueue;
-  @Mock private SessionManager sessionManager;
+  @Mock private FeedSessionManager feedSessionManager;
   @Mock private ThreadUtils threadUtils;
   @Mock private Configuration config;
 
@@ -108,7 +108,7 @@ public class FeedModelProviderTest {
               consumer.accept(Result.success(childBindings));
               return null;
             })
-        .when(sessionManager)
+        .when(feedSessionManager)
         .getStreamFeatures(any(), any());
     fakeMainThreadRunner = FakeMainThreadRunner.runTasksImmediately();
   }
@@ -269,7 +269,7 @@ public class FeedModelProviderTest {
   public void testSharedState() {
     ContentId contentId = ContentId.getDefaultInstance();
     StreamSharedState streamSharedState = StreamSharedState.getDefaultInstance();
-    when(sessionManager.getSharedState(contentId)).thenReturn(streamSharedState);
+    when(feedSessionManager.getSharedState(contentId)).thenReturn(streamSharedState);
 
     FeedModelProvider modelProvider = createFeedModelProviderWithConfig();
     assertThat(modelProvider.getSharedState(contentId)).isEqualTo(streamSharedState);
@@ -296,7 +296,7 @@ public class FeedModelProviderTest {
     FeedModelProvider modelProvider = createFeedModelProviderWithConfig();
     modelProvider.sessionId = SESSION_ID;
     modelProvider.handleToken(modelToken);
-    verify(sessionManager).handleToken(SESSION_ID, streamToken);
+    verify(feedSessionManager).handleToken(SESSION_ID, streamToken);
   }
 
   @Test
@@ -305,7 +305,7 @@ public class FeedModelProviderTest {
     modelProvider.sessionId = SESSION_ID;
     modelProvider.triggerRefresh(RequestReason.OPEN_WITH_CONTENT);
     assertThat(modelProvider.getDelayedTriggerRefreshForTest()).isFalse();
-    verify(sessionManager)
+    verify(feedSessionManager)
         .triggerRefresh(
             SESSION_ID, RequestReason.OPEN_WITH_CONTENT, UiContext.getDefaultInstance());
   }
@@ -316,7 +316,7 @@ public class FeedModelProviderTest {
     modelProvider.sessionId = SESSION_ID;
     modelProvider.triggerRefresh(RequestReason.HOST_REQUESTED);
     assertThat(modelProvider.getDelayedTriggerRefreshForTest()).isFalse();
-    verify(sessionManager)
+    verify(feedSessionManager)
         .triggerRefresh(SESSION_ID, RequestReason.HOST_REQUESTED, UiContext.getDefaultInstance());
   }
 
@@ -328,7 +328,7 @@ public class FeedModelProviderTest {
     modelProvider.triggerRefresh(RequestReason.HOST_REQUESTED);
     assertThat(modelProvider.getDelayedTriggerRefreshForTest()).isTrue();
     assertThat(modelProvider.getRequestReasonForTest()).isEqualTo(RequestReason.HOST_REQUESTED);
-    verify(sessionManager, never()).triggerRefresh(eq(null), anyInt(), any(UiContext.class));
+    verify(feedSessionManager, never()).triggerRefresh(eq(null), anyInt(), any(UiContext.class));
   }
 
   @Test
@@ -707,7 +707,13 @@ public class FeedModelProviderTest {
 
   private FeedModelProvider createFeedModelProvider() {
     return new FeedModelProvider(
-        sessionManager, threadUtils, timingUtils, taskQueue, fakeMainThreadRunner, null, config);
+        feedSessionManager,
+        threadUtils,
+        timingUtils,
+        taskQueue,
+        fakeMainThreadRunner,
+        null,
+        config);
   }
 
   private ModelMutation createTopLevelFeatures(ModelProvider modelProvider, int featureCount) {

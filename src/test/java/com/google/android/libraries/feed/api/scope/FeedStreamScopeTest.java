@@ -24,8 +24,8 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import android.app.Activity;
 import android.content.Context;
 import com.google.android.libraries.feed.api.internal.knowncontent.FeedKnownContent;
+import com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.api.scope.FeedStreamScope.Builder;
-import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.api.stream.Stream;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
@@ -75,7 +75,7 @@ public class FeedStreamScopeTest {
 
   // Mocks for optional fields
   @Mock private ProtocolAdapter protocolAdapter;
-  @Mock private SessionManager sessionManager;
+  @Mock private FeedSessionManager feedSessionManager;
   @Mock private Stream stream;
   @Mock private StreamConfiguration streamConfiguration;
   @Mock private CardConfiguration cardConfiguration;
@@ -122,7 +122,7 @@ public class FeedStreamScopeTest {
                 actionApi,
                 imageLoaderApi,
                 protocolAdapter,
-                sessionManager,
+                feedSessionManager,
                 threadUtils,
                 timingUtils,
                 taskQueue,
@@ -154,7 +154,7 @@ public class FeedStreamScopeTest {
                 actionApi,
                 imageLoaderApi,
                 protocolAdapter,
-                sessionManager,
+                feedSessionManager,
                 threadUtils,
                 timingUtils,
                 taskQueue,
@@ -191,7 +191,7 @@ public class FeedStreamScopeTest {
                 actionApi,
                 imageLoaderApi,
                 protocolAdapter,
-                sessionManager,
+                feedSessionManager,
                 threadUtils,
                 timingUtils,
                 taskQueue,

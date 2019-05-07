@@ -14,9 +14,9 @@
 
 package com.google.android.libraries.feed.common.testing;
 
+import com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.api.lifecycle.AppLifecycleListener;
 import com.google.android.libraries.feed.api.scope.ClearAllListener;
-import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeDirectExecutor;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
@@ -27,8 +27,8 @@ import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.feedapplifecyclelistener.FeedAppLifecycleListener;
 import com.google.android.libraries.feed.feedmodelprovider.FeedModelProviderFactory;
 import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter;
-import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManagerFactory;
+import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManagerImpl;
 import com.google.android.libraries.feed.feedstore.FeedStore;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
@@ -52,7 +52,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * This is a Scope type object which is used in the Infrastructure Integration tests. It sets the
- * Feed objects from ProtocolAdapter through the SessionManager.
+ * Feed objects from ProtocolAdapter through the FeedSessionManager.
  */
 public class InfraIntegrationScope {
   private static final boolean USE_TIMEOUT_SCHEDULER = true;
@@ -73,7 +73,7 @@ public class InfraIntegrationScope {
   private final FeedAppLifecycleListener appLifecycleListener;
   private final FeedModelProviderFactory modelProviderFactory;
   private final FeedProtocolAdapter feedProtocolAdapter;
-  private final FeedSessionManager feedSessionManager;
+  private final FeedSessionManagerImpl feedSessionManager;
   private final FeedStore store;
   private final JournalStorageDirect journalStorage;
   private final SchedulerApi schedulerApi;
@@ -150,7 +150,7 @@ public class InfraIntegrationScope {
     return feedProtocolAdapter;
   }
 
-  public SessionManager getSessionManager() {
+  public FeedSessionManager getFeedSessionManager() {
     return feedSessionManager;
   }
 

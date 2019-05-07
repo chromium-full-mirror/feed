@@ -18,7 +18,7 @@ import com.google.android.libraries.feed.api.client.knowncontent.ContentMetadata
 import com.google.android.libraries.feed.api.client.knowncontent.ContentRemoval;
 import com.google.android.libraries.feed.api.client.knowncontent.KnownContent;
 import com.google.android.libraries.feed.api.internal.knowncontent.FeedKnownContent;
-import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
+import com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Consumer;
@@ -33,7 +33,7 @@ import java.util.Set;
 public final class FeedKnownContentImpl implements FeedKnownContent {
 
   private static final String TAG = "FeedKnownContentImpl";
-  private final SessionManager sessionManager;
+  private final FeedSessionManager feedSessionManager;
   private final Set<KnownContent.Listener> listeners = new HashSet<>();
   private final MainThreadRunner mainThreadRunner;
   private final ThreadUtils threadUtils;
@@ -41,8 +41,10 @@ public final class FeedKnownContentImpl implements FeedKnownContent {
 
   @SuppressWarnings("nullness:method.invocation.invalid")
   public FeedKnownContentImpl(
-      SessionManager sessionManager, MainThreadRunner mainThreadRunner, ThreadUtils threadUtils) {
-    this.sessionManager = sessionManager;
+      FeedSessionManager feedSessionManager,
+      MainThreadRunner mainThreadRunner,
+      ThreadUtils threadUtils) {
+    this.feedSessionManager = feedSessionManager;
     this.mainThreadRunner = mainThreadRunner;
     this.threadUtils = threadUtils;
 
@@ -72,12 +74,12 @@ public final class FeedKnownContentImpl implements FeedKnownContent {
           }
         };
 
-    sessionManager.setKnownContentListener(this.listener);
+    feedSessionManager.setKnownContentListener(this.listener);
   }
 
   @Override
   public void getKnownContent(Consumer<List<ContentMetadata>> knownContentConsumer) {
-    sessionManager.getStreamFeaturesFromHead(
+    feedSessionManager.getStreamFeaturesFromHead(
         streamPayload -> {
           if (!streamPayload.getStreamFeature().hasContent()) {
             return null;

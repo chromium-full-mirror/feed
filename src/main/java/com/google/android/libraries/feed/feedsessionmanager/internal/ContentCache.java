@@ -45,9 +45,10 @@ public final class ContentCache implements Dumpable {
   }
 
   /**
-   * Called when the {@link com.google.android.libraries.feed.feedsessionmanager.FeedSessionManager}
-   * commits a new mutation. Everything added to the cache must be retained until {@link
-   * #finishMutation()} is called.
+   * Called when the {@link
+   * com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager} commits a new
+   * mutation. Everything added to the cache must be retained until {@link #finishMutation()} is
+   * called.
    */
   void startMutation() {
     mutationsCount++;
@@ -55,8 +56,9 @@ public final class ContentCache implements Dumpable {
   }
 
   /**
-   * Called when the {@link com.google.android.libraries.feed.feedsessionmanager.FeedSessionManager}
-   * has finished the mutation. At this point it would be safe to clear the cache.
+   * Called when the {@link
+   * com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager} has finished
+   * the mutation. At this point it would be safe to clear the cache.
    */
   void finishMutation() {
     if (mutationCache.size() > maxMutationCacheSize) {

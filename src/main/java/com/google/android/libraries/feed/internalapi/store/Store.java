@@ -111,7 +111,7 @@ public interface Store {
 
   /**
    * Returns a runnable which will garbage collect the persisted content. This is called by the
-   * SessionManager which controls the scheduling of cleanup tasks.
+   * FeedSessionManager which controls the scheduling of cleanup tasks.
    */
   Runnable triggerContentGc(
       Set<String> reservedContentIds, Supplier<Set<String>> accessibleContent);

@@ -25,7 +25,7 @@ import java.util.List;
 public interface ProtocolAdapter {
   /**
    * Create the internal protocol from a wire protocol response definition. The wire protocol is
-   * turned into a List of {@link StreamDataOperation} which are sent to the SessionManager.
+   * turned into a List of {@link StreamDataOperation} which are sent to the FeedSessionManager.
    */
   Result<List<StreamDataOperation>> createModel(Response response);
 

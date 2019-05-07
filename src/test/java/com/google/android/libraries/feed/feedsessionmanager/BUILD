@@ -3,14 +3,15 @@ load("//src/main/java/com/google/android/libraries/feed/buildtools/testing:andro
 licenses(["notice"])  # Apache 2
 
 android_local_test(
-    name = "FeedSessionManagerTest",
+    name = "FeedSessionManagerImplTest",
     size = "small",
     timeout = "moderate",
-    srcs = ["FeedSessionManagerTest.java"],
+    srcs = ["FeedSessionManagerImplTest.java"],
     aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/common",
+        "//src/main/java/com/google/android/libraries/feed/api/internal/sessionmanager",
         "//src/main/java/com/google/android/libraries/feed/common",
         "//src/main/java/com/google/android/libraries/feed/common/concurrent/testing",
         "//src/main/java/com/google/android/libraries/feed/common/functional",
