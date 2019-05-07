@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.api.knowncontent;
+package com.google.android.libraries.feed.api.client.knowncontent;
 
 import static com.google.common.truth.Truth.assertThat;
 

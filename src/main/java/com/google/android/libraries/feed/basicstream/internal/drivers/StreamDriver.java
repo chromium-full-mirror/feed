@@ -18,7 +18,7 @@ import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
-import com.google.android.libraries.feed.api.knowncontent.KnownContentApi;
+import com.google.android.libraries.feed.api.internal.knowncontent.FeedKnownContent;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.drivers.ContinuationDriver.CursorChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.pendingdismiss.PendingDismissHandler;
@@ -111,7 +111,7 @@ public class StreamDriver
       ScrollRestorer scrollRestorer,
       BasicLoggingApi basicLoggingApi,
       StreamOfflineMonitor streamOfflineMonitor,
-      KnownContentApi knownContentApi,
+      FeedKnownContent feedKnownContent,
       ContextMenuManager contextMenuManager,
       boolean restoring,
       boolean isInitialLoad,
@@ -147,7 +147,7 @@ public class StreamDriver
             mainThreadRunner, new ScrollLogger(basicLoggingApi), clock, scrollMonitor);
 
     modelProvider.enableRemoveTracking(
-        new StreamRemoveTrackingFactory(modelProvider, knownContentApi));
+        new StreamRemoveTrackingFactory(modelProvider, feedKnownContent));
   }
 
   /**

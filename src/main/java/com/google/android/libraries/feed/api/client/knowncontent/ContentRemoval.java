@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.api.knowncontent;
+package com.google.android.libraries.feed.api.client.knowncontent;
 
 /** Information on the removal of a piece of content. */
 public final class ContentRemoval {

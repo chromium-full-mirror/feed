@@ -14,7 +14,7 @@
 
 package com.google.android.libraries.feed.host.action;
 
-import com.google.android.libraries.feed.api.knowncontent.ContentMetadata;
+import com.google.android.libraries.feed.api.client.knowncontent.ContentMetadata;
 
 /**
  * Allows the Feed instruct the host to perform actions. In the case that an action is triggered

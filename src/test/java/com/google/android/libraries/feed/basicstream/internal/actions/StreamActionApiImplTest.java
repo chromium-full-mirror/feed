@@ -28,7 +28,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import android.app.Activity;
 import android.content.Context;
 import android.view.View;
-import com.google.android.libraries.feed.api.knowncontent.ContentMetadata;
+import com.google.android.libraries.feed.api.client.knowncontent.ContentMetadata;
 import com.google.android.libraries.feed.basicstream.internal.pendingdismiss.ClusterPendingDismissHelper;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.host.action.ActionApi;

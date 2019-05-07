@@ -14,7 +14,7 @@
 
 package com.google.android.libraries.feed.internalapi.actionparser;
 
-import com.google.android.libraries.feed.api.knowncontent.ContentMetadata;
+import com.google.android.libraries.feed.api.client.knowncontent.ContentMetadata;
 import com.google.android.libraries.feed.common.functional.Supplier;
 
 /** Factory for {@link ActionParser}. */

@@ -16,8 +16,8 @@ package com.google.android.libraries.feed.feedsessionmanager.internal;
 
 import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
+import com.google.android.libraries.feed.api.client.knowncontent.KnownContent;
 import com.google.android.libraries.feed.api.common.MutationContext;
-import com.google.android.libraries.feed.api.knowncontent.KnownContentApi.KnownContentListener;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
@@ -109,7 +109,7 @@ public final class SessionManagerMutation implements Dumpable {
       String task,
       MutationContext mutationContext,
       ModelErrorObserver modelErrorObserver,
-      /*@Nullable*/ KnownContentListener knownContentListener) {
+      KnownContent./*@Nullable*/ Listener knownContentListener) {
     createCount++;
     return new MutationCommitter(task, mutationContext, modelErrorObserver, knownContentListener);
   }
@@ -220,7 +220,7 @@ public final class SessionManagerMutation implements Dumpable {
     private final String task;
     private final MutationContext mutationContext;
     private final ModelErrorObserver modelErrorObserver;
-    /*@Nullable*/ private final KnownContentListener knownContentListener;
+    private final KnownContent./*@Nullable*/ Listener knownContentListener;
 
     private final List<StreamStructure> streamStructures = new ArrayList<>();
 
@@ -231,7 +231,7 @@ public final class SessionManagerMutation implements Dumpable {
         String task,
         MutationContext mutationContext,
         ModelErrorObserver modelErrorObserver,
-        /*@Nullable*/ KnownContentListener knownContentListener) {
+        KnownContent./*@Nullable*/ Listener knownContentListener) {
       this.task = task;
       this.mutationContext = mutationContext;
       this.modelErrorObserver = modelErrorObserver;

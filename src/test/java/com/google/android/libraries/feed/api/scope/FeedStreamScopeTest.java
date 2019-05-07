@@ -23,7 +23,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
 import android.content.Context;
-import com.google.android.libraries.feed.api.knowncontent.KnownContentApi;
+import com.google.android.libraries.feed.api.internal.knowncontent.FeedKnownContent;
 import com.google.android.libraries.feed.api.scope.FeedStreamScope.Builder;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.api.stream.Stream;
@@ -87,7 +87,7 @@ public class FeedStreamScopeTest {
   @Mock private SnackbarApi snackbarApi;
   @Mock private BasicLoggingApi basicLoggingApi;
   @Mock private OfflineIndicatorApi offlineIndicatorApi;
-  @Mock private KnownContentApi knownContentApi;
+  @Mock private FeedKnownContent feedKnownContent;
   @Mock private TaskQueue taskQueue;
   @Mock private TooltipApi tooltipApi;
   @Mock private FeedExtensionRegistry feedExtensionRegistry;
@@ -136,7 +136,7 @@ public class FeedStreamScopeTest {
                 snackbarApi,
                 basicLoggingApi,
                 offlineIndicatorApi,
-                knownContentApi,
+                feedKnownContent,
                 tooltipApi,
                 tooltipSupportedApi,
                 applicationInfo,
@@ -168,7 +168,7 @@ public class FeedStreamScopeTest {
                 snackbarApi,
                 basicLoggingApi,
                 offlineIndicatorApi,
-                knownContentApi,
+                feedKnownContent,
                 tooltipApi,
                 tooltipSupportedApi,
                 applicationInfo,
@@ -205,7 +205,7 @@ public class FeedStreamScopeTest {
                 snackbarApi,
                 basicLoggingApi,
                 offlineIndicatorApi,
-                knownContentApi,
+                feedKnownContent,
                 tooltipApi,
                 tooltipSupportedApi,
                 applicationInfo,

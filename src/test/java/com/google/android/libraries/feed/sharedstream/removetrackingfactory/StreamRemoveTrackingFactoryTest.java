@@ -19,10 +19,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.google.android.libraries.feed.api.client.knowncontent.ContentRemoval;
+import com.google.android.libraries.feed.api.client.knowncontent.KnownContent;
 import com.google.android.libraries.feed.api.common.MutationContext;
-import com.google.android.libraries.feed.api.knowncontent.ContentRemoval;
-import com.google.android.libraries.feed.api.knowncontent.KnownContentApi;
-import com.google.android.libraries.feed.api.knowncontent.KnownContentApi.KnownContentListener;
+import com.google.android.libraries.feed.api.internal.knowncontent.FeedKnownContent;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.internalapi.modelprovider.RemoveTracking;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
@@ -44,9 +44,9 @@ public class StreamRemoveTrackingFactoryTest {
   private static final String URL1 = "url1";
   private static final String URL2 = "url2";
 
-  @Mock private KnownContentApi knownContentApi;
+  @Mock private FeedKnownContent feedKnownContent;
   @Mock private ModelProvider modelProvider;
-  @Mock private KnownContentListener knownContentListener;
+  @Mock private KnownContent.Listener knownContentListener;
 
   private StreamRemoveTrackingFactory streamRemoveTrackingFactory;
 
@@ -54,8 +54,8 @@ public class StreamRemoveTrackingFactoryTest {
   public void setup() {
     initMocks(this);
     when(modelProvider.getSessionId()).thenReturn(SESSION_ID);
-    when(knownContentApi.getKnownContentHostNotifier()).thenReturn(knownContentListener);
-    streamRemoveTrackingFactory = new StreamRemoveTrackingFactory(modelProvider, knownContentApi);
+    when(feedKnownContent.getKnownContentHostNotifier()).thenReturn(knownContentListener);
+    streamRemoveTrackingFactory = new StreamRemoveTrackingFactory(modelProvider, feedKnownContent);
   }
 
   @Test

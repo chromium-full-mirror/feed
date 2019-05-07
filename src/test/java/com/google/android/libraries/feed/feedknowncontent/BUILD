@@ -3,14 +3,14 @@ load("//src/main/java/com/google/android/libraries/feed/buildtools/testing:andro
 licenses(["notice"])  # Apache 2
 
 android_local_test(
-    name = "FeedKnownContentApiTest",
+    name = "FeedKnownContentImplTest",
     size = "small",
     timeout = "moderate",
-    srcs = ["FeedKnownContentApiTest.java"],
+    srcs = ["FeedKnownContentImplTest.java"],
     aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
-        "//src/main/java/com/google/android/libraries/feed/api/knowncontent",
+        "//src/main/java/com/google/android/libraries/feed/api/client/knowncontent",
         "//src/main/java/com/google/android/libraries/feed/api/sessionmanager",
         "//src/main/java/com/google/android/libraries/feed/common",
         "//src/main/java/com/google/android/libraries/feed/common/concurrent/testing",

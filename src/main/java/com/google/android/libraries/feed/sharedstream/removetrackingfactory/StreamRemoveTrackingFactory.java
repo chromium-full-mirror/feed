@@ -14,9 +14,9 @@
 
 package com.google.android.libraries.feed.sharedstream.removetrackingfactory;
 
+import com.google.android.libraries.feed.api.client.knowncontent.ContentRemoval;
 import com.google.android.libraries.feed.api.common.MutationContext;
-import com.google.android.libraries.feed.api.knowncontent.ContentRemoval;
-import com.google.android.libraries.feed.api.knowncontent.KnownContentApi;
+import com.google.android.libraries.feed.api.internal.knowncontent.FeedKnownContent;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider.RemoveTrackingFactory;
 import com.google.android.libraries.feed.internalapi.modelprovider.RemoveTracking;
@@ -25,11 +25,12 @@ import com.google.android.libraries.feed.internalapi.modelprovider.RemoveTrackin
 public class StreamRemoveTrackingFactory implements RemoveTrackingFactory<ContentRemoval> {
 
   private final ModelProvider modelProvider;
-  private final KnownContentApi knownContentApi;
+  private final FeedKnownContent feedKnownContent;
 
-  public StreamRemoveTrackingFactory(ModelProvider modelProvider, KnownContentApi knownContentApi) {
+  public StreamRemoveTrackingFactory(
+      ModelProvider modelProvider, FeedKnownContent feedKnownContent) {
     this.modelProvider = modelProvider;
-    this.knownContentApi = knownContentApi;
+    this.feedKnownContent = feedKnownContent;
   }
 
   /*@Nullable*/
@@ -56,6 +57,6 @@ public class StreamRemoveTrackingFactory implements RemoveTrackingFactory<Conten
               mutationContext.isUserInitiated());
         },
         removedContent ->
-            knownContentApi.getKnownContentHostNotifier().onContentRemoved(removedContent));
+            feedKnownContent.getKnownContentHostNotifier().onContentRemoved(removedContent));
   }
 }

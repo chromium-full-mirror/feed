@@ -30,7 +30,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
 import android.content.Context;
-import com.google.android.libraries.feed.api.knowncontent.KnownContentApi;
+import com.google.android.libraries.feed.api.internal.knowncontent.FeedKnownContent;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver.StreamContentListener;
 import com.google.android.libraries.feed.basicstream.internal.drivers.testing.FakeFeatureDriver;
@@ -126,7 +126,7 @@ public class StreamDriverTest {
   @Mock private SnackbarApi snackbarApi;
   @Mock private ScrollRestorer scrollRestorer;
   @Mock private BasicLoggingApi basicLoggingApi;
-  @Mock private KnownContentApi knownContentApi;
+  @Mock private FeedKnownContent feedKnownContent;
   @Mock private StreamOfflineMonitor streamOfflineMonitor;
   @Mock private PendingDismissCallback pendingDismissCallback;
   @Mock private TooltipApi tooltipApi;
@@ -991,7 +991,7 @@ public class StreamDriverTest {
           scrollRestorer,
           basicLoggingApi,
           streamOfflineMonitor,
-          knownContentApi,
+          feedKnownContent,
           mock(ContextMenuManager.class),
           restoring,
           isInitialLoad,

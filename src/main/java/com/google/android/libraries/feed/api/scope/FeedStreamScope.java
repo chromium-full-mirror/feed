@@ -15,7 +15,7 @@
 package com.google.android.libraries.feed.api.scope;
 
 import android.content.Context;
-import com.google.android.libraries.feed.api.knowncontent.KnownContentApi;
+import com.google.android.libraries.feed.api.internal.knowncontent.FeedKnownContent;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.api.stream.Stream;
 import com.google.android.libraries.feed.common.Validators;
@@ -82,7 +82,7 @@ public final class FeedStreamScope {
         SnackbarApi snackbarApi,
         BasicLoggingApi basicLoggingApi,
         OfflineIndicatorApi offlineIndicatorApi,
-        KnownContentApi knownContentApi,
+        FeedKnownContent feedKnownContent,
         TooltipApi tooltipApi,
         TooltipSupportedApi tooltipSupportedApi,
         ApplicationInfo applicationInfo,
@@ -105,7 +105,7 @@ public final class FeedStreamScope {
       this.snackbarApi = snackbarApi;
       this.basicLoggingApi = basicLoggingApi;
       this.offlineIndicatorApi = offlineIndicatorApi;
-      this.knownContentApi = knownContentApi;
+      this.feedKnownContent = feedKnownContent;
       this.tooltipApi = tooltipApi;
       this.applicationInfo = applicationInfo;
       this.feedExtensionRegistry = feedExtensionRegistry;
@@ -178,7 +178,7 @@ public final class FeedStreamScope {
               isBackgroundDark,
               tooltipApi,
               threadUtils,
-              knownContentApi);
+              feedKnownContent);
       return new FeedStreamScope(
           Validators.checkNotNull(stream), Validators.checkNotNull(modelProviderFactory));
     }
@@ -203,7 +203,7 @@ public final class FeedStreamScope {
     private final SnackbarApi snackbarApi;
     private final BasicLoggingApi basicLoggingApi;
     private final OfflineIndicatorApi offlineIndicatorApi;
-    private final KnownContentApi knownContentApi;
+    private final FeedKnownContent feedKnownContent;
     private final TooltipApi tooltipApi;
     private final ApplicationInfo applicationInfo;
     private final FeedExtensionRegistry feedExtensionRegistry;

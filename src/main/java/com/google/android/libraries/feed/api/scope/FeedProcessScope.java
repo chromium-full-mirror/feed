@@ -16,7 +16,8 @@ package com.google.android.libraries.feed.api.scope;
 
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
-import com.google.android.libraries.feed.api.knowncontent.KnownContentApi;
+import com.google.android.libraries.feed.api.client.knowncontent.KnownContent;
+import com.google.android.libraries.feed.api.internal.knowncontent.FeedKnownContent;
 import com.google.android.libraries.feed.api.lifecycle.AppLifecycleListener;
 import com.google.android.libraries.feed.api.requestmanager.ActionUploadRequestManager;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
@@ -35,7 +36,7 @@ import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedactionmanager.FeedActionManagerImpl;
 import com.google.android.libraries.feed.feedactionreader.FeedActionReader;
 import com.google.android.libraries.feed.feedapplifecyclelistener.FeedAppLifecycleListener;
-import com.google.android.libraries.feed.feedknowncontent.FeedKnownContentApi;
+import com.google.android.libraries.feed.feedknowncontent.FeedKnownContentImpl;
 import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter;
 import com.google.android.libraries.feed.feedrequestmanager.FeedActionUploadRequestManager;
 import com.google.android.libraries.feed.feedrequestmanager.FeedRequestManagerImpl;
@@ -100,7 +101,7 @@ public final class FeedProcessScope implements Dumpable {
   private final DebugBehavior debugBehavior;
   private final ActionManager actionManager;
   private final Configuration configuration;
-  private final KnownContentApi knownContentApi;
+  private final FeedKnownContent feedKnownContent;
   private final FeedExtensionRegistry feedExtensionRegistry;
   private final ClearAllListener clearAllListener;
   private final BasicLoggingApi basicLoggingApi;
@@ -140,7 +141,7 @@ public final class FeedProcessScope implements Dumpable {
         snackbarApi,
         basicLoggingApi,
         offlineIndicatorApi,
-        knownContentApi,
+        feedKnownContent,
         tooltipApi,
         tooltipSupportedApi,
         applicationInfo,
@@ -164,7 +165,7 @@ public final class FeedProcessScope implements Dumpable {
       DebugBehavior debugBehavior,
       ActionManager actionManager,
       Configuration configuration,
-      KnownContentApi knownContentApi,
+      FeedKnownContent feedKnownContent,
       FeedExtensionRegistry feedExtensionRegistry,
       ClearAllListener clearAllListener,
       TooltipSupportedApi tooltipSupportedApi,
@@ -184,7 +185,7 @@ public final class FeedProcessScope implements Dumpable {
     this.debugBehavior = debugBehavior;
     this.actionManager = actionManager;
     this.configuration = configuration;
-    this.knownContentApi = knownContentApi;
+    this.feedKnownContent = feedKnownContent;
     this.feedExtensionRegistry = feedExtensionRegistry;
     this.clearAllListener = clearAllListener;
     this.tooltipSupportedApi = tooltipSupportedApi;
@@ -250,8 +251,8 @@ public final class FeedProcessScope implements Dumpable {
     return actionManager;
   }
 
-  public KnownContentApi getKnownContentApi() {
-    return knownContentApi;
+  public KnownContent getKnownContent() {
+    return feedKnownContent;
   }
 
   @Deprecated
@@ -283,7 +284,6 @@ public final class FeedProcessScope implements Dumpable {
     /*@MonotonicNonNull*/ ContentStorage rawContentStorage = null;
     /*@MonotonicNonNull*/ JournalStorage rawJournalStorage = null;
     /*@MonotonicNonNull*/ private Clock clock;
-    /*@MonotonicNonNull*/ private KnownContentApi knownContentApi;
     /*@MonotonicNonNull*/ private MainThreadRunner mainThreadRunner;
 
     // This will be overridden in tests.
@@ -517,10 +517,8 @@ public final class FeedProcessScope implements Dumpable {
           new FeedActionManagerImpl(
               sessionManager, store, threadUtils, taskQueue, getOrCreateMainThreadRunner(), clock);
 
-      if (knownContentApi == null) {
-        knownContentApi =
-            new FeedKnownContentApi(sessionManager, getOrCreateMainThreadRunner(), threadUtils);
-      }
+      FeedKnownContent feedKnownContent =
+          new FeedKnownContentImpl(sessionManager, getOrCreateMainThreadRunner(), threadUtils);
 
       ClearAllListener clearAllListener =
           new ClearAllListener(taskQueue, sessionManager, store, threadUtils, lifecycleListener);
@@ -540,7 +538,7 @@ public final class FeedProcessScope implements Dumpable {
           debugBehavior,
           actionManager,
           configuration,
-          knownContentApi,
+          feedKnownContent,
           extensionRegistry,
           clearAllListener,
           tooltipSupportedApi,

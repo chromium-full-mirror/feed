@@ -15,8 +15,8 @@
 package com.google.android.libraries.feed.feedsessionmanager;
 
 import android.support.annotation.VisibleForTesting;
+import com.google.android.libraries.feed.api.client.knowncontent.KnownContent;
 import com.google.android.libraries.feed.api.common.MutationContext;
-import com.google.android.libraries.feed.api.knowncontent.KnownContentApi.KnownContentListener;
 import com.google.android.libraries.feed.api.requestmanager.ActionUploadRequestManager;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.Result;
@@ -142,7 +142,7 @@ public final class FeedSessionManager
   private int newSessionCount = 0;
   private int existingSessionCount = 0;
   private int handleTokenCount = 0;
-  /*@MonotonicNonNull*/ private KnownContentListener knownContentListener;
+  private KnownContent./*@MonotonicNonNull*/ Listener knownContentListener;
 
   @SuppressWarnings("argument.type.incompatible") // ok call to registerObserver
   public FeedSessionManager(
@@ -726,7 +726,7 @@ public final class FeedSessionManager
   }
 
   @Override
-  public void setKnownContentListener(KnownContentListener knownContentListener) {
+  public void setKnownContentListener(KnownContent.Listener knownContentListener) {
     this.knownContentListener = knownContentListener;
   }
 

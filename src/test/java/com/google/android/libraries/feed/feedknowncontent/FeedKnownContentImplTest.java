@@ -22,9 +22,9 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.api.knowncontent.ContentMetadata;
-import com.google.android.libraries.feed.api.knowncontent.ContentRemoval;
-import com.google.android.libraries.feed.api.knowncontent.KnownContentApi.KnownContentListener;
+import com.google.android.libraries.feed.api.client.knowncontent.ContentMetadata;
+import com.google.android.libraries.feed.api.client.knowncontent.ContentRemoval;
+import com.google.android.libraries.feed.api.client.knowncontent.KnownContent;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
@@ -47,9 +47,9 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.robolectric.RobolectricTestRunner;
 
-/** Tests for {@link FeedKnownContentApi}. */
+/** Tests for {@link FeedKnownContentImpl}. */
 @RunWith(RobolectricTestRunner.class)
-public class FeedKnownContentApiTest {
+public class FeedKnownContentImplTest {
 
   private static final long CONTENT_CREATION_DATE_TIME_MS = 123L;
   private static final List<ContentRemoval> CONTENT_REMOVED =
@@ -58,8 +58,8 @@ public class FeedKnownContentApiTest {
   private static final String TITLE = "title";
 
   @Mock private SessionManager sessionManager;
-  @Mock private KnownContentListener listener1;
-  @Mock private KnownContentListener listener2;
+  @Mock private KnownContent.Listener listener1;
+  @Mock private KnownContent.Listener listener2;
   @Mock private Consumer<List<ContentMetadata>> knownContentConsumer;
   @Mock private ThreadUtils threadUtils;
 
@@ -71,13 +71,13 @@ public class FeedKnownContentApiTest {
   @Captor
   private ArgumentCaptor<Consumer<Result<List<ContentMetadata>>>> contentMetadataResultCaptor;
 
-  private FeedKnownContentApi knownContentApi;
+  private FeedKnownContentImpl knownContentApi;
 
   @Before
   public void setUp() {
     initMocks(this);
     when(threadUtils.isMainThread()).thenReturn(true);
-    knownContentApi = new FeedKnownContentApi(sessionManager, mainThreadRunner, threadUtils);
+    knownContentApi = new FeedKnownContentImpl(sessionManager, mainThreadRunner, threadUtils);
   }
 
   @Test
@@ -178,7 +178,7 @@ public class FeedKnownContentApiTest {
     FakeMainThreadRunner fakeMainThreadRunner = FakeMainThreadRunner.queueAllTasks();
     when(threadUtils.isMainThread()).thenReturn(false);
 
-    knownContentApi = new FeedKnownContentApi(sessionManager, fakeMainThreadRunner, threadUtils);
+    knownContentApi = new FeedKnownContentImpl(sessionManager, fakeMainThreadRunner, threadUtils);
 
     knownContentApi.addListener(listener1);
 

@@ -41,8 +41,9 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Base64;
 import android.view.View;
 import android.widget.FrameLayout;
-import com.google.android.libraries.feed.api.knowncontent.ContentMetadata;
-import com.google.android.libraries.feed.api.knowncontent.KnownContentApi;
+import com.google.android.libraries.feed.api.client.knowncontent.ContentMetadata;
+import com.google.android.libraries.feed.api.client.knowncontent.KnownContent;
+import com.google.android.libraries.feed.api.internal.knowncontent.FeedKnownContent;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.api.stream.Header;
 import com.google.android.libraries.feed.api.stream.ScrollListener;
@@ -158,7 +159,7 @@ public class BasicStreamTest {
   @Mock private ViewLoggingUpdater viewLoggingUpdater;
   @Mock private TooltipApi tooltipApi;
 
-  private FakeKnownContentApi knownContentApi;
+  private FakeFeedKnownContent fakeFeedKnownContent;
   private LinearLayoutManagerWithFakePositioning layoutManager;
   private Context context;
   private FakeClock clock;
@@ -170,7 +171,7 @@ public class BasicStreamTest {
   public void setUp() {
     initMocks(this);
 
-    knownContentApi = new FakeKnownContentApi();
+    fakeFeedKnownContent = new FakeFeedKnownContent();
     headers = new ArrayList<>();
     headers.add(mock(Header.class));
 
@@ -447,7 +448,7 @@ public class BasicStreamTest {
     verify(adapter).onDestroy();
     verify(initialModelProvider, never()).invalidate();
     verify(initialModelProvider).detachModelProvider();
-    assertThat(knownContentApi.listeners).isEmpty();
+    assertThat(fakeFeedKnownContent.listeners).isEmpty();
   }
 
   @Test
@@ -1266,7 +1267,7 @@ public class BasicStreamTest {
           basicLoggingApi,
           offlineIndicatorApi,
           mainThreadRunner,
-          knownContentApi,
+          fakeFeedKnownContent,
           tooltipApi,
           /* isBackgroundDark= */ false);
       this.layoutManager = layoutManager;
@@ -1303,7 +1304,7 @@ public class BasicStreamTest {
         ScrollRestorer scrollRestorer,
         BasicLoggingApi basicLoggingApi,
         StreamOfflineMonitor streamOfflineMonitor,
-        KnownContentApi knownContentApi,
+        FeedKnownContent feedKnownContent,
         ContextMenuManager contextMenuManager,
         boolean restoring,
         boolean isInitialLoad,
@@ -1412,25 +1413,25 @@ public class BasicStreamTest {
     }
   }
 
-  private static class FakeKnownContentApi implements KnownContentApi {
+  private static class FakeFeedKnownContent implements FeedKnownContent {
 
-    private final Set<KnownContentListener> listeners = new HashSet<>();
+    private final Set<KnownContent.Listener> listeners = new HashSet<>();
 
     @Override
     public void getKnownContent(Consumer<List<ContentMetadata>> knownContentConsumer) {}
 
     @Override
-    public void addListener(KnownContentListener listener) {
+    public void addListener(KnownContent.Listener listener) {
       listeners.add(listener);
     }
 
     @Override
-    public void removeListener(KnownContentListener listener) {
+    public void removeListener(KnownContent.Listener listener) {
       listeners.remove(listener);
     }
 
     @Override
-    public KnownContentListener getKnownContentHostNotifier() {
+    public Listener getKnownContentHostNotifier() {
       return null;
     }
   }

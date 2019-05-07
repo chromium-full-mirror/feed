@@ -14,7 +14,7 @@
 
 package com.google.android.libraries.feed.feedactionparser;
 
-import com.google.android.libraries.feed.api.knowncontent.ContentMetadata;
+import com.google.android.libraries.feed.api.client.knowncontent.ContentMetadata;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.feedactionparser.internal.PietFeedActionPayloadRetriever;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;

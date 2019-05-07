@@ -15,7 +15,7 @@
 package com.google.android.libraries.feed.internalapi.stream;
 
 import android.content.Context;
-import com.google.android.libraries.feed.api.knowncontent.KnownContentApi;
+import com.google.android.libraries.feed.api.internal.knowncontent.FeedKnownContent;
 import com.google.android.libraries.feed.api.stream.Stream;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
@@ -65,5 +65,5 @@ public interface StreamFactory {
       boolean isBackgroundDark,
       TooltipApi tooltipApi,
       ThreadUtils threadUtils,
-      KnownContentApi knownContentApi);
+      FeedKnownContent feedKnownContent);
 }

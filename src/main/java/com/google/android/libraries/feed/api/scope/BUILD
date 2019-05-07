@@ -6,7 +6,8 @@ android_library(
     name = "scope",
     srcs = glob(["*.java"]),
     deps = [
-        "//src/main/java/com/google/android/libraries/feed/api/knowncontent",
+        "//src/main/java/com/google/android/libraries/feed/api/client/knowncontent",
+        "//src/main/java/com/google/android/libraries/feed/api/internal/knowncontent",
         "//src/main/java/com/google/android/libraries/feed/api/lifecycle",
         "//src/main/java/com/google/android/libraries/feed/api/requestmanager",
         "//src/main/java/com/google/android/libraries/feed/api/sessionmanager",

@@ -97,7 +97,7 @@ public class FeedProcessScopeTest {
     assertThat(processScope.getRequestManager()).isNotNull();
     assertThat(processScope.getSessionManager()).isNotNull();
     assertThat(processScope.getAppLifecycleListener()).isNotNull();
-    assertThat(processScope.getKnownContentApi()).isNotNull();
+    assertThat(processScope.getKnownContent()).isNotNull();
     assertThat(processScope.getAppLifecycleListener()).isNotNull();
   }
 

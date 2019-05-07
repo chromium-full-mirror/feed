@@ -7,7 +7,8 @@ android_library(
     srcs = glob(["*.java"]),
     manifest = "AndroidManifest.xml",
     deps = [
-        "//src/main/java/com/google/android/libraries/feed/api/knowncontent",
+        "//src/main/java/com/google/android/libraries/feed/api/client/knowncontent",
+        "//src/main/java/com/google/android/libraries/feed/api/internal/knowncontent",
         "//src/main/java/com/google/android/libraries/feed/api/stream",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/actions",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/pendingdismiss",

@@ -30,7 +30,7 @@ import android.util.Base64;
 import android.view.ContextThemeWrapper;
 import android.view.View;
 import android.view.View.OnLayoutChangeListener;
-import com.google.android.libraries.feed.api.knowncontent.KnownContentApi;
+import com.google.android.libraries.feed.api.internal.knowncontent.FeedKnownContent;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.api.stream.Header;
 import com.google.android.libraries.feed.api.stream.ScrollListener;
@@ -124,7 +124,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
   private final long immediateContentThreshold;
   private final StreamOfflineMonitor streamOfflineMonitor;
   private final MainThreadRunner mainThreadRunner;
-  private final KnownContentApi knownContentApi;
+  private final FeedKnownContent feedKnownContent;
   private final ViewLoggingUpdater viewLoggingUpdater;
   private final TooltipApi tooltipApi;
   private final UiSessionRequestLogger uiSessionRequestLogger;
@@ -178,7 +178,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
       BasicLoggingApi basicLoggingApi,
       OfflineIndicatorApi offlineIndicatorApi,
       MainThreadRunner mainThreadRunner,
-      KnownContentApi knownContentApi,
+      FeedKnownContent feedKnownContent,
       TooltipApi tooltipApi,
       boolean isBackgroundDark) {
     this.cardConfiguration = cardConfiguration;
@@ -201,7 +201,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
         configuration.getValueOrDefault(
             ConfigKey.LOGGING_IMMEDIATE_CONTENT_THRESHOLD_MS,
             DEFAULT_LOGGING_IMMEDIATE_CONTENT_THRESHOLD_MS);
-    this.knownContentApi = knownContentApi;
+    this.feedKnownContent = feedKnownContent;
     viewLoggingUpdater = createViewLoggingUpdater();
     this.uiSessionRequestLogger = new UiSessionRequestLogger(clock, basicLoggingApi);
     this.tooltipApi = tooltipApi;
@@ -577,7 +577,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
             scrollRestorer,
             basicLoggingApi,
             streamOfflineMonitor,
-            knownContentApi,
+            feedKnownContent,
             contextMenuManager,
             isRestoring,
             /* isInitialLoad= */ false,
@@ -782,7 +782,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
               initialScrollRestorer,
               basicLoggingApi,
               streamOfflineMonitor,
-              knownContentApi,
+              feedKnownContent,
               contextMenuManager,
               isRestoring,
               isInitialLoad,
@@ -827,7 +827,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
       ScrollRestorer scrollRestorer,
       BasicLoggingApi basicLoggingApi,
       StreamOfflineMonitor streamOfflineMonitor,
-      KnownContentApi knownContentApi,
+      FeedKnownContent feedKnownContent,
       ContextMenuManager contextMenuManager,
       boolean restoring,
       boolean isInitialLoad,
@@ -849,7 +849,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
         scrollRestorer,
         basicLoggingApi,
         streamOfflineMonitor,
-        knownContentApi,
+        feedKnownContent,
         contextMenuManager,
         restoring,
         isInitialLoad,

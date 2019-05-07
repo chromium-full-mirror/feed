@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.api.knowncontent;
+package com.google.android.libraries.feed.api.client.knowncontent;
 
 import com.google.android.libraries.feed.common.functional.Consumer;
 import java.util.List;
 
 /** Allows the host to request and subscribe to information about the Feed's content. */
-public interface KnownContentApi {
+public interface KnownContent {
   /**
    * Async call to get the list of all content that is known about by the Feed. The list will be in
    * the same order that the content will appear.
@@ -29,23 +29,13 @@ public interface KnownContentApi {
   void getKnownContent(Consumer<List<ContentMetadata>> knownContentConsumer);
 
   /** Adds listener for new content. */
-  void addListener(KnownContentListener listener);
+  void addListener(Listener listener);
 
   /** Removes listener for new content. */
-  void removeListener(KnownContentListener listener);
-
-  /**
-   * Gets listener that notifies all added listeners of {@link
-   * KnownContentListener#onContentRemoved(List)} or {@link
-   * KnownContentListener#onNewContentReceived(boolean, long)}.
-   *
-   * <p>Note: This method is internal to the Feed. It provides a {@link KnownContentListener} that,
-   * when notified, will propagate the notification to the host.
-   */
-  KnownContentListener getKnownContentHostNotifier();
+  void removeListener(Listener listener);
 
   /** Listener for when content is added or removed. */
-  interface KnownContentListener {
+  interface Listener {
     /**
      * Called when content is removed.
      *

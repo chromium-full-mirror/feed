@@ -15,7 +15,7 @@
 package com.google.android.libraries.feed.internalapi.stream;
 
 import android.content.Context;
-import com.google.android.libraries.feed.api.knowncontent.KnownContentApi;
+import com.google.android.libraries.feed.api.internal.knowncontent.FeedKnownContent;
 import com.google.android.libraries.feed.api.stream.Stream;
 import com.google.android.libraries.feed.basicstream.BasicStream;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
@@ -66,7 +66,7 @@ public class BasicStreamFactory implements StreamFactory {
       boolean isBackgroundDark,
       TooltipApi tooltipApi,
       ThreadUtils threadUtils,
-      KnownContentApi knownContentApi) {
+      FeedKnownContent feedKnownContent) {
     return new BasicStream(
         context,
         streamConfiguration,
@@ -87,7 +87,7 @@ public class BasicStreamFactory implements StreamFactory {
         basicLoggingApi,
         offlineIndicatorApi,
         mainThreadRunner,
-        knownContentApi,
+        feedKnownContent,
         tooltipApi,
         isBackgroundDark);
   }

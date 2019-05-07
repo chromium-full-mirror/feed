@@ -18,7 +18,7 @@ import static com.google.android.libraries.feed.common.Validators.checkState;
 
 import android.support.annotation.VisibleForTesting;
 import android.support.v7.widget.RecyclerView;
-import com.google.android.libraries.feed.api.knowncontent.ContentMetadata;
+import com.google.android.libraries.feed.api.client.knowncontent.ContentMetadata;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.actions.StreamActionApiImpl;
 import com.google.android.libraries.feed.basicstream.internal.actions.ViewElementActionHandler;

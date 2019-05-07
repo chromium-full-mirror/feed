@@ -14,8 +14,8 @@
 
 package com.google.android.libraries.feed.api.sessionmanager;
 
+import com.google.android.libraries.feed.api.client.knowncontent.KnownContent;
 import com.google.android.libraries.feed.api.common.MutationContext;
-import com.google.android.libraries.feed.api.knowncontent.KnownContentApi.KnownContentListener;
 import com.google.android.libraries.feed.api.lifecycle.Resettable;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.functional.Consumer;
@@ -124,8 +124,8 @@ public interface SessionManager extends Resettable {
       Function<StreamPayload, /*@Nullable*/ T> filterPredicate,
       Consumer<Result<List</*@NonNull*/ T>>> consumer);
 
-  /** Sets {@link KnownContentListener} to allow for informing host of when content is added. */
-  void setKnownContentListener(KnownContentListener knownContentListener);
+  /** Sets {@link KnownContent.Listener} to allow for informing host of when content is added. */
+  void setKnownContentListener(KnownContent.Listener knownContentListener);
 
   /**
    * Issues a request to record a set of actions, with the consumer being called back with the

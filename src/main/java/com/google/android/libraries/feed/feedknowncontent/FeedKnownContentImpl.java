@@ -14,9 +14,10 @@
 
 package com.google.android.libraries.feed.feedknowncontent;
 
-import com.google.android.libraries.feed.api.knowncontent.ContentMetadata;
-import com.google.android.libraries.feed.api.knowncontent.ContentRemoval;
-import com.google.android.libraries.feed.api.knowncontent.KnownContentApi;
+import com.google.android.libraries.feed.api.client.knowncontent.ContentMetadata;
+import com.google.android.libraries.feed.api.client.knowncontent.ContentRemoval;
+import com.google.android.libraries.feed.api.client.knowncontent.KnownContent;
+import com.google.android.libraries.feed.api.internal.knowncontent.FeedKnownContent;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
@@ -28,31 +29,31 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-/** Default implementation of the {@link KnownContentApi}. */
-public final class FeedKnownContentApi implements KnownContentApi {
+/** Default implementation of the {@link KnownContent}. */
+public final class FeedKnownContentImpl implements FeedKnownContent {
 
-  private static final String TAG = "FeedKnownContentApi";
+  private static final String TAG = "FeedKnownContentImpl";
   private final SessionManager sessionManager;
-  private final Set<KnownContentListener> listeners = new HashSet<>();
+  private final Set<KnownContent.Listener> listeners = new HashSet<>();
   private final MainThreadRunner mainThreadRunner;
   private final ThreadUtils threadUtils;
-  private final KnownContentListener listener;
+  private final KnownContent.Listener listener;
 
   @SuppressWarnings("nullness:method.invocation.invalid")
-  public FeedKnownContentApi(
+  public FeedKnownContentImpl(
       SessionManager sessionManager, MainThreadRunner mainThreadRunner, ThreadUtils threadUtils) {
     this.sessionManager = sessionManager;
     this.mainThreadRunner = mainThreadRunner;
     this.threadUtils = threadUtils;
 
     this.listener =
-        new KnownContentListener() {
+        new KnownContent.Listener() {
           @Override
           public void onContentRemoved(List<ContentRemoval> contentRemoved) {
             runOnMainThread(
                 TAG + " onContentRemoved",
                 () -> {
-                  for (KnownContentListener knownContentListener : listeners) {
+                  for (KnownContent.Listener knownContentListener : listeners) {
                     knownContentListener.onContentRemoved(contentRemoved);
                   }
                 });
@@ -63,7 +64,7 @@ public final class FeedKnownContentApi implements KnownContentApi {
             runOnMainThread(
                 TAG + " onNewContentReceived",
                 () -> {
-                  for (KnownContentListener knownContentListener : listeners) {
+                  for (KnownContent.Listener knownContentListener : listeners) {
                     knownContentListener.onNewContentReceived(
                         isNewRefresh, contentCreationDateTimeMs);
                   }
@@ -102,17 +103,17 @@ public final class FeedKnownContentApi implements KnownContentApi {
   }
 
   @Override
-  public void addListener(KnownContentListener listener) {
+  public void addListener(KnownContent.Listener listener) {
     listeners.add(listener);
   }
 
   @Override
-  public void removeListener(KnownContentListener listener) {
+  public void removeListener(KnownContent.Listener listener) {
     listeners.remove(listener);
   }
 
   @Override
-  public KnownContentListener getKnownContentHostNotifier() {
+  public KnownContent.Listener getKnownContentHostNotifier() {
     return listener;
   }
 

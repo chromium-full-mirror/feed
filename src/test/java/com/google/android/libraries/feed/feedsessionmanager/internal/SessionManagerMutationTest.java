@@ -25,8 +25,8 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.util.Pair;
+import com.google.android.libraries.feed.api.client.knowncontent.KnownContent;
 import com.google.android.libraries.feed.api.common.MutationContext;
-import com.google.android.libraries.feed.api.knowncontent.KnownContentApi.KnownContentListener;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeTaskQueue;
@@ -87,7 +87,7 @@ public class SessionManagerMutationTest {
   private final String rootContentId = idGenerators.createRootContentId(0);
   private final TimingUtils timingUtils = new TimingUtils();
 
-  @Mock private KnownContentListener knownContentListener;
+  @Mock private KnownContent.Listener knownContentListener;
   @Mock private SchedulerApi schedulerApi;
   private ContentCache contentCache;
   private FakeTaskQueue fakeTaskQueue;

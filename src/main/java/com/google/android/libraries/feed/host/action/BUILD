@@ -6,7 +6,7 @@ android_library(
     name = "action",
     srcs = glob(["*.java"]),
     deps = [
-        "//src/main/java/com/google/android/libraries/feed/api/knowncontent",
+        "//src/main/java/com/google/android/libraries/feed/api/client/knowncontent",
         "//src/main/java/com/google/android/libraries/feed/host/logging",
         "//src/main/java/com/google/android/libraries/feed/host/stream",
         "//src/main/proto/com/google/android/libraries/feed/internalapi/proto:client_feed_java_proto_lite",
