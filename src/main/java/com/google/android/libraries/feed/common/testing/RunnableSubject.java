@@ -34,8 +34,11 @@ public final class RunnableSubject extends Subject<RunnableSubject, ThrowingRunn
     return RUNNABLE_SUBJECT_FACTORY;
   }
 
+  private final ThrowingRunnable actual;
+
   public RunnableSubject(FailureMetadata failureMetadata, ThrowingRunnable runnable) {
     super(failureMetadata, runnable);
+    this.actual = runnable;
   }
 
   /**
@@ -59,7 +62,7 @@ public final class RunnableSubject extends Subject<RunnableSubject, ThrowingRunn
 
   @SuppressWarnings("unchecked")
   private <E extends Throwable> E runAndCaptureOrFail(Class<E> clazz) {
-    if (actual() == null) {
+    if (actual == null) {
       failWithoutActual(
           fact("expected to throw", clazz.getName()),
           simpleFact("but didn't run because it's null"));
@@ -67,7 +70,7 @@ public final class RunnableSubject extends Subject<RunnableSubject, ThrowingRunn
     }
 
     try {
-      actual().run();
+      actual.run();
     } catch (Throwable ex) {
       if (!clazz.isInstance(ex)) {
         check("thrownException()").that(ex).isInstanceOf(clazz); // fails
