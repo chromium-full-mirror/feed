@@ -14,27 +14,9 @@
 
 package com.google.android.libraries.feed.api.requestmanager;
 
-import com.google.android.libraries.feed.common.Result;
-import com.google.android.libraries.feed.common.functional.Consumer;
-import com.google.android.libraries.feed.host.logging.RequestReason;
-import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
-import java.util.List;
-
 /** Creates and issues requests to the server. */
 public interface RequestManager {
-  /**
-   * Issues a request to refresh the entire feed.
-   *
-   * @param reason The reason for this refresh.
-   */
-  void triggerRefresh(@RequestReason int reason);
 
-  /**
-   * Issues a request to refresh the entire feed, with the consumer being called back with the
-   * resulting {@link StreamDataOperation}s.
-   *
-   * @param reason The reason for this refresh.
-   */
-  void triggerRefresh(
-      @RequestReason int reason, Consumer<Result<List<StreamDataOperation>>> consumer);
+  /** Issues a request to refresh the entire feed. */
+  void triggerScheduledRefresh();
 }

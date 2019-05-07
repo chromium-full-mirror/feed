@@ -17,12 +17,8 @@ package com.google.android.libraries.feed.feedrequestmanager;
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
-import com.google.android.libraries.feed.common.Result;
-import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.android.libraries.feed.internalapi.requestmanager.FeedRequestManager;
-import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
-import java.util.List;
 
 /** Implementation of Client-visible RequestManagerApi. */
 public final class RequestManagerImpl implements RequestManager {
@@ -37,14 +33,9 @@ public final class RequestManagerImpl implements RequestManager {
   }
 
   @Override
-  public void triggerRefresh(
-      @RequestReason int reason, Consumer<Result<List<StreamDataOperation>>> consumer) {
-    feedRequestManager.triggerRefresh(reason, consumer);
-  }
-
-  @Override
-  public void triggerRefresh(@RequestReason int reason) {
+  public void triggerScheduledRefresh() {
     feedRequestManager.triggerRefresh(
-        reason, sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+        RequestReason.HOST_REQUESTED,
+        sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
   }
 }

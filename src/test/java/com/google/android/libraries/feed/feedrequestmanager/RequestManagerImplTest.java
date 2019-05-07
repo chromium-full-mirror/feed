@@ -40,31 +40,20 @@ public final class RequestManagerImplTest {
   @Mock private SessionManager sessionManager;
   @Mock private Consumer<Result<List<StreamDataOperation>>> updateConsumer;
 
-  private RequestManagerImpl clientRequestManager;
+  private RequestManagerImpl requestManager;
 
   @Before
   public void createRequestManager() {
     initMocks(this);
-    clientRequestManager = new RequestManagerImpl(feedRequestManager, sessionManager);
-  }
-
-  @Test
-  public void testTriggerRefresh_requestReason() {
+    requestManager = new RequestManagerImpl(feedRequestManager, sessionManager);
     when(sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT))
         .thenReturn(updateConsumer);
-    @RequestReason int reason = RequestReason.HOST_REQUESTED;
-
-    clientRequestManager.triggerRefresh(reason);
-
-    verify(feedRequestManager).triggerRefresh(reason, updateConsumer);
   }
 
   @Test
-  public void testTriggerRefresh_requestReasonAndConsumer() {
-    @RequestReason int reason = RequestReason.HOST_REQUESTED;
+  public void testTriggerScheduledRefresh() {
+    requestManager.triggerScheduledRefresh();
 
-    clientRequestManager.triggerRefresh(reason, updateConsumer);
-
-    verify(feedRequestManager).triggerRefresh(reason, updateConsumer);
+    verify(feedRequestManager).triggerRefresh(RequestReason.HOST_REQUESTED, updateConsumer);
   }
 }
