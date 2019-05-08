@@ -34,8 +34,8 @@ android_local_test(
     aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
-        "//src/main/java/com/google/android/libraries/feed/api/internal/sessionmanager",
         "//src/main/java/com/google/android/libraries/feed/api/scope",
+        "//src/main/java/com/google/android/libraries/feed/common/concurrent",
         "//src/main/java/com/google/android/libraries/feed/common/time/testing",
         "//src/main/java/com/google/android/libraries/feed/host/config",
         "//src/main/java/com/google/android/libraries/feed/host/logging",
@@ -45,8 +45,6 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/host/storage",
         "//src/main/java/com/google/android/libraries/feed/host/stream",
         "//src/main/java/com/google/android/libraries/feed/internalapi/common",
-        "//src/main/java/com/google/android/libraries/feed/internalapi/protocoladapter",
-        "//src/main/java/com/google/android/libraries/feed/internalapi/requestmanager",
         "//third_party:robolectric",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_google_guava_guava",

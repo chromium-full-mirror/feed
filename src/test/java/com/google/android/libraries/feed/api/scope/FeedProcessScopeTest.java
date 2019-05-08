@@ -22,8 +22,8 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
 import android.content.Context;
-import com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.api.scope.FeedProcessScope.Builder;
+import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.host.config.ApplicationInfo;
 import com.google.android.libraries.feed.host.config.Configuration;
@@ -39,8 +39,6 @@ import com.google.android.libraries.feed.host.storage.JournalStorage;
 import com.google.android.libraries.feed.host.storage.JournalStorageDirect;
 import com.google.android.libraries.feed.host.stream.TooltipSupportedApi;
 import com.google.android.libraries.feed.internalapi.common.ThreadUtils;
-import com.google.android.libraries.feed.internalapi.protocoladapter.ProtocolAdapter;
-import com.google.android.libraries.feed.internalapi.requestmanager.FeedRequestManager;
 import com.google.common.util.concurrent.MoreExecutors;
 import java.util.ArrayList;
 import org.junit.Before;
@@ -62,10 +60,6 @@ public class FeedProcessScopeTest {
   @Mock private TooltipSupportedApi tooltipSupportedApi;
 
   // Mocks for optional fields
-  @Mock private ProtocolAdapter protocolAdapter;
-  @Mock private FeedRequestManager feedRequestManager;
-
-  @Mock private FeedSessionManager feedSessionManager;
   @Mock private ThreadUtils threadUtils;
 
   private final ProtoExtensionProvider protoExtensionProvider = ArrayList::new;
@@ -117,15 +111,12 @@ public class FeedProcessScopeTest {
                 context,
                 applicationInfo,
                 tooltipSupportedApi)
-            .setProtocolAdapter(protocolAdapter)
-            .setFeedRequestManager(feedRequestManager)
-            .setFeedSessionManager(feedSessionManager)
             .setProtoExtensionProvider(protoExtensionProvider)
             .setClock(fakeClock)
             .build();
 
     assertThat(processScope.getRequestManager()).isNotNull();
-    assertThat(processScope.getSessionManager()).isEqualTo(feedSessionManager);
+    assertThat(processScope.getSessionManager()).isNotNull();
     assertThat(processScope.getAppLifecycleListener()).isNotNull();
     assertThat(processScope.getAppLifecycleListener()).isNotNull();
   }
@@ -171,8 +162,9 @@ public class FeedProcessScopeTest {
                 tooltipSupportedApi)
             .setContentStorage(contentStorageDirect)
             .setJournalStorage(journalStorageDirect);
-    assertThat(builder.buildContentStorage()).isEqualTo(contentStorageDirect);
-    assertThat(builder.buildJournalStorage()).isEqualTo(journalStorageDirect);
+    MainThreadRunner mainThreadRunner = new MainThreadRunner();
+    assertThat(builder.buildContentStorage(mainThreadRunner)).isEqualTo(contentStorageDirect);
+    assertThat(builder.buildJournalStorage(mainThreadRunner)).isEqualTo(journalStorageDirect);
   }
 
   @Test

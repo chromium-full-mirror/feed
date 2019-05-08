@@ -276,16 +276,12 @@ public final class FeedProcessScope implements Dumpable {
     private final ApplicationInfo applicationInfo;
 
     // Optional fields - if they are not provided, we will use default implementations.
-    /*@MonotonicNonNull*/ private FeedRequestManager feedRequestManager = null;
-    /*@MonotonicNonNull*/ private FeedSessionManager feedSessionManager = null;
-    /*@MonotonicNonNull*/ private ProtocolAdapter protocolAdapter = null;
     /*@MonotonicNonNull*/ private ProtoExtensionProvider protoExtensionProvider = null;
     /*@MonotonicNonNull*/ ContentStorageDirect contentStorage = null;
     /*@MonotonicNonNull*/ JournalStorageDirect journalStorage = null;
     /*@MonotonicNonNull*/ ContentStorage rawContentStorage = null;
     /*@MonotonicNonNull*/ JournalStorage rawJournalStorage = null;
     /*@MonotonicNonNull*/ private Clock clock;
-    /*@MonotonicNonNull*/ private MainThreadRunner mainThreadRunner;
 
     // This will be overridden in tests.
     private ThreadUtils threadUtils = new ThreadUtils();
@@ -310,21 +306,6 @@ public final class FeedProcessScope implements Dumpable {
       this.unwrappedNetworkClient = networkClient;
       this.unwrappedSchedulerApi = schedulerApi;
       this.tooltipSupportedApi = tooltipSupportedApi;
-    }
-
-    public Builder setProtocolAdapter(ProtocolAdapter protocolAdapter) {
-      this.protocolAdapter = protocolAdapter;
-      return this;
-    }
-
-    public Builder setFeedRequestManager(FeedRequestManager feedRequestManager) {
-      this.feedRequestManager = feedRequestManager;
-      return this;
-    }
-
-    public Builder setFeedSessionManager(FeedSessionManager feedSessionManager) {
-      this.feedSessionManager = feedSessionManager;
-      return this;
     }
 
     public Builder setProtoExtensionProvider(ProtoExtensionProvider protoExtensionProvider) {
@@ -352,11 +333,6 @@ public final class FeedProcessScope implements Dumpable {
       return this;
     }
 
-    public Builder setMainThreadRunner(MainThreadRunner mainThreadRunner) {
-      this.mainThreadRunner = mainThreadRunner;
-      return this;
-    }
-
     // This is really exposed for tests to override the thread checking
     Builder setThreadUtils(ThreadUtils threadUtils) {
       this.threadUtils = threadUtils;
@@ -368,15 +344,8 @@ public final class FeedProcessScope implements Dumpable {
       return this;
     }
 
-    private MainThreadRunner getOrCreateMainThreadRunner() {
-      if (mainThreadRunner == null) {
-        mainThreadRunner = new MainThreadRunner();
-      }
-      return mainThreadRunner;
-    }
-
     @VisibleForTesting
-    ContentStorageDirect buildContentStorage() {
+    ContentStorageDirect buildContentStorage(MainThreadRunner mainThreadRunner) {
       if (contentStorage == null) {
         boolean useDirect = configuration.getValueOrDefault(ConfigKey.USE_DIRECT_STORAGE, false);
         if (useDirect
@@ -384,8 +353,7 @@ public final class FeedProcessScope implements Dumpable {
             && rawContentStorage instanceof ContentStorageDirect) {
           contentStorage = (ContentStorageDirect) rawContentStorage;
         } else if (rawContentStorage != null) {
-          contentStorage =
-              new ContentStorageDirectImpl(rawContentStorage, getOrCreateMainThreadRunner());
+          contentStorage = new ContentStorageDirectImpl(rawContentStorage, mainThreadRunner);
         } else {
           contentStorage = new InMemoryContentStorage();
         }
@@ -394,7 +362,7 @@ public final class FeedProcessScope implements Dumpable {
     }
 
     @VisibleForTesting
-    JournalStorageDirect buildJournalStorage() {
+    JournalStorageDirect buildJournalStorage(MainThreadRunner mainThreadRunner) {
       if (journalStorage == null) {
         boolean useDirect = configuration.getValueOrDefault(ConfigKey.USE_DIRECT_STORAGE, false);
         if (useDirect
@@ -402,8 +370,7 @@ public final class FeedProcessScope implements Dumpable {
             && rawJournalStorage instanceof JournalStorageDirect) {
           journalStorage = (JournalStorageDirect) rawJournalStorage;
         } else if (rawJournalStorage != null) {
-          journalStorage =
-              new JournalStorageDirectImpl(rawJournalStorage, getOrCreateMainThreadRunner());
+          journalStorage = new JournalStorageDirectImpl(rawJournalStorage, mainThreadRunner);
         } else {
           journalStorage = new InMemoryJournalStorage();
         }
@@ -412,8 +379,9 @@ public final class FeedProcessScope implements Dumpable {
     }
 
     public FeedProcessScope build() {
-      contentStorage = buildContentStorage();
-      journalStorage = buildJournalStorage();
+      MainThreadRunner mainThreadRunner = new MainThreadRunner();
+      contentStorage = buildContentStorage(mainThreadRunner);
+      journalStorage = buildJournalStorage(mainThreadRunner);
 
       boolean directHostCallEnabled =
           configuration.getValueOrDefault(ConfigKey.USE_DIRECT_STORAGE, false);
@@ -423,15 +391,13 @@ public final class FeedProcessScope implements Dumpable {
         networkClient = unwrappedNetworkClient;
       } else {
         networkClient =
-            new NetworkClientWrapper(
-                unwrappedNetworkClient, threadUtils, getOrCreateMainThreadRunner());
+            new NetworkClientWrapper(unwrappedNetworkClient, threadUtils, mainThreadRunner);
       }
       if (unwrappedSchedulerApi instanceof DirectHostSupported && directHostCallEnabled) {
         schedulerApi = unwrappedSchedulerApi;
       } else {
         schedulerApi =
-            new SchedulerApiWrapper(
-                unwrappedSchedulerApi, threadUtils, getOrCreateMainThreadRunner());
+            new SchedulerApiWrapper(unwrappedSchedulerApi, threadUtils, mainThreadRunner);
       }
 
       // Build default component instances if necessary.
@@ -445,8 +411,7 @@ public final class FeedProcessScope implements Dumpable {
       }
       TimingUtils timingUtils = new TimingUtils();
       TaskQueue taskQueue =
-          new TaskQueue(
-              basicLoggingApi, singleThreadExecutor, getOrCreateMainThreadRunner(), clock);
+          new TaskQueue(basicLoggingApi, singleThreadExecutor, mainThreadRunner, clock);
       FeedStore store =
           new FeedStore(
               timingUtils,
@@ -457,34 +422,30 @@ public final class FeedProcessScope implements Dumpable {
               taskQueue,
               clock,
               basicLoggingApi,
-              getOrCreateMainThreadRunner());
+              mainThreadRunner);
 
       FeedAppLifecycleListener lifecycleListener = new FeedAppLifecycleListener(threadUtils);
       lifecycleListener.registerObserver(store);
 
-      if (protocolAdapter == null) {
-        protocolAdapter = new FeedProtocolAdapter(timingUtils);
-      }
+      ProtocolAdapter protocolAdapter = new FeedProtocolAdapter(timingUtils);
       ActionReader actionReader =
           new FeedActionReader(store, clock, protocolAdapter, taskQueue, configuration);
-      if (feedRequestManager == null) {
-        feedRequestManager =
-            new FeedRequestManagerImpl(
-                configuration,
-                networkClient,
-                protocolAdapter,
-                extensionRegistry,
-                schedulerApi,
-                taskQueue,
-                timingUtils,
-                threadUtils,
-                actionReader,
-                context,
-                applicationInfo,
-                getOrCreateMainThreadRunner(),
-                basicLoggingApi,
-                tooltipSupportedApi);
-      }
+      FeedRequestManager feedRequestManager =
+          new FeedRequestManagerImpl(
+              configuration,
+              networkClient,
+              protocolAdapter,
+              extensionRegistry,
+              schedulerApi,
+              taskQueue,
+              timingUtils,
+              threadUtils,
+              actionReader,
+              context,
+              applicationInfo,
+              mainThreadRunner,
+              basicLoggingApi,
+              tooltipSupportedApi);
       ActionUploadRequestManager actionUploadRequestManager =
           new FeedActionUploadRequestManager(
               configuration,
@@ -496,35 +457,28 @@ public final class FeedProcessScope implements Dumpable {
               actionReader,
               store,
               clock);
-      if (feedSessionManager == null) {
-        FeedSessionManagerFactory fsmFactory =
-            new FeedSessionManagerFactory(
-                taskQueue,
-                store,
-                timingUtils,
-                threadUtils,
-                protocolAdapter,
-                feedRequestManager,
-                actionUploadRequestManager,
-                schedulerApi,
-                configuration,
-                clock,
-                lifecycleListener);
-        feedSessionManager = fsmFactory.create();
-      }
+      FeedSessionManagerFactory fsmFactory =
+          new FeedSessionManagerFactory(
+              taskQueue,
+              store,
+              timingUtils,
+              threadUtils,
+              protocolAdapter,
+              feedRequestManager,
+              actionUploadRequestManager,
+              schedulerApi,
+              configuration,
+              clock,
+              lifecycleListener);
+      FeedSessionManager feedSessionManager = fsmFactory.create();
       RequestManagerImpl clientRequestManager =
           new RequestManagerImpl(feedRequestManager, feedSessionManager);
       ActionManager actionManager =
           new FeedActionManagerImpl(
-              feedSessionManager,
-              store,
-              threadUtils,
-              taskQueue,
-              getOrCreateMainThreadRunner(),
-              clock);
+              feedSessionManager, store, threadUtils, taskQueue, mainThreadRunner, clock);
 
       FeedKnownContent feedKnownContent =
-          new FeedKnownContentImpl(feedSessionManager, getOrCreateMainThreadRunner(), threadUtils);
+          new FeedKnownContentImpl(feedSessionManager, mainThreadRunner, threadUtils);
 
       ClearAllListener clearAllListener =
           new ClearAllListener(
@@ -539,7 +493,7 @@ public final class FeedProcessScope implements Dumpable {
           timingUtils,
           threadUtils,
           taskQueue,
-          getOrCreateMainThreadRunner(),
+          mainThreadRunner,
           lifecycleListener,
           clock,
           debugBehavior,
