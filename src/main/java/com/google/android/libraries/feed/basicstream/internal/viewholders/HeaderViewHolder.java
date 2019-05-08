@@ -14,12 +14,12 @@
 
 package com.google.android.libraries.feed.basicstream.internal.viewholders;
 
-import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 
 import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.widget.FrameLayout;
 import com.google.android.libraries.feed.api.stream.Header;
+import com.google.android.libraries.feed.common.logging.Logger;
 
 /** {@link FeedViewHolder} for headers. */
 public class HeaderViewHolder extends FeedViewHolder implements SwipeableViewHolder {
@@ -59,12 +59,24 @@ public class HeaderViewHolder extends FeedViewHolder implements SwipeableViewHol
 
   @Override
   public boolean canSwipe() {
-    return checkNotNull(header, "canSwipe cannot be called before viewholder is bound.")
-        .isDismissible();
+    if (header == null) {
+      Logger.w(TAG, "canSwipe should not be called before viewholder is bound.");
+
+      // Instead of crashing if viewholder is not bound, disable swiping behavior.
+      return false;
+    }
+    return header.isDismissible();
   }
 
   @Override
   public void onSwiped() {
-    checkNotNull(swipeNotifier, "canSwipe cannot be called before viewholder is bound.").onSwiped();
+    if (swipeNotifier == null) {
+      Logger.w(TAG, "onSwiped should not be called before viewholder is bound.");
+
+      // Instead of crashing if viewholder is not bound, disable swiping behavior.
+      return;
+    }
+
+    swipeNotifier.onSwiped();
   }
 }

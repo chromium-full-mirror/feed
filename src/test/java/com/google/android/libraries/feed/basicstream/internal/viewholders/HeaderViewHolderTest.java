@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.basicstream.internal.viewholders;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -84,11 +85,25 @@ public class HeaderViewHolderTest {
   }
 
   @Test
+  public void testCanSwipe_returnsFalse_whenViewHolderNotBound() {
+    when(header.isDismissible()).thenReturn(true);
+
+    assertThat(headerViewHolder.canSwipe()).isFalse();
+  }
+
+  @Test
   public void testOnSwiped() {
     headerViewHolder.bind(header, swipeNotifier);
 
     headerViewHolder.onSwiped();
 
     verify(swipeNotifier).onSwiped();
+  }
+
+  @Test
+  public void testOnSwiped_doesNotCallOnSwiped_whenViewHolderNotBound() {
+    headerViewHolder.onSwiped();
+
+    verify(swipeNotifier, never()).onSwiped();
   }
 }
