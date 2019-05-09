@@ -24,8 +24,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.google.android.libraries.feed.api.host.offlineindicator.OfflineIndicatorApi;
 import com.google.android.libraries.feed.common.functional.Consumer;
-import com.google.android.libraries.feed.host.offlineindicator.OfflineIndicatorApi;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;

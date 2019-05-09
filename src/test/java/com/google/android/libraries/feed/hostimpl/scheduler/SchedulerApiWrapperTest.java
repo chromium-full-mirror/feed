@@ -20,9 +20,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi;
+import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi.SessionManagerState;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
-import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
-import com.google.android.libraries.feed.host.scheduler.SchedulerApi.SessionManagerState;
 import com.google.android.libraries.feed.internalapi.common.ThreadUtils;
 import org.junit.After;
 import org.junit.Before;

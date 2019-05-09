@@ -17,11 +17,11 @@ package com.google.android.libraries.feed.common.concurrent;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.google.android.libraries.feed.api.host.logging.InternalFeedError;
+import com.google.android.libraries.feed.api.host.logging.Task;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
-import com.google.android.libraries.feed.host.logging.InternalFeedError;
-import com.google.android.libraries.feed.host.logging.Task;
 import com.google.android.libraries.feed.testing.host.logging.FakeBasicLoggingApi;
 import com.google.common.util.concurrent.MoreExecutors;
 import java.util.ArrayList;

@@ -7,9 +7,9 @@ java_library(
     testonly = True,
     srcs = glob(["*.java"]),
     deps = [
+        "//src/main/java/com/google/android/libraries/feed/api/host/network",
         "//src/main/java/com/google/android/libraries/feed/common/concurrent/testing",
         "//src/main/java/com/google/android/libraries/feed/common/functional",
-        "//src/main/java/com/google/android/libraries/feed/host/network",
         "@com_google_code_findbugs_jsr305//jar",
     ],
 )

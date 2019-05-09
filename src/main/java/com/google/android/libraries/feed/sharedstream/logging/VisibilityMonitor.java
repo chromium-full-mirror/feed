@@ -19,8 +19,8 @@ import android.support.v4.view.ViewCompat;
 import android.view.View;
 import android.view.ViewParent;
 import android.view.ViewTreeObserver;
-import com.google.android.libraries.feed.host.config.Configuration;
-import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
+import com.google.android.libraries.feed.api.host.config.Configuration;
+import com.google.android.libraries.feed.api.host.config.Configuration.ConfigKey;
 
 /** Utility class to monitor the visibility of a view. */
 public class VisibilityMonitor

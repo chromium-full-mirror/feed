@@ -17,9 +17,9 @@ package com.google.android.libraries.feed.sharedstream.scroll;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import com.google.android.libraries.feed.api.host.config.Configuration;
+import com.google.android.libraries.feed.api.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.common.logging.Logger;
-import com.google.android.libraries.feed.host.config.Configuration;
-import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.sharedstream.proto.ScrollStateProto.ScrollState;
 
 /** Helper for restoring scroll positions. */

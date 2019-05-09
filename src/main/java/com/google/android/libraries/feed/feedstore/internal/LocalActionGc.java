@@ -14,11 +14,11 @@
 
 package com.google.android.libraries.feed.feedstore.internal;
 
+import com.google.android.libraries.feed.api.host.storage.CommitResult;
+import com.google.android.libraries.feed.api.host.storage.JournalMutation.Builder;
+import com.google.android.libraries.feed.api.host.storage.JournalStorageDirect;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTracker;
-import com.google.android.libraries.feed.host.storage.CommitResult;
-import com.google.android.libraries.feed.host.storage.JournalMutation.Builder;
-import com.google.android.libraries.feed.host.storage.JournalStorageDirect;
 import com.google.search.now.feed.client.StreamDataProto.StreamLocalAction;
 import java.util.ArrayList;
 import java.util.List;

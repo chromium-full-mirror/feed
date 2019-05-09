@@ -14,7 +14,7 @@
 
 package com.google.android.libraries.feed.sharedstream.piet;
 
-import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.api.host.logging.BasicLoggingApi;
 import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
 import java.util.ArrayList;
 import java.util.List;

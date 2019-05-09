@@ -15,9 +15,9 @@
 package com.google.android.libraries.feed.basicstream.internal.scroll;
 
 import android.view.View;
+import com.google.android.libraries.feed.api.host.logging.ScrollType;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.time.Clock;
-import com.google.android.libraries.feed.host.logging.ScrollType;
 import com.google.android.libraries.feed.sharedstream.publicapi.scroll.ScrollObservable;
 import com.google.android.libraries.feed.sharedstream.publicapi.scroll.ScrollObserver;
 import com.google.android.libraries.feed.sharedstream.scroll.ScrollLogger;

@@ -21,6 +21,13 @@ import static com.google.android.libraries.feed.feedstore.internal.FeedStoreCons
 import static com.google.android.libraries.feed.feedstore.internal.FeedStoreConstants.UPLOADABLE_ACTION_PREFIX;
 
 import android.util.Base64;
+import com.google.android.libraries.feed.api.host.storage.CommitResult;
+import com.google.android.libraries.feed.api.host.storage.ContentMutation.Builder;
+import com.google.android.libraries.feed.api.host.storage.ContentStorage;
+import com.google.android.libraries.feed.api.host.storage.ContentStorageDirect;
+import com.google.android.libraries.feed.api.host.storage.JournalMutation;
+import com.google.android.libraries.feed.api.host.storage.JournalStorage;
+import com.google.android.libraries.feed.api.host.storage.JournalStorageDirect;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.intern.Interner;
@@ -33,13 +40,6 @@ import com.google.android.libraries.feed.common.protoextensions.FeedExtensionReg
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTracker;
-import com.google.android.libraries.feed.host.storage.CommitResult;
-import com.google.android.libraries.feed.host.storage.ContentMutation.Builder;
-import com.google.android.libraries.feed.host.storage.ContentStorage;
-import com.google.android.libraries.feed.host.storage.ContentStorageDirect;
-import com.google.android.libraries.feed.host.storage.JournalMutation;
-import com.google.android.libraries.feed.host.storage.JournalStorage;
-import com.google.android.libraries.feed.host.storage.JournalStorageDirect;
 import com.google.android.libraries.feed.internalapi.common.ActionPropertiesWithId;
 import com.google.android.libraries.feed.internalapi.common.PayloadWithId;
 import com.google.android.libraries.feed.internalapi.common.SemanticPropertiesWithId;

@@ -14,6 +14,12 @@
 
 package com.google.android.libraries.feed.common.testing;
 
+import com.google.android.libraries.feed.api.host.config.Configuration;
+import com.google.android.libraries.feed.api.host.config.Configuration.ConfigKey;
+import com.google.android.libraries.feed.api.host.proto.ProtoExtensionProvider;
+import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi;
+import com.google.android.libraries.feed.api.host.storage.ContentStorageDirect;
+import com.google.android.libraries.feed.api.host.storage.JournalStorageDirect;
 import com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.api.lifecycle.AppLifecycleListener;
 import com.google.android.libraries.feed.api.scope.ClearAllListener;
@@ -30,12 +36,6 @@ import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter
 import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManagerFactory;
 import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManagerImpl;
 import com.google.android.libraries.feed.feedstore.FeedStore;
-import com.google.android.libraries.feed.host.config.Configuration;
-import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
-import com.google.android.libraries.feed.host.proto.ProtoExtensionProvider;
-import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
-import com.google.android.libraries.feed.host.storage.ContentStorageDirect;
-import com.google.android.libraries.feed.host.storage.JournalStorageDirect;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelProviderFactory;

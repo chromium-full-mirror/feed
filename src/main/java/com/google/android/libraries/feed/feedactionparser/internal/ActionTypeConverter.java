@@ -14,7 +14,7 @@
 
 package com.google.android.libraries.feed.feedactionparser.internal;
 
-import com.google.android.libraries.feed.host.logging.ActionType;
+import com.google.android.libraries.feed.api.host.logging.ActionType;
 import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.Type;
 
 /** Utility class to convert a {@link Type} to {@link ActionType}. */

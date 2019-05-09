@@ -15,9 +15,9 @@
 package com.google.android.libraries.feed.feedrequestmanager;
 
 import com.google.android.libraries.feed.api.common.MutationContext;
+import com.google.android.libraries.feed.api.host.logging.RequestReason;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
-import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.android.libraries.feed.internalapi.requestmanager.FeedRequestManager;
 
 /** Implementation of Client-visible RequestManagerApi. */

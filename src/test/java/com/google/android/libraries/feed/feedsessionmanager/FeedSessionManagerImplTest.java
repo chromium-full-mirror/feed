@@ -16,13 +16,19 @@ package com.google.android.libraries.feed.feedsessionmanager;
 
 import static com.google.android.libraries.feed.internalapi.store.Store.HEAD_SESSION_ID;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.MutationContext;
+import com.google.android.libraries.feed.api.host.config.Configuration;
+import com.google.android.libraries.feed.api.host.config.Configuration.ConfigKey;
+import com.google.android.libraries.feed.api.host.logging.RequestReason;
+import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi;
+import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi.RequestBehavior;
+import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi.SessionManagerState;
 import com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
@@ -40,12 +46,6 @@ import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManagerIm
 import com.google.android.libraries.feed.feedsessionmanager.internal.HeadSessionImpl;
 import com.google.android.libraries.feed.feedsessionmanager.internal.Session;
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionCache;
-import com.google.android.libraries.feed.host.config.Configuration;
-import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
-import com.google.android.libraries.feed.host.logging.RequestReason;
-import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
-import com.google.android.libraries.feed.host.scheduler.SchedulerApi.RequestBehavior;
-import com.google.android.libraries.feed.host.scheduler.SchedulerApi.SessionManagerState;
 import com.google.android.libraries.feed.internalapi.common.ActionPropertiesWithId;
 import com.google.android.libraries.feed.internalapi.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.internalapi.common.testing.ContentIdGenerators;

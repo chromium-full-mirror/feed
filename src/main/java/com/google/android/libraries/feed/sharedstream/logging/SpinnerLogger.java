@@ -15,10 +15,10 @@
 package com.google.android.libraries.feed.sharedstream.logging;
 
 import android.support.annotation.VisibleForTesting;
+import com.google.android.libraries.feed.api.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.api.host.logging.SpinnerType;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.Clock;
-import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
-import com.google.android.libraries.feed.host.logging.SpinnerType;
 
 /** Logs events for displaying spinner in the Stream. */
 public class SpinnerLogger {

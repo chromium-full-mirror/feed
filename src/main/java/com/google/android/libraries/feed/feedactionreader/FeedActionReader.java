@@ -14,14 +14,14 @@
 
 package com.google.android.libraries.feed.feedactionreader;
 
+import com.google.android.libraries.feed.api.host.config.Configuration;
+import com.google.android.libraries.feed.api.host.config.Configuration.ConfigKey;
+import com.google.android.libraries.feed.api.host.logging.Task;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.Clock;
-import com.google.android.libraries.feed.host.config.Configuration;
-import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
-import com.google.android.libraries.feed.host.logging.Task;
 import com.google.android.libraries.feed.internalapi.actionmanager.ActionReader;
 import com.google.android.libraries.feed.internalapi.common.ActionPropertiesWithId;
 import com.google.android.libraries.feed.internalapi.common.DismissActionWithSemanticProperties;

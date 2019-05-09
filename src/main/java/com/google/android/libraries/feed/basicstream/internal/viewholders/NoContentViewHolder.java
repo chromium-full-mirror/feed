@@ -21,8 +21,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.FrameLayout;
+import com.google.android.libraries.feed.api.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
-import com.google.android.libraries.feed.host.stream.CardConfiguration;
 
 /** {@link android.support.v7.widget.RecyclerView.ViewHolder} for no content card. */
 public class NoContentViewHolder extends FeedViewHolder {

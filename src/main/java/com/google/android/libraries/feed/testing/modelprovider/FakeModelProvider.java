@@ -14,7 +14,7 @@
 
 package com.google.android.libraries.feed.testing.modelprovider;
 
-import com.google.android.libraries.feed.host.logging.RequestReason;
+import com.google.android.libraries.feed.api.host.logging.RequestReason;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelChild;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.internalapi.modelprovider.ModelError;

@@ -13,8 +13,8 @@
 // limitations under the License.
 package com.google.android.libraries.feed.sharedstream.scroll;
 
-import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
-import com.google.android.libraries.feed.host.logging.ScrollType;
+import com.google.android.libraries.feed.api.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.api.host.logging.ScrollType;
 
 /** */
 public class ScrollLogger {

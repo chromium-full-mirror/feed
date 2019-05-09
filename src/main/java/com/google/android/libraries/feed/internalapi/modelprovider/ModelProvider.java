@@ -16,7 +16,7 @@ package com.google.android.libraries.feed.internalapi.modelprovider;
 
 import android.support.annotation.IntDef;
 import com.google.android.libraries.feed.api.common.MutationContext;
-import com.google.android.libraries.feed.host.logging.RequestReason;
+import com.google.android.libraries.feed.api.host.logging.RequestReason;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;

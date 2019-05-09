@@ -14,7 +14,7 @@
 
 package com.google.android.libraries.feed.internalapi.store;
 
-import com.google.android.libraries.feed.host.storage.CommitResult;
+import com.google.android.libraries.feed.api.host.storage.CommitResult;
 import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
 
 /** Mutation for adding and updating uploadable actions in the Feed Store. */

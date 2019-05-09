@@ -16,13 +16,13 @@ package com.google.android.libraries.feed.feedstore.testing;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.google.android.libraries.feed.api.host.storage.CommitResult;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.testing.RunnableSubject;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
-import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.internalapi.common.ActionPropertiesWithId;
 import com.google.android.libraries.feed.internalapi.common.PayloadWithId;
 import com.google.android.libraries.feed.internalapi.common.SemanticPropertiesWithId;

@@ -14,6 +14,12 @@
 
 package com.google.android.libraries.feed.feedstore;
 
+import com.google.android.libraries.feed.api.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.api.host.logging.InternalFeedError;
+import com.google.android.libraries.feed.api.host.logging.Task;
+import com.google.android.libraries.feed.api.host.storage.CommitResult;
+import com.google.android.libraries.feed.api.host.storage.ContentStorageDirect;
+import com.google.android.libraries.feed.api.host.storage.JournalStorageDirect;
 import com.google.android.libraries.feed.api.lifecycle.Resettable;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
@@ -31,12 +37,6 @@ import com.google.android.libraries.feed.feedstore.internal.ClearableStore;
 import com.google.android.libraries.feed.feedstore.internal.EphemeralFeedStore;
 import com.google.android.libraries.feed.feedstore.internal.FeedStoreHelper;
 import com.google.android.libraries.feed.feedstore.internal.PersistentFeedStore;
-import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
-import com.google.android.libraries.feed.host.logging.InternalFeedError;
-import com.google.android.libraries.feed.host.logging.Task;
-import com.google.android.libraries.feed.host.storage.CommitResult;
-import com.google.android.libraries.feed.host.storage.ContentStorageDirect;
-import com.google.android.libraries.feed.host.storage.JournalStorageDirect;
 import com.google.android.libraries.feed.internalapi.common.ActionPropertiesWithId;
 import com.google.android.libraries.feed.internalapi.common.PayloadWithId;
 import com.google.android.libraries.feed.internalapi.common.SemanticPropertiesWithId;

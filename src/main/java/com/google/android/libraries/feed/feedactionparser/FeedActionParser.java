@@ -24,15 +24,15 @@ import static com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata
 
 import android.view.View;
 import com.google.android.libraries.feed.api.client.knowncontent.ContentMetadata;
+import com.google.android.libraries.feed.api.host.action.StreamActionApi;
+import com.google.android.libraries.feed.api.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.api.host.logging.InternalFeedError;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.feedactionparser.internal.ActionTypeConverter;
 import com.google.android.libraries.feed.feedactionparser.internal.PietFeedActionPayloadRetriever;
 import com.google.android.libraries.feed.feedactionparser.internal.TooltipInfoImpl;
-import com.google.android.libraries.feed.host.action.StreamActionApi;
-import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
-import com.google.android.libraries.feed.host.logging.InternalFeedError;
 import com.google.android.libraries.feed.internalapi.actionparser.ActionParser;
 import com.google.android.libraries.feed.internalapi.actionparser.ActionSource;
 import com.google.android.libraries.feed.internalapi.protocoladapter.ProtocolAdapter;

@@ -17,11 +17,11 @@ package com.google.android.libraries.feed.testing.conformance.network;
 import static com.google.common.truth.Truth.assertThat;
 
 import android.net.Uri;
+import com.google.android.libraries.feed.api.host.network.HttpRequest;
+import com.google.android.libraries.feed.api.host.network.HttpRequest.HttpMethod;
+import com.google.android.libraries.feed.api.host.network.HttpResponse;
+import com.google.android.libraries.feed.api.host.network.NetworkClient;
 import com.google.android.libraries.feed.common.testing.RequiredConsumer;
-import com.google.android.libraries.feed.host.network.HttpRequest;
-import com.google.android.libraries.feed.host.network.HttpRequest.HttpMethod;
-import com.google.android.libraries.feed.host.network.HttpResponse;
-import com.google.android.libraries.feed.host.network.NetworkClient;
 import java.util.Collections;
 import org.junit.Test;
 

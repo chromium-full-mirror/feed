@@ -14,7 +14,7 @@
 
 package com.google.android.libraries.feed.feedactionparser.internal;
 
-import com.google.android.libraries.feed.host.stream.TooltipInfo;
+import com.google.android.libraries.feed.api.host.stream.TooltipInfo;
 import com.google.search.now.ui.action.FeedActionProto.TooltipData;
 
 /**

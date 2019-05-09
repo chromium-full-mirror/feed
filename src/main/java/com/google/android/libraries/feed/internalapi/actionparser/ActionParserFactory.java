@@ -24,7 +24,7 @@ public interface ActionParserFactory {
    * Builds the ActionParser.
    *
    * @param contentMetadata A {@link Supplier} for {@link ContentMetadata} required for the {@link
-   *     com.google.android.libraries.feed.host.action.ActionApi#downloadUrl(ContentMetadata)}
+   *     com.google.android.libraries.feed.api.host.action.ActionApi#downloadUrl(ContentMetadata)}
    *     action. If the {@link Supplier} returns {@code null}, the download action will be
    *     suppressed. A {@link Supplier} is used instead of just a {@link ContentMetadata} to save on
    *     memory and startup time. The {@link Supplier} will not be accessed until an action is taken

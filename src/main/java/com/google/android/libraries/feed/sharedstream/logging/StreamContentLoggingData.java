@@ -14,7 +14,7 @@
 
 package com.google.android.libraries.feed.sharedstream.logging;
 
-import com.google.android.libraries.feed.host.logging.ContentLoggingData;
+import com.google.android.libraries.feed.api.host.logging.ContentLoggingData;
 import com.google.search.now.feed.client.StreamDataProto.ClientBasicLoggingMetadata;
 import com.google.search.now.ui.stream.StreamStructureProto.BasicLoggingMetadata;
 import com.google.search.now.ui.stream.StreamStructureProto.RepresentationData;

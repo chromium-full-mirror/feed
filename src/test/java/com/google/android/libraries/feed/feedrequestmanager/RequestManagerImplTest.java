@@ -19,10 +19,10 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.MutationContext;
+import com.google.android.libraries.feed.api.host.logging.RequestReason;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.functional.Consumer;
-import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.android.libraries.feed.internalapi.requestmanager.FeedRequestManager;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import java.util.List;

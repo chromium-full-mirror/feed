@@ -16,14 +16,14 @@ package com.google.android.libraries.feed.common.concurrent;
 
 import android.support.annotation.IntDef;
 import android.support.annotation.VisibleForTesting;
+import com.google.android.libraries.feed.api.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.api.host.logging.InternalFeedError;
+import com.google.android.libraries.feed.api.host.logging.Task;
 import com.google.android.libraries.feed.common.logging.Dumpable;
 import com.google.android.libraries.feed.common.logging.Dumper;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.logging.StringFormattingUtils;
 import com.google.android.libraries.feed.common.time.Clock;
-import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
-import com.google.android.libraries.feed.host.logging.InternalFeedError;
-import com.google.android.libraries.feed.host.logging.Task;
 import java.util.ArrayDeque;
 import java.util.Queue;
 import java.util.concurrent.Executor;

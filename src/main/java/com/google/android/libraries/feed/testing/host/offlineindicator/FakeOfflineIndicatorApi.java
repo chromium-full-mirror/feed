@@ -14,8 +14,8 @@
 
 package com.google.android.libraries.feed.testing.host.offlineindicator;
 
+import com.google.android.libraries.feed.api.host.offlineindicator.OfflineIndicatorApi;
 import com.google.android.libraries.feed.common.functional.Consumer;
-import com.google.android.libraries.feed.host.offlineindicator.OfflineIndicatorApi;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;

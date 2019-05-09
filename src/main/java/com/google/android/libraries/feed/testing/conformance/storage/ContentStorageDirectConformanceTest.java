@@ -16,10 +16,10 @@ package com.google.android.libraries.feed.testing.conformance.storage;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.google.android.libraries.feed.api.host.storage.CommitResult;
+import com.google.android.libraries.feed.api.host.storage.ContentMutation;
+import com.google.android.libraries.feed.api.host.storage.ContentStorageDirect;
 import com.google.android.libraries.feed.common.Result;
-import com.google.android.libraries.feed.host.storage.CommitResult;
-import com.google.android.libraries.feed.host.storage.ContentMutation;
-import com.google.android.libraries.feed.host.storage.ContentStorageDirect;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Collections;

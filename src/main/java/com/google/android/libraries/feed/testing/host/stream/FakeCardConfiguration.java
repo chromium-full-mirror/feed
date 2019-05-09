@@ -17,7 +17,7 @@ package com.google.android.libraries.feed.testing.host.stream;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
-import com.google.android.libraries.feed.host.stream.CardConfiguration;
+import com.google.android.libraries.feed.api.host.stream.CardConfiguration;
 
 /** Fake for {@link CardConfiguration}. */
 public class FakeCardConfiguration implements CardConfiguration {

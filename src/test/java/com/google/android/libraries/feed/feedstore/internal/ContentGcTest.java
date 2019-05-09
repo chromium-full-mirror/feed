@@ -22,13 +22,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.google.android.libraries.feed.api.host.storage.CommitResult;
+import com.google.android.libraries.feed.api.host.storage.ContentMutation;
+import com.google.android.libraries.feed.api.host.storage.ContentMutation.Builder;
+import com.google.android.libraries.feed.api.host.storage.ContentOperation;
+import com.google.android.libraries.feed.api.host.storage.ContentStorageDirect;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.time.TimingUtils;
-import com.google.android.libraries.feed.host.storage.CommitResult;
-import com.google.android.libraries.feed.host.storage.ContentMutation;
-import com.google.android.libraries.feed.host.storage.ContentMutation.Builder;
-import com.google.android.libraries.feed.host.storage.ContentOperation;
-import com.google.android.libraries.feed.host.storage.ContentStorageDirect;
 import com.google.android.libraries.feed.internalapi.store.LocalActionMutation.ActionType;
 import com.google.search.now.feed.client.StreamDataProto.StreamLocalAction;
 import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;

@@ -25,7 +25,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.view.View;
 import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.FrameLayout;
-import com.google.android.libraries.feed.host.stream.CardConfiguration;
+import com.google.android.libraries.feed.api.host.stream.CardConfiguration;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

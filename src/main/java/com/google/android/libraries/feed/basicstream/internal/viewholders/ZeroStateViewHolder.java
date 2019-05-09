@@ -22,8 +22,8 @@ import android.view.ViewGroup;
 import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.FrameLayout;
 import android.widget.FrameLayout.LayoutParams;
+import com.google.android.libraries.feed.api.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
-import com.google.android.libraries.feed.host.stream.CardConfiguration;
 
 /** {@link android.support.v7.widget.RecyclerView.ViewHolder} for zero state. */
 public class ZeroStateViewHolder extends FeedViewHolder {

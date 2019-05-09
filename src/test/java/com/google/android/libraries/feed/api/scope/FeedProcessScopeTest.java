@@ -22,22 +22,21 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
 import android.content.Context;
-import com.google.android.libraries.feed.api.scope.FeedProcessScope.Builder;
+import com.google.android.libraries.feed.api.host.config.ApplicationInfo;
+import com.google.android.libraries.feed.api.host.config.Configuration;
+import com.google.android.libraries.feed.api.host.config.Configuration.ConfigKey;
+import com.google.android.libraries.feed.api.host.config.DebugBehavior;
+import com.google.android.libraries.feed.api.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.api.host.network.NetworkClient;
+import com.google.android.libraries.feed.api.host.proto.ProtoExtensionProvider;
+import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi;
+import com.google.android.libraries.feed.api.host.storage.ContentStorage;
+import com.google.android.libraries.feed.api.host.storage.ContentStorageDirect;
+import com.google.android.libraries.feed.api.host.storage.JournalStorage;
+import com.google.android.libraries.feed.api.host.storage.JournalStorageDirect;
+import com.google.android.libraries.feed.api.host.stream.TooltipSupportedApi;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
-import com.google.android.libraries.feed.host.config.ApplicationInfo;
-import com.google.android.libraries.feed.host.config.Configuration;
-import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
-import com.google.android.libraries.feed.host.config.DebugBehavior;
-import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
-import com.google.android.libraries.feed.host.network.NetworkClient;
-import com.google.android.libraries.feed.host.proto.ProtoExtensionProvider;
-import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
-import com.google.android.libraries.feed.host.storage.ContentStorage;
-import com.google.android.libraries.feed.host.storage.ContentStorageDirect;
-import com.google.android.libraries.feed.host.storage.JournalStorage;
-import com.google.android.libraries.feed.host.storage.JournalStorageDirect;
-import com.google.android.libraries.feed.host.stream.TooltipSupportedApi;
 import com.google.android.libraries.feed.internalapi.common.ThreadUtils;
 import com.google.common.util.concurrent.MoreExecutors;
 import java.util.ArrayList;
@@ -76,7 +75,7 @@ public class FeedProcessScopeTest {
   public void testBasicBuild() {
     // No crash should happen.
     FeedProcessScope processScope =
-        new Builder(
+        new FeedProcessScope.Builder(
                 configuration,
                 MoreExecutors.newDirectExecutorService(),
                 basicLoggingApi,
@@ -194,7 +193,7 @@ public class FeedProcessScopeTest {
   @Test
   public void testDestroy() throws Exception {
     FeedProcessScope processScope =
-        new Builder(
+        new FeedProcessScope.Builder(
                 configuration,
                 MoreExecutors.newDirectExecutorService(),
                 basicLoggingApi,

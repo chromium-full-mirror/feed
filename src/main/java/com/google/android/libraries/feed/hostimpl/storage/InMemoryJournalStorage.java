@@ -14,21 +14,21 @@
 
 package com.google.android.libraries.feed.hostimpl.storage;
 
-import static com.google.android.libraries.feed.host.storage.JournalOperation.Type.APPEND;
-import static com.google.android.libraries.feed.host.storage.JournalOperation.Type.COPY;
-import static com.google.android.libraries.feed.host.storage.JournalOperation.Type.DELETE;
+import static com.google.android.libraries.feed.api.host.storage.JournalOperation.Type.APPEND;
+import static com.google.android.libraries.feed.api.host.storage.JournalOperation.Type.COPY;
+import static com.google.android.libraries.feed.api.host.storage.JournalOperation.Type.DELETE;
 
+import com.google.android.libraries.feed.api.host.storage.CommitResult;
+import com.google.android.libraries.feed.api.host.storage.JournalMutation;
+import com.google.android.libraries.feed.api.host.storage.JournalOperation;
+import com.google.android.libraries.feed.api.host.storage.JournalOperation.Append;
+import com.google.android.libraries.feed.api.host.storage.JournalOperation.Copy;
+import com.google.android.libraries.feed.api.host.storage.JournalStorage;
+import com.google.android.libraries.feed.api.host.storage.JournalStorageDirect;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.logging.Dumpable;
 import com.google.android.libraries.feed.common.logging.Dumper;
 import com.google.android.libraries.feed.common.logging.Logger;
-import com.google.android.libraries.feed.host.storage.CommitResult;
-import com.google.android.libraries.feed.host.storage.JournalMutation;
-import com.google.android.libraries.feed.host.storage.JournalOperation;
-import com.google.android.libraries.feed.host.storage.JournalOperation.Append;
-import com.google.android.libraries.feed.host.storage.JournalOperation.Copy;
-import com.google.android.libraries.feed.host.storage.JournalStorage;
-import com.google.android.libraries.feed.host.storage.JournalStorageDirect;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

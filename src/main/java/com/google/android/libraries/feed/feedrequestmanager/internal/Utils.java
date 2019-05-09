@@ -15,10 +15,10 @@
 package com.google.android.libraries.feed.feedrequestmanager.internal;
 
 import android.text.TextUtils;
+import com.google.android.libraries.feed.api.host.config.ApplicationInfo.AppType;
+import com.google.android.libraries.feed.api.host.config.ApplicationInfo.Architecture;
+import com.google.android.libraries.feed.api.host.config.ApplicationInfo.BuildType;
 import com.google.android.libraries.feed.common.logging.Logger;
-import com.google.android.libraries.feed.host.config.ApplicationInfo.AppType;
-import com.google.android.libraries.feed.host.config.ApplicationInfo.Architecture;
-import com.google.android.libraries.feed.host.config.ApplicationInfo.BuildType;
 import com.google.search.now.wire.feed.ClientInfoProto.ClientInfo;
 import com.google.search.now.wire.feed.VersionProto.Version;
 import java.text.NumberFormat;

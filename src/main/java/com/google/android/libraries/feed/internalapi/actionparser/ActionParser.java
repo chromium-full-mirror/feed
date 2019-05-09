@@ -15,7 +15,7 @@
 package com.google.android.libraries.feed.internalapi.actionparser;
 
 import android.view.View;
-import com.google.android.libraries.feed.host.action.StreamActionApi;
+import com.google.android.libraries.feed.api.host.action.StreamActionApi;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
 import com.google.search.now.ui.piet.ActionsProto.Action;
 

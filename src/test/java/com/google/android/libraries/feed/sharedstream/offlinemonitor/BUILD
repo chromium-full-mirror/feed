@@ -10,8 +10,8 @@ android_local_test(
     aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
+        "//src/main/java/com/google/android/libraries/feed/api/host/offlineindicator",
         "//src/main/java/com/google/android/libraries/feed/common/functional",
-        "//src/main/java/com/google/android/libraries/feed/host/offlineindicator",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/offlinemonitor",
         "//third_party:robolectric",
         "@com_google_protobuf_javalite//:protobuf_java_lite",

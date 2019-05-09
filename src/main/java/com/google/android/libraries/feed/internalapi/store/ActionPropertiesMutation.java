@@ -14,7 +14,7 @@
 
 package com.google.android.libraries.feed.internalapi.store;
 
-import com.google.android.libraries.feed.host.storage.CommitResult;
+import com.google.android.libraries.feed.api.host.storage.CommitResult;
 import com.google.search.now.wire.feed.OpaqueActionDataProto.OpaqueActionData;
 
 /** Used to commit mutations to Action properties data within the {@link Store} */

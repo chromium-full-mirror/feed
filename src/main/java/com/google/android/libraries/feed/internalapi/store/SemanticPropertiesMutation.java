@@ -14,7 +14,7 @@
 
 package com.google.android.libraries.feed.internalapi.store;
 
-import com.google.android.libraries.feed.host.storage.CommitResult;
+import com.google.android.libraries.feed.api.host.storage.CommitResult;
 import com.google.protobuf.ByteString;
 
 /** Used to commit mutations to semantic properties data within the {@link Store} */

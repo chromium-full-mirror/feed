@@ -14,17 +14,17 @@
 
 package com.google.android.libraries.feed.testing.host.logging;
 
-import com.google.android.libraries.feed.host.logging.ActionType;
-import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
-import com.google.android.libraries.feed.host.logging.ContentLoggingData;
-import com.google.android.libraries.feed.host.logging.ElementLoggingData;
-import com.google.android.libraries.feed.host.logging.InternalFeedError;
-import com.google.android.libraries.feed.host.logging.RequestReason;
-import com.google.android.libraries.feed.host.logging.ScrollType;
-import com.google.android.libraries.feed.host.logging.SessionEvent;
-import com.google.android.libraries.feed.host.logging.SpinnerType;
-import com.google.android.libraries.feed.host.logging.Task;
-import com.google.android.libraries.feed.host.logging.ZeroStateShowReason;
+import com.google.android.libraries.feed.api.host.logging.ActionType;
+import com.google.android.libraries.feed.api.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.api.host.logging.ContentLoggingData;
+import com.google.android.libraries.feed.api.host.logging.ElementLoggingData;
+import com.google.android.libraries.feed.api.host.logging.InternalFeedError;
+import com.google.android.libraries.feed.api.host.logging.RequestReason;
+import com.google.android.libraries.feed.api.host.logging.ScrollType;
+import com.google.android.libraries.feed.api.host.logging.SessionEvent;
+import com.google.android.libraries.feed.api.host.logging.SpinnerType;
+import com.google.android.libraries.feed.api.host.logging.Task;
+import com.google.android.libraries.feed.api.host.logging.ZeroStateShowReason;
 import java.util.List;
 
 /** Fake implementation of {@link BasicLoggingApi}. */

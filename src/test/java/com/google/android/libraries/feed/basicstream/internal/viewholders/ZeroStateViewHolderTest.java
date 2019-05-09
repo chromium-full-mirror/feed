@@ -24,7 +24,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.FrameLayout;
-import com.google.android.libraries.feed.host.stream.CardConfiguration;
+import com.google.android.libraries.feed.api.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.testing.host.stream.FakeCardConfiguration;
 import org.junit.Before;
 import org.junit.Test;

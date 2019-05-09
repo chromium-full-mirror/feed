@@ -13,10 +13,10 @@
 // limitations under the License.
 package com.google.android.libraries.feed.hostimpl.logging;
 
-import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
-import com.google.android.libraries.feed.host.logging.ContentLoggingData;
-import com.google.android.libraries.feed.host.logging.ElementLoggingData;
-import com.google.android.libraries.feed.host.logging.Task;
+import com.google.android.libraries.feed.api.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.api.host.logging.ContentLoggingData;
+import com.google.android.libraries.feed.api.host.logging.ElementLoggingData;
+import com.google.android.libraries.feed.api.host.logging.Task;
 import java.util.List;
 
 /** {@link BasicLoggingApi} implementation that no-ops for all methods. */

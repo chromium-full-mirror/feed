@@ -15,7 +15,7 @@
 package com.google.android.libraries.feed.internalapi.store;
 
 import android.support.annotation.IntDef;
-import com.google.android.libraries.feed.host.storage.CommitResult;
+import com.google.android.libraries.feed.api.host.storage.CommitResult;
 
 /** Mutation for adding and updating actions in the Feed Store. */
 public interface LocalActionMutation {

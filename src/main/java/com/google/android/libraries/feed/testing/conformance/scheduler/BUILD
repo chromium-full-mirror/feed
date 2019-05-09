@@ -7,7 +7,7 @@ java_library(
     testonly = 1,
     srcs = glob(["*.java"]),
     deps = [
-        "//src/main/java/com/google/android/libraries/feed/host/scheduler",
+        "//src/main/java/com/google/android/libraries/feed/api/host/scheduler",
         "@maven//:junit_junit",
     ],
 )

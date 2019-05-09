@@ -15,10 +15,10 @@
 package com.google.android.libraries.feed.sharedstream.offlinemonitor;
 
 import android.support.annotation.VisibleForTesting;
+import com.google.android.libraries.feed.api.host.offlineindicator.OfflineIndicatorApi;
+import com.google.android.libraries.feed.api.host.offlineindicator.OfflineIndicatorApi.OfflineStatusListener;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.logging.Logger;
-import com.google.android.libraries.feed.host.offlineindicator.OfflineIndicatorApi;
-import com.google.android.libraries.feed.host.offlineindicator.OfflineIndicatorApi.OfflineStatusListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;

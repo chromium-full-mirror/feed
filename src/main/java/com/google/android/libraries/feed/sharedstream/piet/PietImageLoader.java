@@ -15,8 +15,8 @@
 package com.google.android.libraries.feed.sharedstream.piet;
 
 import android.graphics.drawable.Drawable;
+import com.google.android.libraries.feed.api.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.common.functional.Consumer;
-import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.piet.host.ImageLoader;
 import com.google.search.now.ui.piet.ImagesProto.Image;
 import com.google.search.now.ui.piet.ImagesProto.ImageSource;

@@ -19,8 +19,8 @@ import static com.google.android.libraries.feed.common.Validators.checkState;
 
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import com.google.android.libraries.feed.api.host.config.Configuration;
 import com.google.android.libraries.feed.common.logging.Logger;
-import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.sharedstream.proto.ScrollStateProto.ScrollState;
 import com.google.android.libraries.feed.sharedstream.scroll.ScrollListenerNotifier;
 import com.google.android.libraries.feed.sharedstream.scroll.ScrollRestoreHelper;

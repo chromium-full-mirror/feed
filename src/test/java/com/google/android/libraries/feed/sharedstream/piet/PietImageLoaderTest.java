@@ -19,10 +19,10 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.graphics.drawable.Drawable;
+import com.google.android.libraries.feed.api.host.imageloader.ImageLoaderApi;
+import com.google.android.libraries.feed.api.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
-import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
-import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.search.now.ui.piet.ImagesProto.Image;
 import com.google.search.now.ui.piet.ImagesProto.ImageSource;
 import java.util.Arrays;

@@ -24,8 +24,8 @@ import static com.google.search.now.ui.piet.ErrorsProto.ErrorCode.ERR_MISSING_TE
 
 import android.support.annotation.VisibleForTesting;
 import android.view.View;
+import com.google.android.libraries.feed.api.host.config.DebugBehavior;
 import com.google.android.libraries.feed.common.logging.Logger;
-import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;

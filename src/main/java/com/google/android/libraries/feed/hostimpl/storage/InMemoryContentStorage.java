@@ -14,23 +14,23 @@
 
 package com.google.android.libraries.feed.hostimpl.storage;
 
-import static com.google.android.libraries.feed.host.storage.ContentOperation.Type.DELETE;
-import static com.google.android.libraries.feed.host.storage.ContentOperation.Type.DELETE_BY_PREFIX;
-import static com.google.android.libraries.feed.host.storage.ContentOperation.Type.UPSERT;
+import static com.google.android.libraries.feed.api.host.storage.ContentOperation.Type.DELETE;
+import static com.google.android.libraries.feed.api.host.storage.ContentOperation.Type.DELETE_BY_PREFIX;
+import static com.google.android.libraries.feed.api.host.storage.ContentOperation.Type.UPSERT;
 
+import com.google.android.libraries.feed.api.host.storage.CommitResult;
+import com.google.android.libraries.feed.api.host.storage.ContentMutation;
+import com.google.android.libraries.feed.api.host.storage.ContentOperation;
+import com.google.android.libraries.feed.api.host.storage.ContentOperation.Delete;
+import com.google.android.libraries.feed.api.host.storage.ContentOperation.DeleteByPrefix;
+import com.google.android.libraries.feed.api.host.storage.ContentOperation.Type;
+import com.google.android.libraries.feed.api.host.storage.ContentOperation.Upsert;
+import com.google.android.libraries.feed.api.host.storage.ContentStorage;
+import com.google.android.libraries.feed.api.host.storage.ContentStorageDirect;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.logging.Dumpable;
 import com.google.android.libraries.feed.common.logging.Dumper;
 import com.google.android.libraries.feed.common.logging.Logger;
-import com.google.android.libraries.feed.host.storage.CommitResult;
-import com.google.android.libraries.feed.host.storage.ContentMutation;
-import com.google.android.libraries.feed.host.storage.ContentOperation;
-import com.google.android.libraries.feed.host.storage.ContentOperation.Delete;
-import com.google.android.libraries.feed.host.storage.ContentOperation.DeleteByPrefix;
-import com.google.android.libraries.feed.host.storage.ContentOperation.Type;
-import com.google.android.libraries.feed.host.storage.ContentOperation.Upsert;
-import com.google.android.libraries.feed.host.storage.ContentStorage;
-import com.google.android.libraries.feed.host.storage.ContentStorageDirect;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

@@ -16,8 +16,8 @@ package com.google.android.libraries.feed.feedrequestmanager;
 
 import android.net.Uri;
 import android.util.Base64;
-import com.google.android.libraries.feed.host.network.HttpRequest;
-import com.google.android.libraries.feed.host.network.HttpRequest.HttpMethod;
+import com.google.android.libraries.feed.api.host.network.HttpRequest;
+import com.google.android.libraries.feed.api.host.network.HttpRequest.HttpMethod;
 import com.google.protobuf.CodedInputStream;
 import java.io.IOException;
 import java.util.Collections;

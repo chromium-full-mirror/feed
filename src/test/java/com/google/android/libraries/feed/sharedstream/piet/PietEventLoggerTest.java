@@ -16,7 +16,7 @@ package com.google.android.libraries.feed.sharedstream.piet;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.api.host.logging.BasicLoggingApi;
 import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
 import java.util.Collections;
 import org.junit.Test;

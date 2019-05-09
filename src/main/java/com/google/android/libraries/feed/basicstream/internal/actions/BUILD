@@ -7,10 +7,10 @@ android_library(
     srcs = glob(["*.java"]),
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/client/knowncontent",
+        "//src/main/java/com/google/android/libraries/feed/api/host/action",
+        "//src/main/java/com/google/android/libraries/feed/api/host/logging",
+        "//src/main/java/com/google/android/libraries/feed/api/host/stream",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/pendingdismiss",
-        "//src/main/java/com/google/android/libraries/feed/host/action",
-        "//src/main/java/com/google/android/libraries/feed/host/logging",
-        "//src/main/java/com/google/android/libraries/feed/host/stream",
         "//src/main/java/com/google/android/libraries/feed/internalapi/actionmanager",
         "//src/main/java/com/google/android/libraries/feed/internalapi/actionparser",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/contextmenumanager",

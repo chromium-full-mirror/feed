@@ -18,9 +18,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.google.android.libraries.feed.api.host.logging.ScrollType;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
-import com.google.android.libraries.feed.host.logging.ScrollType;
 import com.google.android.libraries.feed.sharedstream.publicapi.scroll.ScrollObservable;
 import com.google.android.libraries.feed.sharedstream.publicapi.scroll.ScrollObserver;
 import com.google.android.libraries.feed.sharedstream.scroll.ScrollLogger;
