@@ -16,14 +16,14 @@ package com.google.android.libraries.feed.testing.requestmanager;
 
 import com.google.android.libraries.feed.api.host.logging.RequestReason;
 import com.google.android.libraries.feed.api.host.logging.Task;
+import com.google.android.libraries.feed.api.internal.protocoladapter.ProtocolAdapter;
+import com.google.android.libraries.feed.api.internal.requestmanager.FeedRequestManager;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.functional.Consumer;
-import com.google.android.libraries.feed.internalapi.protocoladapter.ProtocolAdapter;
-import com.google.android.libraries.feed.internalapi.requestmanager.FeedRequestManager;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.wire.feed.ConsistencyTokenProto.ConsistencyToken;

@@ -14,7 +14,7 @@
 
 package com.google.android.libraries.feed.common.concurrent.testing;
 
-import com.google.android.libraries.feed.internalapi.common.ThreadUtils;
+import com.google.android.libraries.feed.api.internal.common.ThreadUtils;
 
 /** Fake implements of {@link ThreadUtils} that allows callers to control the thread policy. */
 public final class FakeThreadUtils extends ThreadUtils {

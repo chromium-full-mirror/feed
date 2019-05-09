@@ -19,7 +19,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.content.Context;
 import androidx.test.core.app.ApplicationProvider;
-import com.google.android.libraries.feed.internalapi.common.ThreadUtils;
+import com.google.android.libraries.feed.api.internal.common.ThreadUtils;
 import com.google.android.libraries.feed.testing.conformance.storage.JournalStorageDirectConformanceTest;
 import com.google.common.util.concurrent.MoreExecutors;
 import org.junit.After;

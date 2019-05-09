@@ -15,7 +15,7 @@
 package com.google.android.libraries.feed.feedsessionmanager.internal;
 
 import com.google.android.libraries.feed.api.common.MutationContext;
-import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider;
+import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import java.util.List;
 import java.util.Set;

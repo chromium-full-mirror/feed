@@ -15,8 +15,8 @@
 package com.google.android.libraries.feed.feedstore.internal;
 
 import com.google.android.libraries.feed.api.host.storage.CommitResult;
+import com.google.android.libraries.feed.api.internal.store.ActionPropertiesMutation;
 import com.google.android.libraries.feed.common.functional.Committer;
-import com.google.android.libraries.feed.internalapi.store.ActionPropertiesMutation;
 import com.google.search.now.wire.feed.OpaqueActionDataProto.OpaqueActionData;
 import java.util.HashMap;
 import java.util.Map;

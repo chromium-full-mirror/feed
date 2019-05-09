@@ -16,11 +16,11 @@ package com.google.android.libraries.feed.sharedstream.logging;
 
 import com.google.android.libraries.feed.api.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.api.host.logging.SessionEvent;
+import com.google.android.libraries.feed.api.internal.modelprovider.ModelError;
+import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider;
+import com.google.android.libraries.feed.api.internal.modelprovider.ModelProviderObserver;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.Clock;
-import com.google.android.libraries.feed.internalapi.modelprovider.ModelError;
-import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider;
-import com.google.android.libraries.feed.internalapi.modelprovider.ModelProviderObserver;
 import com.google.search.now.feed.client.StreamDataProto.UiContext;
 
 /** Logs the initial event after sessions have been requested by the UI. */

@@ -14,7 +14,7 @@
 
 package com.google.android.libraries.feed.feedmodelprovider.internal;
 
-import com.google.android.libraries.feed.internalapi.modelprovider.ModelCursor;
+import com.google.android.libraries.feed.api.internal.modelprovider.ModelCursor;
 
 /** Interface which provides a {@link ModelCursor} */
 public interface CursorProvider {

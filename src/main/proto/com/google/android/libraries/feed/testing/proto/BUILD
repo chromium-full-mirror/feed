@@ -7,7 +7,7 @@ proto_library(
     testonly = 1,
     srcs = ["ui_context_for_test.proto"],
     deps = [
-        "//src/main/proto/com/google/android/libraries/feed/internalapi/proto:client_feed_proto",
+        "//src/main/proto/com/google/android/libraries/feed/api/internal/proto:client_feed_proto",
     ],
 )
 

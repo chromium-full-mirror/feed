@@ -23,9 +23,9 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.api.host.logging.SessionEvent;
+import com.google.android.libraries.feed.api.internal.modelprovider.ModelError;
+import com.google.android.libraries.feed.api.internal.modelprovider.ModelError.ErrorType;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
-import com.google.android.libraries.feed.internalapi.modelprovider.ModelError;
-import com.google.android.libraries.feed.internalapi.modelprovider.ModelError.ErrorType;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelFeature;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelProvider;
 import org.junit.Before;

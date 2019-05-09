@@ -14,10 +14,10 @@
 
 package com.google.android.libraries.feed.feedmodelprovider.internal;
 
+import com.google.android.libraries.feed.api.internal.modelprovider.FeatureChangeObserver;
+import com.google.android.libraries.feed.api.internal.modelprovider.ModelCursor;
+import com.google.android.libraries.feed.api.internal.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.common.feedobservable.FeedObservable;
-import com.google.android.libraries.feed.internalapi.modelprovider.FeatureChangeObserver;
-import com.google.android.libraries.feed.internalapi.modelprovider.ModelCursor;
-import com.google.android.libraries.feed.internalapi.modelprovider.ModelFeature;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import java.util.ArrayList;
 import java.util.List;

@@ -15,7 +15,7 @@
 package com.google.android.libraries.feed.testing.host.scheduler;
 
 import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi;
-import com.google.android.libraries.feed.internalapi.common.ThreadUtils;
+import com.google.android.libraries.feed.api.internal.common.ThreadUtils;
 
 /** Fake implementation of {@link SchedulerApi}. */
 public final class FakeSchedulerApi implements SchedulerApi {

@@ -14,7 +14,7 @@
 
 package com.google.android.libraries.feed.testing.modelprovider;
 
-import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider.ViewDepthProvider;
+import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider.ViewDepthProvider;
 
 /** Fake implementation of {@link ViewDepthProvider}. */
 public final class FakeViewDepthProvider implements ViewDepthProvider {

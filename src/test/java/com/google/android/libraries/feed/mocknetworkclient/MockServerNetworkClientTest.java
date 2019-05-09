@@ -30,6 +30,8 @@ import com.google.android.libraries.feed.api.host.network.HttpRequest.HttpMethod
 import com.google.android.libraries.feed.api.host.network.HttpResponse;
 import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.api.host.stream.TooltipSupportedApi;
+import com.google.android.libraries.feed.api.internal.actionmanager.ActionReader;
+import com.google.android.libraries.feed.api.internal.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
@@ -40,8 +42,6 @@ import com.google.android.libraries.feed.common.protoextensions.FeedExtensionReg
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.feedrequestmanager.FeedRequestManagerImpl;
-import com.google.android.libraries.feed.internalapi.actionmanager.ActionReader;
-import com.google.android.libraries.feed.internalapi.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.testing.conformance.network.NetworkClientConformanceTest;
 import com.google.android.libraries.feed.testing.host.logging.FakeBasicLoggingApi;
 import com.google.common.truth.extensions.proto.LiteProtoTruth;

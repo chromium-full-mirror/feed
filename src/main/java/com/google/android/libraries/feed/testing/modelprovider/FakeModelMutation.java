@@ -15,7 +15,7 @@
 package com.google.android.libraries.feed.testing.modelprovider;
 
 import com.google.android.libraries.feed.api.common.MutationContext;
-import com.google.android.libraries.feed.internalapi.modelprovider.ModelMutation;
+import com.google.android.libraries.feed.api.internal.modelprovider.ModelMutation;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import java.util.ArrayList;
 import java.util.List;

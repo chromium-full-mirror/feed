@@ -28,10 +28,10 @@ import com.google.android.libraries.feed.api.host.storage.ContentOperation.Delet
 import com.google.android.libraries.feed.api.host.storage.ContentOperation.Upsert;
 import com.google.android.libraries.feed.api.host.storage.ContentStorage;
 import com.google.android.libraries.feed.api.host.storage.ContentStorageDirect;
+import com.google.android.libraries.feed.api.internal.common.ThreadUtils;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.logging.Logger;
-import com.google.android.libraries.feed.internalapi.common.ThreadUtils;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;

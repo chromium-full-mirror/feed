@@ -14,10 +14,10 @@
 
 package com.google.android.libraries.feed.testing.actionmanager;
 
+import com.google.android.libraries.feed.api.internal.actionmanager.ActionReader;
+import com.google.android.libraries.feed.api.internal.common.ActionPropertiesWithId;
+import com.google.android.libraries.feed.api.internal.common.DismissActionWithSemanticProperties;
 import com.google.android.libraries.feed.common.Result;
-import com.google.android.libraries.feed.internalapi.actionmanager.ActionReader;
-import com.google.android.libraries.feed.internalapi.common.ActionPropertiesWithId;
-import com.google.android.libraries.feed.internalapi.common.DismissActionWithSemanticProperties;
 import com.google.search.now.wire.feed.OpaqueActionDataProto.OpaqueActionData;
 import java.util.ArrayList;
 import java.util.Collections;

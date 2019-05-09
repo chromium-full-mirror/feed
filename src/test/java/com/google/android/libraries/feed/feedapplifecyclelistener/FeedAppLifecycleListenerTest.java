@@ -17,8 +17,8 @@ package com.google.android.libraries.feed.feedapplifecyclelistener;
 import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.google.android.libraries.feed.api.internal.common.ThreadUtils;
 import com.google.android.libraries.feed.feedapplifecyclelistener.FeedLifecycleListener.LifecycleEvent;
-import com.google.android.libraries.feed.internalapi.common.ThreadUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

@@ -17,9 +17,9 @@ package com.google.android.libraries.feed.hostimpl.network;
 import com.google.android.libraries.feed.api.host.network.HttpRequest;
 import com.google.android.libraries.feed.api.host.network.HttpResponse;
 import com.google.android.libraries.feed.api.host.network.NetworkClient;
+import com.google.android.libraries.feed.api.internal.common.ThreadUtils;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Consumer;
-import com.google.android.libraries.feed.internalapi.common.ThreadUtils;
 
 /** A {@link NetworkClient} which wraps a NetworkClient to make calls on the Main thread. */
 public final class NetworkClientWrapper implements NetworkClient {

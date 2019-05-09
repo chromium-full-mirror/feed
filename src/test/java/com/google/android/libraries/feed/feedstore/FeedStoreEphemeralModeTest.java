@@ -20,6 +20,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.google.android.libraries.feed.api.host.config.Configuration;
 import com.google.android.libraries.feed.api.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.api.host.storage.ContentStorageDirect;
+import com.google.android.libraries.feed.api.internal.store.Store;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeTaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
@@ -27,7 +28,6 @@ import com.google.android.libraries.feed.common.protoextensions.FeedExtensionReg
 import com.google.android.libraries.feed.feedstore.testing.AbstractFeedStoreTest;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
-import com.google.android.libraries.feed.internalapi.store.Store;
 import com.google.android.libraries.feed.testing.host.logging.FakeBasicLoggingApi;
 import java.util.ArrayList;
 import org.junit.Before;

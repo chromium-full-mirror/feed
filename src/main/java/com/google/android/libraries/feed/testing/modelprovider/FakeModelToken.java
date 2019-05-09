@@ -14,8 +14,8 @@
 
 package com.google.android.libraries.feed.testing.modelprovider;
 
-import com.google.android.libraries.feed.internalapi.modelprovider.ModelToken;
-import com.google.android.libraries.feed.internalapi.modelprovider.TokenCompletedObserver;
+import com.google.android.libraries.feed.api.internal.modelprovider.ModelToken;
+import com.google.android.libraries.feed.api.internal.modelprovider.TokenCompletedObserver;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import java.util.HashSet;
 

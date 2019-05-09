@@ -15,9 +15,9 @@
 package com.google.android.libraries.feed.feedstore.internal;
 
 import com.google.android.libraries.feed.api.host.storage.CommitResult;
+import com.google.android.libraries.feed.api.internal.common.PayloadWithId;
+import com.google.android.libraries.feed.api.internal.store.ContentMutation;
 import com.google.android.libraries.feed.common.functional.Committer;
-import com.google.android.libraries.feed.internalapi.common.PayloadWithId;
-import com.google.android.libraries.feed.internalapi.store.ContentMutation;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import java.util.ArrayList;
 import java.util.List;

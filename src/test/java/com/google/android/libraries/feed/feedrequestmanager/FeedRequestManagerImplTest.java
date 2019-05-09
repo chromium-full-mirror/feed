@@ -35,6 +35,7 @@ import com.google.android.libraries.feed.api.host.network.HttpRequest.HttpMethod
 import com.google.android.libraries.feed.api.host.network.HttpResponse;
 import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.api.host.stream.TooltipInfo.FeatureName;
+import com.google.android.libraries.feed.api.internal.common.DismissActionWithSemanticProperties;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeTaskQueue;
@@ -44,7 +45,6 @@ import com.google.android.libraries.feed.common.protoextensions.FeedExtensionReg
 import com.google.android.libraries.feed.common.testing.RequiredConsumer;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
-import com.google.android.libraries.feed.internalapi.common.DismissActionWithSemanticProperties;
 import com.google.android.libraries.feed.testing.actionmanager.FakeActionReader;
 import com.google.android.libraries.feed.testing.host.logging.FakeBasicLoggingApi;
 import com.google.android.libraries.feed.testing.host.stream.FakeTooltipSupportedApi;

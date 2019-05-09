@@ -17,7 +17,7 @@ package com.google.android.libraries.feed.feedsessionmanager.internal;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.internalapi.common.testing.ContentIdGenerators;
+import com.google.android.libraries.feed.api.internal.common.testing.ContentIdGenerators;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import org.junit.Before;
 import org.junit.Test;

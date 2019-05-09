@@ -18,13 +18,13 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.host.logging.RequestReason;
+import com.google.android.libraries.feed.api.internal.common.SemanticPropertiesWithId;
+import com.google.android.libraries.feed.api.internal.common.testing.ContentIdGenerators;
+import com.google.android.libraries.feed.api.internal.store.Store;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ResponseBuilder;
-import com.google.android.libraries.feed.internalapi.common.SemanticPropertiesWithId;
-import com.google.android.libraries.feed.internalapi.common.testing.ContentIdGenerators;
-import com.google.android.libraries.feed.internalapi.store.Store;
 import com.google.android.libraries.feed.testing.requestmanager.FakeFeedRequestManager;
 import com.google.protobuf.ByteString;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;

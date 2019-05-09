@@ -15,9 +15,9 @@
 package com.google.android.libraries.feed.feedstore.internal;
 
 import com.google.android.libraries.feed.api.host.storage.CommitResult;
+import com.google.android.libraries.feed.api.internal.store.LocalActionMutation;
 import com.google.android.libraries.feed.common.functional.Committer;
 import com.google.android.libraries.feed.common.logging.Logger;
-import com.google.android.libraries.feed.internalapi.store.LocalActionMutation;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

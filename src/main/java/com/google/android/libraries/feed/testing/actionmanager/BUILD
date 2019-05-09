@@ -7,9 +7,9 @@ java_library(
     testonly = True,
     srcs = glob(["*.java"]),
     deps = [
+        "//src/main/java/com/google/android/libraries/feed/api/internal/actionmanager",
+        "//src/main/java/com/google/android/libraries/feed/api/internal/common",
         "//src/main/java/com/google/android/libraries/feed/common",
-        "//src/main/java/com/google/android/libraries/feed/internalapi/actionmanager",
-        "//src/main/java/com/google/android/libraries/feed/internalapi/common",
         "//src/main/proto/search/now/wire/feed:feed_java_proto_lite",
     ],
 )

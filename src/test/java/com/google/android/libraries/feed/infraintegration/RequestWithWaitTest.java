@@ -17,10 +17,10 @@ package com.google.android.libraries.feed.infraintegration;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi.RequestBehavior;
+import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider;
+import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider.State;
 import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
 import com.google.android.libraries.feed.common.testing.SessionTestUtils;
-import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider;
-import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider.State;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

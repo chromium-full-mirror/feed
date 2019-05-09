@@ -14,7 +14,7 @@
 
 package com.google.android.libraries.feed.feedsessionmanager;
 
-import static com.google.android.libraries.feed.internalapi.store.Store.HEAD_SESSION_ID;
+import static com.google.android.libraries.feed.api.internal.store.Store.HEAD_SESSION_ID;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -29,6 +29,16 @@ import com.google.android.libraries.feed.api.host.logging.RequestReason;
 import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi.RequestBehavior;
 import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi.SessionManagerState;
+import com.google.android.libraries.feed.api.internal.common.ActionPropertiesWithId;
+import com.google.android.libraries.feed.api.internal.common.SemanticPropertiesWithId;
+import com.google.android.libraries.feed.api.internal.common.testing.ContentIdGenerators;
+import com.google.android.libraries.feed.api.internal.common.testing.InternalProtocolBuilder;
+import com.google.android.libraries.feed.api.internal.modelprovider.ModelCursor;
+import com.google.android.libraries.feed.api.internal.modelprovider.ModelError;
+import com.google.android.libraries.feed.api.internal.modelprovider.ModelError.ErrorType;
+import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider;
+import com.google.android.libraries.feed.api.internal.modelprovider.ModelProviderFactory;
+import com.google.android.libraries.feed.api.internal.modelprovider.ModelProviderObserver;
 import com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
@@ -46,16 +56,6 @@ import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManagerIm
 import com.google.android.libraries.feed.feedsessionmanager.internal.HeadSessionImpl;
 import com.google.android.libraries.feed.feedsessionmanager.internal.Session;
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionCache;
-import com.google.android.libraries.feed.internalapi.common.ActionPropertiesWithId;
-import com.google.android.libraries.feed.internalapi.common.SemanticPropertiesWithId;
-import com.google.android.libraries.feed.internalapi.common.testing.ContentIdGenerators;
-import com.google.android.libraries.feed.internalapi.common.testing.InternalProtocolBuilder;
-import com.google.android.libraries.feed.internalapi.modelprovider.ModelCursor;
-import com.google.android.libraries.feed.internalapi.modelprovider.ModelError;
-import com.google.android.libraries.feed.internalapi.modelprovider.ModelError.ErrorType;
-import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider;
-import com.google.android.libraries.feed.internalapi.modelprovider.ModelProviderFactory;
-import com.google.android.libraries.feed.internalapi.modelprovider.ModelProviderObserver;
 import com.google.android.libraries.feed.testing.proto.UiContextForTestProto.UiContextForTest;
 import com.google.android.libraries.feed.testing.protocoladapter.FakeProtocolAdapter;
 import com.google.android.libraries.feed.testing.requestmanager.FakeActionUploadRequestManager;

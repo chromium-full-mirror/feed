@@ -16,14 +16,14 @@ package com.google.android.libraries.feed.api.internal.sessionmanager;
 
 import com.google.android.libraries.feed.api.client.knowncontent.KnownContent;
 import com.google.android.libraries.feed.api.host.logging.RequestReason;
+import com.google.android.libraries.feed.api.internal.common.PayloadWithId;
+import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider;
+import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider.ViewDepthProvider;
 import com.google.android.libraries.feed.api.lifecycle.Resettable;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.functional.Function;
-import com.google.android.libraries.feed.internalapi.common.PayloadWithId;
-import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider;
-import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider.ViewDepthProvider;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;

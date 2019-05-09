@@ -20,6 +20,8 @@ import com.google.android.libraries.feed.api.host.proto.ProtoExtensionProvider;
 import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.api.host.storage.ContentStorageDirect;
 import com.google.android.libraries.feed.api.host.storage.JournalStorageDirect;
+import com.google.android.libraries.feed.api.internal.modelprovider.ModelProviderFactory;
+import com.google.android.libraries.feed.api.internal.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.api.lifecycle.AppLifecycleListener;
 import com.google.android.libraries.feed.api.scope.ClearAllListener;
@@ -38,8 +40,6 @@ import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManagerIm
 import com.google.android.libraries.feed.feedstore.FeedStore;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
-import com.google.android.libraries.feed.internalapi.modelprovider.ModelProviderFactory;
-import com.google.android.libraries.feed.internalapi.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.testing.host.logging.FakeBasicLoggingApi;
 import com.google.android.libraries.feed.testing.host.scheduler.FakeSchedulerApi;
 import com.google.android.libraries.feed.testing.requestmanager.FakeActionUploadRequestManager;

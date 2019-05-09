@@ -20,12 +20,12 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.MutationContext;
+import com.google.android.libraries.feed.api.internal.common.testing.ContentIdGenerators;
+import com.google.android.libraries.feed.api.internal.common.testing.InternalProtocolBuilder;
+import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider;
+import com.google.android.libraries.feed.api.internal.store.SessionMutation;
+import com.google.android.libraries.feed.api.internal.store.Store;
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionImpl;
-import com.google.android.libraries.feed.internalapi.common.testing.ContentIdGenerators;
-import com.google.android.libraries.feed.internalapi.common.testing.InternalProtocolBuilder;
-import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider;
-import com.google.android.libraries.feed.internalapi.store.SessionMutation;
-import com.google.android.libraries.feed.internalapi.store.Store;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelMutation;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelProvider;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;

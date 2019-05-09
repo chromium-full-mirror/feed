@@ -15,10 +15,10 @@
 package com.google.android.libraries.feed.hostimpl.scheduler;
 
 import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi;
+import com.google.android.libraries.feed.api.internal.common.ThreadUtils;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.SimpleSettableFuture;
 import com.google.android.libraries.feed.common.logging.Logger;
-import com.google.android.libraries.feed.internalapi.common.ThreadUtils;
 import java.util.concurrent.ExecutionException;
 
 /** Wrapper class which will call the {@link SchedulerApi} on the main thread. */

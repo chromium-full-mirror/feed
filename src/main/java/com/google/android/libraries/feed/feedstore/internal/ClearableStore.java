@@ -14,7 +14,7 @@
 
 package com.google.android.libraries.feed.feedstore.internal;
 
-import com.google.android.libraries.feed.internalapi.store.Store;
+import com.google.android.libraries.feed.api.internal.store.Store;
 
 public interface ClearableStore extends Store {
   /** Clear all data stored in the store */

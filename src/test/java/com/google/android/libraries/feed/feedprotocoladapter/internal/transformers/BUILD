@@ -11,7 +11,7 @@ android_local_test(
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/feedprotocoladapter/internal/transformers",
-        "//src/main/proto/com/google/android/libraries/feed/internalapi/proto:client_feed_java_proto_lite",
+        "//src/main/proto/com/google/android/libraries/feed/api/internal/proto:client_feed_java_proto_lite",
         "//src/main/proto/search/now/ui/stream:stream_java_proto_lite",
         "//src/main/proto/search/now/wire/feed:feed_java_proto_lite",
         "//third_party:robolectric",
@@ -30,7 +30,7 @@ android_local_test(
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/feedprotocoladapter/internal/transformers",
-        "//src/main/proto/com/google/android/libraries/feed/internalapi/proto:client_feed_java_proto_lite",
+        "//src/main/proto/com/google/android/libraries/feed/api/internal/proto:client_feed_java_proto_lite",
         "//src/main/proto/search/now/ui/stream:stream_java_proto_lite",
         "//src/main/proto/search/now/wire/feed:feed_java_proto_lite",
         "//third_party:robolectric",

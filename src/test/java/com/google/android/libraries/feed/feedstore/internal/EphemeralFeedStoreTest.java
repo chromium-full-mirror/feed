@@ -15,9 +15,9 @@ package com.google.android.libraries.feed.feedstore.internal;
 
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.google.android.libraries.feed.api.internal.store.Store;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.feedstore.testing.AbstractClearableFeedStoreTest;
-import com.google.android.libraries.feed.internalapi.store.Store;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;

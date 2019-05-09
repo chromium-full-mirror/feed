@@ -77,8 +77,8 @@ android_local_test(
     aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
+        "//src/main/java/com/google/android/libraries/feed/api/internal/common",
         "//src/main/java/com/google/android/libraries/feed/hostimpl/storage",
-        "//src/main/java/com/google/android/libraries/feed/internalapi/common",
         "//src/main/java/com/google/android/libraries/feed/testing/conformance/storage",
         "//third_party:robolectric",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
@@ -97,8 +97,8 @@ android_local_test(
     aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
+        "//src/main/java/com/google/android/libraries/feed/api/internal/common",
         "//src/main/java/com/google/android/libraries/feed/hostimpl/storage",
-        "//src/main/java/com/google/android/libraries/feed/internalapi/common",
         "//src/main/java/com/google/android/libraries/feed/testing/conformance/storage",
         "//third_party:robolectric",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
@@ -117,8 +117,8 @@ android_local_test(
     aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
+        "//src/main/java/com/google/android/libraries/feed/api/internal/common",
         "//src/main/java/com/google/android/libraries/feed/hostimpl/storage",
-        "//src/main/java/com/google/android/libraries/feed/internalapi/common",
         "//src/main/java/com/google/android/libraries/feed/testing/conformance/storage",
         "//third_party:robolectric",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
@@ -138,8 +138,8 @@ android_local_test(
     aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
+        "//src/main/java/com/google/android/libraries/feed/api/internal/common",
         "//src/main/java/com/google/android/libraries/feed/hostimpl/storage",
-        "//src/main/java/com/google/android/libraries/feed/internalapi/common",
         "//src/main/java/com/google/android/libraries/feed/testing/conformance/storage",
         "//third_party:robolectric",
         "@com_google_protobuf_javalite//:protobuf_java_lite",

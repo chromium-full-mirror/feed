@@ -18,14 +18,14 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.when;
 
 import com.google.android.libraries.feed.api.common.MutationContext;
+import com.google.android.libraries.feed.api.internal.common.testing.InternalProtocolBuilder;
+import com.google.android.libraries.feed.api.internal.modelprovider.ModelChild;
+import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider.ViewDepthProvider;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeTaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.feedsessionmanager.internal.testing.AbstractSessionImplTest;
-import com.google.android.libraries.feed.internalapi.common.testing.InternalProtocolBuilder;
-import com.google.android.libraries.feed.internalapi.modelprovider.ModelChild;
-import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider.ViewDepthProvider;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelChild;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelCursor;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelFeature;

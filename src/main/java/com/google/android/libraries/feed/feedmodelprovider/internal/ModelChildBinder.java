@@ -14,15 +14,15 @@
 
 package com.google.android.libraries.feed.feedmodelprovider.internal;
 
+import com.google.android.libraries.feed.api.internal.common.PayloadWithId;
+import com.google.android.libraries.feed.api.internal.modelprovider.ModelChild;
+import com.google.android.libraries.feed.api.internal.modelprovider.ModelChild.Type;
 import com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTracker;
-import com.google.android.libraries.feed.internalapi.common.PayloadWithId;
-import com.google.android.libraries.feed.internalapi.modelprovider.ModelChild;
-import com.google.android.libraries.feed.internalapi.modelprovider.ModelChild.Type;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import java.util.ArrayList;
 import java.util.HashMap;

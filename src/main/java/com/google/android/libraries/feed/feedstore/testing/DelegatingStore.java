@@ -14,19 +14,19 @@
 
 package com.google.android.libraries.feed.feedstore.testing;
 
+import com.google.android.libraries.feed.api.internal.common.ActionPropertiesWithId;
+import com.google.android.libraries.feed.api.internal.common.PayloadWithId;
+import com.google.android.libraries.feed.api.internal.common.SemanticPropertiesWithId;
+import com.google.android.libraries.feed.api.internal.store.ActionPropertiesMutation;
+import com.google.android.libraries.feed.api.internal.store.ContentMutation;
+import com.google.android.libraries.feed.api.internal.store.LocalActionMutation;
+import com.google.android.libraries.feed.api.internal.store.SemanticPropertiesMutation;
+import com.google.android.libraries.feed.api.internal.store.SessionMutation;
+import com.google.android.libraries.feed.api.internal.store.Store;
+import com.google.android.libraries.feed.api.internal.store.StoreListener;
+import com.google.android.libraries.feed.api.internal.store.UploadableActionMutation;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.functional.Supplier;
-import com.google.android.libraries.feed.internalapi.common.ActionPropertiesWithId;
-import com.google.android.libraries.feed.internalapi.common.PayloadWithId;
-import com.google.android.libraries.feed.internalapi.common.SemanticPropertiesWithId;
-import com.google.android.libraries.feed.internalapi.store.ActionPropertiesMutation;
-import com.google.android.libraries.feed.internalapi.store.ContentMutation;
-import com.google.android.libraries.feed.internalapi.store.LocalActionMutation;
-import com.google.android.libraries.feed.internalapi.store.SemanticPropertiesMutation;
-import com.google.android.libraries.feed.internalapi.store.SessionMutation;
-import com.google.android.libraries.feed.internalapi.store.Store;
-import com.google.android.libraries.feed.internalapi.store.StoreListener;
-import com.google.android.libraries.feed.internalapi.store.UploadableActionMutation;
 import com.google.search.now.feed.client.StreamDataProto.StreamLocalAction;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;

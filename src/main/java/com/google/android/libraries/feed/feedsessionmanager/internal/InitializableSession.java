@@ -14,8 +14,8 @@
 
 package com.google.android.libraries.feed.feedsessionmanager.internal;
 
-import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider;
-import com.google.android.libraries.feed.internalapi.modelprovider.ModelProvider.ViewDepthProvider;
+import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider;
+import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider.ViewDepthProvider;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import java.util.List;

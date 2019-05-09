@@ -47,8 +47,8 @@ android_local_test(
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/host/logging",
+        "//src/main/java/com/google/android/libraries/feed/api/internal/modelprovider",
         "//src/main/java/com/google/android/libraries/feed/common/time/testing",
-        "//src/main/java/com/google/android/libraries/feed/internalapi/modelprovider",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/logging",
         "//src/main/java/com/google/android/libraries/feed/testing/modelprovider",
         "//third_party:robolectric",

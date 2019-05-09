@@ -15,16 +15,16 @@
 package com.google.android.libraries.feed.feedmodelprovider.internal;
 
 import android.support.annotation.VisibleForTesting;
+import com.google.android.libraries.feed.api.internal.modelprovider.FeatureChange;
+import com.google.android.libraries.feed.api.internal.modelprovider.FeatureChange.ChildChanges;
+import com.google.android.libraries.feed.api.internal.modelprovider.ModelChild;
+import com.google.android.libraries.feed.api.internal.modelprovider.ModelChild.Type;
+import com.google.android.libraries.feed.api.internal.modelprovider.ModelCursor;
+import com.google.android.libraries.feed.api.internal.modelprovider.ModelToken;
 import com.google.android.libraries.feed.common.Validators;
 import com.google.android.libraries.feed.common.logging.Dumpable;
 import com.google.android.libraries.feed.common.logging.Dumper;
 import com.google.android.libraries.feed.common.logging.Logger;
-import com.google.android.libraries.feed.internalapi.modelprovider.FeatureChange;
-import com.google.android.libraries.feed.internalapi.modelprovider.FeatureChange.ChildChanges;
-import com.google.android.libraries.feed.internalapi.modelprovider.ModelChild;
-import com.google.android.libraries.feed.internalapi.modelprovider.ModelChild.Type;
-import com.google.android.libraries.feed.internalapi.modelprovider.ModelCursor;
-import com.google.android.libraries.feed.internalapi.modelprovider.ModelToken;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
