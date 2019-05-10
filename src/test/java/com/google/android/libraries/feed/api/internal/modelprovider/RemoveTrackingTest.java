@@ -43,18 +43,14 @@ public class RemoveTrackingTest {
   @Test
   public void testEmpty() {
     RemoveTracking<String> removeTracking =
-        getRemoveTracking(
-            this::simpleTransform,
-            (contentIds) -> assertThat(contentIds).hasSize(0));
+        getRemoveTracking(this::simpleTransform, (contentIds) -> assertThat(contentIds).hasSize(0));
     removeTracking.triggerConsumerUpdate();
   }
 
   @Test
   public void testMatch() {
     RemoveTracking<String> removeTracking =
-        getRemoveTracking(
-            this::simpleTransform,
-            (contentIds) -> assertThat(contentIds).hasSize(1));
+        getRemoveTracking(this::simpleTransform, (contentIds) -> assertThat(contentIds).hasSize(1));
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder();
     protocolBuilder.addFeature(idGenerators.createFeatureContentId(0), rootContentId);
     List<PayloadWithId> payloads = protocolBuilder.buildAsPayloadWithId();
@@ -68,9 +64,7 @@ public class RemoveTrackingTest {
   @Test
   public void testNoMatch() {
     RemoveTracking<String> removeTracking =
-        getRemoveTracking(
-            this::nullTransform,
-            (contentIds) -> assertThat(contentIds).hasSize(0));
+        getRemoveTracking(this::nullTransform, (contentIds) -> assertThat(contentIds).hasSize(0));
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder();
     protocolBuilder.addFeature(idGenerators.createFeatureContentId(0), rootContentId);
     List<PayloadWithId> payloads = protocolBuilder.buildAsPayloadWithId();
@@ -82,8 +76,7 @@ public class RemoveTrackingTest {
   }
 
   private RemoveTracking<String> getRemoveTracking(
-      Function<StreamFeature, String> transformer,
-      Consumer<List<String>> consumer) {
+      Function<StreamFeature, String> transformer, Consumer<List<String>> consumer) {
     return new RemoveTracking<>(transformer, consumer);
   }
 

@@ -14,9 +14,7 @@
 
 package com.google.android.libraries.feed.api.internal.modelprovider;
 
-/**
- * Observes for when the Token fetch completes, producing a new cursor.
- */
+/** Observes for when the Token fetch completes, producing a new cursor. */
 public interface TokenCompletedObserver {
   /** Called when the token processing has completed. */
   void onTokenCompleted(TokenCompleted tokenCompleted);
