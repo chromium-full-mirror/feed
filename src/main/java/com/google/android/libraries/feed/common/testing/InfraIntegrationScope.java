@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.common.testing;
 
+import com.google.android.libraries.feed.api.client.lifecycle.AppLifecycleListener;
 import com.google.android.libraries.feed.api.host.config.Configuration;
 import com.google.android.libraries.feed.api.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.api.host.proto.ProtoExtensionProvider;
@@ -23,7 +24,6 @@ import com.google.android.libraries.feed.api.host.storage.JournalStorageDirect;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.internal.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager;
-import com.google.android.libraries.feed.api.lifecycle.AppLifecycleListener;
 import com.google.android.libraries.feed.api.scope.ClearAllListener;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeDirectExecutor;

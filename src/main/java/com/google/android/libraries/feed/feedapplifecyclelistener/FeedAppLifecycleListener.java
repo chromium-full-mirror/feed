@@ -14,8 +14,8 @@
 
 package com.google.android.libraries.feed.feedapplifecyclelistener;
 
+import com.google.android.libraries.feed.api.client.lifecycle.AppLifecycleListener;
 import com.google.android.libraries.feed.api.internal.common.ThreadUtils;
-import com.google.android.libraries.feed.api.lifecycle.AppLifecycleListener;
 import com.google.android.libraries.feed.common.feedobservable.FeedObservable;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.feedapplifecyclelistener.FeedLifecycleListener.LifecycleEvent;
@@ -47,8 +47,8 @@ public final class FeedAppLifecycleListener extends FeedObservable<FeedLifecycle
 
   @Override
   public void onClearAll() {
-    threadUtils.checkMainThread();
     Logger.i(TAG, "onClearAll called");
+    threadUtils.checkMainThread();
     dispatchLifecycleEvent(LifecycleEvent.CLEAR_ALL);
   }
 

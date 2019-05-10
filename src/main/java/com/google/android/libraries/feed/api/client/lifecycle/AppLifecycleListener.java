@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.api.lifecycle;
+package com.google.android.libraries.feed.api.client.lifecycle;
 
 /**
  * Interface to allow host applications to communicate changes in state to Feed.

@@ -7,6 +7,7 @@ android_library(
     testonly = 1,
     srcs = glob(["*.java"]),
     deps = [
+        "//src/main/java/com/google/android/libraries/feed/api/client/lifecycle",
         "//src/main/java/com/google/android/libraries/feed/api/common",
         "//src/main/java/com/google/android/libraries/feed/api/host/config",
         "//src/main/java/com/google/android/libraries/feed/api/host/logging",
@@ -17,7 +18,6 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/api/internal/modelprovider",
         "//src/main/java/com/google/android/libraries/feed/api/internal/protocoladapter",
         "//src/main/java/com/google/android/libraries/feed/api/internal/sessionmanager",
-        "//src/main/java/com/google/android/libraries/feed/api/lifecycle",
         "//src/main/java/com/google/android/libraries/feed/api/scope",
         "//src/main/java/com/google/android/libraries/feed/common/concurrent",
         "//src/main/java/com/google/android/libraries/feed/common/concurrent/testing",
