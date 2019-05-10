@@ -82,7 +82,7 @@ public final class RunnableSubject extends Subject<RunnableSubject, ThrowingRunn
     failWithoutActual(
         fact("expected to throw", clazz.getName()),
         simpleFact("but ran to completion"),
-        fact("runnable was", actual()));
+        fact("runnable was", actual));
     return null;
   }
 
