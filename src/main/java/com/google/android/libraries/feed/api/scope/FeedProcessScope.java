@@ -17,6 +17,7 @@ package com.google.android.libraries.feed.api.scope;
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.client.knowncontent.KnownContent;
+import com.google.android.libraries.feed.api.client.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.host.action.ActionApi;
 import com.google.android.libraries.feed.api.host.config.ApplicationInfo;
 import com.google.android.libraries.feed.api.host.config.Configuration;
@@ -47,7 +48,6 @@ import com.google.android.libraries.feed.api.internal.sessionmanager.FeedSession
 import com.google.android.libraries.feed.api.internal.store.Store;
 import com.google.android.libraries.feed.api.lifecycle.AppLifecycleListener;
 import com.google.android.libraries.feed.api.requestmanager.ActionUploadRequestManager;
-import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.Validators;
 import com.google.android.libraries.feed.common.concurrent.DirectHostSupported;

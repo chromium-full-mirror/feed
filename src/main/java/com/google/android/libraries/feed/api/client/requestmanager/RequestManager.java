@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.api.requestmanager;
+package com.google.android.libraries.feed.api.client.requestmanager;
 
 /** Creates and issues requests to the server. */
 public interface RequestManager {
