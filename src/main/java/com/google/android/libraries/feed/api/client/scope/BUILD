@@ -6,6 +6,7 @@ android_library(
     name = "processscope",
     srcs = ["ProcessScope.java"],
     deps = [
+        ":streamscopebuilder",
         "//src/main/java/com/google/android/libraries/feed/api/client/knowncontent",
         "//src/main/java/com/google/android/libraries/feed/api/client/lifecycle",
         "//src/main/java/com/google/android/libraries/feed/api/client/requestmanager",
@@ -15,7 +16,6 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/api/host/stream",
         "//src/main/java/com/google/android/libraries/feed/api/internal/actionmanager",
         "//src/main/java/com/google/android/libraries/feed/api/internal/protocoladapter",
-        "//src/main/java/com/google/android/libraries/feed/api/scope:feedstreamscope",
         "//src/main/java/com/google/android/libraries/feed/api/sessionmanager",
         "//src/main/java/com/google/android/libraries/feed/basicstream",
         "//src/main/java/com/google/android/libraries/feed/common/concurrent",
@@ -63,5 +63,46 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/hostimpl/storage",
         "@com_google_code_findbugs_jsr305//jar",
         "@maven//:com_android_support_support_annotations",
+    ],
+)
+
+android_library(
+    name = "streamscope",
+    srcs = ["StreamScope.java"],
+    deps = [
+        "//src/main/java/com/google/android/libraries/feed/api/internal/modelprovider",
+        "//src/main/java/com/google/android/libraries/feed/api/stream",
+    ],
+)
+
+android_library(
+    name = "streamscopebuilder",
+    srcs = ["StreamScopeBuilder.java"],
+    deps = [
+        ":streamscope",
+        "//src/main/java/com/google/android/libraries/feed/api/host/action",
+        "//src/main/java/com/google/android/libraries/feed/api/host/config",
+        "//src/main/java/com/google/android/libraries/feed/api/host/imageloader",
+        "//src/main/java/com/google/android/libraries/feed/api/host/logging",
+        "//src/main/java/com/google/android/libraries/feed/api/host/offlineindicator",
+        "//src/main/java/com/google/android/libraries/feed/api/host/stream",
+        "//src/main/java/com/google/android/libraries/feed/api/internal/actionmanager",
+        "//src/main/java/com/google/android/libraries/feed/api/internal/actionparser",
+        "//src/main/java/com/google/android/libraries/feed/api/internal/common",
+        "//src/main/java/com/google/android/libraries/feed/api/internal/knowncontent",
+        "//src/main/java/com/google/android/libraries/feed/api/internal/modelprovider",
+        "//src/main/java/com/google/android/libraries/feed/api/internal/protocoladapter",
+        "//src/main/java/com/google/android/libraries/feed/api/internal/sessionmanager",
+        "//src/main/java/com/google/android/libraries/feed/api/internal/stream",
+        "//src/main/java/com/google/android/libraries/feed/api/scope:feedstreamscope",
+        "//src/main/java/com/google/android/libraries/feed/api/stream",
+        "//src/main/java/com/google/android/libraries/feed/common",
+        "//src/main/java/com/google/android/libraries/feed/common/concurrent",
+        "//src/main/java/com/google/android/libraries/feed/common/protoextensions",
+        "//src/main/java/com/google/android/libraries/feed/common/time",
+        "//src/main/java/com/google/android/libraries/feed/feedactionparser",
+        "//src/main/java/com/google/android/libraries/feed/feedmodelprovider",
+        "//src/main/java/com/google/android/libraries/feed/piet/host",
+        "@com_google_code_findbugs_jsr305//jar",
     ],
 )

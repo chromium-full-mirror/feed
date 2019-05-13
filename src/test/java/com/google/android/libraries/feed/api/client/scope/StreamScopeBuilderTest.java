@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.api.scope;
+package com.google.android.libraries.feed.api.client.scope;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -44,7 +44,6 @@ import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvide
 import com.google.android.libraries.feed.api.internal.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.api.internal.stream.StreamFactory;
-import com.google.android.libraries.feed.api.scope.FeedStreamScope.Builder;
 import com.google.android.libraries.feed.api.stream.Stream;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
@@ -61,9 +60,9 @@ import org.mockito.Mock;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 
-/** Tests for {@link FeedStreamScope}. */
+/** Tests for {@link StreamScopeBuilder}. */
 @RunWith(RobolectricTestRunner.class)
-public class FeedStreamScopeTest {
+public class StreamScopeBuilderTest {
 
   @BuildType private static final int BUILD_TYPE = BuildType.ALPHA;
   public static final DebugBehavior DEBUG_BEHAVIOR = DebugBehavior.VERBOSE;
@@ -116,8 +115,8 @@ public class FeedStreamScopeTest {
 
   @Test
   public void testBasicBuild() {
-    FeedStreamScope streamScope =
-        new Builder(
+    StreamScope streamScope =
+        new StreamScopeBuilder(
                 context,
                 actionApi,
                 imageLoaderApi,
@@ -148,8 +147,8 @@ public class FeedStreamScopeTest {
 
   @Test
   public void testComplexBuild() {
-    FeedStreamScope streamScope =
-        new Builder(
+    StreamScope streamScope =
+        new StreamScopeBuilder(
                 context,
                 actionApi,
                 imageLoaderApi,
@@ -185,8 +184,8 @@ public class FeedStreamScopeTest {
   public void testStreamFactoryBuild() {
     setupStreamFactory(stream);
 
-    FeedStreamScope streamScope =
-        new Builder(
+    StreamScope streamScope =
+        new StreamScopeBuilder(
                 context,
                 actionApi,
                 imageLoaderApi,

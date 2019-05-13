@@ -27,7 +27,6 @@ import com.google.android.libraries.feed.api.host.stream.StreamConfiguration;
 import com.google.android.libraries.feed.api.host.stream.TooltipApi;
 import com.google.android.libraries.feed.api.internal.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.internal.protocoladapter.ProtocolAdapter;
-import com.google.android.libraries.feed.api.scope.FeedStreamScope;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
@@ -63,8 +62,8 @@ public interface ProcessScope {
   @Deprecated
   FeedExtensionRegistry getFeedExtensionRegistry();
 
-  /** Returns a {@link FeedStreamScope.Builder}. */
-  FeedStreamScope.Builder createFeedStreamScopeBuilder(
+  /** Returns a {@link StreamScopeBuilder.Builder}. */
+  StreamScopeBuilder createStreamScopeBuilder(
       Context context,
       ImageLoaderApi imageLoaderApi,
       ActionApi actionApi,
@@ -74,3 +73,4 @@ public interface ProcessScope {
       OfflineIndicatorApi offlineIndicatorApi,
       TooltipApi tooltipApi);
 }
+

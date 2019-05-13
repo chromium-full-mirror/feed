@@ -19,6 +19,7 @@ import com.google.android.libraries.feed.api.client.knowncontent.KnownContent;
 import com.google.android.libraries.feed.api.client.lifecycle.AppLifecycleListener;
 import com.google.android.libraries.feed.api.client.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.client.scope.ProcessScope;
+import com.google.android.libraries.feed.api.client.scope.StreamScopeBuilder;
 import com.google.android.libraries.feed.api.host.action.ActionApi;
 import com.google.android.libraries.feed.api.host.config.ApplicationInfo;
 import com.google.android.libraries.feed.api.host.config.Configuration;
@@ -77,46 +78,6 @@ public final class FeedProcessScope implements ProcessScope, Dumpable {
   private final BasicLoggingApi basicLoggingApi;
   private final TooltipSupportedApi tooltipSupportedApi;
   private final ApplicationInfo applicationInfo;
-
-  /**
-   * Return a {@link Builder} to create a FeedProcessScope
-   *
-   * <p>This is called by hosts so it must be public
-   */
-  public FeedStreamScope.Builder createFeedStreamScopeBuilder(
-      Context context,
-      ImageLoaderApi imageLoaderApi,
-      ActionApi actionApi,
-      StreamConfiguration streamConfiguration,
-      CardConfiguration cardConfiguration,
-      SnackbarApi snackbarApi,
-      OfflineIndicatorApi offlineIndicatorApi,
-      TooltipApi tooltipApi) {
-    return new FeedStreamScope.Builder(
-        context,
-        actionApi,
-        imageLoaderApi,
-        protocolAdapter,
-        feedSessionManager,
-        threadUtils,
-        timingUtils,
-        taskQueue,
-        mainThreadRunner,
-        clock,
-        debugBehavior,
-        streamConfiguration,
-        cardConfiguration,
-        actionManager,
-        configuration,
-        snackbarApi,
-        basicLoggingApi,
-        offlineIndicatorApi,
-        feedKnownContent,
-        tooltipApi,
-        tooltipSupportedApi,
-        applicationInfo,
-        feedExtensionRegistry);
-  }
 
   /** Created through the {@link Builder}. */
   public FeedProcessScope(
@@ -228,5 +189,46 @@ public final class FeedProcessScope implements ProcessScope, Dumpable {
   @Deprecated
   public FeedExtensionRegistry getFeedExtensionRegistry() {
     return feedExtensionRegistry;
+  }
+
+  /**
+   * Return a {@link Builder} to create a FeedProcessScope
+   *
+   * <p>This is called by hosts so it must be public
+   */
+  @Override
+  public StreamScopeBuilder createStreamScopeBuilder(
+      Context context,
+      ImageLoaderApi imageLoaderApi,
+      ActionApi actionApi,
+      StreamConfiguration streamConfiguration,
+      CardConfiguration cardConfiguration,
+      SnackbarApi snackbarApi,
+      OfflineIndicatorApi offlineIndicatorApi,
+      TooltipApi tooltipApi) {
+    return new StreamScopeBuilder(
+        context,
+        actionApi,
+        imageLoaderApi,
+        protocolAdapter,
+        feedSessionManager,
+        threadUtils,
+        timingUtils,
+        taskQueue,
+        mainThreadRunner,
+        clock,
+        debugBehavior,
+        streamConfiguration,
+        cardConfiguration,
+        actionManager,
+        configuration,
+        snackbarApi,
+        basicLoggingApi,
+        offlineIndicatorApi,
+        feedKnownContent,
+        tooltipApi,
+        tooltipSupportedApi,
+        applicationInfo,
+        feedExtensionRegistry);
   }
 }
