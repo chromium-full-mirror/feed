@@ -19,7 +19,7 @@ import com.google.protobuf.ByteString;
 
 /**
  * Class which contains information needed by the {@link
- * com.google.android.libraries.feed.api.stream.Stream} about errors which may occur in the
+ * com.google.android.libraries.feed.api.client.stream.Stream} about errors which may occur in the
  * infrastructure.
  */
 public final class ModelError {

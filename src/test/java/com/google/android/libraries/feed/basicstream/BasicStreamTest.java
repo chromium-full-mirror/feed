@@ -14,7 +14,7 @@
 
 package com.google.android.libraries.feed.basicstream;
 
-import static com.google.android.libraries.feed.api.stream.Stream.POSITION_NOT_KNOWN;
+import static com.google.android.libraries.feed.api.client.stream.Stream.POSITION_NOT_KNOWN;
 import static com.google.android.libraries.feed.basicstream.BasicStream.KEY_STREAM_STATE;
 import static com.google.android.libraries.feed.basicstream.BasicStream.MINIMUM_SPINNER_SHOW_TIME;
 import static com.google.android.libraries.feed.basicstream.BasicStream.MINIMUM_TIME_BEFORE_SHOWING_SPINNER;
@@ -43,6 +43,9 @@ import android.view.View;
 import android.widget.FrameLayout;
 import com.google.android.libraries.feed.api.client.knowncontent.ContentMetadata;
 import com.google.android.libraries.feed.api.client.knowncontent.KnownContent;
+import com.google.android.libraries.feed.api.client.stream.Header;
+import com.google.android.libraries.feed.api.client.stream.Stream.ContentChangedListener;
+import com.google.android.libraries.feed.api.client.stream.Stream.ScrollListener;
 import com.google.android.libraries.feed.api.host.action.ActionApi;
 import com.google.android.libraries.feed.api.host.config.Configuration;
 import com.google.android.libraries.feed.api.host.config.Configuration.ConfigKey;
@@ -67,9 +70,6 @@ import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvide
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider.State;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider.ViewDepthProvider;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProviderFactory;
-import com.google.android.libraries.feed.api.stream.ContentChangedListener;
-import com.google.android.libraries.feed.api.stream.Header;
-import com.google.android.libraries.feed.api.stream.ScrollListener;
 import com.google.android.libraries.feed.basicstream.internal.StreamItemAnimator;
 import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter;
 import com.google.android.libraries.feed.basicstream.internal.StreamSavedInstanceStateProto.StreamSavedInstanceState;

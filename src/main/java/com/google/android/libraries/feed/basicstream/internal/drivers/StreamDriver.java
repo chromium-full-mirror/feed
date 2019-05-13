@@ -18,6 +18,7 @@ import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
+import com.google.android.libraries.feed.api.client.stream.Stream.ContentChangedListener;
 import com.google.android.libraries.feed.api.host.action.ActionApi;
 import com.google.android.libraries.feed.api.host.config.Configuration;
 import com.google.android.libraries.feed.api.host.logging.BasicLoggingApi;
@@ -38,7 +39,6 @@ import com.google.android.libraries.feed.api.internal.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider.State;
-import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.drivers.ContinuationDriver.CursorChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.pendingdismiss.PendingDismissHandler;
 import com.google.android.libraries.feed.basicstream.internal.scroll.BasicStreamScrollMonitor;

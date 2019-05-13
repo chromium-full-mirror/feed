@@ -30,6 +30,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
 import android.content.Context;
+import com.google.android.libraries.feed.api.client.stream.Stream.ContentChangedListener;
 import com.google.android.libraries.feed.api.host.action.ActionApi;
 import com.google.android.libraries.feed.api.host.config.Configuration;
 import com.google.android.libraries.feed.api.host.logging.BasicLoggingApi;
@@ -48,7 +49,6 @@ import com.google.android.libraries.feed.api.internal.modelprovider.ModelFeature
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider.RemoveTrackingFactory;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider.State;
-import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver.StreamContentListener;
 import com.google.android.libraries.feed.basicstream.internal.drivers.testing.FakeFeatureDriver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.testing.FakeLeafFeatureDriver;

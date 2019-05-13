@@ -12,9 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.api.stream;
+package com.google.android.libraries.feed.api.client.stream;
 
 import android.os.Bundle;
+import android.support.annotation.IntDef;
 import android.view.View;
 import java.util.List;
 
@@ -168,4 +169,56 @@ public interface Stream {
    * <p>Note: this will assume {@link RequestReason.HOST_REQUESTED}.
    */
   void triggerRefresh();
+
+  /**
+   * Interface users can implement to know when content in the Stream has changed content on screen.
+   */
+  interface ContentChangedListener {
+    /**
+     * Called by Stream when content being shown has changed. This could be new cards being created,
+     * the content of a card changing, etc...
+     */
+    void onContentChanged();
+  }
+
+  /** Interface users can implement to be told about changes to scrolling in the Stream. */
+  interface ScrollListener {
+
+    /**
+     * Constant used to denote that a scroll was performed but scroll delta could not be calculated.
+     * This normally maps to a programmatic scroll.
+     */
+    int UNKNOWN_SCROLL_DELTA = Integer.MIN_VALUE;
+
+    void onScrollStateChanged(@ScrollState int state);
+
+    /**
+     * Called when a scroll happens and provides the amount of pixels scrolled. {@link
+     * #UNKNOWN_SCROLL_DELTA} will be specified if scroll delta would not be determined. An example
+     * of this would be a scroll initiated programmatically.
+     */
+    void onScrolled(int dx, int dy);
+
+    /**
+     * Possible scroll states.
+     *
+     * <p>When adding new values, the value of {@link ScrollState#NEXT_VALUE} should be used and
+     * incremented. When removing values, {@link ScrollState#NEXT_VALUE} should not be changed, and
+     * those values should not be reused.
+     */
+    @IntDef({ScrollState.IDLE, ScrollState.DRAGGING, ScrollState.SETTLING, ScrollState.NEXT_VALUE})
+    @interface ScrollState {
+      /** Stream is not scrolling */
+      int IDLE = 0;
+
+      /** Stream is currently scrolling through external means such as user input. */
+      int DRAGGING = 1;
+
+      /** Stream is animating to a final position. */
+      int SETTLING = 2;
+
+      /** The next value that should be used when adding additional values to the IntDef. */
+      int NEXT_VALUE = 3;
+    }
+  }
 }

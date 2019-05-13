@@ -17,7 +17,7 @@ package com.google.android.libraries.feed.basicstream.internal;
 import android.support.annotation.VisibleForTesting;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.RecyclerView;
-import com.google.android.libraries.feed.api.stream.ContentChangedListener;
+import com.google.android.libraries.feed.api.client.stream.Stream.ContentChangedListener;
 
 /**
  * {@link DefaultItemAnimator} implementation that notifies the given {@link ContentChangedListener}

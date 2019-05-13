@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.api.client.scope;
 
 import android.content.Context;
+import com.google.android.libraries.feed.api.client.stream.Stream;
 import com.google.android.libraries.feed.api.host.action.ActionApi;
 import com.google.android.libraries.feed.api.host.config.ApplicationInfo;
 import com.google.android.libraries.feed.api.host.config.Configuration;
@@ -37,7 +38,6 @@ import com.google.android.libraries.feed.api.internal.sessionmanager.FeedSession
 import com.google.android.libraries.feed.api.internal.stream.BasicStreamFactory;
 import com.google.android.libraries.feed.api.internal.stream.StreamFactory;
 import com.google.android.libraries.feed.api.scope.FeedStreamScope;
-import com.google.android.libraries.feed.api.stream.Stream;
 import com.google.android.libraries.feed.common.Validators;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;

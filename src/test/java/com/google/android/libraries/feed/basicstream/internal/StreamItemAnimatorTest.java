@@ -18,7 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.api.stream.ContentChangedListener;
+import com.google.android.libraries.feed.api.client.stream.Stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.FeedViewHolder;
 import org.junit.Before;
 import org.junit.Test;

@@ -70,6 +70,7 @@ android_library(
     name = "streamscope",
     srcs = ["StreamScope.java"],
     deps = [
+        "//src/main/java/com/google/android/libraries/feed/api/client/stream",
         "//src/main/java/com/google/android/libraries/feed/api/internal/modelprovider",
         "//src/main/java/com/google/android/libraries/feed/api/stream",
     ],
@@ -80,6 +81,7 @@ android_library(
     srcs = ["StreamScopeBuilder.java"],
     deps = [
         ":streamscope",
+        "//src/main/java/com/google/android/libraries/feed/api/client/stream",
         "//src/main/java/com/google/android/libraries/feed/api/host/action",
         "//src/main/java/com/google/android/libraries/feed/api/host/config",
         "//src/main/java/com/google/android/libraries/feed/api/host/imageloader",

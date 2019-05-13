@@ -18,7 +18,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.api.stream.ContentChangedListener;
+import com.google.android.libraries.feed.api.client.stream.Stream.ContentChangedListener;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

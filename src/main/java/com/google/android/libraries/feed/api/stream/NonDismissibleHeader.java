@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.api.stream;
 
 import android.view.View;
+import com.google.android.libraries.feed.api.client.stream.Header;
 
 /**
  * Class providing a default implementation for {@link Header} instances that are not dismissible.

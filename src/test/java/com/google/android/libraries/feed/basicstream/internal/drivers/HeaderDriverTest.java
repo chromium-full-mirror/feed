@@ -23,7 +23,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.api.stream.Header;
+import com.google.android.libraries.feed.api.client.stream.Header;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.HeaderViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.SwipeNotifier;
 import org.junit.Before;

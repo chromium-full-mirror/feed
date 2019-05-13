@@ -14,7 +14,7 @@
 
 package com.google.android.libraries.feed.sharedstream.contentchanged;
 
-import com.google.android.libraries.feed.api.stream.ContentChangedListener;
+import com.google.android.libraries.feed.api.client.stream.Stream.ContentChangedListener;
 import java.util.HashSet;
 
 /**

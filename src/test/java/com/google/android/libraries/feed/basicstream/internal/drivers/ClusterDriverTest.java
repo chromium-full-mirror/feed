@@ -21,6 +21,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.google.android.libraries.feed.api.client.stream.Stream.ContentChangedListener;
 import com.google.android.libraries.feed.api.host.action.ActionApi;
 import com.google.android.libraries.feed.api.host.config.Configuration;
 import com.google.android.libraries.feed.api.host.logging.BasicLoggingApi;
@@ -32,7 +33,6 @@ import com.google.android.libraries.feed.api.internal.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelChild.Type;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider;
-import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.pendingdismiss.PendingDismissHandler;
 import com.google.android.libraries.feed.basicstream.internal.viewloggingupdater.ViewLoggingUpdater;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;

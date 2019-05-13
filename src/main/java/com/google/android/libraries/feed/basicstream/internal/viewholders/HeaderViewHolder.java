@@ -18,7 +18,7 @@ package com.google.android.libraries.feed.basicstream.internal.viewholders;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.widget.FrameLayout;
-import com.google.android.libraries.feed.api.stream.Header;
+import com.google.android.libraries.feed.api.client.stream.Header;
 import com.google.android.libraries.feed.common.logging.Logger;
 
 /** {@link FeedViewHolder} for headers. */

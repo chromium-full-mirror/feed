@@ -11,6 +11,7 @@ android_local_test(
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/client/knowncontent",
+        "//src/main/java/com/google/android/libraries/feed/api/client/stream",
         "//src/main/java/com/google/android/libraries/feed/api/host/action",
         "//src/main/java/com/google/android/libraries/feed/api/host/config",
         "//src/main/java/com/google/android/libraries/feed/api/host/imageloader",
@@ -22,7 +23,6 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/api/internal/common",
         "//src/main/java/com/google/android/libraries/feed/api/internal/knowncontent",
         "//src/main/java/com/google/android/libraries/feed/api/internal/modelprovider",
-        "//src/main/java/com/google/android/libraries/feed/api/stream",
         "//src/main/java/com/google/android/libraries/feed/basicstream",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/drivers",

@@ -15,8 +15,8 @@
 package com.google.android.libraries.feed.api.scope;
 
 import com.google.android.libraries.feed.api.client.scope.StreamScope;
+import com.google.android.libraries.feed.api.client.stream.Stream;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProviderFactory;
-import com.google.android.libraries.feed.api.stream.Stream;
 
 /** Per-stream instance of the feed library. */
 public final class FeedStreamScope implements StreamScope {

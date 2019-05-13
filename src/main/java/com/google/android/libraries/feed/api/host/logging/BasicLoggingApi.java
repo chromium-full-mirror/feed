@@ -94,8 +94,9 @@ public interface BasicLoggingApi {
    * or a network fetch may have been needed.
    *
    * @param timeToPopulateMs time in milliseconds, since {@link
-   *     com.google.android.libraries.feed.api.stream.Stream#onShow()}, it took to show content to
-   *     the user. This does not include time to render but time to populate data in the UI.
+   *     com.google.android.libraries.feed.api.client.stream.Stream#onShow()}, it took to show
+   *     content to the user. This does not include time to render but time to populate data in the
+   *     UI.
    * @param contentCount Count of content shown to user. This will generally be the number of cards.
    */
   void onOpenedWithContent(int timeToPopulateMs, int contentCount);

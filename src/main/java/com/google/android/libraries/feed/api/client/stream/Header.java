@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.api.stream;
+package com.google.android.libraries.feed.api.client.stream;
 
 import android.view.View;
 

@@ -14,13 +14,13 @@
 
 package com.google.android.libraries.feed.sharedstream.scroll;
 
-import static com.google.android.libraries.feed.api.stream.ScrollListener.UNKNOWN_SCROLL_DELTA;
+import static com.google.android.libraries.feed.api.client.stream.Stream.ScrollListener.UNKNOWN_SCROLL_DELTA;
 
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
-import com.google.android.libraries.feed.api.stream.ContentChangedListener;
-import com.google.android.libraries.feed.api.stream.ScrollListener;
-import com.google.android.libraries.feed.api.stream.ScrollListener.ScrollState;
+import com.google.android.libraries.feed.api.client.stream.Stream.ContentChangedListener;
+import com.google.android.libraries.feed.api.client.stream.Stream.ScrollListener;
+import com.google.android.libraries.feed.api.client.stream.Stream.ScrollListener.ScrollState;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.sharedstream.publicapi.scroll.ScrollObservable;

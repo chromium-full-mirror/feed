@@ -41,6 +41,7 @@ android_local_test(
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/client/scope:streamscope",
         "//src/main/java/com/google/android/libraries/feed/api/client/scope:streamscopebuilder",
+        "//src/main/java/com/google/android/libraries/feed/api/client/stream",
         "//src/main/java/com/google/android/libraries/feed/api/host/action",
         "//src/main/java/com/google/android/libraries/feed/api/host/config",
         "//src/main/java/com/google/android/libraries/feed/api/host/imageloader",

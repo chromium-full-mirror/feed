@@ -17,7 +17,7 @@ package com.google.android.libraries.feed.basicstream.internal.drivers;
 import static com.google.android.libraries.feed.common.Validators.checkState;
 
 import android.support.annotation.VisibleForTesting;
-import com.google.android.libraries.feed.api.stream.Header;
+import com.google.android.libraries.feed.api.client.stream.Header;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.FeedViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.HeaderViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.SwipeNotifier;

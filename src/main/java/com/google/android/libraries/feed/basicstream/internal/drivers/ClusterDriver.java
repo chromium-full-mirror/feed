@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.basicstream.internal.drivers;
 
 import android.support.annotation.VisibleForTesting;
+import com.google.android.libraries.feed.api.client.stream.Stream.ContentChangedListener;
 import com.google.android.libraries.feed.api.host.action.ActionApi;
 import com.google.android.libraries.feed.api.host.config.Configuration;
 import com.google.android.libraries.feed.api.host.logging.BasicLoggingApi;
@@ -27,7 +28,6 @@ import com.google.android.libraries.feed.api.internal.modelprovider.ModelChild.T
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider;
-import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.pendingdismiss.ClusterPendingDismissHelper;
 import com.google.android.libraries.feed.basicstream.internal.pendingdismiss.PendingDismissHandler;
 import com.google.android.libraries.feed.basicstream.internal.viewloggingupdater.ViewLoggingUpdater;

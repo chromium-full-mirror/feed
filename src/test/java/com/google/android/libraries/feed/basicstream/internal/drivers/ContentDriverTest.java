@@ -28,6 +28,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.support.v7.widget.RecyclerView;
 import com.google.android.libraries.feed.api.client.knowncontent.ContentMetadata;
+import com.google.android.libraries.feed.api.client.stream.Stream.ContentChangedListener;
 import com.google.android.libraries.feed.api.host.action.ActionApi;
 import com.google.android.libraries.feed.api.host.action.StreamActionApi;
 import com.google.android.libraries.feed.api.host.config.Configuration;
@@ -41,7 +42,6 @@ import com.google.android.libraries.feed.api.internal.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.internal.actionparser.ActionParserFactory;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider;
-import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.actions.StreamActionApiImpl;
 import com.google.android.libraries.feed.basicstream.internal.actions.ViewElementActionHandler;
 import com.google.android.libraries.feed.basicstream.internal.pendingdismiss.ClusterPendingDismissHelper;

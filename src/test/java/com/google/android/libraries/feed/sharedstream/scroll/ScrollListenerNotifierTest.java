@@ -14,7 +14,7 @@
 
 package com.google.android.libraries.feed.sharedstream.scroll;
 
-import static com.google.android.libraries.feed.api.stream.ScrollListener.UNKNOWN_SCROLL_DELTA;
+import static com.google.android.libraries.feed.api.client.stream.Stream.ScrollListener.UNKNOWN_SCROLL_DELTA;
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.never;
@@ -24,9 +24,9 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import android.app.Activity;
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
-import com.google.android.libraries.feed.api.stream.ContentChangedListener;
-import com.google.android.libraries.feed.api.stream.ScrollListener;
-import com.google.android.libraries.feed.api.stream.ScrollListener.ScrollState;
+import com.google.android.libraries.feed.api.client.stream.Stream.ContentChangedListener;
+import com.google.android.libraries.feed.api.client.stream.Stream.ScrollListener;
+import com.google.android.libraries.feed.api.client.stream.Stream.ScrollListener.ScrollState;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.sharedstream.publicapi.scroll.ScrollObservable;

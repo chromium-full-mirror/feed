@@ -23,7 +23,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import android.app.Activity;
 import android.content.Context;
 import android.widget.FrameLayout;
-import com.google.android.libraries.feed.api.stream.Header;
+import com.google.android.libraries.feed.api.client.stream.Header;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
