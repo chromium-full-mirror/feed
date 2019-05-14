@@ -24,6 +24,7 @@ import com.google.android.libraries.feed.api.internal.common.ActionPropertiesWit
 import com.google.android.libraries.feed.api.internal.common.PayloadWithId;
 import com.google.android.libraries.feed.api.internal.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.api.internal.common.ThreadUtils;
+import com.google.android.libraries.feed.api.internal.lifecycle.Resettable;
 import com.google.android.libraries.feed.api.internal.store.ActionPropertiesMutation;
 import com.google.android.libraries.feed.api.internal.store.ContentMutation;
 import com.google.android.libraries.feed.api.internal.store.LocalActionMutation;
@@ -32,7 +33,6 @@ import com.google.android.libraries.feed.api.internal.store.SessionMutation;
 import com.google.android.libraries.feed.api.internal.store.Store;
 import com.google.android.libraries.feed.api.internal.store.StoreListener;
 import com.google.android.libraries.feed.api.internal.store.UploadableActionMutation;
-import com.google.android.libraries.feed.api.lifecycle.Resettable;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;

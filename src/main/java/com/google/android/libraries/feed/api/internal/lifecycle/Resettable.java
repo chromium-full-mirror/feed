@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.api.lifecycle;
+package com.google.android.libraries.feed.api.internal.lifecycle;
 
 /** Interface for objects which support reset to an initial state. */
 public interface Resettable {
