@@ -150,11 +150,6 @@ public final class FeedProcessScope implements ProcessScope, Dumpable {
     }
   }
 
-  @Deprecated
-  public ProtocolAdapter getProtocolAdapter() {
-    return protocolAdapter;
-  }
-
 
   public RequestManager getRequestManager() {
     return requestManager;
@@ -162,11 +157,6 @@ public final class FeedProcessScope implements ProcessScope, Dumpable {
 
   public SessionManager getSessionManager() {
     return feedSessionManager;
-  }
-
-  @Deprecated
-  public TimingUtils getTimingUtils() {
-    return timingUtils;
   }
 
   public TaskQueue getTaskQueue() {
@@ -177,18 +167,8 @@ public final class FeedProcessScope implements ProcessScope, Dumpable {
     return appLifecycleListener;
   }
 
-  @Deprecated
-  public ActionManager getActionManager() {
-    return actionManager;
-  }
-
   public KnownContent getKnownContent() {
     return feedKnownContent;
-  }
-
-  @Deprecated
-  public FeedExtensionRegistry getFeedExtensionRegistry() {
-    return feedExtensionRegistry;
   }
 
   /**

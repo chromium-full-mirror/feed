@@ -83,12 +83,9 @@ public final class ProcessScopeBuilder {
   /*@MonotonicNonNull*/ private ProtoExtensionProvider protoExtensionProvider = null;
   /*@MonotonicNonNull*/ ContentStorageDirect contentStorage = null;
   /*@MonotonicNonNull*/ JournalStorageDirect journalStorage = null;
-  /*@MonotonicNonNull*/ ContentStorage rawContentStorage = null;
-  /*@MonotonicNonNull*/ JournalStorage rawJournalStorage = null;
+  /*@MonotonicNonNull*/ private ContentStorage rawContentStorage = null;
+  /*@MonotonicNonNull*/ private JournalStorage rawJournalStorage = null;
   /*@MonotonicNonNull*/ private Clock clock;
-
-  // This will be overridden in tests.
-  private ThreadUtils threadUtils = new ThreadUtils();
 
   /** The APIs are all required to construct the scope. */
   public ProcessScopeBuilder(
@@ -138,17 +135,6 @@ public final class ProcessScopeBuilder {
     return this;
   }
 
-  // This is really exposed for tests to override the thread checking
-  ProcessScopeBuilder setThreadUtils(ThreadUtils threadUtils) {
-    this.threadUtils = threadUtils;
-    return this;
-  }
-
-  public ProcessScopeBuilder setClock(Clock clock) {
-    this.clock = clock;
-    return this;
-  }
-
   @VisibleForTesting
   ContentStorageDirect buildContentStorage(MainThreadRunner mainThreadRunner) {
     if (contentStorage == null) {
@@ -187,6 +173,8 @@ public final class ProcessScopeBuilder {
     MainThreadRunner mainThreadRunner = new MainThreadRunner();
     contentStorage = buildContentStorage(mainThreadRunner);
     journalStorage = buildJournalStorage(mainThreadRunner);
+
+    ThreadUtils threadUtils = new ThreadUtils();
 
     boolean directHostCallEnabled =
         configuration.getValueOrDefault(ConfigKey.USE_DIRECT_STORAGE, false);

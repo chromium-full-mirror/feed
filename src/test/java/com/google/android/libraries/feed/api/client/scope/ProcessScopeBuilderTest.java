@@ -36,7 +36,6 @@ import com.google.android.libraries.feed.api.host.storage.JournalStorageDirect;
 import com.google.android.libraries.feed.api.host.stream.TooltipSupportedApi;
 import com.google.android.libraries.feed.api.internal.common.ThreadUtils;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
-import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.common.util.concurrent.MoreExecutors;
 import java.util.ArrayList;
 import org.junit.Before;
@@ -84,7 +83,6 @@ public class ProcessScopeBuilderTest {
                 context,
                 applicationInfo,
                 tooltipSupportedApi)
-            .setThreadUtils(threadUtils)
             .build();
 
     assertThat(processScope.getRequestManager()).isNotNull();
@@ -96,7 +94,6 @@ public class ProcessScopeBuilderTest {
 
   @Test
   public void testComplexBuild() {
-    FakeClock fakeClock = new FakeClock();
     // No crash should happen.
     ProcessScope processScope =
         new ProcessScopeBuilder(
@@ -110,7 +107,6 @@ public class ProcessScopeBuilderTest {
                 applicationInfo,
                 tooltipSupportedApi)
             .setProtoExtensionProvider(protoExtensionProvider)
-            .setClock(fakeClock)
             .build();
 
     assertThat(processScope.getRequestManager()).isNotNull();
