@@ -618,6 +618,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
     if (streamDriver.hasContent()) {
       isInitialLoad = false;
     }
+
+    logContent();
   }
 
   @Override
@@ -638,7 +640,6 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
       // If MINIMUM_SPINNER_SHOW_TIME has elapsed, the new content can be shown immediately.
       if (spinnerDisplayTime >= MINIMUM_SPINNER_SHOW_TIME) {
         updateAdapterAfterSessionStart(localModelProvider);
-        logContent();
       } else {
         // If MINIMUM_SPINNER_SHOW_TIME has not elapsed, the new content should only be shown once
         // the remaining time has been fulfilled.
@@ -649,29 +650,31 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
               // indicates that the session finished before the spinner show time elapsed.
               if (modelProvider == localModelProvider) {
                 updateAdapterAfterSessionStart(localModelProvider);
-                logContent();
               }
             },
             MINIMUM_SPINNER_SHOW_TIME - spinnerDisplayTime);
       }
     } else {
       updateAdapterAfterSessionStart(localModelProvider);
-      logContent();
     }
   }
 
   private void logContent() {
     if (loggingState == LoggingState.STARTING) {
-      if (!checkNotNull(streamDriver).hasContent()
-          && clock.currentTimeMillis() - sessionStartTimestamp > immediateContentThreshold) {
+      if (clock.currentTimeMillis() - sessionStartTimestamp > immediateContentThreshold) {
         basicLoggingApi.onOpenedWithNoImmediateContent();
       }
 
       long timeToPopulateMs = clock.currentTimeMillis() - sessionStartTimestamp;
-      basicLoggingApi.onOpenedWithContent(
-          (int) timeToPopulateMs, checkNotNull(streamDriver).getLeafFeatureDrivers().size());
-      // onOpenedWithContent should only be logged the first time the Stream is opened up.
-      loggingState = LoggingState.LOGGED_CONTENT_SHOWN;
+      if (checkNotNull(streamDriver).hasContent()) {
+        basicLoggingApi.onOpenedWithContent(
+            (int) timeToPopulateMs, checkNotNull(streamDriver).getLeafFeatureDrivers().size());
+        // onOpenedWithContent should only be logged the first time the Stream is opened up.
+        loggingState = LoggingState.LOGGED_CONTENT_SHOWN;
+      } else {
+        basicLoggingApi.onOpenedWithNoContent();
+        loggingState = LoggingState.LOGGED_NO_CONTENT;
+      }
     }
   }
 

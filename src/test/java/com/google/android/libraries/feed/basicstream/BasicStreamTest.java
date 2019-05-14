@@ -227,6 +227,7 @@ public class BasicStreamTest {
     clock = clock.set(10);
     basicStream.onShow();
 
+    when(streamDriver.hasContent()).thenReturn(true);
     clock = clock.set(40);
     basicStream.onSessionStart(UiContext.getDefaultInstance());
 
@@ -253,6 +254,15 @@ public class BasicStreamTest {
     basicStream.onSessionStart(UiContext.getDefaultInstance());
 
     verify(basicLoggingApi, never()).onOpenedWithContent(anyInt(), anyInt());
+  }
+
+  @Test
+  public void testOnSessionStart_logsOnOpenedWithNoContent_ifStreamDriverDoesNotHaveContent() {
+    basicStream.onShow();
+
+    basicStream.onSessionStart(UiContext.getDefaultInstance());
+
+    verify(basicLoggingApi).onOpenedWithNoContent();
   }
 
   @Test
@@ -328,8 +338,6 @@ public class BasicStreamTest {
   @Test
   public void testOnSessionStart_logsOnOpenedWithNoImmediateContent() {
     basicStream.onShow();
-    reset(streamDriver);
-    when(streamDriver.hasContent()).thenReturn(false);
 
     // Advance so that the spinner starts showing
     clock.advance(MINIMUM_TIME_BEFORE_SHOWING_SPINNER);
@@ -340,6 +348,17 @@ public class BasicStreamTest {
     basicStream.onSessionStart(UiContext.getDefaultInstance());
 
     verify(basicLoggingApi).onOpenedWithNoImmediateContent();
+  }
+
+  @Test
+  public void testOnSessionStart_doesNotLogOnOpenedWithNoImmediateContent_ifNotWithinThreshold() {
+    basicStream.onShow();
+
+    clock.advance(LOGGING_IMMEDIATE_CONTENT_THRESHOLD_MS - 1);
+
+    basicStream.onSessionStart(UiContext.getDefaultInstance());
+
+    verify(basicLoggingApi, never()).onOpenedWithNoImmediateContent();
   }
 
   @Test
@@ -354,23 +373,21 @@ public class BasicStreamTest {
   }
 
   @Test
-  public void testOnSessionStart_doesNotLogOnOpenedWithNoContent_ifModelProviderNotReady() {
+  public void testOnShow_doesNotLogOnOpenedWithNoContent_ifModelProviderNotReady() {
     when(initialModelProvider.getCurrentState()).thenReturn(State.INITIALIZING);
     when(initialModelProvider.getRootFeature()).thenReturn(null);
-    basicStream.onShow();
 
-    basicStream.onSessionStart(UiContext.getDefaultInstance());
+    basicStream.onShow();
 
     verify(basicLoggingApi, never()).onOpenedWithNoContent();
   }
 
   @Test
-  public void testOnSessionStart_doesNotLogOnOpenedWithNoContent_ifRootFeatureNotNull() {
+  public void testOnShow_doesNotLogOnOpenedWithNoContent_ifRootFeatureNotNull() {
     when(initialModelProvider.getCurrentState()).thenReturn(State.READY);
     when(initialModelProvider.getRootFeature()).thenReturn(modelFeature);
-    basicStream.onShow();
 
-    basicStream.onSessionStart(UiContext.getDefaultInstance());
+    basicStream.onShow();
 
     verify(basicLoggingApi, never()).onOpenedWithNoContent();
   }
