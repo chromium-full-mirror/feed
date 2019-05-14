@@ -41,6 +41,7 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class UploadableActionsRequestBuilderTest {
   private static final String CONTENT_ID = "contentId";
+  private static final int TIME = 100;
   private final ActionPayload payload =
       ActionPayload.newBuilder()
           .setExtension(
@@ -75,6 +76,7 @@ public class UploadableActionsRequestBuilderTest {
         StreamUploadableAction.newBuilder()
             .setFeatureContentId(CONTENT_ID)
             .setPayload(payload)
+            .setTimestampSeconds(TIME)
             .build());
     requestBuilder =
         ActionRequest.newBuilder()
@@ -84,12 +86,14 @@ public class UploadableActionsRequestBuilderTest {
 
   @Test
   public void testUploadableActionsRequest_noToken() throws Exception {
- 
+
     FeedAction.Builder feedAction =
         FeedAction.newBuilder()
             .setActionProperties(ActionProperties.newBuilder().setActionData(data).build());
     feedAction.setContentId(ContentId.getDefaultInstance());
     feedAction.setActionPayload(payload);
+
+    feedAction.setClientData(FeedAction.ClientData.newBuilder().setTimestampSeconds(TIME).build());
     feedActionRequestBuilder.addFeedAction(feedAction);
     requestBuilder.setExtension(
         FeedActionRequest.feedActionRequest, feedActionRequestBuilder.build());
@@ -117,6 +121,7 @@ public class UploadableActionsRequestBuilderTest {
             .setActionProperties(ActionProperties.newBuilder().setActionData(data).build());
     feedAction.setContentId(ContentId.getDefaultInstance());
     feedAction.setActionPayload(payload);
+    feedAction.setClientData(FeedAction.ClientData.newBuilder().setTimestampSeconds(TIME).build());
     feedActionRequestBuilder.addFeedAction(feedAction);
     feedActionRequestBuilder.setConsistencyToken(token);
     requestBuilder.setExtension(

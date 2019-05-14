@@ -32,6 +32,14 @@ message FeedAction {
   optional ActionProperties action_properties = 3;
   // Additional logging data that is on a per-action level
   optional ActionPayload action_payload = 4;
-  // Next Id: 5
+  // Client-generated data that pertains to the action.
+  optional ClientData client_data = 5;
+  // Next Id: 6
   reserved 2;
+
+  // The data the client provides to the server.
+  message ClientData {
+    // When the action was recorded on the client
+    optional int64 timestamp_seconds = 1;
+  }
 }

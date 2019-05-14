@@ -77,9 +77,14 @@ final class UploadableActionsRequestBuilder {
       }
       for (StreamUploadableAction action : uploadableActions) {
         String contentId = action.getFeatureContentId();
-        FeedAction.Builder feedAction = FeedAction.newBuilder();
         ActionPayload payload = action.getPayload();
-        feedAction.setActionPayload(payload);
+        FeedAction.Builder feedAction =
+            FeedAction.newBuilder()
+                .setActionPayload(payload)
+                .setClientData(
+                    FeedAction.ClientData.newBuilder()
+                        .setTimestampSeconds(action.getTimestampSeconds())
+                        .build());
         ActionProperties properties = actionPropertyMap.get(contentId);
         if (properties != null) {
           feedAction.setActionProperties(properties);
