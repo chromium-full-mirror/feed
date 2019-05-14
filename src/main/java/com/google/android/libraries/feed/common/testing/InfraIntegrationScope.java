@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.common.testing;
 
 import com.google.android.libraries.feed.api.client.lifecycle.AppLifecycleListener;
+import com.google.android.libraries.feed.api.client.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.host.config.Configuration;
 import com.google.android.libraries.feed.api.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.api.host.proto.ProtoExtensionProvider;
@@ -35,6 +36,7 @@ import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.feedapplifecyclelistener.FeedAppLifecycleListener;
 import com.google.android.libraries.feed.feedmodelprovider.FeedModelProviderFactory;
 import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter;
+import com.google.android.libraries.feed.feedrequestmanager.RequestManagerImpl;
 import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManagerFactory;
 import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManagerImpl;
 import com.google.android.libraries.feed.feedstore.FeedStore;
@@ -78,6 +80,7 @@ public class InfraIntegrationScope {
   private final JournalStorageDirect journalStorage;
   private final SchedulerApi schedulerApi;
   private final TaskQueue taskQueue;
+  private final RequestManager requestManager;
 
   private InfraIntegrationScope(
       FakeThreadUtils fakeThreadUtils,
@@ -144,6 +147,7 @@ public class InfraIntegrationScope {
             taskQueue,
             fakeMainThreadRunner,
             configuration);
+    requestManager = new RequestManagerImpl(fakeFeedRequestManager, feedSessionManager);
   }
 
   public ProtocolAdapter getProtocolAdapter() {
@@ -184,6 +188,10 @@ public class InfraIntegrationScope {
 
   public AppLifecycleListener getAppLifecycleListener() {
     return appLifecycleListener;
+  }
+
+  public RequestManager getRequestManager() {
+    return requestManager;
   }
 
   @Override
