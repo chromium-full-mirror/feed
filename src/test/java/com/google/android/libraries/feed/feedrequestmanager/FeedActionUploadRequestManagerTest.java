@@ -129,7 +129,7 @@ public class FeedActionUploadRequestManagerTest {
         new Configuration.Builder()
             .put(ConfigKey.FEED_ACTION_SERVER_METHOD, HttpMethod.GET)
             .put(ConfigKey.FEED_ACTION_TTL_SECONDS, 1L)
-            .put(ConfigKey.FEED_ACTION_MAX_UPLOAD_ATTEMPTS, 5)
+            .put(ConfigKey.FEED_ACTION_MAX_UPLOAD_ATTEMPTS, 5L)
             .build();
     requestManager = createRequestManager(configuration);
     StreamUploadableAction action =
@@ -156,7 +156,7 @@ public class FeedActionUploadRequestManagerTest {
         new Configuration.Builder()
             .put(ConfigKey.FEED_ACTION_SERVER_METHOD, HttpMethod.GET)
             .put(ConfigKey.FEED_ACTION_TTL_SECONDS, 1000L)
-            .put(ConfigKey.FEED_ACTION_MAX_UPLOAD_ATTEMPTS, 2)
+            .put(ConfigKey.FEED_ACTION_MAX_UPLOAD_ATTEMPTS, 2L)
             .build();
     requestManager = createRequestManager(configuration);
     StreamUploadableAction action =
@@ -180,9 +180,9 @@ public class FeedActionUploadRequestManagerTest {
         new Configuration.Builder()
             .put(ConfigKey.FEED_ACTION_SERVER_METHOD, HttpMethod.GET)
             .put(ConfigKey.FEED_ACTION_TTL_SECONDS, 1000L)
-            .put(ConfigKey.FEED_ACTION_SERVER_MAX_SIZE_PER_REQUEST, 20)
-            .put(ConfigKey.FEED_ACTION_MAX_UPLOAD_ATTEMPTS, 2)
-            .put(ConfigKey.FEED_ACTION_SERVER_MAX_ACTIONS_PER_REQUEST, 2)
+            .put(ConfigKey.FEED_ACTION_SERVER_MAX_SIZE_PER_REQUEST, 20L)
+            .put(ConfigKey.FEED_ACTION_MAX_UPLOAD_ATTEMPTS, 2L)
+            .put(ConfigKey.FEED_ACTION_SERVER_MAX_ACTIONS_PER_REQUEST, 2L)
             .build();
     requestManager = createRequestManager(configuration);
 
@@ -214,9 +214,9 @@ public class FeedActionUploadRequestManagerTest {
         new Configuration.Builder()
             .put(ConfigKey.FEED_ACTION_SERVER_METHOD, HttpMethod.GET)
             .put(ConfigKey.FEED_ACTION_TTL_SECONDS, 1000L)
-            .put(ConfigKey.FEED_ACTION_MAX_UPLOAD_ATTEMPTS, 2)
-            .put(ConfigKey.FEED_ACTION_SERVER_MAX_SIZE_PER_REQUEST, 20)
-            .put(ConfigKey.FEED_ACTION_SERVER_MAX_ACTIONS_PER_REQUEST, 2)
+            .put(ConfigKey.FEED_ACTION_MAX_UPLOAD_ATTEMPTS, 2L)
+            .put(ConfigKey.FEED_ACTION_SERVER_MAX_SIZE_PER_REQUEST, 20L)
+            .put(ConfigKey.FEED_ACTION_SERVER_MAX_ACTIONS_PER_REQUEST, 2L)
             .build();
     requestManager = createRequestManager(configuration);
     Set<StreamUploadableAction> actionSet =
@@ -244,9 +244,9 @@ public class FeedActionUploadRequestManagerTest {
         new Configuration.Builder()
             .put(ConfigKey.FEED_ACTION_SERVER_METHOD, HttpMethod.GET)
             .put(ConfigKey.FEED_ACTION_TTL_SECONDS, 1000L)
-            .put(ConfigKey.FEED_ACTION_MAX_UPLOAD_ATTEMPTS, 2)
-            .put(ConfigKey.FEED_ACTION_SERVER_MAX_SIZE_PER_REQUEST, 20)
-            .put(ConfigKey.FEED_ACTION_SERVER_MAX_ACTIONS_PER_REQUEST, 2)
+            .put(ConfigKey.FEED_ACTION_MAX_UPLOAD_ATTEMPTS, 2L)
+            .put(ConfigKey.FEED_ACTION_SERVER_MAX_SIZE_PER_REQUEST, 20L)
+            .put(ConfigKey.FEED_ACTION_SERVER_MAX_ACTIONS_PER_REQUEST, 2L)
             .build();
     requestManager = createRequestManager(configuration);
     Set<StreamUploadableAction> actionSet =
@@ -277,9 +277,9 @@ public class FeedActionUploadRequestManagerTest {
         new Configuration.Builder()
             .put(ConfigKey.FEED_ACTION_SERVER_METHOD, HttpMethod.GET)
             .put(ConfigKey.FEED_ACTION_TTL_SECONDS, 1000L)
-            .put(ConfigKey.FEED_ACTION_MAX_UPLOAD_ATTEMPTS, 2)
-            .put(ConfigKey.FEED_ACTION_SERVER_MAX_SIZE_PER_REQUEST, 20)
-            .put(ConfigKey.FEED_ACTION_SERVER_MAX_ACTIONS_PER_REQUEST, 1)
+            .put(ConfigKey.FEED_ACTION_MAX_UPLOAD_ATTEMPTS, 2L)
+            .put(ConfigKey.FEED_ACTION_SERVER_MAX_SIZE_PER_REQUEST, 20L)
+            .put(ConfigKey.FEED_ACTION_SERVER_MAX_ACTIONS_PER_REQUEST, 1L)
             .build();
     requestManager = createRequestManager(configuration);
     Set<StreamUploadableAction> actionSet =
@@ -308,7 +308,7 @@ public class FeedActionUploadRequestManagerTest {
         new Configuration.Builder()
             .put(ConfigKey.FEED_ACTION_SERVER_METHOD, HttpMethod.GET)
             .put(ConfigKey.FEED_ACTION_TTL_SECONDS, 1000L)
-            .put(ConfigKey.FEED_ACTION_MAX_UPLOAD_ATTEMPTS, 2)
+            .put(ConfigKey.FEED_ACTION_MAX_UPLOAD_ATTEMPTS, 2L)
             .build();
     requestManager = createRequestManager(configuration);
     StreamUploadableAction action =

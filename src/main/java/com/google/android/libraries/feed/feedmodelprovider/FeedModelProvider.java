@@ -159,9 +159,10 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
     this.timingUtils = timingUtils;
     this.taskQueue = taskQueue;
     this.mainThreadRunner = mainThreadRunner;
-    this.initialPageSize = config.getValueOrDefault(ConfigKey.INITIAL_NON_CACHED_PAGE_SIZE, 0);
-    this.pageSize = config.getValueOrDefault(ConfigKey.NON_CACHED_PAGE_SIZE, 0);
-    this.minPageSize = config.getValueOrDefault(ConfigKey.NON_CACHED_MIN_PAGE_SIZE, 0);
+    this.initialPageSize =
+        (int) config.getValueOrDefault(ConfigKey.INITIAL_NON_CACHED_PAGE_SIZE, 0L);
+    this.pageSize = (int) config.getValueOrDefault(ConfigKey.NON_CACHED_PAGE_SIZE, 0L);
+    this.minPageSize = (int) config.getValueOrDefault(ConfigKey.NON_CACHED_MIN_PAGE_SIZE, 0L);
     this.filterPredicate = filterPredicate;
 
     CursorProvider cursorProvider =

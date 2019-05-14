@@ -17,7 +17,7 @@ package com.google.android.libraries.feed.basicstream.internal.scroll;
 import static com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer.nonRestoringRestorer;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -65,8 +65,8 @@ public class ScrollRestorerTest {
     when(configuration.getValueOrDefault(eq(ConfigKey.ABANDON_RESTORE_BELOW_FOLD), anyBoolean()))
         .thenReturn(false);
     when(configuration.getValueOrDefault(
-            eq(ConfigKey.ABANDON_RESTORE_BELOW_FOLD_THRESHOLD), anyInt()))
-        .thenReturn(ABANDON_RESTORE_THRESHOLD);
+            eq(ConfigKey.ABANDON_RESTORE_BELOW_FOLD_THRESHOLD), anyLong()))
+        .thenReturn((long) ABANDON_RESTORE_THRESHOLD);
 
     context = Robolectric.buildActivity(Activity.class).get();
 

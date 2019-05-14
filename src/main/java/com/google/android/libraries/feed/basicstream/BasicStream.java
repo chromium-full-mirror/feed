@@ -101,9 +101,9 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
   private static final String TAG = "BasicStream";
 
   @VisibleForTesting static final String KEY_STREAM_STATE = "stream-state";
-  @VisibleForTesting static final long DEFAULT_LOGGING_IMMEDIATE_CONTENT_THRESHOLD_MS = 1000;
-  @VisibleForTesting static final long MINIMUM_SPINNER_SHOW_TIME = 500;
-  @VisibleForTesting static final long MINIMUM_TIME_BEFORE_SHOWING_SPINNER = 500;
+  @VisibleForTesting static final long DEFAULT_LOGGING_IMMEDIATE_CONTENT_THRESHOLD_MS = 1000L;
+  @VisibleForTesting static final long MINIMUM_SPINNER_SHOW_TIME = 500L;
+  @VisibleForTesting static final long MINIMUM_TIME_BEFORE_SHOWING_SPINNER = 500L;
 
   private final CardConfiguration cardConfiguration;
   private final Clock clock;
@@ -237,7 +237,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
         .setImageLoader(new PietImageLoader(imageLoaderApi))
         .setStringFormatter(new PietStringFormatter(clock))
         .setFadeImageThresholdMs(
-            Suppliers.of(configuration.getValueOrDefault(ConfigKey.FADE_IMAGE_THRESHOLD_MS, 80)))
+            Suppliers.of(configuration.getValueOrDefault(ConfigKey.FADE_IMAGE_THRESHOLD_MS, 80L)))
         .setDefaultCornerRadius(() -> cardConfiguration.getDefaultCornerRadius())
         .setDebugBehavior(debugBehavior)
         .setCustomElementProvider(new PietCustomElementProvider(context, customElementProvider))

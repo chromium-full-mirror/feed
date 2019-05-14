@@ -59,7 +59,7 @@ public final class FeedActionReader implements ActionReader {
     this.taskQueue = taskQueue;
     this.dismissActionTTLSeconds =
         configuration.getValueOrDefault(
-            ConfigKey.DEFAULT_ACTION_TTL_SECONDS, TimeUnit.DAYS.toSeconds(3));
+            ConfigKey.DEFAULT_ACTION_TTL_SECONDS, TimeUnit.DAYS.toSeconds(3L));
     minValidActionRatio =
         configuration.getValueOrDefault(ConfigKey.MINIMUM_VALID_ACTION_RATIO, 0.3);
   }

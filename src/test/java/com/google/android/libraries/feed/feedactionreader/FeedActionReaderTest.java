@@ -14,9 +14,10 @@
 package com.google.android.libraries.feed.feedactionreader;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyListOf;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.never;
@@ -75,9 +76,9 @@ public class FeedActionReaderTest {
   public void setUp() throws Exception {
     initMocks(this);
 
-    when(configuration.getValueOrDefault(same(ConfigKey.DEFAULT_ACTION_TTL_SECONDS), any()))
+    when(configuration.getValueOrDefault(same(ConfigKey.DEFAULT_ACTION_TTL_SECONDS), anyLong()))
         .thenReturn(TimeUnit.DAYS.toSeconds(3));
-    when(configuration.getValueOrDefault(same(ConfigKey.MINIMUM_VALID_ACTION_RATIO), any()))
+    when(configuration.getValueOrDefault(same(ConfigKey.MINIMUM_VALID_ACTION_RATIO), anyDouble()))
         .thenReturn(0.9);
 
     when(store.triggerLocalActionGc(anyListOf(StreamLocalAction.class), anyListOf(String.class)))

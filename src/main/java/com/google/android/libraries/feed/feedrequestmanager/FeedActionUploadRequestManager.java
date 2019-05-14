@@ -57,11 +57,11 @@ public final class FeedActionUploadRequestManager implements ActionUploadRequest
   private final ActionReader actionReader;
   private final Store store;
   private final Clock clock;
-  private final int maxActionUploadAttempts;
+  private final long maxActionUploadAttempts;
   // Total number of actions that can be uploaded in a chained batch request.
-  private final int maxActionsUploadsPerBatchedRequest;
+  private final long maxActionsUploadsPerBatchedRequest;
   // Maximum bytes that can be uploaded in a single request.
-  private final int maxBytesPerRequest;
+  private final long maxBytesPerRequest;
   private final long maxActionUploadTtl;
 
   public FeedActionUploadRequestManager(
@@ -84,11 +84,11 @@ public final class FeedActionUploadRequestManager implements ActionUploadRequest
     this.store = store;
     this.clock = clock;
     maxBytesPerRequest =
-        configuration.getValueOrDefault(ConfigKey.FEED_ACTION_SERVER_MAX_SIZE_PER_REQUEST, 4000);
+        configuration.getValueOrDefault(ConfigKey.FEED_ACTION_SERVER_MAX_SIZE_PER_REQUEST, 4000L);
     maxActionsUploadsPerBatchedRequest =
-        configuration.getValueOrDefault(ConfigKey.FEED_ACTION_SERVER_MAX_ACTIONS_PER_REQUEST, 10);
+        configuration.getValueOrDefault(ConfigKey.FEED_ACTION_SERVER_MAX_ACTIONS_PER_REQUEST, 10L);
     maxActionUploadAttempts =
-        configuration.getValueOrDefault(ConfigKey.FEED_ACTION_MAX_UPLOAD_ATTEMPTS, 1);
+        configuration.getValueOrDefault(ConfigKey.FEED_ACTION_MAX_UPLOAD_ATTEMPTS, 1L);
     maxActionUploadTtl = configuration.getValueOrDefault(ConfigKey.FEED_ACTION_TTL_SECONDS, 0L);
   }
 

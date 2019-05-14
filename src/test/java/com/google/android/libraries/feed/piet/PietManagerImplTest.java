@@ -143,7 +143,7 @@ public class PietManagerImplTest {
 
     assertThat(assetProvider.isDarkTheme()).isFalse();
     assertThat(assetProvider.getDefaultCornerRadius()).isEqualTo(0);
-    assertThat(assetProvider.getFadeImageThresholdMs()).isEqualTo(Integer.MAX_VALUE);
+    assertThat(assetProvider.getFadeImageThresholdMs()).isEqualTo(Long.MAX_VALUE);
     assertThat(assetProvider.isRtL()).isFalse();
   }
 
@@ -177,7 +177,7 @@ public class PietManagerImplTest {
                 .setDefaultCornerRadius(Suppliers.of(123))
                 .setIsDarkTheme(Suppliers.of(isDarkTheme))
                 .setIsRtL(Suppliers.of(isRtL))
-                .setFadeImageThresholdMs(Suppliers.of(456))
+                .setFadeImageThresholdMs(Suppliers.of(456L))
                 .setTypefaceProvider(typefaceProvider)
                 .setDebugBehavior(DebugBehavior.VERBOSE)
                 .setCustomElementProvider(customElementProvider)

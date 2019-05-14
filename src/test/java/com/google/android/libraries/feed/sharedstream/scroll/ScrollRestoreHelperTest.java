@@ -78,7 +78,7 @@ public final class ScrollRestoreHelperTest {
             .put(ConfigKey.ABANDON_RESTORE_BELOW_FOLD, true)
             .put(
                 ConfigKey.ABANDON_RESTORE_BELOW_FOLD_THRESHOLD,
-                ABANDON_RESTORE_BELOW_FOLD_THRESHOLD)
+                (long) ABANDON_RESTORE_BELOW_FOLD_THRESHOLD)
             .build();
 
     setUpForRestoringBelowTheFold();
@@ -100,7 +100,7 @@ public final class ScrollRestoreHelperTest {
             .put(ConfigKey.ABANDON_RESTORE_BELOW_FOLD, false)
             .put(
                 ConfigKey.ABANDON_RESTORE_BELOW_FOLD_THRESHOLD,
-                ABANDON_RESTORE_BELOW_FOLD_THRESHOLD)
+                (long) ABANDON_RESTORE_BELOW_FOLD_THRESHOLD)
             .build();
 
     setUpForRestoringBelowTheFold();

@@ -26,7 +26,7 @@ import com.google.android.libraries.feed.sharedstream.proto.ScrollStateProto.Scr
 public class ScrollRestoreHelper {
   private static final String TAG = "ScrollUtils";
   private static final boolean ABANDON_RESTORE_BELOW_FOLD_DEFAULT = true;
-  private static final int ABANDON_RESTORE_BELOW_FOLD_THRESHOLD_DEFAULT = 10;
+  private static final long ABANDON_RESTORE_BELOW_FOLD_THRESHOLD_DEFAULT = 10L;
 
   /** Private constructor to prevent instantiation. */
   private ScrollRestoreHelper() {}
@@ -72,7 +72,7 @@ public class ScrollRestoreHelper {
     // Determine if we can restore past the fold.
     if (configuration.getValueOrDefault(
         ConfigKey.ABANDON_RESTORE_BELOW_FOLD, ABANDON_RESTORE_BELOW_FOLD_DEFAULT)) {
-      int threshold =
+      long threshold =
           configuration.getValueOrDefault(
               ConfigKey.ABANDON_RESTORE_BELOW_FOLD_THRESHOLD,
               ABANDON_RESTORE_BELOW_FOLD_THRESHOLD_DEFAULT);

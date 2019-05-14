@@ -40,7 +40,7 @@ import java.util.concurrent.TimeUnit;
  * constructor.
  */
 public final class FeedSessionManagerFactory {
-  private static final long DEFAULT_LIFETIME_MS = TimeUnit.HOURS.toMillis(1);
+  private static final long DEFAULT_LIFETIME_MS = TimeUnit.HOURS.toMillis(1L);
 
   private final TaskQueue taskQueue;
   private final Store store;

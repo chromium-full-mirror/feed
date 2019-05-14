@@ -28,7 +28,7 @@ public class AssetProvider {
   @VisibleForTesting final StringFormatter stringFormatter;
   private final Supplier<Integer> defaultCornerRadiusSupplier;
   private final Supplier<Boolean> isDarkThemeSupplier;
-  private final Supplier<Integer> fadeImageThresholdMsSupplier;
+  private final Supplier<Long> fadeImageThresholdMsSupplier;
   private final Supplier<Boolean> isRtLSupplier;
   @VisibleForTesting final TypefaceProvider typefaceProvider;
 
@@ -36,7 +36,7 @@ public class AssetProvider {
       ImageLoader imageLoader,
       StringFormatter stringFormatter,
       Supplier<Integer> defaultCornerRadiusSupplier,
-      Supplier<Integer> fadeImageThresholdMsSupplier,
+      Supplier<Long> fadeImageThresholdMsSupplier,
       Supplier<Boolean> isDarkThemeSupplier,
       Supplier<Boolean> isRtLSupplier,
       TypefaceProvider typefaceProvider) {
@@ -89,7 +89,7 @@ public class AssetProvider {
   /**
    * Fade-in animation will only occur if image loading time takes more than this amount of time.
    */
-  public int getFadeImageThresholdMs() {
+  public long getFadeImageThresholdMs() {
     return fadeImageThresholdMsSupplier.get();
   }
 

@@ -47,7 +47,7 @@ import org.robolectric.shadows.ShadowLooper;
 @RunWith(RobolectricTestRunner.class)
 public class LoadImageCallbackTest {
 
-  private static final int FADE_IMAGE_THRESHOLD_MS = 682;
+  private static final long FADE_IMAGE_THRESHOLD_MS = 682L;
   private static final Integer NO_OVERLAY_COLOR = null;
   private static final boolean FADE_IMAGE = true;
   private static final boolean NO_FADE_IMAGE = false;

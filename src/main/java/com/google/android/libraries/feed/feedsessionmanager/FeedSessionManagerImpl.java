@@ -92,7 +92,7 @@ public final class FeedSessionManagerImpl
 
   private static final String TAG = "FeedSessionManagerImpl";
 
-  private static final long TIMEOUT_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(5);
+  private static final long TIMEOUT_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(5L);
 
   // For the Shared State we will always cache them in the Session Manager
   // Accessed on main thread, updated on Executor task

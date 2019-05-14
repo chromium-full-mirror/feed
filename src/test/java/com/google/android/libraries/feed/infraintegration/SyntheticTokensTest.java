@@ -76,9 +76,9 @@ public class SyntheticTokensTest {
     initMocks(this);
     Configuration configuration =
         new Configuration.Builder()
-            .put(ConfigKey.INITIAL_NON_CACHED_PAGE_SIZE, INITIAL_PAGE_SIZE)
-            .put(ConfigKey.NON_CACHED_PAGE_SIZE, PAGE_SIZE)
-            .put(ConfigKey.NON_CACHED_MIN_PAGE_SIZE, MIN_PAGE_SIZE)
+            .put(ConfigKey.INITIAL_NON_CACHED_PAGE_SIZE, (long) INITIAL_PAGE_SIZE)
+            .put(ConfigKey.NON_CACHED_PAGE_SIZE, (long) PAGE_SIZE)
+            .put(ConfigKey.NON_CACHED_MIN_PAGE_SIZE, (long) MIN_PAGE_SIZE)
             .build();
     InfraIntegrationScope scope =
         new InfraIntegrationScope.Builder().setConfiguration(configuration).build();

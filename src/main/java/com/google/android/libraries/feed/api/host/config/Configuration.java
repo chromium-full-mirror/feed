@@ -143,12 +143,28 @@ public class Configuration {
     this.values = values;
   }
 
+  public String getValueOrDefault(String key, String defaultValue) {
+    return this.<String>getValueOrDefaultUnchecked(key, defaultValue);
+  }
+
+  public long getValueOrDefault(String key, long defaultValue) {
+    return this.<Long>getValueOrDefaultUnchecked(key, defaultValue);
+  }
+
+  public boolean getValueOrDefault(String key, boolean defaultValue) {
+    return this.<Boolean>getValueOrDefaultUnchecked(key, defaultValue);
+  }
+
+  public double getValueOrDefault(String key, double defaultValue) {
+    return this.<Double>getValueOrDefaultUnchecked(key, defaultValue);
+  }
+
   /**
    * Returns the value if it exists, or {@code defaultValue} otherwise.
    *
    * @throws ClassCastException if the value can't be cast to {@code T}.
    */
-  public <T> T getValueOrDefault(String key, T defaultValue) {
+  private <T> T getValueOrDefaultUnchecked(String key, T defaultValue) {
     if (values.containsKey(key)) {
       // The caller assumes the responsibility of ensuring this cast succeeds
       @SuppressWarnings("unchecked")
@@ -173,7 +189,22 @@ public class Configuration {
   public static final class Builder {
     private final HashMap<String, Object> values = new HashMap<>();
 
-    public Builder put(@ConfigKey String key, Object value) {
+    public Builder put(@ConfigKey String key, String value) {
+      values.put(key, value);
+      return this;
+    }
+
+    public Builder put(@ConfigKey String key, long value) {
+      values.put(key, value);
+      return this;
+    }
+
+    public Builder put(@ConfigKey String key, boolean value) {
+      values.put(key, value);
+      return this;
+    }
+
+    public Builder put(@ConfigKey String key, double value) {
       values.put(key, value);
       return this;
     }

@@ -15,7 +15,6 @@
 package com.google.android.libraries.feed.api.client.scope;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -110,7 +109,8 @@ public class StreamScopeBuilderTest {
     applicationInfo = new ApplicationInfo.Builder(context).setBuildType(BUILD_TYPE).build();
     when(config.getValueOrDefault(eq(ConfigKey.LOGGING_IMMEDIATE_CONTENT_THRESHOLD_MS), anyLong()))
         .thenReturn(1000L);
-    when(config.getValueOrDefault(eq(ConfigKey.FADE_IMAGE_THRESHOLD_MS), anyInt())).thenReturn(80);
+    when(config.getValueOrDefault(eq(ConfigKey.FADE_IMAGE_THRESHOLD_MS), anyLong()))
+        .thenReturn(80L);
   }
 
   @Test

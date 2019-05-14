@@ -54,7 +54,7 @@ public class AssetProviderTest {
             imageLoader,
             stringFormatter,
             Suppliers.of(123),
-            Suppliers.of(456),
+            Suppliers.of(456L),
             Suppliers.of(true),
             Suppliers.of(true),
             typefaceProvider);

@@ -677,14 +677,14 @@ public class FeedModelProviderTest {
   }
 
   private void initDefaultConfig() {
-    initSyntheticTokenConfig(/* initialPageSize= */ 0, /* minPageSize= */ 0, /* pageSize= */ 0);
+    initSyntheticTokenConfig(/* initialPageSize= */ 0L, /* minPageSize= */ 0L, /* pageSize= */ 0L);
   }
 
-  private void initSyntheticTokenConfig(int initialPageSize, int minPageSize, int pageSize) {
-    when(config.getValueOrDefault(ConfigKey.INITIAL_NON_CACHED_PAGE_SIZE, 0))
+  private void initSyntheticTokenConfig(long initialPageSize, long minPageSize, long pageSize) {
+    when(config.getValueOrDefault(ConfigKey.INITIAL_NON_CACHED_PAGE_SIZE, 0L))
         .thenReturn(initialPageSize);
-    when(config.getValueOrDefault(ConfigKey.NON_CACHED_PAGE_SIZE, 0)).thenReturn(pageSize);
-    when(config.getValueOrDefault(ConfigKey.NON_CACHED_MIN_PAGE_SIZE, 0)).thenReturn(minPageSize);
+    when(config.getValueOrDefault(ConfigKey.NON_CACHED_PAGE_SIZE, 0L)).thenReturn(pageSize);
+    when(config.getValueOrDefault(ConfigKey.NON_CACHED_MIN_PAGE_SIZE, 0L)).thenReturn(minPageSize);
   }
 
   private StreamToken initializeStreamWithToken(FeedModelProvider modelProvider, int featureCnt) {

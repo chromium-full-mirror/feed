@@ -56,15 +56,14 @@ public interface PietManager {
     private static final StringFormatter EMPTY_STRING_FORMATTER = new EmptyStringFormatter();
     private static final Supplier<Integer> CORNER_RADIUS_DEFAULT = Suppliers.of(0);
     private static final Supplier<Boolean> DARK_THEME_DEFAULT = Suppliers.of(false);
-    private static final Supplier<Integer> FADE_IMAGE_THRESHOLD_DEFAULT =
-        Suppliers.of(Integer.MAX_VALUE);
+    private static final Supplier<Long> FADE_IMAGE_THRESHOLD_DEFAULT = Suppliers.of(Long.MAX_VALUE);
     private static final TypefaceProvider NULL_TYPEFACE_PROVIDER = new NullTypefaceProvider();
 
     private ImageLoader imageLoader = BLANK_IMAGE_LOADER;
     private StringFormatter stringFormatter = EMPTY_STRING_FORMATTER;
     private Supplier<Integer> defaultCornerRadiusSupplier = CORNER_RADIUS_DEFAULT;
     private Supplier<Boolean> isDarkThemeSupplier = DARK_THEME_DEFAULT;
-    private Supplier<Integer> fadeImageThresholdMsSupplier = FADE_IMAGE_THRESHOLD_DEFAULT;
+    private Supplier<Long> fadeImageThresholdMsSupplier = FADE_IMAGE_THRESHOLD_DEFAULT;
     private TypefaceProvider typefaceProvider = NULL_TYPEFACE_PROVIDER;
     private Supplier<Boolean> isRtLSupplier = LayoutUtils::isDefaultLocaleRtl;
 
@@ -131,7 +130,7 @@ public interface PietManager {
       return this;
     }
 
-    public Builder setFadeImageThresholdMs(Supplier<Integer> fadeImageThresholdMsSupplier) {
+    public Builder setFadeImageThresholdMs(Supplier<Long> fadeImageThresholdMsSupplier) {
       this.fadeImageThresholdMsSupplier = fadeImageThresholdMsSupplier;
       return this;
     }
@@ -181,5 +180,4 @@ public interface PietManager {
           useOutlineRoundedCornerImpl);
     }
   }
-
 }
