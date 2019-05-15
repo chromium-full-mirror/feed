@@ -19,7 +19,6 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/api/internal/protocoladapter",
         "//src/main/java/com/google/android/libraries/feed/api/internal/requestmanager",
         "//src/main/java/com/google/android/libraries/feed/api/internal/store",
-        "//src/main/java/com/google/android/libraries/feed/api/requestmanager",
         "//src/main/java/com/google/android/libraries/feed/api/sessionmanager",
         "//src/main/java/com/google/android/libraries/feed/common",
         "//src/main/java/com/google/android/libraries/feed/common/concurrent",

@@ -32,11 +32,11 @@ import com.google.android.libraries.feed.api.internal.modelprovider.ModelError.E
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider.ViewDepthProvider;
 import com.google.android.libraries.feed.api.internal.protocoladapter.ProtocolAdapter;
+import com.google.android.libraries.feed.api.internal.requestmanager.ActionUploadRequestManager;
 import com.google.android.libraries.feed.api.internal.requestmanager.FeedRequestManager;
 import com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.api.internal.store.Store;
 import com.google.android.libraries.feed.api.internal.store.StoreListener;
-import com.google.android.libraries.feed.api.requestmanager.ActionUploadRequestManager;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.Validators;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;

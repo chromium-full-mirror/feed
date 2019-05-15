@@ -38,7 +38,6 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/api/internal/protocoladapter",
         "//src/main/java/com/google/android/libraries/feed/api/internal/requestmanager",
         "//src/main/java/com/google/android/libraries/feed/api/internal/sessionmanager",
-        "//src/main/java/com/google/android/libraries/feed/api/requestmanager",
         "//src/main/java/com/google/android/libraries/feed/api/scope",
         "//src/main/java/com/google/android/libraries/feed/api/scope:feedprocessscope",
         "//src/main/java/com/google/android/libraries/feed/basicstream",

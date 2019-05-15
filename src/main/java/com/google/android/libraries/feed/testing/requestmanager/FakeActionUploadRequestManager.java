@@ -14,7 +14,7 @@
 
 package com.google.android.libraries.feed.testing.requestmanager;
 
-import com.google.android.libraries.feed.api.requestmanager.ActionUploadRequestManager;
+import com.google.android.libraries.feed.api.internal.requestmanager.ActionUploadRequestManager;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.functional.Consumer;

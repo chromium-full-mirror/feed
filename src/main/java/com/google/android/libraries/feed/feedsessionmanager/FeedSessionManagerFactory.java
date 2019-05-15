@@ -19,10 +19,10 @@ import com.google.android.libraries.feed.api.host.config.Configuration.ConfigKey
 import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.api.internal.common.ThreadUtils;
 import com.google.android.libraries.feed.api.internal.protocoladapter.ProtocolAdapter;
+import com.google.android.libraries.feed.api.internal.requestmanager.ActionUploadRequestManager;
 import com.google.android.libraries.feed.api.internal.requestmanager.FeedRequestManager;
 import com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.api.internal.store.Store;
-import com.google.android.libraries.feed.api.requestmanager.ActionUploadRequestManager;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.feedobservable.FeedObservable;
 import com.google.android.libraries.feed.common.time.Clock;
