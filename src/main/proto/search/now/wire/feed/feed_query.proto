@@ -57,6 +57,6 @@ message FeedQuery {
   optional RequestReason reason = 1;
 
   // Used to fetch the next page when scrolling copied from
-  // FeedResponse.next_page_token
+  // Token.next_page_token
   optional bytes page_token = 2;
 }
