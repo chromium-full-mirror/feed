@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.api.scope;
+package com.google.android.libraries.feed.api.internal.scope;
 
 import android.content.Context;
 import com.google.android.libraries.feed.api.client.knowncontent.KnownContent;
@@ -150,6 +150,11 @@ public final class FeedProcessScope implements ProcessScope, Dumpable {
     }
   }
 
+  @Deprecated
+  public ProtocolAdapter getProtocolAdapter() {
+    return protocolAdapter;
+  }
+
 
   public RequestManager getRequestManager() {
     return requestManager;
@@ -157,6 +162,11 @@ public final class FeedProcessScope implements ProcessScope, Dumpable {
 
   public SessionManager getSessionManager() {
     return feedSessionManager;
+  }
+
+  @Deprecated
+  public TimingUtils getTimingUtils() {
+    return timingUtils;
   }
 
   public TaskQueue getTaskQueue() {
@@ -167,8 +177,18 @@ public final class FeedProcessScope implements ProcessScope, Dumpable {
     return appLifecycleListener;
   }
 
+  @Deprecated
+  public ActionManager getActionManager() {
+    return actionManager;
+  }
+
   public KnownContent getKnownContent() {
     return feedKnownContent;
+  }
+
+  @Deprecated
+  public FeedExtensionRegistry getFeedExtensionRegistry() {
+    return feedExtensionRegistry;
   }
 
   /**

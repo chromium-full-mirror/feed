@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.api.scope;
+package com.google.android.libraries.feed.api.internal.scope;
 
 import com.google.android.libraries.feed.api.client.scope.StreamScope;
 import com.google.android.libraries.feed.api.client.stream.Stream;

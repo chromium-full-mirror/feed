@@ -36,9 +36,9 @@ import com.google.android.libraries.feed.api.internal.knowncontent.FeedKnownCont
 import com.google.android.libraries.feed.api.internal.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.internal.requestmanager.ActionUploadRequestManager;
 import com.google.android.libraries.feed.api.internal.requestmanager.FeedRequestManager;
+import com.google.android.libraries.feed.api.internal.scope.ClearAllListener;
+import com.google.android.libraries.feed.api.internal.scope.FeedProcessScope;
 import com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager;
-import com.google.android.libraries.feed.api.scope.ClearAllListener;
-import com.google.android.libraries.feed.api.scope.FeedProcessScope;
 import com.google.android.libraries.feed.common.Validators;
 import com.google.android.libraries.feed.common.concurrent.DirectHostSupported;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
