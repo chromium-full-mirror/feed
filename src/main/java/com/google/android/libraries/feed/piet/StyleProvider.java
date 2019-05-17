@@ -343,7 +343,6 @@ class StyleProvider {
       ViewCompat.setElevation(baseView, 0.0f);
     }
 
-    // TODO: This won't work with backgrounds on adapters with overlays.
     baseView.setAlpha(style.getOpacity());
   }
 
