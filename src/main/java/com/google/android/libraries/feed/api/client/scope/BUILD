@@ -17,6 +17,7 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/api/sessionmanager",
         "//src/main/java/com/google/android/libraries/feed/basicstream",
         "//src/main/java/com/google/android/libraries/feed/common/concurrent",
+        "//src/main/java/com/google/android/libraries/feed/common/logging",
     ],
 )
 

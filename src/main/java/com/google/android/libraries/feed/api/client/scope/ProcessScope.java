@@ -27,9 +27,10 @@ import com.google.android.libraries.feed.api.host.stream.StreamConfiguration;
 import com.google.android.libraries.feed.api.host.stream.TooltipApi;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
+import com.google.android.libraries.feed.common.logging.Dumpable;
 
 /** Allows interaction with the Feed library at the process leve. */
-public interface ProcessScope {
+public interface ProcessScope extends Dumpable {
 
   /** Returns the Feed library request manager. */
   RequestManager getRequestManager();

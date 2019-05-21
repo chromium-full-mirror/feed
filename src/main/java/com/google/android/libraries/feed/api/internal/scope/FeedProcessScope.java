@@ -55,7 +55,7 @@ import com.google.android.libraries.feed.common.time.TimingUtils;
  * <p>It's the host's responsibility to make sure there's only one instance of this per process, per
  * user.
  */
-public final class FeedProcessScope implements ProcessScope, Dumpable {
+public final class FeedProcessScope implements ProcessScope {
   private static final String TAG = "FeedProcessScope";
 
   private final NetworkClient networkClient;
