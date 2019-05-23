@@ -34,12 +34,12 @@ public final class FakeSchedulerApi implements SchedulerApi {
 
   @Override
   @RequestBehavior
-  public int shouldSessionRequestData(SessionManagerState sessionManagerState) {
+  public int shouldSessionRequestData(SessionState sessionState) {
     threadUtils.checkMainThread();
     return requestBehavior;
   }
 
-  /** Sets the result returned from {@link shouldSessionRequestData(SessionManagerState)}. */
+  /** Sets the result returned from {@link shouldSessionRequestData( SessionState )}. */
   public FakeSchedulerApi setRequestBehavior(@RequestBehavior int requestBehavior) {
     this.requestBehavior = requestBehavior;
     return this;

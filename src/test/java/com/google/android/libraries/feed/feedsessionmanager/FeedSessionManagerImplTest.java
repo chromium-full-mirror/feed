@@ -28,7 +28,7 @@ import com.google.android.libraries.feed.api.host.config.Configuration.ConfigKey
 import com.google.android.libraries.feed.api.host.logging.RequestReason;
 import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi.RequestBehavior;
-import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi.SessionManagerState;
+import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi.SessionState;
 import com.google.android.libraries.feed.api.internal.common.ActionPropertiesWithId;
 import com.google.android.libraries.feed.api.internal.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.api.internal.common.testing.ContentIdGenerators;
@@ -138,7 +138,7 @@ public class FeedSessionManagerImplTest {
         new FakeFeedRequestManager(
             fakeThreadUtils, fakeMainThreadRunner, fakeProtocolAdapter, fakeTaskQueue);
     fakeRequestManager.queueResponse(Response.getDefaultInstance());
-    when(schedulerApi.shouldSessionRequestData(any(SessionManagerState.class)))
+    when(schedulerApi.shouldSessionRequestData(any(SessionState.class)))
         .thenReturn(RequestBehavior.NO_REQUEST_WITH_CONTENT);
   }
 
@@ -273,7 +273,7 @@ public class FeedSessionManagerImplTest {
 
   @Test
   public void testNoRequestWithContent_populateIsImmediate() {
-    when(schedulerApi.shouldSessionRequestData(any(SessionManagerState.class)))
+    when(schedulerApi.shouldSessionRequestData(any(SessionState.class)))
         .thenReturn(RequestBehavior.NO_REQUEST_WITH_CONTENT);
 
     FeedSessionManagerImpl sessionManager = getInitializedSessionManager();
@@ -291,7 +291,7 @@ public class FeedSessionManagerImplTest {
 
   @Test
   public void testRequestWithContent_populateIsImmediate() {
-    when(schedulerApi.shouldSessionRequestData(any(SessionManagerState.class)))
+    when(schedulerApi.shouldSessionRequestData(any(SessionState.class)))
         .thenReturn(RequestBehavior.REQUEST_WITH_CONTENT);
 
     FeedSessionManagerImpl sessionManager = getInitializedSessionManager();
@@ -309,7 +309,7 @@ public class FeedSessionManagerImplTest {
 
   @Test
   public void testRequestWithWait_populateIsUserFacing() {
-    when(schedulerApi.shouldSessionRequestData(any(SessionManagerState.class)))
+    when(schedulerApi.shouldSessionRequestData(any(SessionState.class)))
         .thenReturn(RequestBehavior.REQUEST_WITH_WAIT);
 
     FeedSessionManagerImpl sessionManager = getInitializedSessionManager();

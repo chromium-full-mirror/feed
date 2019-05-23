@@ -15,7 +15,7 @@
 package com.google.android.libraries.feed.testing.conformance.scheduler;
 
 import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi;
-import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi.SessionManagerState;
+import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi.SessionState;
 import org.junit.Test;
 
 public abstract class SchedulerConformanceTest {
@@ -28,7 +28,7 @@ public abstract class SchedulerConformanceTest {
   @Test
   public void shouldSessionRequestData() {
     // Should not throw error
-    scheduler.shouldSessionRequestData(new SessionManagerState(false, 0, false));
+    scheduler.shouldSessionRequestData(new SessionState(false, 0, false));
   }
 
   @Test

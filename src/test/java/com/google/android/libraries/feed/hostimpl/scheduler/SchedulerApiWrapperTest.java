@@ -21,7 +21,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi;
-import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi.SessionManagerState;
+import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi.SessionState;
 import com.google.android.libraries.feed.api.internal.common.ThreadUtils;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import org.junit.After;
@@ -37,13 +37,13 @@ public class SchedulerApiWrapperTest {
 
   @Mock private ThreadUtils threadUtils;
   @Mock private SchedulerApi schedulerApi;
-  private SessionManagerState sessionManagerState;
+  private SessionState sessionState;
 
   private final FakeMainThreadRunner mainThreadRunner = FakeMainThreadRunner.runTasksImmediately();
 
   @Before
   public void setup() {
-    sessionManagerState = new SessionManagerState(false, 0L, false);
+    sessionState = new SessionState(false, 0L, false);
     initMocks(this);
   }
 
@@ -57,8 +57,8 @@ public class SchedulerApiWrapperTest {
     when(threadUtils.isMainThread()).thenReturn(true);
     SchedulerApiWrapper wrapper =
         new SchedulerApiWrapper(schedulerApi, threadUtils, mainThreadRunner);
-    wrapper.shouldSessionRequestData(sessionManagerState);
-    verify(schedulerApi).shouldSessionRequestData(sessionManagerState);
+    wrapper.shouldSessionRequestData(sessionState);
+    verify(schedulerApi).shouldSessionRequestData(sessionState);
     assertThat(mainThreadRunner.hasTasks()).isFalse();
   }
 
@@ -67,8 +67,8 @@ public class SchedulerApiWrapperTest {
     when(threadUtils.isMainThread()).thenReturn(false);
     SchedulerApiWrapper wrapper =
         new SchedulerApiWrapper(schedulerApi, threadUtils, mainThreadRunner);
-    wrapper.shouldSessionRequestData(sessionManagerState);
-    verify(schedulerApi).shouldSessionRequestData(sessionManagerState);
+    wrapper.shouldSessionRequestData(sessionState);
+    verify(schedulerApi).shouldSessionRequestData(sessionState);
     assertThat(mainThreadRunner.getCompletedTaskCount()).isEqualTo(1);
   }
 

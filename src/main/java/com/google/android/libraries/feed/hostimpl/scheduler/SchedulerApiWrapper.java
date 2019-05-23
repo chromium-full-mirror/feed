@@ -38,14 +38,14 @@ public final class SchedulerApiWrapper implements SchedulerApi {
 
   @RequestBehavior
   @Override
-  public int shouldSessionRequestData(SessionManagerState sessionManagerState) {
+  public int shouldSessionRequestData(SessionState sessionState) {
     if (threadUtils.isMainThread()) {
-      return directSchedulerApi.shouldSessionRequestData(sessionManagerState);
+      return directSchedulerApi.shouldSessionRequestData(sessionState);
     }
     SimpleSettableFuture<Integer> future = new SimpleSettableFuture<>();
     mainThreadRunner.execute(
         TAG + " shouldSessionRequestData",
-        () -> future.put(directSchedulerApi.shouldSessionRequestData(sessionManagerState)));
+        () -> future.put(directSchedulerApi.shouldSessionRequestData(sessionState)));
     try {
       return future.get();
     } catch (InterruptedException | ExecutionException e) {

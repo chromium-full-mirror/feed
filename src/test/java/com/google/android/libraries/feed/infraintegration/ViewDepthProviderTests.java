@@ -22,7 +22,7 @@ import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.host.logging.RequestReason;
 import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi.RequestBehavior;
-import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi.SessionManagerState;
+import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi.SessionState;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider.ViewDepthProvider;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProviderFactory;
@@ -120,7 +120,7 @@ public class ViewDepthProviderTests {
 
     // The REQUEST_TWO content acts as a second request on the server, it is triggered by
     // REQUEST_WITH_CONTENT
-    when(schedulerApi.shouldSessionRequestData(any(SessionManagerState.class)))
+    when(schedulerApi.shouldSessionRequestData(any(SessionState.class)))
         .thenReturn(RequestBehavior.REQUEST_WITH_CONTENT);
     fakeFeedRequestManager.queueResponse(ResponseBuilder.forClearAllWithCards(REQUEST_TWO).build());
     ModelProvider modelProvider =
@@ -150,7 +150,7 @@ public class ViewDepthProviderTests {
 
     // The REQUEST_TWO content acts as a second request on the server, it is triggered by
     // REQUEST_WITH_CONTENT
-    when(schedulerApi.shouldSessionRequestData(any(SessionManagerState.class)))
+    when(schedulerApi.shouldSessionRequestData(any(SessionState.class)))
         .thenReturn(RequestBehavior.REQUEST_WITH_CONTENT);
     fakeFeedRequestManager.queueResponse(
         ResponseBuilder.forClearAllWithCards(REQUEST_TWO_WITH_DUPLICATES).build());

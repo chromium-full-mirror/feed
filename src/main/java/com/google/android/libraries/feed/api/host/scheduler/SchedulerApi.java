@@ -65,9 +65,9 @@ public interface SchedulerApi {
     int NEXT_VALUE = 7;
   }
 
-  /** Object which contains the current state of the SessionManager. */
-  final class SessionManagerState {
-    /** Does the SessionManager have content? */
+  /** Object which contains the current state of the session. */
+  final class SessionState {
+    /** Does the session have content? */
     public final boolean hasContent;
     /**
      * Returns the date/time of when the content was added. This will only be set when {@code
@@ -77,7 +77,7 @@ public interface SchedulerApi {
     /** Is there an outstanding request being made? */
     public final boolean hasOutstandingRequest;
 
-    public SessionManagerState(
+    public SessionState(
         boolean hasContent, long contentCreationDateTimeMs, boolean hasOutstandingRequest) {
       this.hasContent = hasContent;
       this.contentCreationDateTimeMs = contentCreationDateTimeMs;
@@ -87,7 +87,7 @@ public interface SchedulerApi {
 
   /** Called when a Session is created to determine what behavior we should implement. */
   @RequestBehavior
-  int shouldSessionRequestData(SessionManagerState sessionManagerState);
+  int shouldSessionRequestData(SessionState sessionState);
 
   /** Notify scheduler that new content has been received. */
   void onReceiveNewContent(long contentCreationDateTimeMs);

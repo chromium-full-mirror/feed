@@ -24,7 +24,7 @@ import com.google.android.libraries.feed.api.host.logging.RequestReason;
 import com.google.android.libraries.feed.api.host.logging.Task;
 import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi.RequestBehavior;
-import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi.SessionManagerState;
+import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi.SessionState;
 import com.google.android.libraries.feed.api.internal.common.PayloadWithId;
 import com.google.android.libraries.feed.api.internal.common.ThreadUtils;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelError;
@@ -266,27 +266,27 @@ public final class FeedSessionManagerImpl
   // new session.
   private void populateSession(InitializableSession session, UiContext uiContext) {
 
-    // Create SessionManagerState and call SchedulerApi to determine what the session-creation
+    // Create SessionState and call SchedulerApi to determine what the session-creation
     // experience should be.
-    SessionManagerState sessionManagerState =
-        new SessionManagerState(
+    SessionState sessionState =
+        new SessionState(
             !sessionCache.getHead().isHeadEmpty(),
             sessionCache.getHeadLastAddedTimeMillis(),
             taskQueue.isMakingRequest());
     Logger.i(
         TAG,
         "shouldSessionRequestData; hasContent(%b), contentCreationTime(%d), outstandingRequest(%b)",
-        sessionManagerState.hasContent,
-        sessionManagerState.contentCreationDateTimeMs,
-        sessionManagerState.hasOutstandingRequest);
-    @RequestBehavior int behavior = schedulerApi.shouldSessionRequestData(sessionManagerState);
+        sessionState.hasContent,
+        sessionState.contentCreationDateTimeMs,
+        sessionState.hasOutstandingRequest);
+    @RequestBehavior int behavior = schedulerApi.shouldSessionRequestData(sessionState);
 
-    // Based on sessionManagerState and behavior, determine if FeedSessionManager should start a
+    // Based on sessionState and behavior, determine if FeedSessionManager should start a
     // request, append an ongoing request to this session, or include a timeout.
-    boolean shouldAppendOutstandingRequest = shouldAppendToSession(sessionManagerState, behavior);
-    boolean shouldStartRequest = shouldStartRequest(sessionManagerState, behavior);
+    boolean shouldAppendOutstandingRequest = shouldAppendToSession(sessionState, behavior);
+    boolean shouldStartRequest = shouldStartRequest(sessionState, behavior);
     Runnable timeoutTask =
-        shouldPopulateWithTimeout(sessionManagerState, behavior)
+        shouldPopulateWithTimeout(sessionState, behavior)
             ? () -> populateSessionTask(session, shouldAppendOutstandingRequest, uiContext)
             : null;
     Logger.i(
@@ -883,32 +883,32 @@ public final class FeedSessionManagerImpl
   }
 
   private static boolean shouldAppendToSession(
-      SessionManagerState sessionManagerState, @RequestBehavior int requestBehavior) {
+      SessionState sessionState, @RequestBehavior int requestBehavior) {
     switch (requestBehavior) {
       case RequestBehavior.REQUEST_WITH_CONTENT: // Fall-through
       case RequestBehavior.REQUEST_WITH_TIMEOUT:
-        return sessionManagerState.hasContent;
+        return sessionState.hasContent;
       case RequestBehavior.NO_REQUEST_WITH_CONTENT: // Fall-through
       case RequestBehavior.NO_REQUEST_WITH_TIMEOUT:
-        return sessionManagerState.hasContent && sessionManagerState.hasOutstandingRequest;
+        return sessionState.hasContent && sessionState.hasOutstandingRequest;
       default:
         return false;
     }
   }
 
   private static boolean shouldStartRequest(
-      SessionManagerState sessionManagerState, @RequestBehavior int requestBehavior) {
+      SessionState sessionState, @RequestBehavior int requestBehavior) {
     return (requestBehavior == RequestBehavior.REQUEST_WITH_TIMEOUT
             || requestBehavior == RequestBehavior.REQUEST_WITH_WAIT
             || requestBehavior == RequestBehavior.REQUEST_WITH_CONTENT)
-        && !sessionManagerState.hasOutstandingRequest;
+        && !sessionState.hasOutstandingRequest;
   }
 
   private static boolean shouldPopulateWithTimeout(
-      SessionManagerState sessionManagerState, @RequestBehavior int requestBehavior) {
+      SessionState sessionState, @RequestBehavior int requestBehavior) {
     return requestBehavior == RequestBehavior.REQUEST_WITH_TIMEOUT
         || (requestBehavior == RequestBehavior.NO_REQUEST_WITH_TIMEOUT
-            && sessionManagerState.hasOutstandingRequest);
+            && sessionState.hasOutstandingRequest);
   }
 
   private static String requestBehaviorToString(@RequestBehavior int requestBehavior) {
