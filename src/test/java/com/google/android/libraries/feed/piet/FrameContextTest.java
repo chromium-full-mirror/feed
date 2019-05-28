@@ -482,7 +482,7 @@ public class FrameContextTest {
 
   @Test
   public void testGetImage() {
-    Image image = Image.newBuilder().setOverlayColor(12345).build();
+    Image image = Image.newBuilder().addSources(ImageSource.newBuilder().setUrl("myUrl")).build();
     BindingValue imageBindingValue = defaultBinding().setImage(image).build();
     ImageBindingRef imageBindingRef = ImageBindingRef.newBuilder().setBindingId(BINDING_ID).build();
 
@@ -524,7 +524,7 @@ public class FrameContextTest {
 
   @Test
   public void testGetImage_hostBinding() {
-    Image image = Image.newBuilder().setOverlayColor(12345).build();
+    Image image = Image.newBuilder().addSources(ImageSource.newBuilder().setUrl("myUrl")).build();
     BindingValue imageBindingValue = defaultBinding().setImage(image).build();
     BindingValue hostImageBindingValue =
         defaultBinding().setHostBindingData(HostBindingData.newBuilder()).setImage(image).build();

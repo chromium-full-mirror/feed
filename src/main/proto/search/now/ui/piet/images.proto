@@ -52,17 +52,8 @@ message Image {
     CENTER_CROP = 2;
   }
 
-  // Replace all non-transparent pixels of this image with the specified color.
-  // This is used for changing the color of icons which are provided as a
-  // monochrome bitmap. If this optional field is not provided, the image will
-  // not be modified.
-
-  // This field is deprecated. Use the 'color' style instead--it will do the
-  // same thing when applied to an image element.
-  optional fixed32 overlay_color = 3 [deprecated = true];
-
   // Reserved tags from deprecated fields
-  reserved 2;
+  reserved 2, 3;
 
   // Please use CL numbers you own for extension numbers.
   extensions 10000 to max;
