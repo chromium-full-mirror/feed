@@ -66,8 +66,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 
@@ -667,7 +667,7 @@ public class FeedActionParserTest {
     verify(streamActionApi, never())
         .dismiss(
             anyString(),
-            Mockito.anyListOf(StreamDataOperation.class),
+            ArgumentMatchers.anyList(),
             any(UndoAction.class),
             any(ActionPayload.class));
   }
@@ -686,10 +686,7 @@ public class FeedActionParserTest {
         DISMISS_LOCAL_FEED_ACTION, streamActionApi, /* view= */ null, ActionSource.CLICK);
     verify(streamActionApi, never())
         .handleNotInterestedIn(
-            Mockito.anyListOf(StreamDataOperation.class),
-            any(UndoAction.class),
-            any(ActionPayload.class),
-            anyInt());
+            ArgumentMatchers.anyList(), any(UndoAction.class), any(ActionPayload.class), anyInt());
   }
 
   @Test
@@ -710,7 +707,7 @@ public class FeedActionParserTest {
     verify(streamActionApi, never())
         .dismiss(
             anyString(),
-            Mockito.anyListOf(StreamDataOperation.class),
+            ArgumentMatchers.anyList(),
             any(UndoAction.class),
             any(ActionPayload.class));
   }
@@ -733,7 +730,7 @@ public class FeedActionParserTest {
     verify(streamActionApi, never())
         .dismiss(
             anyString(),
-            Mockito.anyListOf(StreamDataOperation.class),
+            ArgumentMatchers.anyList(),
             any(UndoAction.class),
             any(ActionPayload.class));
   }

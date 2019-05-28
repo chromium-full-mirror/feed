@@ -38,8 +38,8 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 
@@ -72,7 +72,7 @@ public class ContextMenuManagerImplTest {
     adapterItems = createAdapterItems();
     when(menuMeasurer.measureAdapterContent(
             any(ViewGroup.class),
-            Mockito.<ArrayAdapter<? extends Object>>any(),
+            ArgumentMatchers.<ArrayAdapter<? extends Object>>any(),
             anyInt(),
             anyInt(),
             anyInt()))

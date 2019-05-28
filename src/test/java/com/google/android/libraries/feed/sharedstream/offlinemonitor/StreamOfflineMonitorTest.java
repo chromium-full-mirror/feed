@@ -33,9 +33,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.robolectric.RobolectricTestRunner;
 
 /** Tests for {@link StreamOfflineMonitor}. */
@@ -126,7 +126,8 @@ public class StreamOfflineMonitorTest {
 
     streamOfflineMonitor.requestOfflineStatusForNewContent();
     verify(offlineIndicatorApi)
-        .getOfflineStatus(listArgumentCaptor.capture(), Mockito.<Consumer<List<String>>>any());
+        .getOfflineStatus(
+            listArgumentCaptor.capture(), ArgumentMatchers.<Consumer<List<String>>>any());
 
     assertThat(listArgumentCaptor.getValue())
         .containsExactlyElementsIn(Arrays.asList(URL, url1, url2));
@@ -144,7 +145,8 @@ public class StreamOfflineMonitorTest {
     streamOfflineMonitor.requestOfflineStatusForNewContent();
 
     verify(offlineIndicatorApi, never())
-        .getOfflineStatus(eq(Collections.emptyList()), Mockito.<Consumer<List<String>>>any());
+        .getOfflineStatus(
+            eq(Collections.emptyList()), ArgumentMatchers.<Consumer<List<String>>>any());
   }
 
   @Test
@@ -152,7 +154,8 @@ public class StreamOfflineMonitorTest {
     streamOfflineMonitor.requestOfflineStatusForNewContent();
 
     verify(offlineIndicatorApi, never())
-        .getOfflineStatus(eq(Collections.emptyList()), Mockito.<Consumer<List<String>>>any());
+        .getOfflineStatus(
+            eq(Collections.emptyList()), ArgumentMatchers.<Consumer<List<String>>>any());
   }
 
   @Test

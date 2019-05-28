@@ -78,6 +78,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Captor;
 import org.mockito.InOrder;
 import org.mockito.Mock;
@@ -182,7 +183,7 @@ public class ContentDriverTest {
         .thenReturn(StreamFeature.newBuilder().setContent(CONTENT).build());
     when(modelProvider.getSharedState(CONTENT_ID_1)).thenReturn(STREAM_SHARED_STATE_1);
     when(modelProvider.getSharedState(CONTENT_ID_2)).thenReturn(STREAM_SHARED_STATE_2);
-    when(actionParserFactory.build(Mockito.<Supplier<ContentMetadata>>any()))
+    when(actionParserFactory.build(ArgumentMatchers.<Supplier<ContentMetadata>>any()))
         .thenReturn(actionParser);
     viewLoggingUpdater = new ViewLoggingUpdater();
     contentDriver =
@@ -261,7 +262,7 @@ public class ContentDriverTest {
     verify(pietViewHolder, never())
         .bind(
             any(Frame.class),
-            Mockito.<List<PietSharedState>>any(),
+            ArgumentMatchers.<List<PietSharedState>>any(),
             any(StreamActionApi.class),
             any(FeedActionPayload.class),
             any(LoggingListener.class),
@@ -645,7 +646,7 @@ public class ContentDriverTest {
         .thenReturn(StreamFeature.newBuilder().setContent(content).build());
 
     reset(actionParserFactory);
-    when(actionParserFactory.build(Mockito.<Supplier<ContentMetadata>>any()))
+    when(actionParserFactory.build(ArgumentMatchers.<Supplier<ContentMetadata>>any()))
         .thenReturn(actionParser);
 
     contentDriver =

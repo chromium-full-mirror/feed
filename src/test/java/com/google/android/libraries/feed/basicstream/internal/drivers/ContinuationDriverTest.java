@@ -59,8 +59,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InOrder;
-import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.robolectric.Robolectric;
@@ -341,7 +341,9 @@ public class ContinuationDriverTest {
     // synthetic token.
     verify(cursorChangedListener)
         .onNewChildren(
-            any(ModelChild.class), Mockito.<List<ModelChild>>any(), /* wasSynthetic= */ eq(true));
+            any(ModelChild.class),
+            ArgumentMatchers.<List<ModelChild>>any(),
+            /* wasSynthetic= */ eq(true));
   }
 
   @Test
@@ -546,7 +548,9 @@ public class ContinuationDriverTest {
 
     verify(cursorChangedListener, never())
         .onNewChildren(
-            any(ModelChild.class), Matchers.<List<ModelChild>>any(), /* wasSynthetic= */ eq(false));
+            any(ModelChild.class),
+            ArgumentMatchers.<List<ModelChild>>any(),
+            /* wasSynthetic= */ eq(false));
   }
 
   @Test

@@ -42,9 +42,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.robolectric.RobolectricTestRunner;
 
 /** Tests for {@link FeedKnownContentImpl}. */
@@ -171,7 +171,7 @@ public class FeedKnownContentImplTest {
 
     contentMetadataResultCaptor.getValue().accept(Result.failure());
 
-    verify(knownContentConsumer, never()).accept(Mockito.<List<ContentMetadata>>any());
+    verify(knownContentConsumer, never()).accept(ArgumentMatchers.<List<ContentMetadata>>any());
   }
 
   @Test

@@ -62,6 +62,7 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -111,7 +112,7 @@ public class StreamRecyclerViewAdapterTest {
     frameContainer = new LinearLayout(context);
 
     when(pietManager.createPietFrameAdapter(
-            Mockito.<Supplier<ViewGroup>>any(),
+            ArgumentMatchers.<Supplier<ViewGroup>>any(),
             any(ActionHandler.class),
             any(EventLogger.class),
             eq(context)))

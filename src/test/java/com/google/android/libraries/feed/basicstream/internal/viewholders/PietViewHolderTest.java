@@ -64,8 +64,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 
@@ -112,7 +112,7 @@ public class PietViewHolderTest {
 
     // TODO: Use FakePietManager once it is implemented.
     when(pietManager.createPietFrameAdapter(
-            Mockito.<Supplier<ViewGroup>>any(),
+            ArgumentMatchers.<Supplier<ViewGroup>>any(),
             any(ActionHandler.class),
             any(EventLogger.class),
             eq(context)))
@@ -147,7 +147,7 @@ public class PietViewHolderTest {
     ArgumentCaptor<ActionHandler> captor = ArgumentCaptor.forClass(ActionHandler.class);
     verify(pietManager)
         .createPietFrameAdapter(
-            Mockito.<Supplier<ViewGroup>>any(),
+            ArgumentMatchers.<Supplier<ViewGroup>>any(),
             captor.capture(),
             any(EventLogger.class),
             any(Context.class));
@@ -443,7 +443,7 @@ public class PietViewHolderTest {
 
     verify(pietManager)
         .createPietFrameAdapter(
-            Mockito.<Supplier<ViewGroup>>any(),
+            ArgumentMatchers.<Supplier<ViewGroup>>any(),
             eq(actionHandler),
             pietEventLoggerCaptor.capture(),
             eq(context));
