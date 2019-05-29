@@ -22,7 +22,7 @@ import com.google.android.libraries.feed.api.internal.modelprovider.ModelError;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProviderObserver;
-import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
+import com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
@@ -57,7 +57,7 @@ public class TimeoutSessionBaseTest {
 
   private FakeClock fakeClock;
   private FakeFeedRequestManager fakeFeedRequestManager;
-  private SessionManager sessionManager;
+  private FeedSessionManager feedSessionManager;
   private ModelProviderFactory modelProviderFactory;
   private ModelProviderValidator modelValidator;
   private long timeoutDeadline;
@@ -72,7 +72,7 @@ public class TimeoutSessionBaseTest {
             .build();
     fakeClock = scope.getFakeClock();
     fakeFeedRequestManager = scope.getFakeFeedRequestManager();
-    sessionManager = scope.getFeedSessionManager();
+    feedSessionManager = scope.getFeedSessionManager();
     modelProviderFactory = scope.getModelProviderFactory();
     modelValidator = new ModelProviderValidator(scope.getProtocolAdapter());
   }
@@ -147,7 +147,7 @@ public class TimeoutSessionBaseTest {
             System.out.println("onSessionStart");
             finished.set(true);
             modelValidator.assertCursorContents(modelProvider, cards);
-            assertThat(((FeedSessionManagerImpl) sessionManager).isDelayed()).isFalse();
+            assertThat(((FeedSessionManagerImpl) feedSessionManager).isDelayed()).isFalse();
           }
 
           @Override

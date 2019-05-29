@@ -25,7 +25,6 @@ import com.google.android.libraries.feed.api.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.api.host.stream.SnackbarApi;
 import com.google.android.libraries.feed.api.host.stream.StreamConfiguration;
 import com.google.android.libraries.feed.api.host.stream.TooltipApi;
-import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.logging.Dumpable;
 
@@ -34,9 +33,6 @@ public interface ProcessScope extends Dumpable {
 
   /** Returns the Feed library request manager. */
   RequestManager getRequestManager();
-
-  /** Returns the Feed library session manager. */
-  SessionManager getSessionManager();
 
   /** Returns the Feed library task queue. */
   TaskQueue getTaskQueue();

@@ -16,13 +16,11 @@ package com.google.android.libraries.feed.infraintegration;
 
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.api.common.MutationContext;
-import com.google.android.libraries.feed.api.host.logging.RequestReason;
+import com.google.android.libraries.feed.api.client.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.internal.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProviderFactory;
-import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
 import com.google.android.libraries.feed.common.testing.PagingState;
@@ -53,9 +51,9 @@ public class LimitedPagingTest {
       };
 
   private FakeFeedRequestManager fakeFeedRequestManager;
-  private SessionManager sessionManager;
   private ModelProviderFactory modelProviderFactory;
   private ModelProviderValidator modelValidator;
+  private RequestManager requestManager;
 
   private final ContentIdGenerators contentIdGenerators = new ContentIdGenerators();
 
@@ -64,18 +62,16 @@ public class LimitedPagingTest {
     initMocks(this);
     InfraIntegrationScope scope = new InfraIntegrationScope.Builder().build();
     fakeFeedRequestManager = scope.getFakeFeedRequestManager();
-    sessionManager = scope.getFeedSessionManager();
     modelProviderFactory = scope.getModelProviderFactory();
     modelValidator = new ModelProviderValidator(scope.getProtocolAdapter());
+    requestManager = scope.getRequestManager();
   }
 
   @Test
   public void testPagingDetachedSession() {
     PagingState s1State = new PagingState(PAGE_1, PAGE_2, 1, contentIdGenerators);
     fakeFeedRequestManager.queueResponse(s1State.initialResponse);
-    fakeFeedRequestManager.triggerRefresh(
-        RequestReason.OPEN_WITHOUT_CONTENT,
-        sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+    requestManager.triggerScheduledRefresh();
 
     // Create the sessionOne from page1 and a token
     ModelProvider sessionOne = modelProviderFactory.createNew(null, UiContext.getDefaultInstance());

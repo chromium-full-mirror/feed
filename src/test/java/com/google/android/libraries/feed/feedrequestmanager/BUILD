@@ -44,7 +44,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/api/common",
         "//src/main/java/com/google/android/libraries/feed/api/host/logging",
         "//src/main/java/com/google/android/libraries/feed/api/internal/requestmanager",
-        "//src/main/java/com/google/android/libraries/feed/api/sessionmanager",
+        "//src/main/java/com/google/android/libraries/feed/api/internal/sessionmanager",
         "//src/main/java/com/google/android/libraries/feed/common",
         "//src/main/java/com/google/android/libraries/feed/common/functional",
         "//src/main/java/com/google/android/libraries/feed/feedrequestmanager",

@@ -17,10 +17,8 @@ package com.google.android.libraries.feed.infraintegration;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.api.common.MutationContext;
-import com.google.android.libraries.feed.api.host.logging.RequestReason;
+import com.google.android.libraries.feed.api.client.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager;
-import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.functional.Function;
 import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
@@ -34,12 +32,13 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 
-/** Tests of the {@link SessionManager#getStreamFeaturesFromHead(Function, Consumer)} method. */
+/** Tests of the {@link FeedSessionManager#getStreamFeaturesFromHead(Function, Consumer)} method. */
 @RunWith(RobolectricTestRunner.class)
 public class FilterHeadTest {
   private FakeFeedRequestManager fakeFeedRequestManager;
 
   private FeedSessionManager feedSessionManager;
+  private RequestManager requestManager;
 
   @Before
   public void setUp() {
@@ -47,6 +46,7 @@ public class FilterHeadTest {
     InfraIntegrationScope scope = new InfraIntegrationScope.Builder().build();
     fakeFeedRequestManager = scope.getFakeFeedRequestManager();
     feedSessionManager = scope.getFeedSessionManager();
+    requestManager = scope.getRequestManager();
   }
 
   @Test
@@ -61,9 +61,7 @@ public class FilterHeadTest {
         };
 
     fakeFeedRequestManager.queueResponse(ResponseBuilder.forClearAllWithCards(cards).build());
-    fakeFeedRequestManager.triggerRefresh(
-        RequestReason.OPEN_WITHOUT_CONTENT,
-        feedSessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+    requestManager.triggerScheduledRefresh();
 
     feedSessionManager.getStreamFeaturesFromHead(
         transformer,

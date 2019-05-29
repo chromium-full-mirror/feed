@@ -39,7 +39,6 @@ import com.google.android.libraries.feed.api.internal.knowncontent.FeedKnownCont
 import com.google.android.libraries.feed.api.internal.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.api.internal.store.Store;
-import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.logging.Dumpable;
@@ -158,10 +157,6 @@ public final class FeedProcessScope implements ProcessScope {
 
   public RequestManager getRequestManager() {
     return requestManager;
-  }
-
-  public SessionManager getSessionManager() {
-    return feedSessionManager;
   }
 
   @Deprecated

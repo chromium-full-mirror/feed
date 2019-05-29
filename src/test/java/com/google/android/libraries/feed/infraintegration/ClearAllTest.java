@@ -18,14 +18,12 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.client.lifecycle.AppLifecycleListener;
-import com.google.android.libraries.feed.api.common.MutationContext;
+import com.google.android.libraries.feed.api.client.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.host.config.Configuration;
 import com.google.android.libraries.feed.api.host.config.Configuration.ConfigKey;
-import com.google.android.libraries.feed.api.host.logging.RequestReason;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider.State;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProviderFactory;
-import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
 import com.google.android.libraries.feed.common.testing.ResponseBuilder;
@@ -41,10 +39,10 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class ClearAllTest {
   private FakeFeedRequestManager fakeFeedRequestManager;
-  private SessionManager sessionManager;
   private ModelProviderFactory modelProviderFactory;
   private ModelProviderValidator modelValidator;
   private AppLifecycleListener appLifecycleListener;
+  private RequestManager requestManager;
 
   @Before
   public void setUp() {
@@ -54,7 +52,7 @@ public class ClearAllTest {
     InfraIntegrationScope scope =
         new InfraIntegrationScope.Builder().setConfiguration(configuration).build();
     fakeFeedRequestManager = scope.getFakeFeedRequestManager();
-    sessionManager = scope.getFeedSessionManager();
+    requestManager = scope.getRequestManager();
     modelProviderFactory = scope.getModelProviderFactory();
     appLifecycleListener = scope.getAppLifecycleListener();
     modelValidator = new ModelProviderValidator(scope.getProtocolAdapter());
@@ -73,9 +71,7 @@ public class ClearAllTest {
           ResponseBuilder.createFeatureContentId(3)
         };
     fakeFeedRequestManager.queueResponse(ResponseBuilder.forClearAllWithCards(cards).build());
-    fakeFeedRequestManager.triggerRefresh(
-        RequestReason.OPEN_WITHOUT_CONTENT,
-        sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+    requestManager.triggerScheduledRefresh();
     ModelProvider modelProvider1 =
         modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     modelValidator.assertCursorContents(modelProvider1, cards);
@@ -102,9 +98,7 @@ public class ClearAllTest {
           ResponseBuilder.createFeatureContentId(3)
         };
     fakeFeedRequestManager.queueResponse(ResponseBuilder.forClearAllWithCards(cards).build());
-    fakeFeedRequestManager.triggerRefresh(
-        RequestReason.OPEN_WITHOUT_CONTENT,
-        sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+    requestManager.triggerScheduledRefresh();
     ModelProvider modelProvider =
         modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     modelValidator.assertCursorContents(modelProvider, cards);

@@ -18,8 +18,8 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+import com.google.android.libraries.feed.api.client.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.common.MutationContext;
-import com.google.android.libraries.feed.api.host.logging.RequestReason;
 import com.google.android.libraries.feed.api.internal.modelprovider.FeatureChange;
 import com.google.android.libraries.feed.api.internal.modelprovider.FeatureChangeObserver;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelChild;
@@ -28,7 +28,7 @@ import com.google.android.libraries.feed.api.internal.modelprovider.ModelFeature
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.internal.protocoladapter.ProtocolAdapter;
-import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
+import com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
@@ -54,7 +54,8 @@ public class StructureUpdateTest {
   private final ModelProviderValidator modelValidator =
       new ModelProviderValidator(scope.getProtocolAdapter());
   private final ProtocolAdapter protocolAdapter = scope.getProtocolAdapter();
-  private final SessionManager sessionManager = scope.getFeedSessionManager();
+  private final FeedSessionManager feedSessionManager = scope.getFeedSessionManager();
+  private final RequestManager requestManager = scope.getRequestManager();
 
   @Test
   public void appendChildren() {
@@ -71,9 +72,7 @@ public class StructureUpdateTest {
 
     fakeFeedRequestManager.queueResponse(
         ResponseBuilder.forClearAllWithCards(startingCards).build());
-    fakeFeedRequestManager.triggerRefresh(
-        RequestReason.OPEN_WITHOUT_CONTENT,
-        sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+    requestManager.triggerScheduledRefresh();
     ModelProvider modelProvider =
         modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
 
@@ -91,7 +90,7 @@ public class StructureUpdateTest {
     fakeFeedRequestManager.loadMore(
         StreamToken.getDefaultInstance(),
         ConsistencyToken.getDefaultInstance(),
-        sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+        feedSessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
 
     // assert the new state of the stream
     modelValidator.assertCursorSize(root.getCursor(), startingCards.length + appendedCards.length);
@@ -126,9 +125,7 @@ public class StructureUpdateTest {
 
     fakeFeedRequestManager.queueResponse(
         ResponseBuilder.forClearAllWithCards(startingCards).build());
-    fakeFeedRequestManager.triggerRefresh(
-        RequestReason.OPEN_WITHOUT_CONTENT,
-        sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+    requestManager.triggerScheduledRefresh();
     ModelProvider modelProvider =
         modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
 
@@ -147,7 +144,7 @@ public class StructureUpdateTest {
     fakeFeedRequestManager.loadMore(
         StreamToken.getDefaultInstance(),
         ConsistencyToken.getDefaultInstance(),
-        sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+        feedSessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
     modelValidator.assertCursorSize(cursor, 3);
   }
 }

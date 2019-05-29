@@ -18,14 +18,14 @@ import static com.google.android.libraries.feed.common.testing.ResponseBuilder.R
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.google.android.libraries.feed.api.client.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.common.MutationContext;
-import com.google.android.libraries.feed.api.host.logging.RequestReason;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider.RemoveTrackingFactory;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.internal.modelprovider.RemoveTracking;
 import com.google.android.libraries.feed.api.internal.protocoladapter.ProtocolAdapter;
-import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
+import com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.functional.Function;
@@ -57,18 +57,20 @@ public class RemoveTrackingBehaviorTest {
       };
 
   private FakeFeedRequestManager fakeFeedRequestManager;
-  private SessionManager sessionManager;
+  private FeedSessionManager feedSessionManager;
   private ModelProviderFactory modelProviderFactory;
   private ProtocolAdapter protocolAdapter;
+  private RequestManager requestManager;
 
   @Before
   public void setUp() {
     initMocks(this);
     InfraIntegrationScope scope = new InfraIntegrationScope.Builder().build();
     fakeFeedRequestManager = scope.getFakeFeedRequestManager();
-    sessionManager = scope.getFeedSessionManager();
+    feedSessionManager = scope.getFeedSessionManager();
     modelProviderFactory = scope.getModelProviderFactory();
     protocolAdapter = scope.getProtocolAdapter();
+    requestManager = scope.getRequestManager();
   }
 
   @Test
@@ -89,7 +91,7 @@ public class RemoveTrackingBehaviorTest {
     List<StreamDataOperation> dataOperations = getDataOperations(responseBuilder);
     MutationContext mutationContext = new MutationContext.Builder().setUserInitiated(true).build();
     Consumer<Result<List<StreamDataOperation>>> updateConsumer =
-        sessionManager.getUpdateConsumer(mutationContext);
+        feedSessionManager.getUpdateConsumer(mutationContext);
     updateConsumer.accept(Result.success(dataOperations));
     assertThat(called.get()).isTrue();
   }
@@ -114,7 +116,7 @@ public class RemoveTrackingBehaviorTest {
     List<StreamDataOperation> dataOperations = getDataOperations(responseBuilder);
     MutationContext mutationContext = new MutationContext.Builder().setUserInitiated(true).build();
     Consumer<Result<List<StreamDataOperation>>> updateConsumer =
-        sessionManager.getUpdateConsumer(mutationContext);
+        feedSessionManager.getUpdateConsumer(mutationContext);
     updateConsumer.accept(Result.success(dataOperations));
     assertThat(called.get()).isTrue();
   }
@@ -142,7 +144,7 @@ public class RemoveTrackingBehaviorTest {
     List<StreamDataOperation> dataOperations = getDataOperations(responseBuilder);
     MutationContext mutationContext = new MutationContext.Builder().setUserInitiated(false).build();
     Consumer<Result<List<StreamDataOperation>>> updateConsumer =
-        sessionManager.getUpdateConsumer(mutationContext);
+        feedSessionManager.getUpdateConsumer(mutationContext);
     updateConsumer.accept(Result.success(dataOperations));
     assertThat(called.get()).isFalse();
   }
@@ -186,8 +188,6 @@ public class RemoveTrackingBehaviorTest {
 
   private void loadInitialData() {
     fakeFeedRequestManager.queueResponse(ResponseBuilder.forClearAllWithCards(CARDS).build());
-    fakeFeedRequestManager.triggerRefresh(
-        RequestReason.OPEN_WITHOUT_CONTENT,
-        sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+    requestManager.triggerScheduledRefresh();
   }
 }

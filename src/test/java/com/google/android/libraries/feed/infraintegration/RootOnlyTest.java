@@ -20,13 +20,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
+import com.google.android.libraries.feed.api.client.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.host.logging.RequestReason;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider.State;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProviderObserver;
-import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
+import com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
@@ -50,16 +51,15 @@ public class RootOnlyTest {
   private final ModelProviderFactory modelProviderFactory = scope.getModelProviderFactory();
   private final ModelProviderValidator modelValidator =
       new ModelProviderValidator(scope.getProtocolAdapter());
-  private final SessionManager sessionManager = scope.getFeedSessionManager();
+  private final FeedSessionManager feedSessionManager = scope.getFeedSessionManager();
+  private final RequestManager requestManager = scope.getRequestManager();
 
   @Test
   public void rootOnlyResponse_beforeSessionWithLifecycle() {
     // ModelProvider is created from $HEAD containing content
     ResponseBuilder responseBuilder = new ResponseBuilder().addClearOperation().addRootFeature();
     fakeFeedRequestManager.queueResponse(responseBuilder.build());
-    fakeFeedRequestManager.triggerRefresh(
-        RequestReason.OPEN_WITHOUT_CONTENT,
-        sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+    requestManager.triggerScheduledRefresh();
     ModelProvider modelProvider =
         modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
 
@@ -99,7 +99,7 @@ public class RootOnlyTest {
     fakeFeedRequestManager.loadMore(
         StreamToken.getDefaultInstance(),
         ConsistencyToken.getDefaultInstance(),
-        sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+        feedSessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
     verify(changeObserver, never()).onSessionFinished(any(UiContext.class));
 
     assertThat(modelProvider).isNotNull();
@@ -124,7 +124,7 @@ public class RootOnlyTest {
     fakeFeedRequestManager.queueResponse(responseBuilder.build());
     fakeFeedRequestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
-        sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+        feedSessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
     ModelProvider modelProvider =
         modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     modelProvider.registerObserver(changeObserver);
@@ -143,7 +143,7 @@ public class RootOnlyTest {
     fakeFeedRequestManager.loadMore(
         StreamToken.getDefaultInstance(),
         ConsistencyToken.getDefaultInstance(),
-        sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+        feedSessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
     verify(changeObserver).onSessionFinished(any(UiContext.class));
   }
 }

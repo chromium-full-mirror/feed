@@ -20,13 +20,11 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.api.common.MutationContext;
-import com.google.android.libraries.feed.api.host.logging.RequestReason;
+import com.google.android.libraries.feed.api.client.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider.State;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProviderObserver;
-import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ResponseBuilder;
@@ -46,8 +44,8 @@ public class EmptyStreamTest {
 
   private FakeClock fakeClock;
   private FakeFeedRequestManager fakeFeedRequestManager;
-  private SessionManager sessionManager;
   private ModelProviderFactory modelProviderFactory;
+  private RequestManager requestManager;
 
   @Before
   public void setUp() {
@@ -55,8 +53,8 @@ public class EmptyStreamTest {
     InfraIntegrationScope scope = new InfraIntegrationScope.Builder().build();
     fakeClock = scope.getFakeClock();
     fakeFeedRequestManager = scope.getFakeFeedRequestManager();
-    sessionManager = scope.getFeedSessionManager();
     modelProviderFactory = scope.getModelProviderFactory();
+    requestManager = scope.getRequestManager();
   }
 
   @Test
@@ -120,9 +118,7 @@ public class EmptyStreamTest {
     // Create an empty stream through a response
     ResponseBuilder responseBuilder = new ResponseBuilder();
     fakeFeedRequestManager.queueResponse(responseBuilder.build());
-    fakeFeedRequestManager.triggerRefresh(
-        RequestReason.OPEN_WITHOUT_CONTENT,
-        sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+    requestManager.triggerScheduledRefresh();
 
     fakeClock.advance(TaskQueue.STARVATION_TIMEOUT_MS);
     ModelProvider modelProvider =

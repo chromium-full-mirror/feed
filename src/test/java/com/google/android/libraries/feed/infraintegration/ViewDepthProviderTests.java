@@ -18,8 +18,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.google.android.libraries.feed.api.client.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.common.MutationContext;
-import com.google.android.libraries.feed.api.host.logging.RequestReason;
 import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi.RequestBehavior;
 import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi.SessionState;
@@ -27,7 +27,7 @@ import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvide
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider.ViewDepthProvider;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.internal.protocoladapter.ProtocolAdapter;
-import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
+import com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
@@ -82,10 +82,10 @@ public class ViewDepthProviderTests {
   private FakeFeedRequestManager fakeFeedRequestManager;
   private FakeThreadUtils fakeThreadUtils;
   private ModelProviderFactory modelProviderFactory;
-  private ProtocolAdapter protocolAdapter;
   private ModelProviderValidator modelValidator;
-  private SessionManager sessionManager;
+  private FeedSessionManager feedSessionManager;
   private ViewDepthProvider viewDepthProvider;
+  private RequestManager requestManager;
 
   @Before
   public void setUp() {
@@ -98,12 +98,13 @@ public class ViewDepthProviderTests {
     fakeThreadUtils = scope.getFakeThreadUtils();
     fakeFeedRequestManager = scope.getFakeFeedRequestManager();
     modelProviderFactory = scope.getModelProviderFactory();
-    protocolAdapter = scope.getProtocolAdapter();
-    modelValidator = new ModelProviderValidator(scope.getProtocolAdapter());
-    sessionManager = scope.getFeedSessionManager();
+    ProtocolAdapter protocolAdapter = scope.getProtocolAdapter();
+    modelValidator = new ModelProviderValidator(protocolAdapter);
+    feedSessionManager = scope.getFeedSessionManager();
     viewDepthProvider =
         new FakeViewDepthProvider()
             .setChildViewDepth(protocolAdapter.getStreamContentId(REQUEST_ONE[1]));
+    requestManager = scope.getRequestManager();
   }
 
   @Test
@@ -114,9 +115,7 @@ public class ViewDepthProviderTests {
 
     // The REQUEST_ONE content will be added to head, this is then used to create the initial
     // session.
-    fakeFeedRequestManager.triggerRefresh(
-        RequestReason.OPEN_WITHOUT_CONTENT,
-        sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+    requestManager.triggerScheduledRefresh();
 
     // The REQUEST_TWO content acts as a second request on the server, it is triggered by
     // REQUEST_WITH_CONTENT
@@ -144,9 +143,7 @@ public class ViewDepthProviderTests {
 
     // The REQUEST_ONE content will be added to head, this is then used to create the initial
     // session.
-    fakeFeedRequestManager.triggerRefresh(
-        RequestReason.OPEN_WITHOUT_CONTENT,
-        sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+    requestManager.triggerScheduledRefresh();
 
     // The REQUEST_TWO content acts as a second request on the server, it is triggered by
     // REQUEST_WITH_CONTENT
@@ -175,7 +172,7 @@ public class ViewDepthProviderTests {
     fakeFeedRequestManager.loadMore(
         StreamToken.getDefaultInstance(),
         ConsistencyToken.getDefaultInstance(),
-        sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+        feedSessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
 
     modelValidator.assertCursorContents(
         modelProvider,

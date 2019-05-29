@@ -86,7 +86,6 @@ public class ProcessScopeBuilderTest {
             .build();
 
     assertThat(processScope.getRequestManager()).isNotNull();
-    assertThat(processScope.getSessionManager()).isNotNull();
     assertThat(processScope.getAppLifecycleListener()).isNotNull();
     assertThat(processScope.getKnownContent()).isNotNull();
     assertThat(processScope.getAppLifecycleListener()).isNotNull();
@@ -110,7 +109,6 @@ public class ProcessScopeBuilderTest {
             .build();
 
     assertThat(processScope.getRequestManager()).isNotNull();
-    assertThat(processScope.getSessionManager()).isNotNull();
     assertThat(processScope.getAppLifecycleListener()).isNotNull();
     assertThat(processScope.getAppLifecycleListener()).isNotNull();
   }

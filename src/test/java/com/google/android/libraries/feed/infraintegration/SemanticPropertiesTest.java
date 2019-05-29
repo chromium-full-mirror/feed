@@ -16,12 +16,10 @@ package com.google.android.libraries.feed.infraintegration;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.google.android.libraries.feed.api.common.MutationContext;
-import com.google.android.libraries.feed.api.host.logging.RequestReason;
+import com.google.android.libraries.feed.api.client.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.internal.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.api.internal.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.internal.store.Store;
-import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ResponseBuilder;
@@ -40,7 +38,7 @@ import org.robolectric.RobolectricTestRunner;
 public class SemanticPropertiesTest {
   private final InfraIntegrationScope scope = new InfraIntegrationScope.Builder().build();
   private final FakeFeedRequestManager fakeFeedRequestManager = scope.getFakeFeedRequestManager();
-  private final SessionManager sessionManager = scope.getFeedSessionManager();
+  private final RequestManager requestManager = scope.getRequestManager();
   private final Store store = scope.getStore();
 
   @Test
@@ -54,9 +52,7 @@ public class SemanticPropertiesTest {
             .addCardWithSemanticData(contentId, semanticData)
             .build();
     fakeFeedRequestManager.queueResponse(response);
-    fakeFeedRequestManager.triggerRefresh(
-        RequestReason.OPEN_WITHOUT_CONTENT,
-        sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+    requestManager.triggerScheduledRefresh();
 
     scope.getFakeThreadUtils().enforceMainThread(false);
     ContentIdGenerators idGenerators = new ContentIdGenerators();

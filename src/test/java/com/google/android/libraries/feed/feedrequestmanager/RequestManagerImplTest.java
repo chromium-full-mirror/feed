@@ -21,7 +21,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.host.logging.RequestReason;
 import com.google.android.libraries.feed.api.internal.requestmanager.FeedRequestManager;
-import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
+import com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
@@ -37,7 +37,7 @@ import org.robolectric.RobolectricTestRunner;
 public final class RequestManagerImplTest {
 
   @Mock private FeedRequestManager feedRequestManager;
-  @Mock private SessionManager sessionManager;
+  @Mock private FeedSessionManager feedSessionManager;
   @Mock private Consumer<Result<List<StreamDataOperation>>> updateConsumer;
 
   private RequestManagerImpl requestManager;
@@ -45,8 +45,8 @@ public final class RequestManagerImplTest {
   @Before
   public void createRequestManager() {
     initMocks(this);
-    requestManager = new RequestManagerImpl(feedRequestManager, sessionManager);
-    when(sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT))
+    requestManager = new RequestManagerImpl(feedRequestManager, feedSessionManager);
+    when(feedSessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT))
         .thenReturn(updateConsumer);
   }
 

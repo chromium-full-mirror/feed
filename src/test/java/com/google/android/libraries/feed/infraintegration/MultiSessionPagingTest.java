@@ -17,6 +17,7 @@ package com.google.android.libraries.feed.infraintegration;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.google.android.libraries.feed.api.client.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.host.logging.RequestReason;
 import com.google.android.libraries.feed.api.internal.common.testing.ContentIdGenerators;
@@ -24,7 +25,7 @@ import com.google.android.libraries.feed.api.internal.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider.State;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProviderFactory;
-import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
+import com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
 import com.google.android.libraries.feed.common.testing.PagingState;
@@ -62,19 +63,21 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class MultiSessionPagingTest {
   private FakeFeedRequestManager fakeFeedRequestManager;
-  private SessionManager sessionManager;
+  private FeedSessionManager feedSessionManager;
   private ModelProviderFactory modelProviderFactory;
   private ModelProviderValidator modelValidator;
   private ContentIdGenerators contentIdGenerators = new ContentIdGenerators();
+  private RequestManager requestManager;
 
   @Before
   public void setUp() {
     initMocks(this);
     InfraIntegrationScope scope = new InfraIntegrationScope.Builder().build();
     fakeFeedRequestManager = scope.getFakeFeedRequestManager();
-    sessionManager = scope.getFeedSessionManager();
+    feedSessionManager = scope.getFeedSessionManager();
     modelProviderFactory = scope.getModelProviderFactory();
     modelValidator = new ModelProviderValidator(scope.getProtocolAdapter());
+    requestManager = scope.getRequestManager();
   }
 
   @Test
@@ -105,9 +108,7 @@ public class MultiSessionPagingTest {
 
     // Create an initial S1 $HEAD session
     fakeFeedRequestManager.queueResponse(s1State.initialResponse);
-    fakeFeedRequestManager.triggerRefresh(
-        RequestReason.OPEN_WITHOUT_CONTENT,
-        sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+    requestManager.triggerScheduledRefresh();
 
     ModelProvider mp1 = modelProviderFactory.createNew(null, UiContext.getDefaultInstance());
     modelValidator.assertRoot(mp1);
@@ -125,7 +126,7 @@ public class MultiSessionPagingTest {
     fakeFeedRequestManager.queueResponse(s2State.initialResponse);
     fakeFeedRequestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
-        sessionManager.getUpdateConsumer(
+        feedSessionManager.getUpdateConsumer(
             new MutationContext.Builder().setRequestingSessionId(mp2.getSessionId()).build()));
     assertThat(mp1.getCurrentState()).isEqualTo(State.READY);
     assertThat(mp2.getCurrentState()).isEqualTo(State.INVALIDATED);

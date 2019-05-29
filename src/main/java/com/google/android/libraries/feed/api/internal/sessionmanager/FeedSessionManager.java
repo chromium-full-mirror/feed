@@ -15,15 +15,16 @@
 package com.google.android.libraries.feed.api.internal.sessionmanager;
 
 import com.google.android.libraries.feed.api.client.knowncontent.KnownContent;
+import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.host.logging.RequestReason;
 import com.google.android.libraries.feed.api.internal.common.PayloadWithId;
 import com.google.android.libraries.feed.api.internal.lifecycle.Resettable;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider.ViewDepthProvider;
-import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.functional.Function;
+import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
@@ -39,7 +40,7 @@ import java.util.Set;
  * relationship with a ModelProvider. The FeedSessionManager implements the session functionality
  * and management.
  */
-public interface FeedSessionManager extends Resettable, SessionManager {
+public interface FeedSessionManager extends Resettable {
 
   /**
    * This is called by the UI to get a new session. The life of the session is controlled by the
@@ -130,4 +131,11 @@ public interface FeedSessionManager extends Resettable, SessionManager {
    * resulting {@link ConsistencyToken}.
    */
   void fetchActionsAndUpload(Consumer<Result<ConsistencyToken>> consumer);
+
+  /**
+   * Return a {@link Consumer} which is able to handle an update to the SessionManager. An update
+   * consists of a List of {@link StreamDataOperation} objects. The {@link MutationContext} captures
+   * the context which is initiating the update operation.
+   */
+  Consumer<Result<List<StreamDataOperation>>> getUpdateConsumer(MutationContext mutationContext);
 }
