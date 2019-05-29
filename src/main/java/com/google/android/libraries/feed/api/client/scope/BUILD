@@ -68,7 +68,6 @@ android_library(
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/client/stream",
         "//src/main/java/com/google/android/libraries/feed/api/internal/modelprovider",
-        "//src/main/java/com/google/android/libraries/feed/api/stream",
     ],
 )
 

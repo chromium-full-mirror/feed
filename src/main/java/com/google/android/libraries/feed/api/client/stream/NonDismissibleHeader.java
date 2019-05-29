@@ -12,10 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.api.stream;
+package com.google.android.libraries.feed.api.client.stream;
 
 import android.view.View;
-import com.google.android.libraries.feed.api.client.stream.Header;
 
 /**
  * Class providing a default implementation for {@link Header} instances that are not dismissible.
