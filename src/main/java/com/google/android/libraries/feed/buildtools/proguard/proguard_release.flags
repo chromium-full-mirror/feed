@@ -3,8 +3,8 @@
 # should be avoided.
 
 -assumenosideeffects class com.google.android.libraries.feed.common.logging.Logger {
-  public static boolean isDebugEnabled(java.lang.String) return false;
-  public static boolean isVerboseEnabled(java.lang.String) return false;
+  public static boolean isDebugEnabled(java.lang.String);
+  public static boolean isVerboseEnabled(java.lang.String);
 
   public static void v(...);
   public static void vWithStackTrace(...);
@@ -14,5 +14,10 @@
   # Protocol buffers are large. Only allow spamming a developer's device.
   public static void debugLogRawProto(...);
 
+  private static boolean shouldWtfCrash();
+}
+-assumevalues class com.google.android.libraries.feed.common.logging.Logger {
+  public static boolean isDebugEnabled(java.lang.String) return false;
+  public static boolean isVerboseEnabled(java.lang.String) return false;
   private static boolean shouldWtfCrash() return false;
 }
