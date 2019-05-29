@@ -101,9 +101,9 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
   private static final String TAG = "BasicStream";
 
   @VisibleForTesting static final String KEY_STREAM_STATE = "stream-state";
-  @VisibleForTesting static final long DEFAULT_LOGGING_IMMEDIATE_CONTENT_THRESHOLD_MS = 1000L;
-  @VisibleForTesting static final long MINIMUM_SPINNER_SHOW_TIME = 500L;
-  @VisibleForTesting static final long MINIMUM_TIME_BEFORE_SHOWING_SPINNER = 500L;
+  private static final long DEFAULT_LOGGING_IMMEDIATE_CONTENT_THRESHOLD_MS = 1000L;
+  private static final long DEFAULT_MINIMUM_SPINNER_SHOW_TIME_MS = 500L;
+  private static final long DEFAULT_SPINNER_DELAY_TIME_MS = 500L;
 
   private final CardConfiguration cardConfiguration;
   private final Clock clock;
@@ -128,6 +128,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
   private final UiSessionRequestLogger uiSessionRequestLogger;
   private final StreamConfiguration streamConfiguration;
   private final BasicStreamScrollMonitor scrollMonitor;
+  private final long minimumSpinnerShowTime;
+  private final long spinnerDelayTime;
 
   private RecyclerView recyclerView;
   private ContextMenuManager contextMenuManager;
@@ -218,6 +220,11 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
     this.context =
         new ContextThemeWrapper(context, (isBackgroundDark ? R.style.Dark : R.style.Light));
     this.scrollMonitor = new BasicStreamScrollMonitor(clock);
+    this.minimumSpinnerShowTime =
+        configuration.getValueOrDefault(
+            ConfigKey.SPINNER_MINIMUM_SHOW_TIME_MS, DEFAULT_MINIMUM_SPINNER_SHOW_TIME_MS);
+    this.spinnerDelayTime =
+        configuration.getValueOrDefault(ConfigKey.SPINNER_DELAY_MS, DEFAULT_SPINNER_DELAY_TIME_MS);
   }
 
   @VisibleForTesting
@@ -638,7 +645,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
     if (isInitialLoad && initialLoadingSpinnerStartTime != 0L) {
       long spinnerDisplayTime = clock.currentTimeMillis() - initialLoadingSpinnerStartTime;
       // If MINIMUM_SPINNER_SHOW_TIME has elapsed, the new content can be shown immediately.
-      if (spinnerDisplayTime >= MINIMUM_SPINNER_SHOW_TIME) {
+      if (spinnerDisplayTime >= minimumSpinnerShowTime) {
         updateAdapterAfterSessionStart(localModelProvider);
       } else {
         // If MINIMUM_SPINNER_SHOW_TIME has not elapsed, the new content should only be shown once
@@ -652,7 +659,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
                 updateAdapterAfterSessionStart(localModelProvider);
               }
             },
-            MINIMUM_SPINNER_SHOW_TIME - spinnerDisplayTime);
+            minimumSpinnerShowTime - spinnerDisplayTime);
       }
     } else {
       updateAdapterAfterSessionStart(localModelProvider);
@@ -800,7 +807,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
   private void showSpinnerWithDelay() {
     cancellableShowSpinnerRunnable =
         mainThreadRunner.executeWithDelay(
-            TAG + " onShow", new ShowSpinnerRunnable(), MINIMUM_TIME_BEFORE_SHOWING_SPINNER);
+            TAG + " onShow", new ShowSpinnerRunnable(), spinnerDelayTime);
   }
 
   private String convertStreamSavedInstanceStateToString(

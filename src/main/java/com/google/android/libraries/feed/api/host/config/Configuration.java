@@ -77,6 +77,12 @@ public class Configuration {
     ConfigKey.SESSION_LIFETIME_MS,
     // Boolean which if true, will ask the server for a snippet from the article.
     ConfigKey.SNIPPETS_ENABLED,
+    // Delay before a spinner should be shown after content is requested. Only used for feed wide
+    // spinners, not for more button spinners.
+    ConfigKey.SPINNER_DELAY_MS,
+    // Minimum time before a spinner should show before disappearing. Only used for feed wide
+    // spinners, not for more button spinners.
+    ConfigKey.SPINNER_MINIMUM_SHOW_TIME_MS,
     // Time in ms for the length of the timeout
     ConfigKey.TIMEOUT_TIMEOUT_MS,
     ConfigKey.TRIGGER_IMMEDIATE_PAGINATION,
@@ -127,6 +133,8 @@ public class Configuration {
     String NON_CACHED_PAGE_SIZE = "non_cached_page_size";
     String SESSION_LIFETIME_MS = "session_lifetime_ms";
     String SNIPPETS_ENABLED = "snippets_enabled";
+    String SPINNER_DELAY_MS = "spinner_delay";
+    String SPINNER_MINIMUM_SHOW_TIME_MS = "spinner_minimum_show_time";
     String TIMEOUT_TIMEOUT_MS = "timeout_timeout_ms";
     String TRIGGER_IMMEDIATE_PAGINATION = "trigger_immediate_pagination_bool";
     String UNDOABLE_ACTIONS_ENABLED = "undoable_actions_enabled";

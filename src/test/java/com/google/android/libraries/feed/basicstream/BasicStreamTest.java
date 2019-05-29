@@ -16,8 +16,6 @@ package com.google.android.libraries.feed.basicstream;
 
 import static com.google.android.libraries.feed.api.client.stream.Stream.POSITION_NOT_KNOWN;
 import static com.google.android.libraries.feed.basicstream.BasicStream.KEY_STREAM_STATE;
-import static com.google.android.libraries.feed.basicstream.BasicStream.MINIMUM_SPINNER_SHOW_TIME;
-import static com.google.android.libraries.feed.basicstream.BasicStream.MINIMUM_TIME_BEFORE_SHOWING_SPINNER;
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.common.truth.Truth.assertThat;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -134,11 +132,15 @@ public class BasicStreamTest {
           .setSessionId(SESSION_ID)
           .setScrollState(SCROLL_STATE)
           .build();
+  private static final long SPINNER_DELAY_MS = 123L;
+  private static final long SPINNER_MINIMUM_SHOW_TIME_MS = 655L;
   private static final Configuration CONFIGURATION =
       new Configuration.Builder()
           .put(
               ConfigKey.LOGGING_IMMEDIATE_CONTENT_THRESHOLD_MS,
               LOGGING_IMMEDIATE_CONTENT_THRESHOLD_MS)
+          .put(ConfigKey.SPINNER_DELAY_MS, SPINNER_DELAY_MS)
+          .put(ConfigKey.SPINNER_MINIMUM_SHOW_TIME_MS, SPINNER_MINIMUM_SHOW_TIME_MS)
           .build();
 
   @Mock private StreamConfiguration streamConfiguration;
@@ -340,7 +342,7 @@ public class BasicStreamTest {
     basicStream.onShow();
 
     // Advance so that the spinner starts showing
-    clock.advance(MINIMUM_TIME_BEFORE_SHOWING_SPINNER);
+    clock.advance(SPINNER_DELAY_MS);
 
     // Advance so that is has taken long enough that onOpenedWithNoImmediateContent is logged.
     clock.advance(LOGGING_IMMEDIATE_CONTENT_THRESHOLD_MS);
@@ -632,7 +634,7 @@ public class BasicStreamTest {
 
     verify(streamDriver, never()).showSpinner();
 
-    clock.advance(MINIMUM_TIME_BEFORE_SHOWING_SPINNER);
+    clock.advance(SPINNER_DELAY_MS);
 
     verify(streamDriver).showSpinner();
   }
@@ -1004,10 +1006,10 @@ public class BasicStreamTest {
     reset(adapter);
 
     // Advance so the spinner is shown.
-    clock.advance(MINIMUM_TIME_BEFORE_SHOWING_SPINNER);
+    clock.advance(SPINNER_DELAY_MS);
 
     // Advance so that it has shown long enough
-    clock.advance(MINIMUM_SPINNER_SHOW_TIME);
+    clock.advance(SPINNER_MINIMUM_SHOW_TIME_MS);
 
     basicStream.onSessionStart(UiContext.getDefaultInstance());
 
@@ -1020,7 +1022,7 @@ public class BasicStreamTest {
     basicStream.onShow();
 
     // Advance so the spinner is shown.
-    clock.advance(MINIMUM_TIME_BEFORE_SHOWING_SPINNER);
+    clock.advance(SPINNER_DELAY_MS);
 
     reset(adapter);
 
@@ -1028,7 +1030,7 @@ public class BasicStreamTest {
     verify(adapter, never()).setDriver(any(StreamDriver.class));
 
     // Advance so that it has shown long enough.
-    clock.advance(MINIMUM_SPINNER_SHOW_TIME);
+    clock.advance(SPINNER_MINIMUM_SHOW_TIME_MS);
 
     verify(adapter).setDriver(streamDriver);
   }
@@ -1042,13 +1044,13 @@ public class BasicStreamTest {
     reset(adapter);
 
     // Advance so the spinner is shown.
-    clock.advance(MINIMUM_TIME_BEFORE_SHOWING_SPINNER);
+    clock.advance(SPINNER_DELAY_MS);
 
     basicStream.onSessionStart(UiContext.getDefaultInstance());
     basicStream.onSessionFinished(UiContext.getDefaultInstance());
 
     // Advance so that it has shown long enough.
-    clock.advance(MINIMUM_SPINNER_SHOW_TIME);
+    clock.advance(SPINNER_MINIMUM_SHOW_TIME_MS);
 
     verify(adapter, never()).setDriver(streamDriver);
   }
@@ -1070,7 +1072,20 @@ public class BasicStreamTest {
     verify(streamDriver, never()).showSpinner();
 
     // Advance so the spinner is shown.
-    clock.advance(MINIMUM_TIME_BEFORE_SHOWING_SPINNER);
+    clock.advance(SPINNER_DELAY_MS);
+
+    verify(streamDriver).showSpinner();
+  }
+
+  @Test
+  public void testOnShow_delaysShowingZeroState_configured_delay_time() {
+    basicStream.onShow();
+
+    verify(streamDriver, never()).showZeroState(/* zeroStateShowReason= */ anyInt());
+    verify(streamDriver, never()).showSpinner();
+
+    // Advance so the spinner is shown.
+    clock.advance(SPINNER_DELAY_MS);
 
     verify(streamDriver).showSpinner();
   }
@@ -1164,7 +1179,7 @@ public class BasicStreamTest {
 
     basicStream.onSessionFinished(UiContext.getDefaultInstance());
 
-    clock.advance(BasicStream.MINIMUM_TIME_BEFORE_SHOWING_SPINNER);
+    clock.advance(SPINNER_DELAY_MS);
 
     verify(streamDriver).showSpinner();
   }
@@ -1174,7 +1189,7 @@ public class BasicStreamTest {
     basicStream.onShow();
 
     // Advance, but not enough so that the spinner shows.
-    clock.advance(MINIMUM_TIME_BEFORE_SHOWING_SPINNER / 2);
+    clock.advance(SPINNER_DELAY_MS / 2);
 
     // Start the session. At this point, the spinner enqueued by onShow() should never be shown.
     basicStream.onSessionStart(UiContext.getDefaultInstance());
@@ -1185,7 +1200,7 @@ public class BasicStreamTest {
 
     // It has now been long enough since onShow that the spinner would show if onSessionStart()
     // hadn't been called first.
-    clock.advance(BasicStream.MINIMUM_TIME_BEFORE_SHOWING_SPINNER / 2);
+    clock.advance(SPINNER_DELAY_MS / 2 + 1);
 
     verify(streamDriver, never()).showSpinner();
   }
@@ -1199,7 +1214,7 @@ public class BasicStreamTest {
 
     verify(streamDriver, never()).showSpinner();
 
-    clock.advance(MINIMUM_TIME_BEFORE_SHOWING_SPINNER);
+    clock.advance(SPINNER_DELAY_MS);
 
     verify(streamDriver).showSpinner();
   }
