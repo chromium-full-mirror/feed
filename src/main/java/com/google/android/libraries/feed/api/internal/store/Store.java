@@ -18,6 +18,7 @@ import com.google.android.libraries.feed.api.internal.common.ActionPropertiesWit
 import com.google.android.libraries.feed.api.internal.common.PayloadWithId;
 import com.google.android.libraries.feed.api.internal.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.common.Result;
+import com.google.android.libraries.feed.common.feedobservable.Observable;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamLocalAction;
@@ -38,7 +39,7 @@ import java.util.Set;
  *
  * <p>This object should not be used on the UI thread, as it may block on slow IO operations.
  */
-public interface Store {
+public interface Store extends Observable<StoreListener> {
   /** The session id representing $HEAD */
   String HEAD_SESSION_ID = "$HEAD";
 
@@ -130,10 +131,4 @@ public interface Store {
 
   /** Whether the store is in ephemeral mode */
   boolean isEphemeralMode();
-
-  /** Register an {@link com.google.android.libraries.feed.api.internal.store.StoreListener}. */
-  void registerObserver(StoreListener observer);
-
-  /** Unregister an {@link com.google.android.libraries.feed.api.internal.store.StoreListener}. */
-  void unregisterObserver(StoreListener observer);
 }
