@@ -13,6 +13,7 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/api/internal/actionmanager",
         "//src/main/java/com/google/android/libraries/feed/api/internal/actionparser",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/pendingdismiss",
+        "//src/main/java/com/google/android/libraries/feed/common/functional",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/contextmenumanager",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/pendingdismiss",
         "//src/main/proto/com/google/android/libraries/feed/api/internal/proto:client_feed_java_proto_lite",

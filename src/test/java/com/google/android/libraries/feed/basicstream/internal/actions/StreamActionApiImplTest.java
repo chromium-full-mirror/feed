@@ -42,6 +42,7 @@ import com.google.android.libraries.feed.api.internal.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.internal.actionparser.ActionSource;
 import com.google.android.libraries.feed.basicstream.internal.pendingdismiss.ClusterPendingDismissHelper;
 import com.google.android.libraries.feed.common.functional.Consumer;
+import com.google.android.libraries.feed.sharedstream.logging.StreamContentLoggingData;
 import com.google.android.libraries.feed.sharedstream.pendingdismiss.PendingDismissCallback;
 import com.google.android.libraries.feed.testing.sharedstream.contextmenumanager.FakeContextMenuManager;
 import com.google.common.collect.ImmutableList;
@@ -55,6 +56,8 @@ import com.google.search.now.ui.action.FeedActionProto.LabelledFeedActionData;
 import com.google.search.now.ui.action.FeedActionProto.OpenContextMenuData;
 import com.google.search.now.ui.action.FeedActionProto.OpenUrlData;
 import com.google.search.now.ui.action.FeedActionProto.UndoAction;
+import com.google.search.now.ui.stream.StreamStructureProto.BasicLoggingMetadata;
+import com.google.search.now.ui.stream.StreamStructureProto.RepresentationData;
 import com.google.search.now.wire.feed.ActionPayloadProto.ActionPayload;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -143,12 +146,12 @@ public class StreamActionApiImplTest {
   @Mock private ActionParser actionParser;
   @Mock private ActionManager actionManager;
   @Mock private BasicLoggingApi basicLoggingApi;
-  @Mock private ContentLoggingData contentLoggingData;
   @Mock private ClusterPendingDismissHelper clusterPendingDismissHelper;
   @Mock private ViewElementActionHandler viewElementActionHandler;
   @Mock private TooltipApi tooltipApi;
 
   @Captor private ArgumentCaptor<Consumer<String>> consumerCaptor;
+  private ContentLoggingData contentLoggingData;
   private FakeContextMenuManager contextMenuManager;
   private StreamActionApiImpl streamActionApi;
   private View view;
@@ -158,6 +161,12 @@ public class StreamActionApiImplTest {
     initMocks(this);
 
     Context context = Robolectric.buildActivity(Activity.class).get();
+    contentLoggingData =
+        new StreamContentLoggingData(
+            0,
+            BasicLoggingMetadata.getDefaultInstance(),
+            RepresentationData.getDefaultInstance(),
+            /* availableOffline= */ false);
     view = new View(context);
     contextMenuManager = new FakeContextMenuManager();
     streamActionApi =
@@ -166,7 +175,7 @@ public class StreamActionApiImplTest {
             actionParser,
             actionManager,
             basicLoggingApi,
-            contentLoggingData,
+            () -> contentLoggingData,
             contextMenuManager,
             SESSION_ID,
             clusterPendingDismissHelper,
@@ -249,6 +258,22 @@ public class StreamActionApiImplTest {
   public void testOnElementClick_logsElementClicked() {
     streamActionApi.onElementClick(ElementType.INTEREST_HEADER.getNumber());
 
+    verify(basicLoggingApi)
+        .onVisualElementClicked(contentLoggingData, ElementType.INTEREST_HEADER.getNumber());
+  }
+
+  @Test
+  public void testOnElementClick_logsElementClicked_retrievesLoggingDataLazily() {
+    contentLoggingData =
+        new StreamContentLoggingData(
+            1,
+            BasicLoggingMetadata.getDefaultInstance(),
+            RepresentationData.getDefaultInstance(),
+            /* availableOffline= */ true);
+
+    streamActionApi.onElementClick(ElementType.INTEREST_HEADER.getNumber());
+
+    // Should use the new ContentLoggingData defined, not the old one.
     verify(basicLoggingApi)
         .onVisualElementClicked(contentLoggingData, ElementType.INTEREST_HEADER.getNumber());
   }

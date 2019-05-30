@@ -28,6 +28,7 @@ import com.google.android.libraries.feed.api.internal.actionmanager.ActionManage
 import com.google.android.libraries.feed.api.internal.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.internal.actionparser.ActionSource;
 import com.google.android.libraries.feed.basicstream.internal.pendingdismiss.ClusterPendingDismissHelper;
+import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.pendingdismiss.PendingDismissCallback;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
@@ -49,7 +50,7 @@ public class StreamActionApiImpl implements StreamActionApi {
   private final ActionParser actionParser;
   private final ActionManager actionManager;
   private final BasicLoggingApi basicLoggingApi;
-  private final ContentLoggingData contentLoggingData;
+  private final Supplier<ContentLoggingData> contentLoggingData;
   private final ContextMenuManager contextMenuManager;
   private final ClusterPendingDismissHelper clusterPendingDismissHelper;
   private final ViewElementActionHandler viewElementActionHandler;
@@ -63,7 +64,7 @@ public class StreamActionApiImpl implements StreamActionApi {
       ActionParser actionParser,
       ActionManager actionManager,
       BasicLoggingApi basicLoggingApi,
-      ContentLoggingData contentLoggingData,
+      Supplier<ContentLoggingData> contentLoggingData,
       ContextMenuManager contextMenuManager,
       /*@Nullable*/ String sessionId,
       ClusterPendingDismissHelper clusterPendingDismissHelper,
@@ -107,7 +108,7 @@ public class StreamActionApiImpl implements StreamActionApi {
                     ActionSource.CONTEXT_MENU));
 
     if (menuOpened) {
-      basicLoggingApi.onContentContextMenuOpened(contentLoggingData);
+      basicLoggingApi.onContentContextMenuOpened(contentLoggingData.get());
     }
   }
 
@@ -135,7 +136,7 @@ public class StreamActionApiImpl implements StreamActionApi {
     if (!undoAction.hasConfirmationLabel()) {
       dismiss(dataOperations);
       basicLoggingApi.onNotInterestedIn(
-          interestType, contentLoggingData, /* wasCommitted = */ true);
+          interestType, contentLoggingData.get(), /* wasCommitted = */ true);
     } else {
       dismissWithSnackbar(
           undoAction,
@@ -143,7 +144,7 @@ public class StreamActionApiImpl implements StreamActionApi {
             @Override
             public void onDismissReverted() {
               basicLoggingApi.onNotInterestedIn(
-                  interestType, contentLoggingData, /* wasCommitted = */ false);
+                  interestType, contentLoggingData.get(), /* wasCommitted = */ false);
             }
 
             @Override
@@ -151,7 +152,7 @@ public class StreamActionApiImpl implements StreamActionApi {
               dismiss(dataOperations);
               actionManager.createAndUploadAction(contentId, payload);
               basicLoggingApi.onNotInterestedIn(
-                  interestType, contentLoggingData, /* wasCommitted = */ true);
+                  interestType, contentLoggingData.get(), /* wasCommitted = */ true);
             }
           });
     }
@@ -165,14 +166,15 @@ public class StreamActionApiImpl implements StreamActionApi {
       ActionPayload payload) {
     if (!undoAction.hasConfirmationLabel()) {
       dismissLocal(contentId, dataOperations);
-      basicLoggingApi.onContentDismissed(contentLoggingData, /* wasCommitted = */ true);
+      basicLoggingApi.onContentDismissed(contentLoggingData.get(), /* wasCommitted = */ true);
     } else {
       dismissWithSnackbar(
           undoAction,
           new PendingDismissCallback() {
             @Override
             public void onDismissReverted() {
-              basicLoggingApi.onContentDismissed(contentLoggingData, /* wasCommitted = */ false);
+              basicLoggingApi.onContentDismissed(
+                  contentLoggingData.get(), /* wasCommitted = */ false);
             }
 
             @Override
@@ -180,7 +182,8 @@ public class StreamActionApiImpl implements StreamActionApi {
               dismissLocal(contentId, dataOperations);
               dismiss(dataOperations);
               actionManager.createAndUploadAction(contentId, payload);
-              basicLoggingApi.onContentDismissed(contentLoggingData, /* wasCommitted = */ true);
+              basicLoggingApi.onContentDismissed(
+                  contentLoggingData.get(), /* wasCommitted = */ true);
             }
           });
     }
@@ -201,7 +204,7 @@ public class StreamActionApiImpl implements StreamActionApi {
 
   @Override
   public void onClientAction(@ActionType int actionType) {
-    basicLoggingApi.onClientAction(contentLoggingData, actionType);
+    basicLoggingApi.onClientAction(contentLoggingData.get(), actionType);
   }
 
   @Override
@@ -331,7 +334,7 @@ public class StreamActionApiImpl implements StreamActionApi {
 
   @Override
   public void onElementClick(int elementType) {
-    basicLoggingApi.onVisualElementClicked(contentLoggingData, elementType);
+    basicLoggingApi.onVisualElementClicked(contentLoggingData.get(), elementType);
   }
 
   @Override

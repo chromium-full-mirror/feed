@@ -44,6 +44,7 @@ import com.google.android.libraries.feed.basicstream.internal.viewloggingupdater
 import com.google.android.libraries.feed.common.concurrent.CancelableTask;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Consumer;
+import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.sharedstream.constants.Constants;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
@@ -55,7 +56,6 @@ import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.ui.stream.StreamStructureProto;
-import com.google.search.now.ui.stream.StreamStructureProto.BasicLoggingMetadata;
 import com.google.search.now.ui.stream.StreamStructureProto.Content;
 import com.google.search.now.ui.stream.StreamStructureProto.PietContent;
 import com.google.search.now.ui.stream.StreamStructureProto.RepresentationData;
@@ -71,7 +71,6 @@ public class ContentDriver extends LeafFeatureDriver
   private static final String TAG = "ContentDriver";
 
   private final BasicLoggingApi basicLoggingApi;
-  private final ContentLoggingData contentLoggingData;
   private final List<PietSharedState> pietSharedStates;
   private final Frame frame;
   private final StreamActionApi streamActionApi;
@@ -88,6 +87,7 @@ public class ContentDriver extends LeafFeatureDriver
   private final ViewLoggingUpdater viewLoggingUpdater;
   private final ResettableOneShotVisibilityLoggingListener loggingListener;
 
+  private StreamContentLoggingData contentLoggingData;
   private boolean availableOffline;
   /*@Nullable*/ private PietViewHolder viewHolder;
 
@@ -125,8 +125,13 @@ public class ContentDriver extends LeafFeatureDriver
     pietSharedStates = getPietSharedStates(pietContent, modelProvider, basicLoggingApi);
     contentId = contentFeatureModel.getStreamFeature().getContentId();
     RepresentationData representationData = content.getRepresentationData();
+    contentUrl = representationData.getUri();
+    availableOffline = streamOfflineMonitor.isAvailableOffline(contentUrl);
+    offlineStatusConsumer = new OfflineStatusConsumer();
+    streamOfflineMonitor.addOfflineStatusConsumer(contentUrl, offlineStatusConsumer);
     contentLoggingData =
-        createContentLoggingData(content.getBasicLoggingMetadata(), representationData, position);
+        new StreamContentLoggingData(
+            position, content.getBasicLoggingMetadata(), representationData, availableOffline);
     actionParser =
         actionParserFactory.build(
             () ->
@@ -138,7 +143,7 @@ public class ContentDriver extends LeafFeatureDriver
             actionParser,
             actionManager,
             basicLoggingApi,
-            contentLoggingData,
+            () -> contentLoggingData,
             modelProvider.getSessionId(),
             contextMenuManager,
             clusterPendingDismissHelper,
@@ -147,10 +152,6 @@ public class ContentDriver extends LeafFeatureDriver
             tooltipApi);
     this.swipeAction = swipeAction;
     this.streamOfflineMonitor = streamOfflineMonitor;
-    contentUrl = representationData.getUri();
-    availableOffline = streamOfflineMonitor.isAvailableOffline(contentUrl);
-    offlineStatusConsumer = new OfflineStatusConsumer();
-    streamOfflineMonitor.addOfflineStatusConsumer(contentUrl, offlineStatusConsumer);
     this.contentChangedListener = contentChangedListener;
     this.viewLoggingUpdater = viewLoggingUpdater;
     loggingListener = new ResettableOneShotVisibilityLoggingListener(this);
@@ -310,14 +311,6 @@ public class ContentDriver extends LeafFeatureDriver
     }
   }
 
-  private ContentLoggingData createContentLoggingData(
-      /*@UnderInitialization*/ ContentDriver this,
-      BasicLoggingMetadata basicLoggingMetadata,
-      RepresentationData representationData,
-      int position) {
-    return new StreamContentLoggingData(position, basicLoggingMetadata, representationData);
-  }
-
   @VisibleForTesting
   StreamActionApi createStreamActionApi(
       /*@UnknownInitialization*/ ContentDriver this,
@@ -325,7 +318,7 @@ public class ContentDriver extends LeafFeatureDriver
       ActionParser actionParser,
       ActionManager actionManager,
       BasicLoggingApi basicLoggingApi,
-      ContentLoggingData contentLoggingData,
+      Supplier<ContentLoggingData> contentLoggingData,
       /*@Nullable*/ String sessionId,
       ContextMenuManager contextMenuManager,
       ClusterPendingDismissHelper clusterPendingDismissHelper,
@@ -371,6 +364,7 @@ public class ContentDriver extends LeafFeatureDriver
       }
 
       availableOffline = offlineStatus;
+      contentLoggingData = contentLoggingData.createWithOfflineStatus(offlineStatus);
       maybeRebind();
     }
   }

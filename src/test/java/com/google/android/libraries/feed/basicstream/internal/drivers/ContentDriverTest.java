@@ -48,13 +48,12 @@ import com.google.android.libraries.feed.basicstream.internal.pendingdismiss.Clu
 import com.google.android.libraries.feed.basicstream.internal.viewholders.PietViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewloggingupdater.ViewLoggingUpdater;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
-import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.logging.LoggingListener;
 import com.google.android.libraries.feed.sharedstream.logging.StreamContentLoggingData;
-import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
+import com.google.android.libraries.feed.testing.sharedstream.offlinemonitor.FakeStreamOfflineMonitor;
 import com.google.common.collect.ImmutableList;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
@@ -79,7 +78,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
-import org.mockito.Captor;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -97,8 +95,9 @@ public class ContentDriverTest {
       BasicLoggingMetadata.newBuilder().setScore(40).build();
   private static final RepresentationData REPRESENTATION_DATA =
       RepresentationData.newBuilder().setUri(CONTENT_URL).setPublishedTimeSeconds(10).build();
-  private static final ContentLoggingData CONTENT_LOGGING_DATA =
-      new StreamContentLoggingData(POSITION, BASIC_LOGGING_METADATA, REPRESENTATION_DATA);
+  private static final StreamContentLoggingData CONTENT_LOGGING_DATA =
+      new StreamContentLoggingData(
+          POSITION, BASIC_LOGGING_METADATA, REPRESENTATION_DATA, /*availableOffline= */ false);
   private static final OfflineMetadata OFFLINE_METADATA =
       OfflineMetadata.newBuilder().setTitle(CONTENT_TITLE).build();
 
@@ -161,13 +160,12 @@ public class ContentDriverTest {
   @Mock private ClusterPendingDismissHelper clusterPendingDismissHelper;
   @Mock private PietViewHolder pietViewHolder;
   @Mock private StreamActionApiImpl streamActionApi;
-  @Mock private StreamOfflineMonitor streamOfflineMonitor;
   @Mock private ContentChangedListener contentChangedListener;
   @Mock private ActionParser actionParser;
   @Mock private ContextMenuManager contextMenuManager;
   @Mock private TooltipApi tooltipApi;
 
-  @Captor private ArgumentCaptor<Consumer<Boolean>> offlineConsumerCaptor;
+  private FakeStreamOfflineMonitor streamOfflineMonitor;
   private ContentDriver contentDriver;
   private final FakeClock clock = new FakeClock();
   private final FakeMainThreadRunner mainThreadRunner = FakeMainThreadRunner.create(clock);
@@ -186,6 +184,7 @@ public class ContentDriverTest {
     when(actionParserFactory.build(ArgumentMatchers.<Supplier<ContentMetadata>>any()))
         .thenReturn(actionParser);
     viewLoggingUpdater = new ViewLoggingUpdater();
+    streamOfflineMonitor = FakeStreamOfflineMonitor.create();
     contentDriver =
         new ContentDriver(
             actionApi,
@@ -210,7 +209,7 @@ public class ContentDriverTest {
               ActionParser actionParser,
               ActionManager actionManager,
               BasicLoggingApi basicLoggingApi,
-              ContentLoggingData contentLoggingData,
+              Supplier<ContentLoggingData> contentLoggingData,
               String sessionId,
               ContextMenuManager contextMenuManager,
               ClusterPendingDismissHelper clusterPendingDismissHelper,
@@ -312,6 +311,30 @@ public class ContentDriverTest {
     listener.onViewVisible();
 
     verify(basicLoggingApi, times(2)).onContentViewed(CONTENT_LOGGING_DATA);
+  }
+
+  @Test
+  public void testOnContentClicked_offlineStatusChanges_logsContentClicked_withNewOfflineStatus() {
+    contentDriver.bind(pietViewHolder);
+
+    ArgumentCaptor<LoggingListener> visibilityListenerCaptor =
+        ArgumentCaptor.forClass(LoggingListener.class);
+
+    verify(pietViewHolder)
+        .bind(
+            any(Frame.class),
+            anyListOf(PietSharedState.class),
+            any(StreamActionApi.class),
+            any(FeedActionPayload.class),
+            visibilityListenerCaptor.capture(),
+            any(ActionParser.class));
+    LoggingListener listener = visibilityListenerCaptor.getValue();
+
+    streamOfflineMonitor.setOfflineStatus(CONTENT_URL, true);
+
+    listener.onContentClicked();
+
+    verify(basicLoggingApi).onContentClicked(CONTENT_LOGGING_DATA.createWithOfflineStatus(true));
   }
 
   @Test
@@ -433,9 +456,6 @@ public class ContentDriverTest {
 
   @Test
   public void testOfflineStatusChange() {
-    reset(streamOfflineMonitor);
-
-    when(streamOfflineMonitor.isAvailableOffline(CONTENT_URL)).thenReturn(false);
     contentDriver =
         new ContentDriver(
             actionApi,
@@ -457,12 +477,9 @@ public class ContentDriverTest {
 
     contentDriver.bind(pietViewHolder);
 
-    verify(streamOfflineMonitor)
-        .addOfflineStatusConsumer(eq(CONTENT_URL), offlineConsumerCaptor.capture());
-
     reset(pietViewHolder);
 
-    offlineConsumerCaptor.getValue().accept(true);
+    streamOfflineMonitor.setOfflineStatus(CONTENT_URL, true);
 
     verify(contentChangedListener).onContentChanged();
     InOrder inOrder = Mockito.inOrder(pietViewHolder);
@@ -480,9 +497,8 @@ public class ContentDriverTest {
 
   @Test
   public void testOfflineStatusChange_noOpWithoutUpdate() {
-    reset(streamOfflineMonitor);
+    streamOfflineMonitor = FakeStreamOfflineMonitor.create();
 
-    when(streamOfflineMonitor.isAvailableOffline(CONTENT_URL)).thenReturn(true);
     contentDriver =
         new ContentDriver(
             actionApi,
@@ -502,14 +518,12 @@ public class ContentDriverTest {
             viewLoggingUpdater,
             tooltipApi);
 
+    streamOfflineMonitor.setOfflineStatus(CONTENT_URL, true);
     contentDriver.bind(pietViewHolder);
-
-    verify(streamOfflineMonitor)
-        .addOfflineStatusConsumer(eq(CONTENT_URL), offlineConsumerCaptor.capture());
 
     reset(pietViewHolder);
 
-    offlineConsumerCaptor.getValue().accept(true);
+    streamOfflineMonitor.setOfflineStatus(CONTENT_URL, true);
 
     verifyNoMoreInteractions(pietViewHolder, contentChangedListener);
   }
@@ -546,6 +560,26 @@ public class ContentDriverTest {
     verify(basicLoggingApi)
         .onVisualElementViewed(
             any(ContentLoggingData.class), eq(ElementType.INTEREST_HEADER.getNumber()));
+  }
+
+  @Test
+  public void testOnElementView_logsElementViewed_usingOfflineStatusWhenLogging() {
+    contentDriver.onElementView(ElementType.INTEREST_HEADER.getNumber());
+
+    // When the view first happens, the offline status is false.
+    clock.advance(VIEW_MIN_TIME_MS / 2);
+
+    // When waiting to log the view, the offline status switches to true
+    streamOfflineMonitor.setOfflineStatus(CONTENT_URL, true);
+
+    // Advance so that the event is logged
+    clock.advance(VIEW_MIN_TIME_MS / 2);
+
+    // Should be logged with offline status true.
+    verify(basicLoggingApi)
+        .onVisualElementViewed(
+            eq(CONTENT_LOGGING_DATA.createWithOfflineStatus(true)),
+            eq(ElementType.INTEREST_HEADER.getNumber()));
   }
 
   @Test
