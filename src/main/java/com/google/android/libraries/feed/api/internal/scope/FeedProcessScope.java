@@ -138,6 +138,7 @@ public final class FeedProcessScope implements ProcessScope {
     dumper.dump(clearAllListener);
   }
 
+  @Override
   public void onDestroy() {
     try {
       Logger.i(TAG, "FeedProcessScope onDestroy called");

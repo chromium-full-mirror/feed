@@ -53,5 +53,8 @@ public interface ProcessScope extends Dumpable {
       SnackbarApi snackbarApi,
       OfflineIndicatorApi offlineIndicatorApi,
       TooltipApi tooltipApi);
+
+  /** Called to destroy the scope object. */
+  void onDestroy();
 }
 
