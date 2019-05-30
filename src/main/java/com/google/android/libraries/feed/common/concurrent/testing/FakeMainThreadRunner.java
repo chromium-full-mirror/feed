@@ -70,7 +70,7 @@ public final class FakeMainThreadRunner extends MainThreadRunner {
     this.fakeClock = fakeClock;
     this.fakeThreadUtils = fakeThreadUtils;
     this.shouldQueueTasks = shouldQueueTasks;
-    fakeClock.addClockUpdateListener(
+    fakeClock.registerObserver(
         (newCurrentTime, newElapsedRealtime) -> runTasksBefore(newElapsedRealtime));
   }
 

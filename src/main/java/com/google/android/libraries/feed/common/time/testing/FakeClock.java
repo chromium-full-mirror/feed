@@ -16,16 +16,15 @@ package com.google.android.libraries.feed.common.time.testing;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.google.android.libraries.feed.common.feedobservable.ObservableNotifier;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.Clock;
-import java.util.HashSet;
-import java.util.Set;
+import com.google.android.libraries.feed.common.time.testing.FakeClock.ClockUpdateListener;
 
 /** Fake implementation of {@link Clock} for testing. */
-public class FakeClock implements Clock {
+public class FakeClock extends ObservableNotifier<ClockUpdateListener> implements Clock {
   private static final String TAG = "FakeClock";
 
-  private final Set<ClockUpdateListener> listeners;
   private long currentTime;
   private long elapsedRealtimeMs;
 
@@ -36,7 +35,6 @@ public class FakeClock implements Clock {
   public FakeClock(long currentTime, long elapsedRealtime) {
     this.currentTime = currentTime;
     elapsedRealtimeMs = elapsedRealtime;
-    this.listeners = new HashSet<>();
   }
 
   /**
@@ -94,13 +92,7 @@ public class FakeClock implements Clock {
   }
 
   private void onClockUpdated(long currentTime, long elapsedRealtime) {
-    for (ClockUpdateListener listener : listeners) {
-      listener.onClockUpdated(currentTime, elapsedRealtime);
-    }
-  }
-
-  public void addClockUpdateListener(ClockUpdateListener listener) {
-    listeners.add(listener);
+    notifyListeners(listener -> listener.onClockUpdated(currentTime, elapsedRealtime));
   }
 
   /** Listener for when the clock time is updated. */
