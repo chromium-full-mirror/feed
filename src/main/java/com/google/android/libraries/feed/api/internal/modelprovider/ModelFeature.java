@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.api.internal.modelprovider;
 
+import com.google.android.libraries.feed.common.feedobservable.Observable;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 
 /**
@@ -21,7 +22,7 @@ import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
  * a Cluster, Carousel, Piet Content, etc. Features provide an {@link ModelCursor} for accessing the
  * children of the feature.
  */
-public interface ModelFeature {
+public interface ModelFeature extends Observable<FeatureChangeObserver> {
 
   /**
    * Returns the {@link StreamFeature} proto instance allowing for access of the metadata and
@@ -45,13 +46,4 @@ public interface ModelFeature {
    */
   /*@Nullable*/
   ModelCursor getDirectionalCursor(boolean forward, /*@Nullable*/ String startingChild);
-
-  /**
-   * Register a {@link FeatureChangeObserver} for changes on this feature. The types of changes
-   * would include adding or removing children or updates to the payload.
-   */
-  void registerObserver(FeatureChangeObserver observer);
-
-  /** Remove a registered observer */
-  void unregisterObserver(FeatureChangeObserver observer);
 }

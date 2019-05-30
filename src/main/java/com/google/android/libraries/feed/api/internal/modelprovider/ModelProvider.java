@@ -17,6 +17,7 @@ package com.google.android.libraries.feed.api.internal.modelprovider;
 import android.support.annotation.IntDef;
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.host.logging.RequestReason;
+import com.google.android.libraries.feed.common.feedobservable.Observable;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
@@ -28,7 +29,7 @@ import java.util.List;
  * relationship between the ModelProvider and Session implementation. The Stream Library uses the
  * model to build the UI displayed to the user.
  */
-public interface ModelProvider {
+public interface ModelProvider extends Observable<ModelProviderObserver> {
   /**
    * Provides the contentId of the lowest child of the root viewed by the user, or {@code null} if
    * no content with a ContentId has been seen.
@@ -155,13 +156,4 @@ public interface ModelProvider {
 
   /** Called by the stream to set the {@link RemoveTrackingFactory}. */
   void enableRemoveTracking(RemoveTrackingFactory<?> removeTrackingFactory);
-
-  /**
-   * Register a {@link ModelProviderObserver} for changes on this container. The types of changes
-   * would include adding or removing children or updates to the metadata payload.
-   */
-  void registerObserver(ModelProviderObserver observer);
-
-  /** Remove a registered observer */
-  void unregisterObserver(ModelProviderObserver observer);
 }

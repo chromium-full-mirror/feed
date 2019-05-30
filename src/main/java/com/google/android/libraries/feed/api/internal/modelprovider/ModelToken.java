@@ -14,19 +14,14 @@
 
 package com.google.android.libraries.feed.api.internal.modelprovider;
 
+import com.google.android.libraries.feed.common.feedobservable.Observable;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 
 /** Defines the behavior of a Continuation Token. */
-public interface ModelToken {
+public interface ModelToken extends Observable<TokenCompletedObserver> {
   /** Returns the {@link StreamToken} proto instance. */
   StreamToken getStreamToken();
 
   /** Returns {@code true} if token was generated on-device and can complete quickly. */
   boolean isSynthetic();
-
-  /** Register a {@link TokenCompletedObserver} for completion of this continuation token. */
-  void registerObserver(TokenCompletedObserver observer);
-
-  /** Remove a registered observer */
-  void unregisterObserver(TokenCompletedObserver observer);
 }
