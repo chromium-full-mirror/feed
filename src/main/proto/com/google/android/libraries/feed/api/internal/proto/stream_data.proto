@@ -91,17 +91,31 @@ message StreamSharedState {
 // relationship and an operation.  This message will be journaled.  Reading
 // the journal from start to end will fully define the structure of the stream.
 message StreamStructure {
-  // The defined set of DataOperations
-  // These operations align with the Operation enum defined in
-  // data_operation.proto.
+  // The defined set of DataOperations.
   enum Operation {
     UNKNOWN = 0;
+
+    // All content in this Stream has been removed. See data_operation.proto.
     CLEAR_ALL = 1;
+
+    // The item represented by content_id has been appended as a child to
+    // parent_content_id. See data_operation.proto.
     UPDATE_OR_APPEND = 2;
+
+    // The item represented by content_id has been removed. See
+    // data_operation.proto.
     REMOVE = 3;
+
+    // Indicates that the item represented by content_id is required by this
+    // Stream and should not be deleted.
+    REQUIRED_CONTENT = 4;
   }
   optional Operation operation = 1;
+
+  // ContentId of the content that is appended, removed, or required.
   optional string content_id = 2;
+
+  // ContentId of the parent of content_id that is being appended.
   optional string parent_content_id = 3;
 
   extensions 10000 to max;
