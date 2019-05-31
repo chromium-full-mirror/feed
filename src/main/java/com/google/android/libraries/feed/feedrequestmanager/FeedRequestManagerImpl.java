@@ -299,14 +299,8 @@ public final class FeedRequestManagerImpl implements FeedRequestManager {
             return;
           }
           Result<List<StreamDataOperation>> result = protocolAdapter.createModel(response);
-          final Result<List<StreamDataOperation>> contextResult;
-          if (result.isSuccessful()) {
-            contextResult = Result.success(result.getValue());
-          } else {
-            contextResult = Result.failure();
-          }
           mainThreadRunner.execute(
-              "FeedRequestManagerImpl consumer", () -> consumer.accept(contextResult));
+              "FeedRequestManagerImpl consumer", () -> consumer.accept(result));
         });
   }
 
