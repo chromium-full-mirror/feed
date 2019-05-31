@@ -48,6 +48,7 @@ import com.google.android.libraries.feed.testing.requestmanager.FakeActionUpload
 import com.google.android.libraries.feed.testing.requestmanager.FakeFeedRequestManager;
 import com.google.protobuf.GeneratedMessageLite.GeneratedExtension;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
@@ -116,7 +117,7 @@ public class InfraIntegrationScope {
             fakeClock,
             fakeBasicLoggingApi,
             fakeMainThreadRunner);
-    feedProtocolAdapter = new FeedProtocolAdapter(timingUtils);
+    feedProtocolAdapter = new FeedProtocolAdapter(Collections.emptyList(), timingUtils);
     fakeFeedRequestManager =
         new FakeFeedRequestManager(
             fakeThreadUtils, fakeMainThreadRunner, feedProtocolAdapter, taskQueue);

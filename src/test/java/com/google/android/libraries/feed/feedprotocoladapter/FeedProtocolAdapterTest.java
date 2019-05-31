@@ -15,14 +15,22 @@
 package com.google.android.libraries.feed.feedprotocoladapter;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.google.android.libraries.feed.api.internal.protocoladapter.RequiredContentAdapter;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.testing.ResponseBuilder;
 import com.google.android.libraries.feed.common.time.TimingUtils;
+import com.google.common.collect.ImmutableList;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
+import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
+import com.google.search.now.wire.feed.DataOperationProto.DataOperation;
 import com.google.search.now.wire.feed.OpaqueActionDataProto.OpaqueActionData;
 import com.google.search.now.wire.feed.ResponseProto.Response;
 import java.nio.charset.Charset;
@@ -30,6 +38,7 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
 
 /** Tests of the {@link FeedProtocolAdapter} class. */
@@ -37,6 +46,10 @@ import org.robolectric.RobolectricTestRunner;
 public class FeedProtocolAdapterTest {
 
   private final TimingUtils timingUtils = new TimingUtils();
+  private final FeedProtocolAdapter protocolAdapter =
+      new FeedProtocolAdapter(ImmutableList.of(), timingUtils);
+
+  @Mock private RequiredContentAdapter adapter;
   private ResponseBuilder responseBuilder;
 
   @Before
@@ -47,7 +60,6 @@ public class FeedProtocolAdapterTest {
 
   @Test
   public void testConvertContentId() {
-    FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(timingUtils);
     ContentId contentId = ResponseBuilder.createFeatureContentId(13);
     String streamContentId = protocolAdapter.getStreamContentId(contentId);
     assertThat(streamContentId).isNotNull();
@@ -58,7 +70,6 @@ public class FeedProtocolAdapterTest {
 
   @Test
   public void testConvertContentId_malformed_notThreeParts() {
-    FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(timingUtils);
     String streamContentId = "test" + FeedProtocolAdapter.CONTENT_ID_DELIMITER + "break";
     Result<ContentId> contentIdResult = protocolAdapter.getWireContentId(streamContentId);
     assertThat(contentIdResult.isSuccessful()).isFalse();
@@ -66,7 +77,6 @@ public class FeedProtocolAdapterTest {
 
   @Test
   public void testConvertContentId_malformed_nonNumericId() {
-    FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(timingUtils);
     String streamContentId =
         "test"
             + FeedProtocolAdapter.CONTENT_ID_DELIMITER
@@ -79,7 +89,6 @@ public class FeedProtocolAdapterTest {
 
   @Test
   public void testConvertContentId_roundTrip() {
-    FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(timingUtils);
     ContentId contentId = ResponseBuilder.createFeatureContentId(13);
     String streamContentId = protocolAdapter.getStreamContentId(contentId);
     Result<ContentId> contentIdResult = protocolAdapter.getWireContentId(streamContentId);
@@ -90,7 +99,6 @@ public class FeedProtocolAdapterTest {
 
   @Test
   public void testConvertContentId_roundTrip_partialContentId() {
-    FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(timingUtils);
     ContentId contentId = ContentId.newBuilder().setId(13).build();
     String streamContentId = protocolAdapter.getStreamContentId(contentId);
     Result<ContentId> contentIdResult = protocolAdapter.getWireContentId(streamContentId);
@@ -101,7 +109,6 @@ public class FeedProtocolAdapterTest {
 
   @Test
   public void testSimpleResponse_clear() {
-    FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(timingUtils);
     Response response = responseBuilder.addClearOperation().build();
     Result<List<StreamDataOperation>> results = protocolAdapter.createModel(response);
     assertThat(results.isSuccessful()).isTrue();
@@ -110,7 +117,6 @@ public class FeedProtocolAdapterTest {
 
   @Test
   public void testSimpleResponse_feature() {
-    FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(timingUtils);
     Response response = responseBuilder.addRootFeature().build();
 
     Result<List<StreamDataOperation>> results = protocolAdapter.createModel(response);
@@ -128,7 +134,6 @@ public class FeedProtocolAdapterTest {
 
   @Test
   public void testSimpleResponse_feature_semanticProperties() {
-    FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(timingUtils);
     ContentId contentId = ResponseBuilder.createFeatureContentId(13);
     ByteString semanticData = ByteString.copyFromUtf8("helloWorld");
     Response response =
@@ -145,7 +150,6 @@ public class FeedProtocolAdapterTest {
 
   @Test
   public void testSimpleResponse_feature_actionProperties() {
-    FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(timingUtils);
     ContentId contentId = ResponseBuilder.createFeatureContentId(13);
     OpaqueActionData actionData = OpaqueActionData.getDefaultInstance();
     Response response = new ResponseBuilder().addCardWithActionData(contentId, actionData).build();
@@ -170,7 +174,6 @@ public class FeedProtocolAdapterTest {
             .addClusterFeature(clusterId, rootId)
             .addCard(cardId, clusterId)
             .build();
-    FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(timingUtils);
 
     Result<List<StreamDataOperation>> results = protocolAdapter.createModel(response);
     assertThat(results.isSuccessful()).isTrue();
@@ -185,7 +188,6 @@ public class FeedProtocolAdapterTest {
 
   @Test
   public void testResponse_remove() {
-    FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(timingUtils);
     Response response =
         responseBuilder
             .removeFeature(ContentId.getDefaultInstance(), ContentId.getDefaultInstance())
@@ -197,7 +199,6 @@ public class FeedProtocolAdapterTest {
 
   @Test
   public void testPietSharedState() {
-    FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(timingUtils);
     Response response = responseBuilder.addPietSharedState().build();
     Result<List<StreamDataOperation>> results = protocolAdapter.createModel(response);
     assertThat(results.isSuccessful()).isTrue();
@@ -211,7 +212,6 @@ public class FeedProtocolAdapterTest {
 
   @Test
   public void testContinuationToken_nextPageToken() {
-    FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(timingUtils);
     ByteString tokenForMutation = ByteString.copyFrom("token", Charset.defaultCharset());
     Response response = responseBuilder.addStreamToken(1, tokenForMutation).build();
 
@@ -221,5 +221,44 @@ public class FeedProtocolAdapterTest {
     StreamDataOperation sdo = results.getValue().get(0);
     assertThat(sdo.hasStreamPayload()).isTrue();
     assertThat(sdo.getStreamPayload().hasStreamToken()).isTrue();
+  }
+
+  @Test
+  public void testRequiredContentAdapter() {
+    when(adapter.determineRequiredContentIds(any(DataOperation.class)))
+        .thenReturn(ImmutableList.of(ContentId.newBuilder().setId(1).build()))
+        .thenReturn(ImmutableList.of(ContentId.newBuilder().setId(2).build()))
+        .thenReturn(
+            ImmutableList.of(
+                ContentId.newBuilder().setId(1).build(),
+                ContentId.newBuilder().setId(2).build(),
+                ContentId.newBuilder().setId(3).build()));
+    Response response =
+        responseBuilder
+            .addRootFeature(ContentId.getDefaultInstance())
+            .addClusterFeature(ContentId.getDefaultInstance(), ContentId.getDefaultInstance())
+            .addCard(ContentId.getDefaultInstance(), ContentId.getDefaultInstance())
+            .build();
+
+    FeedProtocolAdapter protocolAdapter =
+        new FeedProtocolAdapter(ImmutableList.of(adapter), timingUtils);
+    Result<List<StreamDataOperation>> result = protocolAdapter.createModel(response);
+
+    verify(adapter, times(4)).determineRequiredContentIds(any(DataOperation.class));
+    assertThat(result.isSuccessful()).isTrue();
+    List<StreamDataOperation> operations = result.getValue();
+    assertThat(operations).hasSize(7);
+    assertThat(operations.get(4).getStreamStructure().getOperation())
+        .isEqualTo(StreamStructure.Operation.REQUIRED_CONTENT);
+    assertThat(operations.get(5).getStreamStructure().getOperation())
+        .isEqualTo(StreamStructure.Operation.REQUIRED_CONTENT);
+    assertThat(operations.get(6).getStreamStructure().getOperation())
+        .isEqualTo(StreamStructure.Operation.REQUIRED_CONTENT);
+    assertThat(
+            ImmutableList.of(
+                operations.get(4).getStreamStructure().getContentId(),
+                operations.get(5).getStreamStructure().getContentId(),
+                operations.get(6).getStreamStructure().getContentId()))
+        .containsExactly("::::1", "::::2", "::::3");
   }
 }

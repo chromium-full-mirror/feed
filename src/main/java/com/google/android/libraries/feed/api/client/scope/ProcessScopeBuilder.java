@@ -64,6 +64,7 @@ import com.google.android.libraries.feed.hostimpl.scheduler.SchedulerApiWrapper;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.concurrent.Executor;
 
 /** Creates an instance of {@link ProcessScope} */
@@ -219,7 +220,7 @@ public final class ProcessScopeBuilder {
     FeedAppLifecycleListener lifecycleListener = new FeedAppLifecycleListener(threadUtils);
     lifecycleListener.registerObserver(store);
 
-    ProtocolAdapter protocolAdapter = new FeedProtocolAdapter(timingUtils);
+    ProtocolAdapter protocolAdapter = new FeedProtocolAdapter(Collections.emptyList(), timingUtils);
     ActionReader actionReader =
         new FeedActionReader(store, clock, protocolAdapter, taskQueue, configuration);
     FeedRequestManager feedRequestManager =

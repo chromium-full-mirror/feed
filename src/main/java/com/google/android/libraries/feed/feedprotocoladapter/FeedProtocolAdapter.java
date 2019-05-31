@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.feedprotocoladapter;
 
 import com.google.android.libraries.feed.api.internal.protocoladapter.ProtocolAdapter;
+import com.google.android.libraries.feed.api.internal.protocoladapter.RequiredContentAdapter;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.Validators;
 import com.google.android.libraries.feed.common.logging.Dumpable;
@@ -45,7 +46,9 @@ import com.google.search.now.wire.feed.PietSharedStateItemProto.PietSharedStateI
 import com.google.search.now.wire.feed.ResponseProto.Response;
 import com.google.search.now.wire.feed.TokenProto.Token;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /** A ProtocolAdapter which converts from the wire protocol to the internal protocol. */
 public final class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
@@ -54,14 +57,17 @@ public final class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
   static final String CONTENT_ID_DELIMITER = "::";
 
   private final List<DataOperationTransformer> dataOperationTransformers;
+  private final List<RequiredContentAdapter> requiredContentAdapters;
   private final TimingUtils timingUtils;
 
   // Operation counts for #dump(Dumpable)
   private int responseHandlingCount = 0;
   private int convertContentIdCount = 0;
 
-  public FeedProtocolAdapter(TimingUtils timingUtils) {
+  public FeedProtocolAdapter(
+      List<RequiredContentAdapter> requiredContentAdapters, TimingUtils timingUtils) {
     this.timingUtils = timingUtils;
+    this.requiredContentAdapters = requiredContentAdapters;
     dataOperationTransformers = new ArrayList<>(2);
     dataOperationTransformers.add(new FeatureDataOperationTransformer());
     dataOperationTransformers.add(new ContentDataOperationTransformer());
@@ -119,10 +125,13 @@ public final class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
       List<DataOperation> dataOperations, FeedResponseMetadata responseMetadata) {
     ElapsedTimeTracker totalTimeTracker = timingUtils.getElapsedTimeTracker(TAG);
     List<StreamDataOperation> streamDataOperations = new ArrayList<>();
+    Set<ContentId> requiredContentIds = new HashSet<>();
     for (DataOperation operation : dataOperations) {
-      // The operations defined in stream_data.proto and data_operation.proto have the same
-      // integer value
-      Operation streamOperation = Operation.forNumber(operation.getOperation().getNumber());
+      for (RequiredContentAdapter adapter : requiredContentAdapters) {
+        requiredContentIds.addAll(adapter.determineRequiredContentIds(operation));
+      }
+
+      Operation streamOperation = operationToStreamOperation(operation.getOperation());
       String contentId;
       if (streamOperation == Operation.CLEAR_ALL) {
         streamDataOperations.add(createDataOperation(Operation.CLEAR_ALL, null, null).build());
@@ -179,6 +188,17 @@ public final class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
                 .build());
       }
     }
+
+    for (ContentId requiredContentId : requiredContentIds) {
+      streamDataOperations.add(
+          StreamDataOperation.newBuilder()
+              .setStreamStructure(
+                  StreamStructure.newBuilder()
+                      .setOperation(Operation.REQUIRED_CONTENT)
+                      .setContentId(createContentId(requiredContentId)))
+              .build());
+    }
+
     totalTimeTracker.stop("task", "convertWireProtocol", "mutations", dataOperations.size());
     return Result.success(streamDataOperations);
   }
@@ -188,7 +208,7 @@ public final class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
       FeedResponseMetadata feedResponseMetadata,
       String contentId,
       List<StreamDataOperation> streamDataOperations) {
-    Operation streamOperation = Operation.forNumber(operation.getOperation().getNumber());
+    Operation streamOperation = operationToStreamOperation(operation.getOperation());
     String parentId = null;
     if (operation.getFeature().hasParentId()) {
       parentId = createContentId(operation.getFeature().getParentId());
@@ -327,5 +347,20 @@ public final class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
     dumper.title(TAG);
     dumper.forKey("responseHandlingCount").value(responseHandlingCount);
     dumper.forKey("convertContentIdCount").value(convertContentIdCount).compactPrevious();
+  }
+
+  private static Operation operationToStreamOperation(DataOperation.Operation operation) {
+    switch (operation) {
+      case UNKNOWN_OPERATION:
+        return Operation.UNKNOWN;
+      case CLEAR_ALL:
+        return Operation.CLEAR_ALL;
+      case UPDATE_OR_APPEND:
+        return Operation.UPDATE_OR_APPEND;
+      case REMOVE:
+        return Operation.REMOVE;
+    }
+
+    return Operation.UNKNOWN;
   }
 }
