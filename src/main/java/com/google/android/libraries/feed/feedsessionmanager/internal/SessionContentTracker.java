@@ -52,7 +52,8 @@ public class SessionContentTracker implements Dumpable {
   public void update(StreamStructure streamStructure) {
     String contentId = streamStructure.getContentId();
     switch (streamStructure.getOperation()) {
-      case UPDATE_OR_APPEND:
+      case UPDATE_OR_APPEND: // Fall-through
+      case REQUIRED_CONTENT:
         contentIds.add(contentId);
         break;
       case REMOVE:

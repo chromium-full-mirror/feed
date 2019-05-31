@@ -42,23 +42,23 @@ public class SessionImplTest extends AbstractSessionImplTest {
   private final FakeClock fakeClock = new FakeClock();
   private final FakeThreadUtils fakeThreadUtils = FakeThreadUtils.withThreadChecks();
   private final TimingUtils timingUtils = new TimingUtils();
+  private SessionImpl session;
 
   @Before
   @Override
   public void setUp() {
     super.setUp();
     fakeThreadUtils.enforceMainThread(false);
+    session = getSessionImpl();
   }
 
   @Test
   public void testInvalidateOnResetHead() {
-    SessionImpl session = getSessionImpl();
     assertThat(session.invalidateOnResetHead()).isTrue();
   }
 
   @Test
   public void testClearHead() {
-    SessionImpl session = getSessionImpl();
     session.setSessionId(TEST_SESSION_ID);
     session.populateModelProvider(new ArrayList<>(), false, false, UiContext.getDefaultInstance());
     int featureCnt = 3;
@@ -77,7 +77,6 @@ public class SessionImplTest extends AbstractSessionImplTest {
 
   @Test
   public void testClearHead_paginationRequest() {
-    SessionImpl session = getSessionImpl();
     ViewDepthProvider mockDepthProvider = mock(ViewDepthProvider.class);
     session.setSessionId(TEST_SESSION_ID);
     session.bindModelProvider(fakeModelProvider, mockDepthProvider);
@@ -99,7 +98,6 @@ public class SessionImplTest extends AbstractSessionImplTest {
 
   @Test
   public void testModelProviderBinding_withDetach() {
-    SessionImpl session = getSessionImpl();
     ViewDepthProvider mockDepthProvider = mock(ViewDepthProvider.class);
     session.bindModelProvider(fakeModelProvider, mockDepthProvider);
     assertThat(session.modelProvider).isEqualTo(fakeModelProvider);
@@ -108,6 +106,24 @@ public class SessionImplTest extends AbstractSessionImplTest {
     session.bindModelProvider(null, null);
     assertThat(session.viewDepthProvider).isNull();
     assertThat(session.modelProvider).isNull();
+  }
+
+  @Test
+  public void testUpdateSession_requiredContent() {
+    String contentId = contentIdGenerators.createFeatureContentId(1);
+    InternalProtocolBuilder protocolBuilder =
+        new InternalProtocolBuilder().addRequiredContent(contentId);
+    session.setSessionId(TEST_SESSION_ID);
+    session.updateSession(
+        /* clearHead= */ false,
+        protocolBuilder.buildAsStreamStructure(),
+        /* mutationContext= */ null);
+
+    assertThat(fakeSessionMutation.streamStructures).hasSize(1);
+    assertThat(fakeModelProvider.getLatestModelMutation().addedChildren).isEmpty();
+    assertThat(fakeModelProvider.getLatestModelMutation().removedChildren).isEmpty();
+    assertThat(fakeModelProvider.getLatestModelMutation().updateChildren).isEmpty();
+    assertThat(fakeModelProvider.getLatestModelMutation().isCommitted()).isTrue();
   }
 
   @Override

@@ -15,7 +15,6 @@
 package com.google.android.libraries.feed.feedsessionmanager.internal;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.internal.common.testing.ContentIdGenerators;
@@ -30,7 +29,6 @@ import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import java.util.List;
 import java.util.Set;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
@@ -42,32 +40,22 @@ public class HeadSessionImplTest {
   private final FakeClock fakeClock = new FakeClock();
   private final FakeThreadUtils fakeThreadUtils = FakeThreadUtils.withoutThreadChecks();
   private final TimingUtils timingUtils = new TimingUtils();
-
-  private FakeStore fakeStore;
-
-  @Before
-  public void setUp() {
-    initMocks(this);
-    fakeStore =
-        new FakeStore(fakeThreadUtils, new FakeTaskQueue(fakeClock, fakeThreadUtils), fakeClock);
-  }
+  private final FakeStore fakeStore =
+      new FakeStore(fakeThreadUtils, new FakeTaskQueue(fakeClock, fakeThreadUtils), fakeClock);
+  private final HeadSessionImpl headSession = new HeadSessionImpl(fakeStore, timingUtils);
 
   @Test
   public void testMinimalSessionManager() {
-    HeadSessionImpl headSession = new HeadSessionImpl(fakeStore, timingUtils);
     assertThat(headSession.getSessionId()).isEqualTo(Store.HEAD_SESSION_ID);
   }
 
   @Test
   public void testInvalidateOnResetHead() {
-    HeadSessionImpl session = new HeadSessionImpl(fakeStore, timingUtils);
-    assertThat(session.invalidateOnResetHead()).isFalse();
+    assertThat(headSession.invalidateOnResetHead()).isFalse();
   }
 
   @Test
   public void testUpdateSession_features() {
-    HeadSessionImpl headSession = new HeadSessionImpl(fakeStore, timingUtils);
-
     int featureCnt = 3;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder().addClearOperation();
     addFeatures(protocolBuilder, featureCnt, 1);
@@ -86,8 +74,6 @@ public class HeadSessionImplTest {
 
   @Test
   public void testReset() {
-    HeadSessionImpl headSession = new HeadSessionImpl(fakeStore, timingUtils);
-
     int featureCnt = 5;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder().addClearOperation();
     addFeatures(protocolBuilder, featureCnt, 1);
@@ -102,8 +88,6 @@ public class HeadSessionImplTest {
 
   @Test
   public void testUpdateSession_token() {
-    HeadSessionImpl headSession = new HeadSessionImpl(fakeStore, timingUtils);
-
     int featureCnt = 3;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder().addClearOperation();
     addFeatures(protocolBuilder, featureCnt, 1);
@@ -123,7 +107,6 @@ public class HeadSessionImplTest {
 
   @Test
   public void testUpdateFromToken() {
-    HeadSessionImpl headSession = new HeadSessionImpl(fakeStore, timingUtils);
     int featureCnt = 3;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder();
     addFeatures(protocolBuilder, featureCnt, 1);
@@ -145,7 +128,6 @@ public class HeadSessionImplTest {
 
   @Test
   public void testUpdateFromToken_notInSession() {
-    HeadSessionImpl headSession = new HeadSessionImpl(fakeStore, timingUtils);
     int featureCnt = 3;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder();
     addFeatures(protocolBuilder, featureCnt, 1);
@@ -162,8 +144,6 @@ public class HeadSessionImplTest {
 
   @Test
   public void testUpdateSession_remove() {
-    HeadSessionImpl headSession = new HeadSessionImpl(fakeStore, timingUtils);
-
     int featureCnt = 3;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder().addClearOperation();
     addFeatures(protocolBuilder, featureCnt, 1);
@@ -186,8 +166,6 @@ public class HeadSessionImplTest {
 
   @Test
   public void testUpdateSession_updates() {
-    HeadSessionImpl headSession = new HeadSessionImpl(fakeStore, timingUtils);
-
     int featureCnt = 3;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder().addClearOperation();
     addFeatures(protocolBuilder, featureCnt, 1);
@@ -213,8 +191,6 @@ public class HeadSessionImplTest {
 
   @Test
   public void testUpdateSession_paging() {
-    HeadSessionImpl headSession = new HeadSessionImpl(fakeStore, timingUtils);
-
     int featureCnt = 3;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder().addClearOperation();
     addFeatures(protocolBuilder, featureCnt, 1);
@@ -241,8 +217,6 @@ public class HeadSessionImplTest {
 
   @Test
   public void testUpdateSession_clearHead() {
-    HeadSessionImpl headSession = new HeadSessionImpl(fakeStore, timingUtils);
-
     int featureCnt = 3;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder().addClearOperation();
     addFeatures(protocolBuilder, featureCnt, 1);
@@ -268,6 +242,20 @@ public class HeadSessionImplTest {
     headSession.updateSession(false, streamStructures, null);
     assertThat(headSession.getContentInSession()).hasSize(newFeatureCnt);
     assertThat(getContentInSession()).hasSize(newFeatureCnt);
+  }
+
+  @Test
+  public void testUpdateSession_requiredContent() {
+    String contentId = contentIdGenerators.createFeatureContentId(1);
+    InternalProtocolBuilder protocolBuilder =
+        new InternalProtocolBuilder().addRequiredContent(contentId);
+
+    headSession.updateSession(
+        /* clearHead= */ false,
+        protocolBuilder.buildAsStreamStructure(),
+        /* mutationContext= */ null);
+    assertThat(headSession.getContentInSession()).hasSize(1);
+    assertThat(getContentInSession()).hasSize(1);
   }
 
   private void addFeatures(InternalProtocolBuilder protocolBuilder, int featureCnt, int startId) {

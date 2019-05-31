@@ -121,6 +121,9 @@ public class SessionImpl implements InitializableSession, Dumpable {
           case REMOVE:
             modelMutation.removeChild(streamStructure);
             break;
+          case REQUIRED_CONTENT:
+            // No-op, required content should not be passed into modelMutation.
+            break;
           default:
             Logger.e(TAG, "unsupported StreamDataOperation: %s", streamStructure.getOperation());
         }
@@ -211,6 +214,7 @@ public class SessionImpl implements InitializableSession, Dumpable {
 
     int updateCnt = 0;
     int addFeatureCnt = 0;
+    int requiredContentCnt = 0;
     SessionMutation sessionMutation = store.editSession(sessionId);
     for (StreamStructure streamStructure : streamStructures) {
       String contentId = streamStructure.getContentId();
@@ -241,6 +245,12 @@ public class SessionImpl implements InitializableSession, Dumpable {
         case CLEAR_ALL:
           Logger.i(TAG, "CLEAR_ALL not support on this session type");
           break;
+        case REQUIRED_CONTENT:
+          if (!sessionContentTracker.contains(contentId)) {
+            sessionMutation.add(streamStructure);
+            requiredContentCnt++;
+          }
+          break;
         default:
           Logger.e(TAG, "Unknown operation, ignoring: %s", streamStructure.getOperation());
       }
@@ -256,7 +266,15 @@ public class SessionImpl implements InitializableSession, Dumpable {
     if (modelMutation != null) {
       modelMutation.commit();
     }
-    timeTracker.stop("updateSession", sessionId, "features", addFeatureCnt, "updates", updateCnt);
+    timeTracker.stop(
+        "updateSession",
+        sessionId,
+        "features",
+        addFeatureCnt,
+        "updates",
+        updateCnt,
+        "requiredContent",
+        requiredContentCnt);
   }
 
   @Override

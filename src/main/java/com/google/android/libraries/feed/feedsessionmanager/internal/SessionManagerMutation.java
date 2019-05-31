@@ -340,6 +340,12 @@ public final class SessionManagerMutation implements Dumpable {
           streamStructures.add(dataOperation.getStreamStructure());
           continue;
         }
+
+        if (operation == Operation.REQUIRED_CONTENT) {
+          streamStructures.add(dataOperation.getStreamStructure());
+          continue;
+        }
+
         errorCount++;
         Logger.e(
             TAG, "Unsupported Mutation: %s", dataOperation.getStreamStructure().getOperation());

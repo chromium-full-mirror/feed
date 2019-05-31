@@ -111,6 +111,15 @@ public class SessionContentTrackerTest {
     assertThat(sessionContentTracker.getContentIds()).hasSize(1);
   }
 
+  @Test
+  public void testUpdate_requiredContent() {
+    String contentId = contentIdGenerators.createFeatureContentId(1);
+    protocolBuilder.addRequiredContent(contentId);
+    sessionContentTracker.update(protocolBuilder.buildAsStreamStructure());
+    assertThat(sessionContentTracker.getContentIds()).hasSize(1);
+    assertThat(sessionContentTracker.contains(contentId)).isTrue();
+  }
+
   private void addFeatures(int featureCnt) {
     for (int i = 0; i < featureCnt; i++) {
       protocolBuilder.addFeature(

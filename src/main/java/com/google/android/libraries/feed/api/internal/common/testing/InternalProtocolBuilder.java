@@ -123,6 +123,17 @@ public class InternalProtocolBuilder {
     return this;
   }
 
+  public InternalProtocolBuilder addRequiredContent(String contentId) {
+    dataOperations.add(
+        StreamDataOperation.newBuilder()
+            .setStreamStructure(
+                StreamStructure.newBuilder()
+                    .setOperation(Operation.REQUIRED_CONTENT)
+                    .setContentId(contentId))
+            .build());
+    return this;
+  }
+
   public List<StreamDataOperation> build() {
     return new ArrayList<>(dataOperations);
   }

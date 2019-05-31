@@ -89,6 +89,7 @@ public class HeadSessionImpl implements Session, Dumpable {
 
     int updateCnt = 0;
     int addFeatureCnt = 0;
+    int requiredContentCnt = 0;
     boolean cleared = false;
     SessionMutation sessionMutation = store.editSession(getSessionId());
     for (StreamStructure streamStructure : streamStructures) {
@@ -114,6 +115,12 @@ public class HeadSessionImpl implements Session, Dumpable {
         case CLEAR_ALL:
           cleared = true;
           break;
+        case REQUIRED_CONTENT:
+          if (!sessionContentTracker.contains(contentId)) {
+            sessionMutation.add(streamStructure);
+            requiredContentCnt++;
+          }
+          break;
         default:
           Logger.e(TAG, "Unknown operation, ignoring: %s", streamStructure.getOperation());
       }
@@ -129,7 +136,9 @@ public class HeadSessionImpl implements Session, Dumpable {
           "features",
           addFeatureCnt,
           "updates",
-          updateCnt);
+          updateCnt,
+          "requiredContent",
+          requiredContentCnt);
     } else {
       timeTracker.stop("updateSessionFailure", getSessionId());
       storeMutationFailures++;
@@ -142,11 +151,6 @@ public class HeadSessionImpl implements Session, Dumpable {
   public String getSessionId() {
     return Store.HEAD_SESSION_ID;
   }
-
-  /** Cause the access time to be updated. */
-  /*public void updateAccessTime(long time) {
-    streamSession = streamSession.toBuilder().setLastAccessed(time).build();
-  }*/
 
   @Override
   /*@Nullable*/
