@@ -227,6 +227,9 @@ message SessionMetadata {
 
   // The time in milliseconds that this session was created.
   optional int64 creation_time_millis = 2;
+
+  // The schema used to create this session.
+  optional int32 schema_version = 3;
 }
 
 message StreamLocalAction {

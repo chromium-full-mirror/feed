@@ -62,6 +62,8 @@ import com.google.android.libraries.feed.testing.protocoladapter.FakeProtocolAda
 import com.google.android.libraries.feed.testing.requestmanager.FakeActionUploadRequestManager;
 import com.google.android.libraries.feed.testing.requestmanager.FakeFeedRequestManager;
 import com.google.android.libraries.feed.testing.store.FakeStore;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
@@ -81,12 +83,6 @@ import com.google.search.now.wire.feed.OpaqueActionDataProto.OpaqueActionData;
 import com.google.search.now.wire.feed.PietSharedStateItemProto.PietSharedStateItem;
 import com.google.search.now.wire.feed.ResponseProto.Response;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -161,17 +157,13 @@ public class FeedSessionManagerImplTest {
     assertThat(sessionManager.initialized.get()).isFalse();
     sessionManager.initialize();
     assertThat(sessionManager.initialized.get()).isTrue();
-
-    Map<String, StreamSharedState> sharedStateCache = sessionManager.getSharedStateCacheForTest();
-    assertThat(sharedStateCache).hasSize(1);
+    assertThat(sessionManager.getSharedStateCacheForTest()).hasSize(1);
 
     SessionCache sessionCache = sessionManager.getSessionCacheForTest();
     Session head = sessionCache.getHead();
     assertThat(head).isInstanceOf(HeadSessionImpl.class);
     String itemKey = idGenerators.createFeatureContentId(0);
-    Set<String> content = head.getContentInSession();
-    assertThat(content).contains(itemKey);
-    assertThat(content).hasSize(1);
+    assertThat(head.getContentInSession()).containsExactly(itemKey);
   }
 
   // This is testing a condition similar to the one that caused [INTERNAL LINK].
@@ -220,9 +212,7 @@ public class FeedSessionManagerImplTest {
     assertThat(sessionManager.initialized.get()).isFalse();
     sessionManager.initialize();
     assertThat(sessionManager.initialized.get()).isTrue();
-
-    Map<String, StreamSharedState> sharedStateCache = sessionManager.getSharedStateCacheForTest();
-    assertThat(sharedStateCache).hasSize(2);
+    assertThat(sessionManager.getSharedStateCacheForTest()).hasSize(2);
 
     StreamSharedState cachedSharedState1 = sessionManager.getSharedState(contentId1);
     StreamSharedState cachedSharedState2 = sessionManager.getSharedState(contentId2);
@@ -515,7 +505,7 @@ public class FeedSessionManagerImplTest {
             .build();
 
     Consumer<Result<Model>> updateConsumer = sessionManager.getUpdateConsumer(EMPTY_MUTATION);
-    Result<Model> result = Result.success(Model.of(listOf(streamDataOperation)));
+    Result<Model> result = Result.success(Model.of(ImmutableList.of(streamDataOperation)));
     updateConsumer.accept(result);
 
     assertThat(fakeStore.getContentById(rootContentId))
@@ -537,7 +527,7 @@ public class FeedSessionManagerImplTest {
             .build();
 
     Consumer<Result<Model>> updateConsumer = sessionManager.getUpdateConsumer(EMPTY_MUTATION);
-    Result<Model> result = Result.success(Model.of(listOf(streamDataOperation)));
+    Result<Model> result = Result.success(Model.of(ImmutableList.of(streamDataOperation)));
     updateConsumer.accept(result);
 
     assertThat(fakeStore.getContentById(rootContentId))
@@ -560,25 +550,21 @@ public class FeedSessionManagerImplTest {
     int featureCount = 3;
     populateSession(sessionManager, featureCount, 1, true, sharedStateId);
 
-    Map<String, StreamSharedState> sharedStates = sessionManager.getSharedStateCacheForTest();
-    assertThat(sharedStates).hasSize(1);
+    assertThat(sessionManager.getSharedStateCacheForTest()).hasSize(1);
     SessionCache sessionCache = sessionManager.getSessionCacheForTest();
     assertThat(sessionCache.getAttachedSessions()).isEmpty();
     Session session = sessionCache.getHead();
     assertThat(session).isNotNull();
-    Set<String> contentInSession = session.getContentInSession();
-    assertThat(contentInSession).hasSize(featureCount + 1);
+    assertThat(session.getContentInSession()).hasSize(featureCount + 1);
 
     fakeThreadUtils.enforceMainThread(false);
     sessionManager.onSwitchToEphemeralMode();
 
-    sharedStates = sessionManager.getSharedStateCacheForTest();
-    assertThat(sharedStates).hasSize(0);
+    assertThat(sessionManager.getSharedStateCacheForTest()).isEmpty();
     assertThat(sessionCache.getAttachedSessions()).isEmpty();
     session = sessionCache.getHead();
     assertThat(session).isNotNull();
-    contentInSession = session.getContentInSession();
-    assertThat(contentInSession).hasSize(0);
+    assertThat(session.getContentInSession()).isEmpty();
   }
 
   @Test
@@ -624,8 +610,8 @@ public class FeedSessionManagerImplTest {
     FeedSessionManagerImpl sessionManager =
         getInitializedSessionManager(
             new Configuration.Builder().put(ConfigKey.UNDOABLE_ACTIONS_ENABLED, true).build());
-    HashSet<StreamUploadableAction> actionSet = new HashSet<>();
-    actionSet.add(StreamUploadableAction.getDefaultInstance());
+    ImmutableSet<StreamUploadableAction> actionSet =
+        ImmutableSet.of(StreamUploadableAction.getDefaultInstance());
     ConsistencyToken token =
         ConsistencyToken.newBuilder().setToken(ByteString.copyFrom(new byte[] {0x1, 0xf})).build();
     fakeThreadUtils.enforceMainThread(false);
@@ -829,11 +815,5 @@ public class FeedSessionManagerImplTest {
             fakeClock,
             appLifecycleListener)
         .create();
-  }
-
-  private static <T> List<T> listOf(T... items) {
-    ArrayList<T> result = new ArrayList<>(items.length);
-    Collections.addAll(result, items);
-    return result;
   }
 }

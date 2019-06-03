@@ -340,7 +340,8 @@ public final class FeedSessionManagerImpl
       modelProvider.raiseError(Validators.checkNotNull(noCardsError));
       String sessionId = streamSessionResult.getValue();
       session.setSessionId(sessionId);
-      sessionCache.putAttached(sessionId, clock.currentTimeMillis(), session);
+      sessionCache.putAttached(
+          sessionId, clock.currentTimeMillis(), sessionCache.getHead().getSchemaVersion(), session);
       synchronized (lock) {
         sessionsUnderConstruction.remove(session);
       }
@@ -374,7 +375,8 @@ public final class FeedSessionManagerImpl
         cachedBindings,
         shouldAppendOutstandingRequest,
         uiContext);
-    sessionCache.putAttached(sessionId, creationTimeMillis, session);
+    sessionCache.putAttached(
+        sessionId, creationTimeMillis, sessionCache.getHead().getSchemaVersion(), session);
     synchronized (lock) {
       sessionsUnderConstruction.remove(session);
     }

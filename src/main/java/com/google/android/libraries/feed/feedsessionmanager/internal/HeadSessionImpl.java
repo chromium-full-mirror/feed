@@ -41,6 +41,8 @@ public class HeadSessionImpl implements Session, Dumpable {
   private final SessionContentTracker sessionContentTracker =
       new SessionContentTracker(/* supportsClearAll= */ true);
 
+  private int schemaVersion = 0;
+
   // operation counts for the dumper
   private int updateCount = 0;
   private int storeMutationFailures = 0;
@@ -51,13 +53,18 @@ public class HeadSessionImpl implements Session, Dumpable {
   }
 
   /** Initialize head from the stored stream structures. */
-  void initializeSession(List<StreamStructure> streamStructures) {
+  void initializeSession(List<StreamStructure> streamStructures, int schemaVersion) {
     Logger.i(TAG, "Initialize HEAD %s items", streamStructures.size());
+    this.schemaVersion = schemaVersion;
     sessionContentTracker.update(streamStructures);
   }
 
   void reset() {
     sessionContentTracker.clear();
+  }
+
+  public int getSchemaVersion() {
+    return schemaVersion;
   }
 
   @Override

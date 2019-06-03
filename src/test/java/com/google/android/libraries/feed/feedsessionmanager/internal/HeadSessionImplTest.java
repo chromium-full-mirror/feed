@@ -25,6 +25,7 @@ import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUti
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.testing.store.FakeStore;
+import com.google.common.collect.ImmutableList;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import java.util.List;
@@ -258,6 +259,13 @@ public class HeadSessionImplTest {
     assertThat(getContentInSession()).hasSize(1);
   }
 
+  @Test
+  public void testInitializeSession_schemaVersion() {
+    int schemaVersion = 3;
+    headSession.initializeSession(ImmutableList.of(), schemaVersion);
+    assertThat(headSession.getSchemaVersion()).isEqualTo(schemaVersion);
+  }
+
   private void addFeatures(InternalProtocolBuilder protocolBuilder, int featureCnt, int startId) {
     for (int i = 0; i < featureCnt; i++) {
       protocolBuilder.addFeature(
@@ -269,7 +277,8 @@ public class HeadSessionImplTest {
   /** Re-read the session from disk and return the set of content. */
   private Set<String> getContentInSession() {
     HeadSessionImpl headSession = new HeadSessionImpl(fakeStore, timingUtils);
-    headSession.initializeSession(fakeStore.getStreamStructures(Store.HEAD_SESSION_ID).getValue());
+    headSession.initializeSession(
+        fakeStore.getStreamStructures(Store.HEAD_SESSION_ID).getValue(), /* schemaVersion= */ 0);
     return headSession.getContentInSession();
   }
 }

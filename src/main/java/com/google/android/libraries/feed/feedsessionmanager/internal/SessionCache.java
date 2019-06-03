@@ -190,7 +190,8 @@ public final class SessionCache implements Dumpable {
   }
 
   /** Add a {@link Session} to the SessionCache. */
-  public void putAttached(String sessionId, long creationTimeMillis, Session session) {
+  public void putAttached(
+      String sessionId, long creationTimeMillis, int schemaVersion, Session session) {
     Logger.d(TAG, "putAttached, sessionId=%s", sessionId);
 
     threadUtils.checkNotMainThread();
@@ -199,7 +200,10 @@ public final class SessionCache implements Dumpable {
       attachedSessions.put(sessionId, session);
       sessionsMetadata.put(
           sessionId,
-          SessionMetadata.newBuilder().setCreationTimeMillis(creationTimeMillis).build());
+          SessionMetadata.newBuilder()
+              .setCreationTimeMillis(creationTimeMillis)
+              .setSchemaVersion(schemaVersion)
+              .build());
       Logger.d(
           TAG,
           "Sessions size: attached=%d, all=%d",
@@ -284,11 +288,14 @@ public final class SessionCache implements Dumpable {
       Logger.w(TAG, "unable to get head stream structures");
       return false;
     }
-    head.initializeSession(results.getValue());
+
+    List<StreamSession> sessionList = getPersistedSessions();
+    int headSchemaVersion = getHeadSchemaVersion(sessionList);
+    head.initializeSession(results.getValue(), headSchemaVersion);
     initialized = true;
     headTimeTracker.stop("", "createHead");
 
-    initializePersistedSessions();
+    initializePersistedSessions(sessionList);
 
     // Ensure that SessionMetadata exists for HEAD.
     synchronized (lock) {
@@ -337,9 +344,11 @@ public final class SessionCache implements Dumpable {
   void updateHeadLastAddedTimeMillis(long lastAddedTimeMillis) {
     threadUtils.checkNotMainThread();
     synchronized (lock) {
+      SessionMetadata metadata = sessionsMetadata.get(head.getSessionId());
+      SessionMetadata.Builder builder =
+          metadata == null ? SessionMetadata.newBuilder() : metadata.toBuilder();
       sessionsMetadata.put(
-          head.getSessionId(),
-          SessionMetadata.newBuilder().setLastAddedTimeMillis(lastAddedTimeMillis).build());
+          head.getSessionId(), builder.setLastAddedTimeMillis(lastAddedTimeMillis).build());
     }
     updatePersistedSessionsMetadata();
   }
@@ -395,9 +404,8 @@ public final class SessionCache implements Dumpable {
     return unboundSessions.values();
   }
 
-  private void initializePersistedSessions() {
+  private void initializePersistedSessions(List<StreamSession> sessionList) {
     threadUtils.checkNotMainThread();
-    List<StreamSession> sessionList = getPersistedSessions();
 
     HeadSessionImpl headSession = Validators.checkNotNull(head);
     String headSessionId = headSession.getSessionId();
@@ -596,6 +604,16 @@ public final class SessionCache implements Dumpable {
       metadataBuilder.setCreationTimeMillis(streamSession.getLegacyTimeMillis());
     }
     return metadataBuilder.build();
+  }
+
+  private int getHeadSchemaVersion(List<StreamSession> sessionList) {
+    for (StreamSession streamSession : sessionList) {
+      if (streamSession.getSessionId().equals(head.getSessionId())) {
+        return streamSession.getSessionMetadata().getSchemaVersion();
+      }
+    }
+
+    return 0;
   }
 
   @Override

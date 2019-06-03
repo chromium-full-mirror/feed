@@ -47,6 +47,7 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class SessionCacheTest {
   private static final long DEFAULT_LIFETIME_MS = 10;
+  private static final int SCHEMA_VERSION = 4;
 
   private final Configuration configuration = new Configuration.Builder().build();
   private final ContentIdGenerators idGenerators = new ContentIdGenerators();
@@ -73,7 +74,16 @@ public class SessionCacheTest {
 
   @Test
   public void testInitialization() {
+    int schemaVersion = 3;
     populateHead();
+    mockStreamSessions(
+        StreamSessions.newBuilder()
+            .addStreamSession(
+                StreamSession.newBuilder()
+                    .setSessionId(Store.HEAD_SESSION_ID)
+                    .setSessionMetadata(
+                        SessionMetadata.newBuilder().setSchemaVersion(schemaVersion)))
+            .build());
     assertThat(sessionCache.getAttachedSessions()).isEmpty();
     assertThat(sessionCache.isHeadInitialized()).isFalse();
     assertThat(sessionCache.getHead()).isNotNull();
@@ -85,6 +95,7 @@ public class SessionCacheTest {
     assertThat(sessionCache.getAttachedSessions()).isEmpty();
     assertThat(sessionCache.getHead()).isNotNull();
     assertThat(sessionCache.getHead().isHeadEmpty()).isFalse();
+    assertThat(sessionCache.getHead().getSchemaVersion()).isEqualTo(schemaVersion);
   }
 
   @Test
@@ -101,13 +112,15 @@ public class SessionCacheTest {
   public void testPut_persisted() {
     sessionCache.initialize();
     Session session = populateSession(1, 2);
-    sessionCache.putAttached(session.getSessionId(), /* creationTimeMillis= */ 0L, session);
+    sessionCache.putAttached(
+        session.getSessionId(), /* creationTimeMillis= */ 0L, SCHEMA_VERSION, session);
 
     Session ret = sessionCache.getAttached(session.getSessionId());
     assertThat(ret).isEqualTo(session);
 
     session = populateSession(2, 2);
-    sessionCache.putAttached(session.getSessionId(), /* creationTimeMillis= */ 0L, session);
+    sessionCache.putAttached(
+        session.getSessionId(), /* creationTimeMillis= */ 0L, SCHEMA_VERSION, session);
 
     List<StreamSession> streamSessionList = sessionCache.getPersistedSessions();
     assertThat(streamSessionList).hasSize(3);
@@ -117,7 +130,8 @@ public class SessionCacheTest {
   public void testRemove() {
     sessionCache.initialize();
     Session session = populateSession(1, 2);
-    sessionCache.putAttached(session.getSessionId(), /* creationTimeMillis= */ 0L, session);
+    sessionCache.putAttached(
+        session.getSessionId(), /* creationTimeMillis= */ 0L, SCHEMA_VERSION, session);
 
     List<StreamSession> streamSessionList = sessionCache.getPersistedSessions();
     assertThat(streamSessionList).hasSize(2);
@@ -168,14 +182,14 @@ public class SessionCacheTest {
 
     Session s1 = populateSession(1, 2, /* commitToStore= */ true);
     String s1Id = s1.getSessionId();
-    sessionCache.putAttached(s1Id, 1L, s1);
+    sessionCache.putAttached(s1Id, 1L, SCHEMA_VERSION, s1);
 
     assertThat(sessionCache.getAttachedSessions()).containsExactly(s1);
     assertThat(sessionCache.getAllSessions()).containsExactly(s1, headSession);
 
     Session s2 = populateSession(2, 2, /* commitToStore= */ true);
     String s2Id = s2.getSessionId();
-    sessionCache.putAttached(s2Id, 2L, s2);
+    sessionCache.putAttached(s2Id, 2L, SCHEMA_VERSION, s2);
 
     assertThat(sessionCache.getAttachedSessions()).containsExactly(s1, s2);
     assertThat(sessionCache.getAllSessions()).containsExactly(s1, s2, headSession);
@@ -341,12 +355,18 @@ public class SessionCacheTest {
     StreamSession session1 =
         StreamSession.newBuilder()
             .setSessionId("stream:1")
-            .setSessionMetadata(SessionMetadata.newBuilder().setCreationTimeMillis(0L))
+            .setSessionMetadata(
+                SessionMetadata.newBuilder()
+                    .setCreationTimeMillis(0L)
+                    .setSchemaVersion(SCHEMA_VERSION))
             .build();
     StreamSession session2 =
         StreamSession.newBuilder()
             .setSessionId("stream:2")
-            .setSessionMetadata(SessionMetadata.newBuilder().setCreationTimeMillis(0L))
+            .setSessionMetadata(
+                SessionMetadata.newBuilder()
+                    .setCreationTimeMillis(0L)
+                    .setSchemaVersion(SCHEMA_VERSION))
             .build();
     Session s1 = mock(Session.class);
     when(s1.getSessionId()).thenReturn(session1.getSessionId());
@@ -426,7 +446,8 @@ public class SessionCacheTest {
 
   private void setSessions(Session... testSessions) {
     for (Session session : testSessions) {
-      sessionCache.putAttached(session.getSessionId(), /* creationTimeMillis= */ 0L, session);
+      sessionCache.putAttached(
+          session.getSessionId(), /* creationTimeMillis= */ 0L, SCHEMA_VERSION, session);
     }
   }
 }
