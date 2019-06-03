@@ -205,8 +205,10 @@ public class FeedStore extends FeedObservable<StoreListener>
 
   @Override
   public Runnable triggerContentGc(
-      Set<String> reservedContentIds, Supplier<Set<String>> accessibleContent) {
-    return delegate.triggerContentGc(reservedContentIds, accessibleContent);
+      Set<String> reservedContentIds,
+      Supplier<Set<String>> accessibleContent,
+      boolean keepSharedStates) {
+    return delegate.triggerContentGc(reservedContentIds, accessibleContent, keepSharedStates);
   }
 
   @Override

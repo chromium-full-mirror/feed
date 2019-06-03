@@ -412,7 +412,9 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
 
   @Override
   public Runnable triggerContentGc(
-      Set<String> reservedContentIds, Supplier<Set<String>> accessibleContent) {
+      Set<String> reservedContentIds,
+      Supplier<Set<String>> accessibleContent,
+      boolean keepSharedStates) {
     Supplier<Set<StreamLocalAction>> dismissActionSupplier =
         () -> {
           Result<List<StreamLocalAction>> dismissActionsResult = getAllDismissLocalActions();
@@ -444,7 +446,8 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
             dismissActionSupplier,
             uploadableActionSupplier,
             contentStorageDirect,
-            timingUtils)
+            timingUtils,
+            keepSharedStates)
         ::gc;
   }
 

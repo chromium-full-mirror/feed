@@ -301,7 +301,9 @@ public final class EphemeralFeedStore implements ClearableStore {
 
   @Override
   public Runnable triggerContentGc(
-      Set<String> reservedContentIds, Supplier<Set<String>> accessibleContent) {
+      Set<String> reservedContentIds,
+      Supplier<Set<String>> accessibleContent,
+      boolean keepSharedStates) {
     // No garbage collection in ephemeral mode
     return EMPTY_RUNNABLE;
   }

@@ -30,13 +30,11 @@ import com.google.android.libraries.feed.api.host.storage.ContentStorageDirect;
 import com.google.android.libraries.feed.api.internal.store.LocalActionMutation.ActionType;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.time.TimingUtils;
+import com.google.common.collect.ImmutableSet;
 import com.google.search.now.feed.client.StreamDataProto.StreamLocalAction;
 import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -66,22 +64,19 @@ public class ContentGcTest {
 
   @Test
   public void gc() {
-    Set<String> accessibleContent = Collections.emptySet();
-    Set<String> reservedContentIds = Collections.emptySet();
-    Set<StreamLocalAction> dismissActions = Collections.emptySet();
-    Set<StreamUploadableAction> uploadableActions = Collections.emptySet();
     List<String> contentKeys = new ArrayList<>();
     contentKeys.add(CONTENT_ID_1);
     contentKeys.add(CONTENT_ID_2);
     mockContentStorageWithContents(contentKeys);
     ContentGc contentGc =
         new ContentGc(
-            () -> accessibleContent,
-            reservedContentIds,
-            () -> dismissActions,
-            () -> uploadableActions,
+            ImmutableSet::of,
+            ImmutableSet.of(),
+            ImmutableSet::of,
+            ImmutableSet::of,
             contentStorage,
-            timingUtils);
+            timingUtils,
+            /* keepSharedStates= */ true);
     contentGc.gc();
     ArgumentCaptor<ContentMutation> contentMutationCaptor =
         ArgumentCaptor.forClass(ContentMutation.class);
@@ -94,22 +89,19 @@ public class ContentGcTest {
 
   @Test
   public void gc_accessible() {
-    Set<String> accessibleContent = new HashSet<>(Collections.singletonList(CONTENT_ID_1));
-    Set<String> reservedContentIds = Collections.emptySet();
-    Set<StreamLocalAction> dismissActions = Collections.emptySet();
-    Set<StreamUploadableAction> uploadableActions = Collections.emptySet();
     List<String> contentKeys = new ArrayList<>();
     contentKeys.add(CONTENT_ID_1);
     contentKeys.add(CONTENT_ID_2);
     mockContentStorageWithContents(contentKeys);
     ContentGc contentGc =
         new ContentGc(
-            () -> accessibleContent,
-            reservedContentIds,
-            () -> dismissActions,
-            () -> uploadableActions,
+            () -> ImmutableSet.of(CONTENT_ID_1),
+            ImmutableSet.of(),
+            ImmutableSet::of,
+            ImmutableSet::of,
             contentStorage,
-            timingUtils);
+            timingUtils,
+            /* keepSharedStates= */ true);
     contentGc.gc();
     ArgumentCaptor<ContentMutation> contentMutationCaptor =
         ArgumentCaptor.forClass(ContentMutation.class);
@@ -122,22 +114,19 @@ public class ContentGcTest {
 
   @Test
   public void gc_reserved() {
-    Set<String> accessibleContent = Collections.emptySet();
-    Set<String> reservedContentIds = new HashSet<>(Collections.singletonList(CONTENT_ID_1));
-    Set<StreamLocalAction> dismissActions = Collections.emptySet();
-    Set<StreamUploadableAction> uploadableActions = Collections.emptySet();
     List<String> contentKeys = new ArrayList<>();
     contentKeys.add(CONTENT_ID_1);
     contentKeys.add(CONTENT_ID_2);
     mockContentStorageWithContents(contentKeys);
     ContentGc contentGc =
         new ContentGc(
-            () -> accessibleContent,
-            reservedContentIds,
-            () -> dismissActions,
-            () -> uploadableActions,
+            ImmutableSet::of,
+            ImmutableSet.of(CONTENT_ID_1),
+            ImmutableSet::of,
+            ImmutableSet::of,
             contentStorage,
-            timingUtils);
+            timingUtils,
+            /* keepSharedStates= */ true);
     contentGc.gc();
     ArgumentCaptor<ContentMutation> contentMutationCaptor =
         ArgumentCaptor.forClass(ContentMutation.class);
@@ -150,22 +139,19 @@ public class ContentGcTest {
 
   @Test
   public void gc_actionProperties_noAction() {
-    Set<String> accessibleContent = Collections.emptySet();
-    Set<String> reservedContentIds = Collections.emptySet();
-    Set<StreamLocalAction> dismissActions = Collections.emptySet();
-    Set<StreamUploadableAction> uploadableActions = Collections.emptySet();
     List<String> contentKeys = new ArrayList<>();
     contentKeys.add(ACTION_PROPERTIES_1);
     contentKeys.add(ACTION_PROPERTIES_2);
     mockContentStorageWithContents(contentKeys);
     ContentGc contentGc =
         new ContentGc(
-            () -> accessibleContent,
-            reservedContentIds,
-            () -> dismissActions,
-            () -> uploadableActions,
+            ImmutableSet::of,
+            ImmutableSet.of(),
+            ImmutableSet::of,
+            ImmutableSet::of,
             contentStorage,
-            timingUtils);
+            timingUtils,
+            /* keepSharedStates= */ true);
     contentGc.gc();
     ArgumentCaptor<ContentMutation> contentMutationCaptor =
         ArgumentCaptor.forClass(ContentMutation.class);
@@ -182,28 +168,24 @@ public class ContentGcTest {
 
   @Test
   public void gc_actionProperties_validAction() {
-    Set<String> accessibleContent = Collections.emptySet();
-    Set<String> reservedContentIds = Collections.emptySet();
-    Set<StreamLocalAction> dismissActions = Collections.emptySet();
-    Set<StreamUploadableAction> uploadableActions =
-        new HashSet<>(
-            Collections.singletonList(
-                StreamUploadableAction.newBuilder()
-                    .setUploadAttempts(1)
-                    .setFeatureContentId(CONTENT_ID_1)
-                    .build()));
     List<String> contentKeys = new ArrayList<>();
     contentKeys.add(ACTION_PROPERTIES_1);
     contentKeys.add(ACTION_PROPERTIES_2);
     mockContentStorageWithContents(contentKeys);
     ContentGc contentGc =
         new ContentGc(
-            () -> accessibleContent,
-            reservedContentIds,
-            () -> dismissActions,
-            () -> uploadableActions,
+            ImmutableSet::of,
+            ImmutableSet.of(),
+            ImmutableSet::of,
+            () ->
+                ImmutableSet.of(
+                    StreamUploadableAction.newBuilder()
+                        .setUploadAttempts(1)
+                        .setFeatureContentId(CONTENT_ID_1)
+                        .build()),
             contentStorage,
-            timingUtils);
+            timingUtils,
+            /* keepSharedStates= */ true);
     contentGc.gc();
     ArgumentCaptor<ContentMutation> contentMutationCaptor =
         ArgumentCaptor.forClass(ContentMutation.class);
@@ -216,10 +198,6 @@ public class ContentGcTest {
 
   @Test
   public void gc_actionProperties_accessibleContent() {
-    Set<String> accessibleContent = Collections.singleton(CONTENT_ID_1);
-    Set<String> reservedContentIds = Collections.emptySet();
-    Set<StreamLocalAction> dismissActions = Collections.emptySet();
-    Set<StreamUploadableAction> uploadableActions = Collections.emptySet();
     List<String> contentKeys = new ArrayList<>();
     contentKeys.add(CONTENT_ID_1);
     contentKeys.add(ACTION_PROPERTIES_1);
@@ -227,12 +205,13 @@ public class ContentGcTest {
     mockContentStorageWithContents(contentKeys);
     ContentGc contentGc =
         new ContentGc(
-            () -> accessibleContent,
-            reservedContentIds,
-            () -> dismissActions,
-            () -> uploadableActions,
+            () -> ImmutableSet.of(CONTENT_ID_1),
+            ImmutableSet.of(),
+            ImmutableSet::of,
+            ImmutableSet::of,
             contentStorage,
-            timingUtils);
+            timingUtils,
+            /* keepSharedStates= */ true);
     contentGc.gc();
     ArgumentCaptor<ContentMutation> contentMutationCaptor =
         ArgumentCaptor.forClass(ContentMutation.class);
@@ -245,22 +224,19 @@ public class ContentGcTest {
 
   @Test
   public void gc_semanticProperties_noAction() {
-    Set<String> accessibleContent = Collections.emptySet();
-    Set<String> reservedContentIds = Collections.emptySet();
-    Set<StreamLocalAction> dismissActions = Collections.emptySet();
-    Set<StreamUploadableAction> uploadableActions = Collections.emptySet();
     List<String> contentKeys = new ArrayList<>();
     contentKeys.add(SEMANTIC_PROPERTIES_1);
     contentKeys.add(SEMANTIC_PROPERTIES_2);
     mockContentStorageWithContents(contentKeys);
     ContentGc contentGc =
         new ContentGc(
-            () -> accessibleContent,
-            reservedContentIds,
-            () -> dismissActions,
-            () -> uploadableActions,
+            ImmutableSet::of,
+            ImmutableSet.of(),
+            ImmutableSet::of,
+            ImmutableSet::of,
             contentStorage,
-            timingUtils);
+            timingUtils,
+            /* keepSharedStates= */ true);
     contentGc.gc();
     ArgumentCaptor<ContentMutation> contentMutationCaptor =
         ArgumentCaptor.forClass(ContentMutation.class);
@@ -277,29 +253,24 @@ public class ContentGcTest {
 
   @Test
   public void gc_semanticProperties_validAction() {
-    Set<String> accessibleContent = Collections.emptySet();
-    Set<String> reservedContentIds = Collections.emptySet();
-    Set<StreamLocalAction> dismissActions =
-        new HashSet<>(
-            Collections.singletonList(
-                StreamLocalAction.newBuilder()
-                    .setAction(ActionType.DISMISS)
-                    .setFeatureContentId(CONTENT_ID_1)
-                    .build()));
-
-    Set<StreamUploadableAction> uploadableActions = Collections.emptySet();
     List<String> contentKeys = new ArrayList<>();
     contentKeys.add(SEMANTIC_PROPERTIES_1);
     contentKeys.add(SEMANTIC_PROPERTIES_2);
     mockContentStorageWithContents(contentKeys);
     ContentGc contentGc =
         new ContentGc(
-            () -> accessibleContent,
-            reservedContentIds,
-            () -> dismissActions,
-            () -> uploadableActions,
+            ImmutableSet::of,
+            ImmutableSet.of(),
+            () ->
+                ImmutableSet.of(
+                    StreamLocalAction.newBuilder()
+                        .setAction(ActionType.DISMISS)
+                        .setFeatureContentId(CONTENT_ID_1)
+                        .build()),
+            ImmutableSet::of,
             contentStorage,
-            timingUtils);
+            timingUtils,
+            /* keepSharedStates= */ true);
     contentGc.gc();
     ArgumentCaptor<ContentMutation> contentMutationCaptor =
         ArgumentCaptor.forClass(ContentMutation.class);
@@ -312,10 +283,6 @@ public class ContentGcTest {
 
   @Test
   public void gc_semanticProperties_accessibleContent() {
-    Set<String> accessibleContent = Collections.singleton(CONTENT_ID_1);
-    Set<String> reservedContentIds = Collections.emptySet();
-    Set<StreamLocalAction> dismissActions = Collections.emptySet();
-    Set<StreamUploadableAction> uploadableActions = Collections.emptySet();
     List<String> contentKeys = new ArrayList<>();
     contentKeys.add(CONTENT_ID_1);
     contentKeys.add(SEMANTIC_PROPERTIES_1);
@@ -323,12 +290,13 @@ public class ContentGcTest {
     mockContentStorageWithContents(contentKeys);
     ContentGc contentGc =
         new ContentGc(
-            () -> accessibleContent,
-            reservedContentIds,
-            () -> dismissActions,
-            () -> uploadableActions,
+            () -> ImmutableSet.of(CONTENT_ID_1),
+            ImmutableSet.of(),
+            ImmutableSet::of,
+            ImmutableSet::of,
             contentStorage,
-            timingUtils);
+            timingUtils,
+            /* keepSharedStates= */ true);
     contentGc.gc();
     ArgumentCaptor<ContentMutation> contentMutationCaptor =
         ArgumentCaptor.forClass(ContentMutation.class);
@@ -341,22 +309,73 @@ public class ContentGcTest {
 
   @Test
   public void gc_prefixed_sharedState() {
-    Set<String> accessibleContent = Collections.emptySet();
-    Set<String> reservedContentIds = Collections.emptySet();
-    Set<StreamLocalAction> dismissActions = Collections.emptySet();
-    Set<StreamUploadableAction> uploadableActions = Collections.emptySet();
     List<String> contentKeys = new ArrayList<>();
     contentKeys.add(SHARED_STATE_PREFIX + CONTENT_ID_1);
     contentKeys.add(CONTENT_ID_2);
     mockContentStorageWithContents(contentKeys);
     ContentGc contentGc =
         new ContentGc(
-            () -> accessibleContent,
-            reservedContentIds,
-            () -> dismissActions,
-            () -> uploadableActions,
+            ImmutableSet::of,
+            ImmutableSet.of(),
+            ImmutableSet::of,
+            ImmutableSet::of,
             contentStorage,
-            timingUtils);
+            timingUtils,
+            /* keepSharedStates= */ true);
+    contentGc.gc();
+    ArgumentCaptor<ContentMutation> contentMutationCaptor =
+        ArgumentCaptor.forClass(ContentMutation.class);
+    verify(contentStorage).commit(contentMutationCaptor.capture());
+    List<ContentOperation> expectedOperations =
+        new Builder().delete(CONTENT_ID_2).build().getOperations();
+    List<ContentOperation> resultOperations = contentMutationCaptor.getValue().getOperations();
+    assertListsContainSameElements(expectedOperations, resultOperations);
+  }
+
+  @Test
+  public void gc_deleteSharedState() {
+    List<String> contentKeys = new ArrayList<>();
+    contentKeys.add(SHARED_STATE_PREFIX + CONTENT_ID_1);
+    contentKeys.add(CONTENT_ID_2);
+    mockContentStorageWithContents(contentKeys);
+    ContentGc contentGc =
+        new ContentGc(
+            ImmutableSet::of,
+            ImmutableSet.of(),
+            ImmutableSet::of,
+            ImmutableSet::of,
+            contentStorage,
+            timingUtils,
+            /* keepSharedStates= */ false);
+    contentGc.gc();
+    ArgumentCaptor<ContentMutation> contentMutationCaptor =
+        ArgumentCaptor.forClass(ContentMutation.class);
+    verify(contentStorage).commit(contentMutationCaptor.capture());
+    List<ContentOperation> expectedOperations =
+        new Builder()
+            .delete(SHARED_STATE_PREFIX + CONTENT_ID_1)
+            .delete(CONTENT_ID_2)
+            .build()
+            .getOperations();
+    List<ContentOperation> resultOperations = contentMutationCaptor.getValue().getOperations();
+    assertListsContainSameElements(expectedOperations, resultOperations);
+  }
+
+  @Test
+  public void gc_keepAccessibleSharedState() {
+    List<String> contentKeys = new ArrayList<>();
+    contentKeys.add(SHARED_STATE_PREFIX + CONTENT_ID_1);
+    contentKeys.add(CONTENT_ID_2);
+    mockContentStorageWithContents(contentKeys);
+    ContentGc contentGc =
+        new ContentGc(
+            () -> ImmutableSet.of(SHARED_STATE_PREFIX + CONTENT_ID_1),
+            ImmutableSet.of(),
+            ImmutableSet::of,
+            ImmutableSet::of,
+            contentStorage,
+            timingUtils,
+            /* keepSharedStates= */ false);
     contentGc.gc();
     ArgumentCaptor<ContentMutation> contentMutationCaptor =
         ArgumentCaptor.forClass(ContentMutation.class);

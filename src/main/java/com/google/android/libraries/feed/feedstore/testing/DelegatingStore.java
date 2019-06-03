@@ -129,8 +129,10 @@ public class DelegatingStore implements Store {
 
   @Override
   public Runnable triggerContentGc(
-      Set<String> reservedContentIds, Supplier<Set<String>> accessibleContent) {
-    return store.triggerContentGc(reservedContentIds, accessibleContent);
+      Set<String> reservedContentIds,
+      Supplier<Set<String>> accessibleContent,
+      boolean keepSharedStates) {
+    return store.triggerContentGc(reservedContentIds, accessibleContent, keepSharedStates);
   }
 
   @Override

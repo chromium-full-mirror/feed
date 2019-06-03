@@ -43,6 +43,7 @@ public final class ContentGc {
   private final Supplier<Set<StreamUploadableAction>> uploadableActionsSupplier;
   private final ContentStorageDirect contentStorageDirect;
   private final TimingUtils timingUtils;
+  private final boolean keepSharedStates;
 
   ContentGc(
       Supplier<Set<String>> accessibleContentSupplier,
@@ -50,13 +51,15 @@ public final class ContentGc {
       Supplier<Set<StreamLocalAction>> actionsSupplier,
       Supplier<Set<StreamUploadableAction>> uploadableActionsSupplier,
       ContentStorageDirect contentStorageDirect,
-      TimingUtils timingUtils) {
+      TimingUtils timingUtils,
+      boolean keepSharedStates) {
     this.accessibleContentSupplier = accessibleContentSupplier;
     this.reservedContentIds = reservedContentIds;
     this.actionsSupplier = actionsSupplier;
     this.uploadableActionsSupplier = uploadableActionsSupplier;
     this.contentStorageDirect = contentStorageDirect;
     this.timingUtils = timingUtils;
+    this.keepSharedStates = keepSharedStates;
   }
 
   void gc() {
@@ -71,7 +74,9 @@ public final class ContentGc {
     population.removeAll(getLocalActionSemanticProperties(getLocalActions()));
     population.removeAll(getAccessibleActionProperties(accessibleContent));
     population.removeAll(getUploadableActionProperties(getUploadableActions()));
-    filterPrefixed(population);
+    if (keepSharedStates) {
+      filterSharedStates(population);
+    }
 
     // Population now contains only un-accessible items
     removeUnAccessible(population);
@@ -91,7 +96,7 @@ public final class ContentGc {
     tracker.stop("", "removeUnAccessible", "mutations", unAccessible.size());
   }
 
-  private void filterPrefixed(Set<String> population) {
+  private void filterSharedStates(Set<String> population) {
     int size = population.size();
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
     Iterator<String> i = population.iterator();
@@ -101,7 +106,7 @@ public final class ContentGc {
         i.remove();
       }
     }
-    tracker.stop("", "filterPrefixed", population.size() - size);
+    tracker.stop("", "filterSharedStates", population.size() - size);
   }
 
   private Set<String> getAccessible() {

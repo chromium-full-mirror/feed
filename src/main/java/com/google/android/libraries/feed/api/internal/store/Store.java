@@ -115,7 +115,9 @@ public interface Store extends Observable<StoreListener> {
    * SessionManager which controls the scheduling of cleanup tasks.
    */
   Runnable triggerContentGc(
-      Set<String> reservedContentIds, Supplier<Set<String>> accessibleContent);
+      Set<String> reservedContentIds,
+      Supplier<Set<String>> accessibleContent,
+      boolean keepSharedStates);
 
   /**
    * Returns a runnable that will garbage collect actions. All valid actions will be copied over to

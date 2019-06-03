@@ -469,7 +469,9 @@ public final class SessionCache implements Dumpable {
         Task.GARBAGE_COLLECT_CONTENT,
         TaskType.BACKGROUND,
         store.triggerContentGc(
-            reservedContentIds, getAccessibleContentSupplier(sessionContentTrackers)));
+            reservedContentIds,
+            getAccessibleContentSupplier(sessionContentTrackers),
+            /* keepSharedStates= */ true));
   }
 
   private Supplier<Set<String>> getAccessibleContentSupplier(
