@@ -17,6 +17,7 @@ package com.google.android.libraries.feed.api.internal.sessionmanager;
 import com.google.android.libraries.feed.api.client.knowncontent.KnownContent;
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.host.logging.RequestReason;
+import com.google.android.libraries.feed.api.internal.common.Model;
 import com.google.android.libraries.feed.api.internal.common.PayloadWithId;
 import com.google.android.libraries.feed.api.internal.lifecycle.Resettable;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider;
@@ -134,8 +135,8 @@ public interface FeedSessionManager extends Resettable {
 
   /**
    * Return a {@link Consumer} which is able to handle an update to the SessionManager. An update
-   * consists of a List of {@link StreamDataOperation} objects. The {@link MutationContext} captures
-   * the context which is initiating the update operation.
+   * consists of {@link Model} containing a list of {@link StreamDataOperation} objects. The {@link
+   * MutationContext} captures the context which is initiating the update operation.
    */
-  Consumer<Result<List<StreamDataOperation>>> getUpdateConsumer(MutationContext mutationContext);
+  Consumer<Result<Model>> getUpdateConsumer(MutationContext mutationContext);
 }

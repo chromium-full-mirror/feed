@@ -43,12 +43,12 @@ android_local_test(
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/common",
         "//src/main/java/com/google/android/libraries/feed/api/host/logging",
+        "//src/main/java/com/google/android/libraries/feed/api/internal/common",
         "//src/main/java/com/google/android/libraries/feed/api/internal/requestmanager",
         "//src/main/java/com/google/android/libraries/feed/api/internal/sessionmanager",
         "//src/main/java/com/google/android/libraries/feed/common",
         "//src/main/java/com/google/android/libraries/feed/common/functional",
         "//src/main/java/com/google/android/libraries/feed/feedrequestmanager",
-        "//src/main/proto/com/google/android/libraries/feed/api/internal/proto:client_feed_java_proto_lite",
         "//third_party:robolectric",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:org_mockito_mockito_core",

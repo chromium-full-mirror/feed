@@ -377,6 +377,7 @@ android_local_test(
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/client/requestmanager",
         "//src/main/java/com/google/android/libraries/feed/api/common",
+        "//src/main/java/com/google/android/libraries/feed/api/internal/common",
         "//src/main/java/com/google/android/libraries/feed/api/internal/modelprovider",
         "//src/main/java/com/google/android/libraries/feed/api/internal/protocoladapter",
         "//src/main/java/com/google/android/libraries/feed/api/internal/sessionmanager",
@@ -549,6 +550,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/api/common",
         "//src/main/java/com/google/android/libraries/feed/api/host/config",
         "//src/main/java/com/google/android/libraries/feed/api/host/logging",
+        "//src/main/java/com/google/android/libraries/feed/api/internal/common",
         "//src/main/java/com/google/android/libraries/feed/api/internal/common/testing",
         "//src/main/java/com/google/android/libraries/feed/api/internal/modelprovider",
         "//src/main/java/com/google/android/libraries/feed/api/internal/protocoladapter",

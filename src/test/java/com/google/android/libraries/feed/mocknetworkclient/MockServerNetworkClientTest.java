@@ -31,6 +31,7 @@ import com.google.android.libraries.feed.api.host.network.HttpResponse;
 import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.api.host.stream.TooltipSupportedApi;
 import com.google.android.libraries.feed.api.internal.actionmanager.ActionReader;
+import com.google.android.libraries.feed.api.internal.common.Model;
 import com.google.android.libraries.feed.api.internal.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
@@ -186,7 +187,7 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
             basicLoggingApi,
             tooltipSupportedApi);
     when(protocolAdapter.createModel(any(Response.class)))
-        .thenReturn(Result.success(new ArrayList<>()));
+        .thenReturn(Result.success(Model.empty()));
 
     fakeThreadUtils.enforceMainThread(false);
     feedRequestManager.loadMore(
@@ -194,7 +195,7 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
         ConsistencyToken.getDefaultInstance(),
         result -> {
           assertThat(result.isSuccessful()).isTrue();
-          assertThat(result.getValue()).hasSize(0);
+          assertThat(result.getValue().streamDataOperations).hasSize(0);
         });
 
     verify(protocolAdapter).createModel(responseCaptor.capture());
@@ -230,7 +231,7 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
             basicLoggingApi,
             tooltipSupportedApi);
     when(protocolAdapter.createModel(any(Response.class)))
-        .thenReturn(Result.success(new ArrayList<>()));
+        .thenReturn(Result.success(Model.empty()));
 
     fakeThreadUtils.enforceMainThread(false);
     ByteString token = ByteString.copyFromUtf8("fooToken");
@@ -240,7 +241,7 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
         ConsistencyToken.getDefaultInstance(),
         result -> {
           assertThat(result.isSuccessful()).isTrue();
-          assertThat(result.getValue()).hasSize(0);
+          assertThat(result.getValue().streamDataOperations).hasSize(0);
         });
 
     verify(protocolAdapter).createModel(responseCaptor.capture());

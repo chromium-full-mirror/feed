@@ -19,6 +19,7 @@ import android.util.Base64;
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.host.logging.Task;
 import com.google.android.libraries.feed.api.internal.actionmanager.ActionManager;
+import com.google.android.libraries.feed.api.internal.common.Model;
 import com.google.android.libraries.feed.api.internal.common.ThreadUtils;
 import com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.api.internal.store.LocalActionMutation;
@@ -150,6 +151,6 @@ public class FeedActionManagerImpl implements ActionManager {
     }
     feedSessionManager
         .getUpdateConsumer(mutationContextBuilder.build())
-        .accept(Result.success(streamDataOperations));
+        .accept(Result.success(Model.of(streamDataOperations)));
   }
 }

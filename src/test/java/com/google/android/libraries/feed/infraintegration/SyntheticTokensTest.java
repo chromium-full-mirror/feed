@@ -24,6 +24,7 @@ import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.host.config.Configuration;
 import com.google.android.libraries.feed.api.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.api.host.logging.RequestReason;
+import com.google.android.libraries.feed.api.internal.common.Model;
 import com.google.android.libraries.feed.api.internal.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelCursor;
@@ -45,11 +46,9 @@ import com.google.android.libraries.feed.common.testing.PagingState;
 import com.google.android.libraries.feed.common.testing.ResponseBuilder;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.testing.requestmanager.FakeFeedRequestManager;
-import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import java.util.Arrays;
-import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -474,13 +473,12 @@ public class SyntheticTokensTest {
         new MutationContext.Builder().setRequestingSessionId(modelProvider.getSessionId()).build();
 
     // Remove the single item under the root to create the empty state.
-    Result<List<StreamDataOperation>> result =
+    Result<Model> result =
         protocolAdapter.createModel(
             ResponseBuilder.builder().removeFeature(cards[0], ROOT_CONTENT_ID).build());
     assertThat(result.isSuccessful()).isTrue();
-    Consumer<Result<List<StreamDataOperation>>> updateConsumer =
-        feedSessionManager.getUpdateConsumer(context);
-    updateConsumer.accept(Result.success(result.getValue()));
+    Consumer<Result<Model>> updateConsumer = feedSessionManager.getUpdateConsumer(context);
+    updateConsumer.accept(result);
 
     // Verify the empty state
     ModelFeature root = modelProvider.getRootFeature();
@@ -493,7 +491,7 @@ public class SyntheticTokensTest {
         protocolAdapter.createModel(ResponseBuilder.builder().addCardsToRoot(cardsTwo).build());
     assertThat(result.isSuccessful()).isTrue();
     updateConsumer = feedSessionManager.getUpdateConsumer(context);
-    updateConsumer.accept(Result.success(result.getValue()));
+    updateConsumer.accept(result);
 
     // Validate the current model
     root = modelProvider.getRootFeature();

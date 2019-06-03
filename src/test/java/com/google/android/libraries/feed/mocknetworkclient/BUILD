@@ -15,6 +15,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/api/host/scheduler",
         "//src/main/java/com/google/android/libraries/feed/api/host/stream",
         "//src/main/java/com/google/android/libraries/feed/api/internal/actionmanager",
+        "//src/main/java/com/google/android/libraries/feed/api/internal/common",
         "//src/main/java/com/google/android/libraries/feed/api/internal/protocoladapter",
         "//src/main/java/com/google/android/libraries/feed/common",
         "//src/main/java/com/google/android/libraries/feed/common/concurrent",

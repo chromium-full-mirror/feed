@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.feedprotocoladapter;
 
+import com.google.android.libraries.feed.api.internal.common.Model;
 import com.google.android.libraries.feed.api.internal.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.internal.protocoladapter.RequiredContentAdapter;
 import com.google.android.libraries.feed.common.Result;
@@ -107,13 +108,19 @@ public final class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
   }
 
   @Override
-  public Result<List<StreamDataOperation>> createModel(Response response) {
+  public Result<Model> createModel(Response response) {
     responseHandlingCount++;
 
     FeedResponse feedResponse = response.getExtension(FeedResponse.feedResponse);
     Logger.i(TAG, "createModel, operations %s", feedResponse.getDataOperationCount());
-    return createOperations(
-        feedResponse.getDataOperationList(), feedResponse.getFeedResponseMetadata());
+    Result<List<StreamDataOperation>> result =
+        createOperations(
+            feedResponse.getDataOperationList(), feedResponse.getFeedResponseMetadata());
+    if (result.isSuccessful()) {
+      return Result.success(Model.of(result.getValue()));
+    } else {
+      return Result.failure();
+    }
   }
 
   @Override

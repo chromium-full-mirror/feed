@@ -20,6 +20,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.client.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.common.MutationContext;
+import com.google.android.libraries.feed.api.internal.common.Model;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider.RemoveTrackingFactory;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProviderFactory;
@@ -90,9 +91,8 @@ public class RemoveTrackingBehaviorTest {
         ResponseBuilder.builder().removeFeature(CARDS[1], ROOT_CONTENT_ID);
     List<StreamDataOperation> dataOperations = getDataOperations(responseBuilder);
     MutationContext mutationContext = new MutationContext.Builder().setUserInitiated(true).build();
-    Consumer<Result<List<StreamDataOperation>>> updateConsumer =
-        feedSessionManager.getUpdateConsumer(mutationContext);
-    updateConsumer.accept(Result.success(dataOperations));
+    Consumer<Result<Model>> updateConsumer = feedSessionManager.getUpdateConsumer(mutationContext);
+    updateConsumer.accept(Result.success(Model.of(dataOperations)));
     assertThat(called.get()).isTrue();
   }
 
@@ -115,9 +115,8 @@ public class RemoveTrackingBehaviorTest {
             .removeFeature(CARDS[3], ROOT_CONTENT_ID);
     List<StreamDataOperation> dataOperations = getDataOperations(responseBuilder);
     MutationContext mutationContext = new MutationContext.Builder().setUserInitiated(true).build();
-    Consumer<Result<List<StreamDataOperation>>> updateConsumer =
-        feedSessionManager.getUpdateConsumer(mutationContext);
-    updateConsumer.accept(Result.success(dataOperations));
+    Consumer<Result<Model>> updateConsumer = feedSessionManager.getUpdateConsumer(mutationContext);
+    updateConsumer.accept(Result.success(Model.of(dataOperations)));
     assertThat(called.get()).isTrue();
   }
 
@@ -143,9 +142,8 @@ public class RemoveTrackingBehaviorTest {
         ResponseBuilder.builder().removeFeature(CARDS[1], ROOT_CONTENT_ID);
     List<StreamDataOperation> dataOperations = getDataOperations(responseBuilder);
     MutationContext mutationContext = new MutationContext.Builder().setUserInitiated(false).build();
-    Consumer<Result<List<StreamDataOperation>>> updateConsumer =
-        feedSessionManager.getUpdateConsumer(mutationContext);
-    updateConsumer.accept(Result.success(dataOperations));
+    Consumer<Result<Model>> updateConsumer = feedSessionManager.getUpdateConsumer(mutationContext);
+    updateConsumer.accept(Result.success(Model.of(dataOperations)));
     assertThat(called.get()).isFalse();
   }
 
@@ -181,9 +179,9 @@ public class RemoveTrackingBehaviorTest {
 
   private List<StreamDataOperation> getDataOperations(ResponseBuilder builder) {
     Response response = builder.build();
-    Result<List<StreamDataOperation>> result = protocolAdapter.createModel(response);
+    Result<Model> result = protocolAdapter.createModel(response);
     assertThat(result.isSuccessful()).isTrue();
-    return result.getValue();
+    return result.getValue().streamDataOperations;
   }
 
   private void loadInitialData() {

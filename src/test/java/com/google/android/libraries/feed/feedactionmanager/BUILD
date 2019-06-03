@@ -12,6 +12,7 @@ android_local_test(
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/common",
         "//src/main/java/com/google/android/libraries/feed/api/internal/actionmanager",
+        "//src/main/java/com/google/android/libraries/feed/api/internal/common",
         "//src/main/java/com/google/android/libraries/feed/api/internal/sessionmanager",
         "//src/main/java/com/google/android/libraries/feed/api/internal/store",
         "//src/main/java/com/google/android/libraries/feed/common",

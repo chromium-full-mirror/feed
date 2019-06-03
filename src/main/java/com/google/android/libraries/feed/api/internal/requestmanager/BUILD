@@ -7,6 +7,7 @@ java_library(
     srcs = glob(["*.java"]),
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/host/logging",
+        "//src/main/java/com/google/android/libraries/feed/api/internal/common",
         "//src/main/java/com/google/android/libraries/feed/common",
         "//src/main/java/com/google/android/libraries/feed/common/functional",
         "//src/main/proto/com/google/android/libraries/feed/api/internal/proto:client_feed_java_proto_lite",

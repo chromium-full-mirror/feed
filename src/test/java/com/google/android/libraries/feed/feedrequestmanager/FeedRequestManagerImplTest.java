@@ -36,6 +36,7 @@ import com.google.android.libraries.feed.api.host.network.HttpResponse;
 import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.api.host.stream.TooltipInfo.FeatureName;
 import com.google.android.libraries.feed.api.internal.common.DismissActionWithSemanticProperties;
+import com.google.android.libraries.feed.api.internal.common.Model;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeTaskQueue;
@@ -53,7 +54,6 @@ import com.google.android.libraries.feed.testing.protocoladapter.FakeProtocolAda
 import com.google.protobuf.ByteString;
 import com.google.protobuf.CodedOutputStream;
 import com.google.protobuf.ExtensionRegistryLite;
-import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.wire.feed.ActionTypeProto.ActionType;
 import com.google.search.now.wire.feed.CapabilityProto.Capability;
@@ -125,8 +125,8 @@ public class FeedRequestManagerImplTest {
   private FakeBasicLoggingApi fakeBasicLoggingApi;
   private FakeNetworkClient fakeNetworkClient;
   private FakeTooltipSupportedApi fakeTooltipSupportedApi;
-  private RequiredConsumer<Result<List<StreamDataOperation>>> consumer;
-  private Result<List<StreamDataOperation>> consumedResult = Result.failure();
+  private RequiredConsumer<Result<Model>> consumer;
+  private Result<Model> consumedResult = Result.failure();
   private HttpResponse failingResponse;
 
   @Before

@@ -16,6 +16,7 @@ package com.google.android.libraries.feed.testing.requestmanager;
 
 import com.google.android.libraries.feed.api.host.logging.RequestReason;
 import com.google.android.libraries.feed.api.host.logging.Task;
+import com.google.android.libraries.feed.api.internal.common.Model;
 import com.google.android.libraries.feed.api.internal.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.internal.requestmanager.FeedRequestManager;
 import com.google.android.libraries.feed.common.Result;
@@ -24,12 +25,10 @@ import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.functional.Consumer;
-import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.wire.feed.ConsistencyTokenProto.ConsistencyToken;
 import com.google.search.now.wire.feed.ResponseProto.Response;
 import java.util.ArrayDeque;
-import java.util.List;
 import java.util.Queue;
 
 /**
@@ -82,25 +81,20 @@ public class FakeFeedRequestManager implements FeedRequestManager {
 
   @Override
   public void loadMore(
-      StreamToken streamToken,
-      ConsistencyToken token,
-      Consumer<Result<List<StreamDataOperation>>> consumer) {
+      StreamToken streamToken, ConsistencyToken token, Consumer<Result<Model>> consumer) {
     fakeThreadUtils.checkNotMainThread();
     latestStreamToken = streamToken;
     handleResponseWithDelay(responses.remove(), consumer);
   }
 
   @Override
-  public void triggerRefresh(
-      @RequestReason int reason, Consumer<Result<List<StreamDataOperation>>> consumer) {
+  public void triggerRefresh(@RequestReason int reason, Consumer<Result<Model>> consumer) {
     triggerRefresh(reason, ConsistencyToken.getDefaultInstance(), consumer);
   }
 
   @Override
   public void triggerRefresh(
-      @RequestReason int reason,
-      ConsistencyToken token,
-      Consumer<Result<List<StreamDataOperation>>> consumer) {
+      @RequestReason int reason, ConsistencyToken token, Consumer<Result<Model>> consumer) {
     latestRequestReason = reason;
     ResponseWithDelay responseWithDelay = responses.remove();
     taskQueue.execute(
@@ -112,7 +106,7 @@ public class FakeFeedRequestManager implements FeedRequestManager {
   }
 
   private void handleResponseWithDelay(
-      ResponseWithDelay responseWithDelay, Consumer<Result<List<StreamDataOperation>>> consumer) {
+      ResponseWithDelay responseWithDelay, Consumer<Result<Model>> consumer) {
     if (responseWithDelay.delayMs > 0) {
       mainThreadRunner.executeWithDelay(
           "FakeFeedRequestManager#consumer",
@@ -126,7 +120,7 @@ public class FakeFeedRequestManager implements FeedRequestManager {
   }
 
   private void invokeConsumer(
-      ResponseWithDelay responseWithDelay, Consumer<Result<List<StreamDataOperation>>> consumer) {
+      ResponseWithDelay responseWithDelay, Consumer<Result<Model>> consumer) {
     boolean policy = fakeThreadUtils.enforceMainThread(true);
     if (responseWithDelay.isError) {
       consumer.accept(Result.failure());

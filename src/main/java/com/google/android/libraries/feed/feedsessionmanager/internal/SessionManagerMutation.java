@@ -21,6 +21,7 @@ import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.host.logging.Task;
 import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.api.host.storage.CommitResult;
+import com.google.android.libraries.feed.api.internal.common.Model;
 import com.google.android.libraries.feed.api.internal.common.ThreadUtils;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelError;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelError.ErrorType;
@@ -105,7 +106,7 @@ public final class SessionManagerMutation implements Dumpable {
    * Return a Consumer of StreamDataOperations which will update the {@link
    * com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager}.
    */
-  public Consumer<Result<List<StreamDataOperation>>> createCommitter(
+  public Consumer<Result<Model>> createCommitter(
       String task,
       MutationContext mutationContext,
       ModelErrorObserver modelErrorObserver,
@@ -214,8 +215,7 @@ public final class SessionManagerMutation implements Dumpable {
   }
 
   @VisibleForTesting
-  class MutationCommitter extends HeadMutationCommitter
-      implements Consumer<Result<List<StreamDataOperation>>> {
+  class MutationCommitter extends HeadMutationCommitter implements Consumer<Result<Model>> {
 
     private final String task;
     private final MutationContext mutationContext;
@@ -239,7 +239,7 @@ public final class SessionManagerMutation implements Dumpable {
     }
 
     @Override
-    public void accept(Result<List<StreamDataOperation>> updateResults) {
+    public void accept(Result<Model> updateResults) {
       if (!updateResults.isSuccessful()) {
         errorCount++;
         Session session = null;
@@ -264,7 +264,7 @@ public final class SessionManagerMutation implements Dumpable {
         }
         return;
       }
-      dataOperations = updateResults.getValue();
+      dataOperations = updateResults.getValue().streamDataOperations;
       for (StreamDataOperation operation : dataOperations) {
         if (operation.getStreamStructure().getOperation() == Operation.CLEAR_ALL) {
           clearedHead = true;

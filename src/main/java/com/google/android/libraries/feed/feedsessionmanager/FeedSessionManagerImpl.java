@@ -25,6 +25,7 @@ import com.google.android.libraries.feed.api.host.logging.Task;
 import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi.RequestBehavior;
 import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi.SessionState;
+import com.google.android.libraries.feed.api.internal.common.Model;
 import com.google.android.libraries.feed.api.internal.common.PayloadWithId;
 import com.google.android.libraries.feed.api.internal.common.ThreadUtils;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelError;
@@ -660,8 +661,7 @@ public final class FeedSessionManagerImpl
   }
 
   @Override
-  public Consumer<Result<List<StreamDataOperation>>> getUpdateConsumer(
-      MutationContext mutationContext) {
+  public Consumer<Result<Model>> getUpdateConsumer(MutationContext mutationContext) {
     if (!initialized.get()) {
       Logger.i(TAG, "Lazy initialization triggered, getUpdateConsumer");
       initialize();
@@ -670,7 +670,7 @@ public final class FeedSessionManagerImpl
   }
 
   @VisibleForTesting
-  class SessionMutationTracker implements Consumer<Result<List<StreamDataOperation>>> {
+  class SessionMutationTracker implements Consumer<Result<Model>> {
     private final MutationContext mutationContext;
     private final String taskName;
 
@@ -682,10 +682,10 @@ public final class FeedSessionManagerImpl
     }
 
     @Override
-    public void accept(Result<List<StreamDataOperation>> input) {
+    public void accept(Result<Model> input) {
       if (outstandingMutations.remove(this)) {
         if (input.isSuccessful()) {
-          updateSharedStateCache(input.getValue());
+          updateSharedStateCache(input.getValue().streamDataOperations);
         }
         sessionManagerMutation
             .createCommitter(
@@ -736,8 +736,7 @@ public final class FeedSessionManagerImpl
     reset();
   }
 
-  private Consumer<Result<List<StreamDataOperation>>> getCommitter(
-      String taskName, MutationContext mutationContext) {
+  private Consumer<Result<Model>> getCommitter(String taskName, MutationContext mutationContext) {
     return new SessionMutationTracker(mutationContext, taskName);
   }
 

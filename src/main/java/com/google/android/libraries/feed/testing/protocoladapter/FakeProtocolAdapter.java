@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.testing.protocoladapter;
 
+import com.google.android.libraries.feed.api.internal.common.Model;
 import com.google.android.libraries.feed.api.internal.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.common.Result;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
@@ -33,9 +34,9 @@ public final class FakeProtocolAdapter implements ProtocolAdapter {
   /*@Nullable*/ private Response lastResponse = null;
 
   @Override
-  public Result<List<StreamDataOperation>> createModel(Response response) {
+  public Result<Model> createModel(Response response) {
     lastResponse = response;
-    return Result.success(new ArrayList<>());
+    return Result.success(Model.empty());
   }
 
   @Override

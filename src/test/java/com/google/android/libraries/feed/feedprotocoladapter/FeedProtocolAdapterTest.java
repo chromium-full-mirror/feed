@@ -21,6 +21,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.google.android.libraries.feed.api.internal.common.Model;
 import com.google.android.libraries.feed.api.internal.protocoladapter.RequiredContentAdapter;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.testing.ResponseBuilder;
@@ -110,20 +111,20 @@ public class FeedProtocolAdapterTest {
   @Test
   public void testSimpleResponse_clear() {
     Response response = responseBuilder.addClearOperation().build();
-    Result<List<StreamDataOperation>> results = protocolAdapter.createModel(response);
+    Result<Model> results = protocolAdapter.createModel(response);
     assertThat(results.isSuccessful()).isTrue();
-    assertThat(results.getValue()).hasSize(1);
+    assertThat(results.getValue().streamDataOperations).hasSize(1);
   }
 
   @Test
   public void testSimpleResponse_feature() {
     Response response = responseBuilder.addRootFeature().build();
 
-    Result<List<StreamDataOperation>> results = protocolAdapter.createModel(response);
+    Result<Model> results = protocolAdapter.createModel(response);
     assertThat(results.isSuccessful()).isTrue();
-    assertThat(results.getValue()).hasSize(1);
+    assertThat(results.getValue().streamDataOperations).hasSize(1);
 
-    StreamDataOperation sdo = results.getValue().get(0);
+    StreamDataOperation sdo = results.getValue().streamDataOperations.get(0);
     assertThat(sdo.hasStreamPayload()).isTrue();
     assertThat(sdo.getStreamPayload().hasStreamFeature()).isTrue();
     assertThat(sdo.hasStreamStructure()).isTrue();
@@ -139,11 +140,11 @@ public class FeedProtocolAdapterTest {
     Response response =
         new ResponseBuilder().addCardWithSemanticData(contentId, semanticData).build();
 
-    Result<List<StreamDataOperation>> results = protocolAdapter.createModel(response);
+    Result<Model> results = protocolAdapter.createModel(response);
     assertThat(results.isSuccessful()).isTrue();
     // Note that 2 operations are created (the card and the semantic data). We want the latter.
-    assertThat(results.getValue()).hasSize(2);
-    StreamDataOperation sdo = results.getValue().get(1);
+    assertThat(results.getValue().streamDataOperations).hasSize(2);
+    StreamDataOperation sdo = results.getValue().streamDataOperations.get(1);
     assertThat(sdo.getStreamPayload().hasSemanticData()).isTrue();
     assertThat(sdo.getStreamPayload().getSemanticData()).isEqualTo(semanticData);
   }
@@ -154,11 +155,11 @@ public class FeedProtocolAdapterTest {
     OpaqueActionData actionData = OpaqueActionData.getDefaultInstance();
     Response response = new ResponseBuilder().addCardWithActionData(contentId, actionData).build();
 
-    Result<List<StreamDataOperation>> results = protocolAdapter.createModel(response);
+    Result<Model> results = protocolAdapter.createModel(response);
     assertThat(results.isSuccessful()).isTrue();
     // Note that 2 operations are created (the card and the action data). We want the latter.
-    assertThat(results.getValue()).hasSize(2);
-    StreamDataOperation sdo = results.getValue().get(1);
+    assertThat(results.getValue().streamDataOperations).hasSize(2);
+    StreamDataOperation sdo = results.getValue().streamDataOperations.get(1);
     assertThat(sdo.getStreamPayload().hasActionData()).isTrue();
     assertThat(sdo.getStreamPayload().getActionData()).isEqualTo(actionData);
   }
@@ -175,9 +176,9 @@ public class FeedProtocolAdapterTest {
             .addCard(cardId, clusterId)
             .build();
 
-    Result<List<StreamDataOperation>> results = protocolAdapter.createModel(response);
+    Result<Model> results = protocolAdapter.createModel(response);
     assertThat(results.isSuccessful()).isTrue();
-    List<StreamDataOperation> operations = results.getValue();
+    List<StreamDataOperation> operations = results.getValue().streamDataOperations;
 
     assertThat(operations).hasSize(4);
     assertThat(operations.get(0).getStreamPayload().getStreamFeature().hasStream()).isTrue();
@@ -192,18 +193,18 @@ public class FeedProtocolAdapterTest {
         responseBuilder
             .removeFeature(ContentId.getDefaultInstance(), ContentId.getDefaultInstance())
             .build();
-    Result<List<StreamDataOperation>> results = protocolAdapter.createModel(response);
+    Result<Model> results = protocolAdapter.createModel(response);
     assertThat(results.isSuccessful()).isTrue();
-    assertThat(results.getValue()).hasSize(1);
+    assertThat(results.getValue().streamDataOperations).hasSize(1);
   }
 
   @Test
   public void testPietSharedState() {
     Response response = responseBuilder.addPietSharedState().build();
-    Result<List<StreamDataOperation>> results = protocolAdapter.createModel(response);
+    Result<Model> results = protocolAdapter.createModel(response);
     assertThat(results.isSuccessful()).isTrue();
-    assertThat(results.getValue()).hasSize(1);
-    StreamDataOperation sdo = results.getValue().get(0);
+    assertThat(results.getValue().streamDataOperations).hasSize(1);
+    StreamDataOperation sdo = results.getValue().streamDataOperations.get(0);
     assertThat(sdo.hasStreamPayload()).isTrue();
     assertThat(sdo.getStreamPayload().hasStreamSharedState()).isTrue();
     assertThat(sdo.hasStreamStructure()).isTrue();
@@ -215,10 +216,10 @@ public class FeedProtocolAdapterTest {
     ByteString tokenForMutation = ByteString.copyFrom("token", Charset.defaultCharset());
     Response response = responseBuilder.addStreamToken(1, tokenForMutation).build();
 
-    Result<List<StreamDataOperation>> results = protocolAdapter.createModel(response);
+    Result<Model> results = protocolAdapter.createModel(response);
     assertThat(results.isSuccessful()).isTrue();
-    assertThat(results.getValue()).hasSize(1);
-    StreamDataOperation sdo = results.getValue().get(0);
+    assertThat(results.getValue().streamDataOperations).hasSize(1);
+    StreamDataOperation sdo = results.getValue().streamDataOperations.get(0);
     assertThat(sdo.hasStreamPayload()).isTrue();
     assertThat(sdo.getStreamPayload().hasStreamToken()).isTrue();
   }
@@ -242,11 +243,11 @@ public class FeedProtocolAdapterTest {
 
     FeedProtocolAdapter protocolAdapter =
         new FeedProtocolAdapter(ImmutableList.of(adapter), timingUtils);
-    Result<List<StreamDataOperation>> result = protocolAdapter.createModel(response);
+    Result<Model> result = protocolAdapter.createModel(response);
 
     verify(adapter, times(4)).determineRequiredContentIds(any(DataOperation.class));
     assertThat(result.isSuccessful()).isTrue();
-    List<StreamDataOperation> operations = result.getValue();
+    List<StreamDataOperation> operations = result.getValue().streamDataOperations;
     assertThat(operations).hasSize(7);
     assertThat(operations.get(4).getStreamStructure().getOperation())
         .isEqualTo(StreamStructure.Operation.REQUIRED_CONTENT);

@@ -31,6 +31,7 @@ import com.google.android.libraries.feed.api.host.config.Configuration;
 import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.api.host.storage.ContentStorageDirect;
 import com.google.android.libraries.feed.api.internal.common.ActionPropertiesWithId;
+import com.google.android.libraries.feed.api.internal.common.Model;
 import com.google.android.libraries.feed.api.internal.common.PayloadWithId;
 import com.google.android.libraries.feed.api.internal.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.api.internal.common.testing.ContentIdGenerators;
@@ -161,7 +162,7 @@ public class SessionManagerMutationTest {
     MutationCommitter mutationCommitter =
         getMutationCommitter(
             new MutationContext.Builder().setRequestingSessionId(sessionId).build());
-    mutationCommitter.accept(Result.success(dataOperations));
+    mutationCommitter.accept(Result.success(Model.of(dataOperations)));
     assertThat(mutationCommitter.clearedHead).isTrue();
     verify(schedulerApi).onReceiveNewContent(5L);
     verify(knownContentListener).onNewContentReceived(true, 5L);
@@ -183,7 +184,7 @@ public class SessionManagerMutationTest {
       dataOperations.add(getStreamDataOperation(feature.first, feature.second));
     }
     MutationCommitter mutationCommitter = getMutationCommitter(EMPTY_CONTEXT);
-    mutationCommitter.accept(Result.success(dataOperations));
+    mutationCommitter.accept(Result.success(Model.of(dataOperations)));
 
     Result<List<PayloadWithId>> result = storeSpy.getPayloads(contentIds);
     assertThat(result.isSuccessful()).isTrue();
@@ -211,7 +212,7 @@ public class SessionManagerMutationTest {
       dataOperations.add(getStreamDataOperation(feature.first, feature.second));
     }
     MutationCommitter mutationCommitter = getMutationCommitter(EMPTY_CONTEXT);
-    mutationCommitter.accept(Result.success(dataOperations));
+    mutationCommitter.accept(Result.success(Model.of(dataOperations)));
 
     Result<List<SemanticPropertiesWithId>> result = storeSpy.getSemanticProperties(contentIds);
     assertThat(result.isSuccessful()).isTrue();
@@ -237,7 +238,7 @@ public class SessionManagerMutationTest {
       dataOperations.add(getStreamDataOperation(feature.first, feature.second));
     }
     MutationCommitter mutationCommitter = getMutationCommitter(EMPTY_CONTEXT);
-    mutationCommitter.accept(Result.success(dataOperations));
+    mutationCommitter.accept(Result.success(Model.of(dataOperations)));
 
     Result<List<ActionPropertiesWithId>> result = storeSpy.getActionProperties(contentIds);
     assertThat(result.isSuccessful()).isTrue();

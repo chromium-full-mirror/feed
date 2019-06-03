@@ -20,12 +20,11 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.host.logging.RequestReason;
+import com.google.android.libraries.feed.api.internal.common.Model;
 import com.google.android.libraries.feed.api.internal.requestmanager.FeedRequestManager;
 import com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.functional.Consumer;
-import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
-import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,7 +37,7 @@ public final class RequestManagerImplTest {
 
   @Mock private FeedRequestManager feedRequestManager;
   @Mock private FeedSessionManager feedSessionManager;
-  @Mock private Consumer<Result<List<StreamDataOperation>>> updateConsumer;
+  @Mock private Consumer<Result<Model>> updateConsumer;
 
   private RequestManagerImpl requestManager;
 

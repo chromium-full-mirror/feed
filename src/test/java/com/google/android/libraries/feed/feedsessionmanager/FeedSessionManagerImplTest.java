@@ -30,6 +30,7 @@ import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi.RequestBehavior;
 import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi.SessionState;
 import com.google.android.libraries.feed.api.internal.common.ActionPropertiesWithId;
+import com.google.android.libraries.feed.api.internal.common.Model;
 import com.google.android.libraries.feed.api.internal.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.api.internal.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.internal.common.testing.InternalProtocolBuilder;
@@ -458,12 +459,11 @@ public class FeedSessionManagerImplTest {
   public void testUpdateConsumer() {
     FeedSessionManagerImpl sessionManager = getInitializedSessionManager();
     assertThat(sessionManager.outstandingMutations).isEmpty();
-    Consumer<Result<List<StreamDataOperation>>> updateConsumer =
-        sessionManager.getUpdateConsumer(EMPTY_MUTATION);
+    Consumer<Result<Model>> updateConsumer = sessionManager.getUpdateConsumer(EMPTY_MUTATION);
     assertThat(updateConsumer).isInstanceOf(SessionMutationTracker.class);
     assertThat(sessionManager.outstandingMutations).hasSize(1);
     assertThat(sessionManager.outstandingMutations).contains(updateConsumer);
-    updateConsumer.accept(Result.success(new ArrayList<>()));
+    updateConsumer.accept(Result.success(Model.empty()));
     assertThat(sessionManager.outstandingMutations).isEmpty();
   }
 
@@ -471,14 +471,13 @@ public class FeedSessionManagerImplTest {
   public void testUpdateConsumer_clearAll() {
     FeedSessionManagerImpl sessionManager = getInitializedSessionManager();
     assertThat(sessionManager.outstandingMutations).isEmpty();
-    Consumer<Result<List<StreamDataOperation>>> updateConsumer =
-        sessionManager.getUpdateConsumer(EMPTY_MUTATION);
+    Consumer<Result<Model>> updateConsumer = sessionManager.getUpdateConsumer(EMPTY_MUTATION);
     assertThat(sessionManager.outstandingMutations).hasSize(1);
     appLifecycleListener.onClearAll();
     assertThat(sessionManager.outstandingMutations).isEmpty();
 
     // verify this still runs (as a noop)
-    updateConsumer.accept(Result.success(new ArrayList<>()));
+    updateConsumer.accept(Result.success(Model.empty()));
     assertThat(sessionManager.outstandingMutations).isEmpty();
   }
 
@@ -486,14 +485,13 @@ public class FeedSessionManagerImplTest {
   public void testUpdateConsumer_clearAllWithRefresh() {
     FeedSessionManagerImpl sessionManager = getInitializedSessionManager();
     assertThat(sessionManager.outstandingMutations).isEmpty();
-    Consumer<Result<List<StreamDataOperation>>> updateConsumer =
-        sessionManager.getUpdateConsumer(EMPTY_MUTATION);
+    Consumer<Result<Model>> updateConsumer = sessionManager.getUpdateConsumer(EMPTY_MUTATION);
     assertThat(sessionManager.outstandingMutations).hasSize(1);
     appLifecycleListener.onClearAllWithRefresh();
     assertThat(sessionManager.outstandingMutations).isEmpty();
 
     // verify this still runs (as a noop)
-    updateConsumer.accept(Result.success(new ArrayList<>()));
+    updateConsumer.accept(Result.success(Model.empty()));
     assertThat(sessionManager.outstandingMutations).isEmpty();
   }
 
@@ -516,9 +514,8 @@ public class FeedSessionManagerImplTest {
                     .setOperation(Operation.UPDATE_OR_APPEND))
             .build();
 
-    Consumer<Result<List<StreamDataOperation>>> updateConsumer =
-        sessionManager.getUpdateConsumer(EMPTY_MUTATION);
-    Result<List<StreamDataOperation>> result = Result.success(listOf(streamDataOperation));
+    Consumer<Result<Model>> updateConsumer = sessionManager.getUpdateConsumer(EMPTY_MUTATION);
+    Result<Model> result = Result.success(Model.of(listOf(streamDataOperation)));
     updateConsumer.accept(result);
 
     assertThat(fakeStore.getContentById(rootContentId))
@@ -539,9 +536,8 @@ public class FeedSessionManagerImplTest {
                     .setOperation(Operation.UPDATE_OR_APPEND))
             .build();
 
-    Consumer<Result<List<StreamDataOperation>>> updateConsumer =
-        sessionManager.getUpdateConsumer(EMPTY_MUTATION);
-    Result<List<StreamDataOperation>> result = Result.success(listOf(streamDataOperation));
+    Consumer<Result<Model>> updateConsumer = sessionManager.getUpdateConsumer(EMPTY_MUTATION);
+    Result<Model> result = Result.success(Model.of(listOf(streamDataOperation)));
     updateConsumer.accept(result);
 
     assertThat(fakeStore.getContentById(rootContentId))
@@ -775,9 +771,8 @@ public class FeedSessionManagerImplTest {
       internalProtocolBuilder.addSharedState(sharedStateId);
       operationCount++;
     }
-    Consumer<Result<List<StreamDataOperation>>> updateConsumer =
-        sessionManager.getUpdateConsumer(EMPTY_MUTATION);
-    updateConsumer.accept(Result.success(internalProtocolBuilder.build()));
+    Consumer<Result<Model>> updateConsumer = sessionManager.getUpdateConsumer(EMPTY_MUTATION);
+    updateConsumer.accept(Result.success(Model.of(internalProtocolBuilder.build())));
     return operationCount;
   }
 

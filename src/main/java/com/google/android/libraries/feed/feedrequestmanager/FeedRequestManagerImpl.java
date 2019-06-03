@@ -31,6 +31,7 @@ import com.google.android.libraries.feed.api.host.stream.TooltipInfo.FeatureName
 import com.google.android.libraries.feed.api.host.stream.TooltipSupportedApi;
 import com.google.android.libraries.feed.api.internal.actionmanager.ActionReader;
 import com.google.android.libraries.feed.api.internal.common.DismissActionWithSemanticProperties;
+import com.google.android.libraries.feed.api.internal.common.Model;
 import com.google.android.libraries.feed.api.internal.common.ThreadUtils;
 import com.google.android.libraries.feed.api.internal.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.internal.requestmanager.FeedRequestManager;
@@ -47,7 +48,6 @@ import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTracker;
 import com.google.android.libraries.feed.feedrequestmanager.internal.Utils;
 import com.google.protobuf.ByteString;
-import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.wire.feed.ActionTypeProto;
 import com.google.search.now.wire.feed.CapabilityProto.Capability;
@@ -128,9 +128,7 @@ public final class FeedRequestManagerImpl implements FeedRequestManager {
 
   @Override
   public void loadMore(
-      StreamToken streamToken,
-      ConsistencyToken token,
-      Consumer<Result<List<StreamDataOperation>>> consumer) {
+      StreamToken streamToken, ConsistencyToken token, Consumer<Result<Model>> consumer) {
     threadUtils.checkNotMainThread();
 
     Logger.i(TAG, "Task: FeedRequestManagerImpl LoadMore");
@@ -145,16 +143,13 @@ public final class FeedRequestManagerImpl implements FeedRequestManager {
   }
 
   @Override
-  public void triggerRefresh(
-      @RequestReason int reason, Consumer<Result<List<StreamDataOperation>>> consumer) {
+  public void triggerRefresh(@RequestReason int reason, Consumer<Result<Model>> consumer) {
     triggerRefresh(reason, ConsistencyToken.getDefaultInstance(), consumer);
   }
 
   @Override
   public void triggerRefresh(
-      @RequestReason int reason,
-      ConsistencyToken token,
-      Consumer<Result<List<StreamDataOperation>>> consumer) {
+      @RequestReason int reason, ConsistencyToken token, Consumer<Result<Model>> consumer) {
     Logger.i(TAG, "trigger refresh %s", reason);
     RequestBuilder request = newDefaultRequest(reason).setConsistencyToken(token);
 
@@ -199,8 +194,7 @@ public final class FeedRequestManagerImpl implements FeedRequestManager {
     }
   }
 
-  private void executeRequest(
-      RequestBuilder requestBuilder, Consumer<Result<List<StreamDataOperation>>> consumer) {
+  private void executeRequest(RequestBuilder requestBuilder, Consumer<Result<Model>> consumer) {
     threadUtils.checkNotMainThread();
     Result<List<DismissActionWithSemanticProperties>> dismissActionsResult =
         actionReader.getDismissActionsWithSemanticProperties();
@@ -233,8 +227,7 @@ public final class FeedRequestManagerImpl implements FeedRequestManager {
     }
   }
 
-  private void sendRequest(
-      RequestBuilder requestBuilder, Consumer<Result<List<StreamDataOperation>>> consumer) {
+  private void sendRequest(RequestBuilder requestBuilder, Consumer<Result<Model>> consumer) {
     threadUtils.checkNotMainThread();
     String endpoint = configuration.getValueOrDefault(ConfigKey.FEED_SERVER_ENDPOINT, "");
     @HttpMethod
@@ -278,7 +271,7 @@ public final class FeedRequestManagerImpl implements FeedRequestManager {
   }
 
   private void handleResponseBytes(
-      final byte[] responseBytes, final Consumer<Result<List<StreamDataOperation>>> consumer) {
+      final byte[] responseBytes, final Consumer<Result<Model>> consumer) {
     taskQueue.execute(
         Task.HANDLE_RESPONSE_BYTES,
         TaskType.IMMEDIATE,
@@ -298,9 +291,9 @@ public final class FeedRequestManagerImpl implements FeedRequestManager {
             consumer.accept(Result.failure());
             return;
           }
-          Result<List<StreamDataOperation>> result = protocolAdapter.createModel(response);
           mainThreadRunner.execute(
-              "FeedRequestManagerImpl consumer", () -> consumer.accept(result));
+              "FeedRequestManagerImpl consumer",
+              () -> consumer.accept(protocolAdapter.createModel(response)));
         });
   }
 

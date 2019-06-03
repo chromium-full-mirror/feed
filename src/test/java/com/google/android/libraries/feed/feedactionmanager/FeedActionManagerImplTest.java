@@ -23,6 +23,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.internal.actionmanager.ActionManager;
+import com.google.android.libraries.feed.api.internal.common.Model;
 import com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.api.internal.store.LocalActionMutation;
 import com.google.android.libraries.feed.api.internal.store.LocalActionMutation.ActionType;
@@ -69,10 +70,10 @@ public class FeedActionManagerImplTest {
   @Mock private FeedSessionManager feedSessionManager;
   @Mock private Store store;
   @Mock private LocalActionMutation localActionMutation;
-  @Mock private Consumer<Result<List<StreamDataOperation>>> streamDataOperationsConsumer;
+  @Mock private Consumer<Result<Model>> modelConsumer;
   @Captor private ArgumentCaptor<Integer> actionTypeCaptor;
   @Captor private ArgumentCaptor<String> contentIdStringCaptor;
-  @Captor private ArgumentCaptor<Result<List<StreamDataOperation>>> streamDataOperationsCaptor;
+  @Captor private ArgumentCaptor<Result<Model>> modelCaptor;
   @Captor private ArgumentCaptor<MutationContext> mutationContextCaptor;
   @Captor private ArgumentCaptor<Consumer<Result<ConsistencyToken>>> consumerCaptor;
   @Captor private ArgumentCaptor<Set<StreamUploadableAction>> actionCaptor;
@@ -108,10 +109,10 @@ public class FeedActionManagerImplTest {
 
     verify(localActionMutation).commit();
 
-    verify(streamDataOperationsConsumer).accept(streamDataOperationsCaptor.capture());
-    Result<List<StreamDataOperation>> result = streamDataOperationsCaptor.getValue();
+    verify(modelConsumer).accept(modelCaptor.capture());
+    Result<Model> result = modelCaptor.getValue();
     assertThat(result.isSuccessful()).isTrue();
-    List<StreamDataOperation> streamDataOperations = result.getValue();
+    List<StreamDataOperation> streamDataOperations = result.getValue().streamDataOperations;
     assertThat(streamDataOperations).hasSize(1);
     StreamDataOperation streamDataOperation = streamDataOperations.get(0);
     assertThat(streamDataOperation).isEqualTo(dataOperation);
@@ -136,10 +137,10 @@ public class FeedActionManagerImplTest {
     verify(feedSessionManager).getUpdateConsumer(mutationContextCaptor.capture());
     assertThat(mutationContextCaptor.getValue().getRequestingSessionId()).isEqualTo(SESSION_ID);
 
-    verify(streamDataOperationsConsumer).accept(streamDataOperationsCaptor.capture());
-    Result<List<StreamDataOperation>> result = streamDataOperationsCaptor.getValue();
+    verify(modelConsumer).accept(modelCaptor.capture());
+    Result<Model> result = modelCaptor.getValue();
     assertThat(result.isSuccessful()).isTrue();
-    List<StreamDataOperation> streamDataOperations = result.getValue();
+    List<StreamDataOperation> streamDataOperations = result.getValue().streamDataOperations;
     assertThat(streamDataOperations).hasSize(1);
     StreamDataOperation streamDataOperation = streamDataOperations.get(0);
     assertThat(streamDataOperation).isEqualTo(dataOperation);
@@ -152,10 +153,10 @@ public class FeedActionManagerImplTest {
 
     actionManager.dismiss(Collections.singletonList(dataOperation), null);
 
-    verify(streamDataOperationsConsumer).accept(streamDataOperationsCaptor.capture());
-    Result<List<StreamDataOperation>> result = streamDataOperationsCaptor.getValue();
+    verify(modelConsumer).accept(modelCaptor.capture());
+    Result<Model> result = modelCaptor.getValue();
     assertThat(result.isSuccessful()).isTrue();
-    List<StreamDataOperation> streamDataOperations = result.getValue();
+    List<StreamDataOperation> streamDataOperations = result.getValue().streamDataOperations;
     assertThat(streamDataOperations).hasSize(1);
     StreamDataOperation streamDataOperation = streamDataOperations.get(0);
     assertThat(streamDataOperation).isEqualTo(dataOperation);
@@ -171,10 +172,10 @@ public class FeedActionManagerImplTest {
     verify(feedSessionManager).getUpdateConsumer(mutationContextCaptor.capture());
     assertThat(mutationContextCaptor.getValue().getRequestingSessionId()).isEqualTo(SESSION_ID);
 
-    verify(streamDataOperationsConsumer).accept(streamDataOperationsCaptor.capture());
-    Result<List<StreamDataOperation>> result = streamDataOperationsCaptor.getValue();
+    verify(modelConsumer).accept(modelCaptor.capture());
+    Result<Model> result = modelCaptor.getValue();
     assertThat(result.isSuccessful()).isTrue();
-    List<StreamDataOperation> streamDataOperations = result.getValue();
+    List<StreamDataOperation> streamDataOperations = result.getValue().streamDataOperations;
     assertThat(streamDataOperations).hasSize(1);
     StreamDataOperation streamDataOperation = streamDataOperations.get(0);
     assertThat(streamDataOperation).isEqualTo(dataOperation);
@@ -219,7 +220,7 @@ public class FeedActionManagerImplTest {
 
   private void setUpDismissMocks() {
     when(feedSessionManager.getUpdateConsumer(any(MutationContext.class)))
-        .thenReturn(streamDataOperationsConsumer);
+        .thenReturn(modelConsumer);
     when(localActionMutation.add(anyInt(), anyString())).thenReturn(localActionMutation);
     when(store.editLocalActions()).thenReturn(localActionMutation);
   }
