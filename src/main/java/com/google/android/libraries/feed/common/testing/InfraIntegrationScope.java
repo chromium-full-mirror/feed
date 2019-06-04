@@ -42,6 +42,7 @@ import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManagerIm
 import com.google.android.libraries.feed.feedstore.FeedStore;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
+import com.google.android.libraries.feed.sharedstream.piet.PietRequiredContentAdapter;
 import com.google.android.libraries.feed.testing.host.logging.FakeBasicLoggingApi;
 import com.google.android.libraries.feed.testing.host.scheduler.FakeSchedulerApi;
 import com.google.android.libraries.feed.testing.requestmanager.FakeActionUploadRequestManager;
@@ -117,7 +118,9 @@ public class InfraIntegrationScope {
             fakeClock,
             fakeBasicLoggingApi,
             fakeMainThreadRunner);
-    feedProtocolAdapter = new FeedProtocolAdapter(Collections.emptyList(), timingUtils);
+    feedProtocolAdapter =
+        new FeedProtocolAdapter(
+            Collections.singletonList(new PietRequiredContentAdapter()), timingUtils);
     fakeFeedRequestManager =
         new FakeFeedRequestManager(
             fakeThreadUtils, fakeMainThreadRunner, feedProtocolAdapter, taskQueue);

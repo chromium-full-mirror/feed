@@ -89,6 +89,7 @@ public final class ContentGc {
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
     ContentMutation.Builder mutationBuilder = new ContentMutation.Builder();
     for (String key : unAccessible) {
+      Logger.i(TAG, "Removing %s", key);
       mutationBuilder.delete(key);
     }
     CommitResult result = contentStorageDirect.commit(mutationBuilder.build());

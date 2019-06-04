@@ -54,6 +54,7 @@ import javax.annotation.concurrent.GuardedBy;
  */
 public final class SessionCache implements Dumpable {
   private static final String TAG = "SessionCache";
+  @VisibleForTesting static final int MIN_SCHEMA_VERSION_FOR_PIET_SHARED_STATE_REQUIRED_CONTENT = 2;
   @VisibleForTesting static final String STREAM_SESSION_CONTENT_ID = "FSM::Sessions::0";
 
   /**
@@ -485,7 +486,21 @@ public final class SessionCache implements Dumpable {
         store.triggerContentGc(
             reservedContentIds,
             getAccessibleContentSupplier(sessionContentTrackers),
-            /* keepSharedStates= */ true));
+            shouldKeepSharedStates()));
+  }
+
+  private boolean shouldKeepSharedStates() {
+    synchronized (lock) {
+      for (String sessionId : sessionsMetadata.keySet()) {
+        SessionMetadata metadata = sessionsMetadata.get(sessionId);
+        if (metadata.getSchemaVersion()
+            < MIN_SCHEMA_VERSION_FOR_PIET_SHARED_STATE_REQUIRED_CONTENT) {
+          return true;
+        }
+      }
+    }
+
+    return false;
   }
 
   private Supplier<Set<String>> getAccessibleContentSupplier(

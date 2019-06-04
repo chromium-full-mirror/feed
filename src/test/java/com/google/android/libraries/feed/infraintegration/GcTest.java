@@ -130,7 +130,8 @@ public final class GcTest {
     fakeClock.advance(LIFETIME_MS + 1L);
     InfraIntegrationScope secondScope = scope.clone();
     assertPayloads(REQUEST_1, secondScope, /* shouldExist= */ false);
-    assertSharedStates(new ContentId[] {PIET_SHARED_STATE_1}, secondScope, /* shouldExist= */ true);
+    assertSharedStates(
+        new ContentId[] {PIET_SHARED_STATE_1}, secondScope, /* shouldExist= */ false);
     assertPayloads(REQUEST_2, secondScope, /* shouldExist= */ true);
     assertSharedStates(new ContentId[] {PIET_SHARED_STATE_2}, secondScope, /* shouldExist= */ true);
   }

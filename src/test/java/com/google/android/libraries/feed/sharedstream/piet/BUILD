@@ -80,3 +80,21 @@ android_local_test(
         "@robolectric//bazel:android-all",
     ],
 )
+
+android_local_test(
+    name = "PietRequiredContentAdapterTest",
+    size = "small",
+    timeout = "moderate",
+    srcs = ["PietRequiredContentAdapterTest.java"],
+    aapt_version = "aapt2",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
+    deps = [
+        "//src/main/java/com/google/android/libraries/feed/sharedstream/piet",
+        "//src/main/proto/search/now/ui/stream:stream_java_proto_lite",
+        "//src/main/proto/search/now/wire/feed:feed_java_proto_lite",
+        "//third_party:robolectric",
+        "@com_google_protobuf_javalite//:protobuf_java_lite",
+        "@maven//:com_google_truth_truth",
+        "@robolectric//bazel:android-all",
+    ],
+)

@@ -34,6 +34,7 @@ import com.google.search.now.feed.client.StreamDataProto.SessionMetadata;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSessions;
+import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
 import com.google.search.now.feed.client.StreamDataProto.UiContext;
@@ -97,6 +98,55 @@ public class SessionCacheTest {
     assertThat(sessionCache.getHead()).isNotNull();
     assertThat(sessionCache.getHead().isHeadEmpty()).isFalse();
     assertThat(sessionCache.getHead().getSchemaVersion()).isEqualTo(schemaVersion);
+  }
+
+  @Test
+  public void testInitialization_contentGcShouldKeepSharedStates() {
+    fakeStore.setContent(
+        "foo",
+        StreamPayload.newBuilder()
+            .setStreamSharedState(StreamSharedState.newBuilder().setContentId("foo").build())
+            .build());
+    mockStreamSessions(
+        StreamSessions.newBuilder()
+            .addStreamSession(
+                StreamSession.newBuilder()
+                    .setSessionId(Store.HEAD_SESSION_ID)
+                    .setSessionMetadata(
+                        SessionMetadata.newBuilder()
+                            .setSchemaVersion(
+                                SessionCache
+                                        .MIN_SCHEMA_VERSION_FOR_PIET_SHARED_STATE_REQUIRED_CONTENT
+                                    - 1)))
+            .build());
+
+    assertThat(fakeStore.getSharedStates().getValue()).hasSize(1);
+    sessionCache.initialize();
+    assertThat(fakeStore.getSharedStates().getValue()).hasSize(1);
+  }
+
+  @Test
+  public void testInitialization_contentGcShouldDiscardSharedStates() {
+    fakeStore.setContent(
+        "foo",
+        StreamPayload.newBuilder()
+            .setStreamSharedState(StreamSharedState.newBuilder().setContentId("foo").build())
+            .build());
+    mockStreamSessions(
+        StreamSessions.newBuilder()
+            .addStreamSession(
+                StreamSession.newBuilder()
+                    .setSessionId(Store.HEAD_SESSION_ID)
+                    .setSessionMetadata(
+                        SessionMetadata.newBuilder()
+                            .setSchemaVersion(
+                                SessionCache
+                                    .MIN_SCHEMA_VERSION_FOR_PIET_SHARED_STATE_REQUIRED_CONTENT)))
+            .build());
+
+    assertThat(fakeStore.getSharedStates().getValue()).hasSize(1);
+    sessionCache.initialize();
+    assertThat(fakeStore.getSharedStates().getValue()).isEmpty();
   }
 
   @Test

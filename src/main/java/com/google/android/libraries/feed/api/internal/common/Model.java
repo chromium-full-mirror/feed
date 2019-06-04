@@ -21,7 +21,7 @@ import java.util.List;
 /** Contains a list of {@link StreamDataOperations}s and a schema version. */
 public final class Model {
   /** The current schema version. */
-  public static final int CURRENT_SCHEMA_VERSION = 1;
+  public static final int CURRENT_SCHEMA_VERSION = 2;
 
   public final List<StreamDataOperation> streamDataOperations;
   public final int schemaVersion;

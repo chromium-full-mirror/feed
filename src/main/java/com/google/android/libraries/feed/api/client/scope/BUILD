@@ -56,6 +56,7 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/hostimpl/network",
         "//src/main/java/com/google/android/libraries/feed/hostimpl/scheduler",
         "//src/main/java/com/google/android/libraries/feed/hostimpl/storage",
+        "//src/main/java/com/google/android/libraries/feed/sharedstream/piet",
         "@com_google_code_findbugs_jsr305//jar",
         "@maven//:com_android_support_support_annotations",
     ],
