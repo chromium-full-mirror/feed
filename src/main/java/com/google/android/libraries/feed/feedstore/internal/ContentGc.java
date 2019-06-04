@@ -76,6 +76,8 @@ public final class ContentGc {
     population.removeAll(getUploadableActionProperties(getUploadableActions()));
     if (keepSharedStates) {
       filterSharedStates(population);
+    } else {
+      population.removeAll(getAccessibleSharedStates(accessibleContent));
     }
 
     // Population now contains only un-accessible items
@@ -171,6 +173,18 @@ public final class ContentGc {
         "accessibleSemanticPropertiesSize",
         semanticPropertiesKeys.size());
     return semanticPropertiesKeys;
+  }
+
+  private Set<String> getAccessibleSharedStates(Set<String> accessibleContent) {
+    ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
+    Set<String> sharedStateKeys = new HashSet<>();
+    for (String accessibleContentId : accessibleContent) {
+      String sharedStateKey = SHARED_STATE_PREFIX + accessibleContentId;
+      sharedStateKeys.add(sharedStateKey);
+    }
+    tracker.stop(
+        "", "getAccessibleSharedStates", "accessibleSharedStatesSize", sharedStateKeys.size());
+    return sharedStateKeys;
   }
 
   private Set<String> getLocalActionSemanticProperties(Set<StreamLocalAction> actions) {

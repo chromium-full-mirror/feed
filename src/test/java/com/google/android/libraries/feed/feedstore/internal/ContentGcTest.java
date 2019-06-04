@@ -369,7 +369,7 @@ public class ContentGcTest {
     mockContentStorageWithContents(contentKeys);
     ContentGc contentGc =
         new ContentGc(
-            () -> ImmutableSet.of(SHARED_STATE_PREFIX + CONTENT_ID_1),
+            () -> ImmutableSet.of(CONTENT_ID_1),
             ImmutableSet.of(),
             ImmutableSet::of,
             ImmutableSet::of,
