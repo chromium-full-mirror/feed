@@ -77,7 +77,7 @@ public class TimeoutSessionImplTest extends AbstractSessionImplTest {
 
     // 1 clear, 3 features
     assertThat(streamStructures).hasSize(4);
-    session.updateSession(true, streamStructures, null);
+    session.updateSession(true, streamStructures, SCHEMA_VERSION, null);
     assertThat(fakeSessionMutation.streamStructures).hasSize(featureCnt);
     FakeModelMutation fakeModelMutation = fakeModelProvider.getLatestModelMutation();
     assertThat(fakeModelMutation.addedChildren).hasSize(featureCnt);
@@ -102,6 +102,7 @@ public class TimeoutSessionImplTest extends AbstractSessionImplTest {
     session.updateSession(
         true,
         streamStructures,
+        SCHEMA_VERSION,
         new MutationContext.Builder()
             .setRequestingSessionId(TEST_SESSION_ID)
             .setContinuationToken(StreamToken.newBuilder().setContentId("token").build())
@@ -172,7 +173,8 @@ public class TimeoutSessionImplTest extends AbstractSessionImplTest {
         session, contentIdGenerators.createFeatureContentId(6), modelChildren);
 
     // Items below the lowest child should be removed.
-    session.updateSession(/* clearHead= */ true, new ArrayList<>(), /* mutationContext= */ null);
+    session.updateSession(
+        /* clearHead= */ true, new ArrayList<>(), SCHEMA_VERSION, /* mutationContext= */ null);
     FakeModelMutation fakeModelMutation = fakeModelProvider.getLatestModelMutation();
     assertThat(fakeModelMutation.removedChildren).hasSize(3);
     assertThat(fakeModelMutation.removedChildren.get(0).getContentId())
@@ -192,7 +194,8 @@ public class TimeoutSessionImplTest extends AbstractSessionImplTest {
     setupForViewDepthProvider(session, tokenContentId, modelChildren);
 
     // Because the lowest child is a token it should also be removed.
-    session.updateSession(/* clearHead= */ true, new ArrayList<>(), /* mutationContext= */ null);
+    session.updateSession(
+        /* clearHead= */ true, new ArrayList<>(), SCHEMA_VERSION, /* mutationContext= */ null);
     FakeModelMutation fakeModelMutation = fakeModelProvider.getLatestModelMutation();
     assertThat(fakeModelMutation.removedChildren).hasSize(1);
     assertThat(fakeModelMutation.removedChildren.get(0).getContentId()).isEqualTo(tokenContentId);
@@ -209,7 +212,8 @@ public class TimeoutSessionImplTest extends AbstractSessionImplTest {
     setupForViewDepthProvider(session, /* lowestChild= */ null, modelChildren);
 
     // The token should be removed even when there is a null lowest child.
-    session.updateSession(/* clearHead= */ true, new ArrayList<>(), /* mutationContext= */ null);
+    session.updateSession(
+        /* clearHead= */ true, new ArrayList<>(), SCHEMA_VERSION, /* mutationContext= */ null);
     FakeModelMutation fakeModelMutation = fakeModelProvider.getLatestModelMutation();
     assertThat(fakeModelMutation.removedChildren).hasSize(1);
     assertThat(fakeModelMutation.removedChildren.get(0).getContentId())

@@ -68,7 +68,7 @@ public class SessionImplTest extends AbstractSessionImplTest {
 
     // clear head will be ignored
     assertThat(streamStructures).hasSize(4);
-    session.updateSession(true, streamStructures, null);
+    session.updateSession(true, streamStructures, SCHEMA_VERSION, null);
     assertThat(fakeSessionMutation.streamStructures).isEmpty();
     FakeModelMutation fakeModelMutation = fakeModelProvider.getLatestModelMutation();
     assertThat(fakeModelMutation.addedChildren).isEmpty();
@@ -88,6 +88,7 @@ public class SessionImplTest extends AbstractSessionImplTest {
     session.updateSession(
         true,
         streamStructures,
+        SCHEMA_VERSION,
         new MutationContext.Builder()
             .setContinuationToken(StreamToken.newBuilder().setContentId("token").build())
             .setRequestingSessionId(TEST_SESSION_ID)
@@ -117,6 +118,7 @@ public class SessionImplTest extends AbstractSessionImplTest {
     session.updateSession(
         /* clearHead= */ false,
         protocolBuilder.buildAsStreamStructure(),
+        SCHEMA_VERSION,
         /* mutationContext= */ null);
 
     assertThat(fakeSessionMutation.streamStructures).hasSize(1);

@@ -60,6 +60,7 @@ public final class TimeoutSessionImpl extends SessionImpl {
   public void updateSession(
       boolean clearHead,
       List<StreamStructure> streamStructures,
+      int schemaVersion,
       /*@Nullable*/ MutationContext mutationContext) {
     String localSessionId = Validators.checkNotNull(sessionId);
     Logger.i(

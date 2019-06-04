@@ -20,6 +20,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.host.config.Configuration;
+import com.google.android.libraries.feed.api.internal.common.PayloadWithId;
 import com.google.android.libraries.feed.api.internal.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider.ViewDepthProvider;
 import com.google.android.libraries.feed.api.internal.store.Store;
@@ -340,6 +341,39 @@ public class SessionCacheTest {
     assertThat(sessionCache.hasSession("stream:1")).isFalse();
     assertThat(sessionCache.hasSession("stream:2")).isTrue();
     assertThat(sessionCache.getCreationTimeMillis("stream:2")).isEqualTo(DEFAULT_LIFETIME_MS - 1);
+  }
+
+  @Test
+  public void testUpdateHeadMetadata() {
+    long currentTime = 2L;
+    int schemaVersion = 3;
+    StreamSessions streamSessions =
+        StreamSessions.newBuilder()
+            .addStreamSession(
+                StreamSession.newBuilder()
+                    .setSessionId(Store.HEAD_SESSION_ID)
+                    .setLegacyTimeMillis(1))
+            .build();
+
+    mockStreamSessions(streamSessions);
+    sessionCache.initialize();
+    sessionCache.updateHeadMetadata(currentTime, schemaVersion);
+
+    List<Object> content = fakeStore.getContentById(SessionCache.STREAM_SESSION_CONTENT_ID);
+    assertThat(content).hasSize(1);
+    assertThat(((PayloadWithId) content.get(0)).payload)
+        .isEqualTo(
+            StreamPayload.newBuilder()
+                .setStreamSessions(
+                    StreamSessions.newBuilder()
+                        .addStreamSession(
+                            StreamSession.newBuilder()
+                                .setSessionId(Store.HEAD_SESSION_ID)
+                                .setSessionMetadata(
+                                    SessionMetadata.newBuilder()
+                                        .setLastAddedTimeMillis(currentTime)
+                                        .setSchemaVersion(schemaVersion))))
+                .build());
   }
 
   @Test

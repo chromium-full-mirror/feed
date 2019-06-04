@@ -27,6 +27,7 @@ public interface Session {
   void updateSession(
       boolean clearHead,
       List<StreamStructure> streamStructures,
+      int schemaVersion,
       /*@Nullable*/ MutationContext mutationContext);
 
   boolean invalidateOnResetHead();

@@ -141,6 +141,7 @@ public class SessionImpl implements InitializableSession, Dumpable {
   public void updateSession(
       boolean clearHead,
       List<StreamStructure> streamStructures,
+      int schemaVersion,
       /*@Nullable*/ MutationContext mutationContext) {
     String localSessionId = Validators.checkNotNull(sessionId);
     if (clearHead) {

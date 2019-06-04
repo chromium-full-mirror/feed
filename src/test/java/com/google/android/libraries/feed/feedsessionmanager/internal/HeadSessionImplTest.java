@@ -37,6 +37,8 @@ import org.robolectric.RobolectricTestRunner;
 /** Tests of the {@link HeadSessionImpl} class. */
 @RunWith(RobolectricTestRunner.class)
 public class HeadSessionImplTest {
+  private static final int SCHEMA_VERSION = 1;
+
   private final ContentIdGenerators contentIdGenerators = new ContentIdGenerators();
   private final FakeClock fakeClock = new FakeClock();
   private final FakeThreadUtils fakeThreadUtils = FakeThreadUtils.withoutThreadChecks();
@@ -64,7 +66,7 @@ public class HeadSessionImplTest {
 
     // 1 clear, 3 features
     assertThat(streamStructures).hasSize(featureCnt + 1);
-    headSession.updateSession(false, streamStructures, null);
+    headSession.updateSession(false, streamStructures, SCHEMA_VERSION, null);
 
     // expect: 3 features
     assertThat(headSession.getContentInSession()).hasSize(featureCnt);
@@ -80,7 +82,7 @@ public class HeadSessionImplTest {
     addFeatures(protocolBuilder, featureCnt, 1);
     List<StreamStructure> streamStructures = protocolBuilder.buildAsStreamStructure();
     assertThat(streamStructures).hasSize(featureCnt + 1);
-    headSession.updateSession(false, streamStructures, null);
+    headSession.updateSession(false, streamStructures, SCHEMA_VERSION, null);
     assertThat(headSession.getContentInSession()).hasSize(featureCnt);
 
     headSession.reset();
@@ -97,7 +99,7 @@ public class HeadSessionImplTest {
 
     // 1 clear, 3 features, token
     assertThat(streamStructures).hasSize(5);
-    headSession.updateSession(false, streamStructures, null);
+    headSession.updateSession(false, streamStructures, SCHEMA_VERSION, null);
 
     // expect: 3 features, 1 token
     assertThat(headSession.getContentInSession()).hasSize(featureCnt + 1);
@@ -119,10 +121,10 @@ public class HeadSessionImplTest {
     // The token needs to be in the session so update its content IDs with the token.
     List<StreamStructure> tokenStructures =
         new InternalProtocolBuilder().addToken(token.getContentId()).buildAsStreamStructure();
-    headSession.updateSession(false, tokenStructures, null);
+    headSession.updateSession(false, tokenStructures, SCHEMA_VERSION, null);
 
     MutationContext context = new MutationContext.Builder().setContinuationToken(token).build();
-    headSession.updateSession(false, streamStructures, context);
+    headSession.updateSession(false, streamStructures, SCHEMA_VERSION, context);
     // features 3, plus the token added above
     assertThat(headSession.getContentInSession()).hasSize(featureCnt + 1);
   }
@@ -139,7 +141,7 @@ public class HeadSessionImplTest {
 
     // The token needs to be in the session, if not we ignore the update
     MutationContext context = new MutationContext.Builder().setContinuationToken(token).build();
-    headSession.updateSession(false, streamStructures, context);
+    headSession.updateSession(false, streamStructures, SCHEMA_VERSION, context);
     assertThat(headSession.getContentInSession()).isEmpty();
   }
 
@@ -154,7 +156,7 @@ public class HeadSessionImplTest {
 
     // 1 clear, 3 features, 1 remove
     assertThat(streamStructures).hasSize(5);
-    headSession.updateSession(false, streamStructures, null);
+    headSession.updateSession(false, streamStructures, SCHEMA_VERSION, null);
 
     // expect: 2 features (3 added, then 1 removed)
     assertThat(headSession.getContentInSession()).hasSize(featureCnt - 1);
@@ -174,7 +176,7 @@ public class HeadSessionImplTest {
     assertThat(streamStructures).hasSize(4);
 
     // 1 clear, 3 features
-    headSession.updateSession(false, streamStructures, null);
+    headSession.updateSession(false, streamStructures, SCHEMA_VERSION, null);
     assertThat(headSession.getContentInSession()).hasSize(featureCnt);
     assertThat(getContentInSession()).hasSize(featureCnt);
 
@@ -185,7 +187,7 @@ public class HeadSessionImplTest {
     assertThat(streamStructures).hasSize(1);
 
     // 0 features
-    headSession.updateSession(false, streamStructures, null);
+    headSession.updateSession(false, streamStructures, SCHEMA_VERSION, null);
     assertThat(headSession.getContentInSession()).hasSize(featureCnt);
     assertThat(getContentInSession()).hasSize(featureCnt);
   }
@@ -199,7 +201,7 @@ public class HeadSessionImplTest {
     assertThat(streamStructures).hasSize(4);
 
     // 1 clear, 3 features
-    headSession.updateSession(false, streamStructures, null);
+    headSession.updateSession(false, streamStructures, SCHEMA_VERSION, null);
     assertThat(headSession.getContentInSession()).hasSize(featureCnt);
     assertThat(getContentInSession()).hasSize(featureCnt);
 
@@ -211,13 +213,15 @@ public class HeadSessionImplTest {
     assertThat(streamStructures).hasSize(additionalFeatureCnt);
 
     // 0 features
-    headSession.updateSession(false, streamStructures, null);
+    headSession.updateSession(false, streamStructures, SCHEMA_VERSION, null);
     assertThat(headSession.getContentInSession()).hasSize(featureCnt + additionalFeatureCnt);
     assertThat(getContentInSession()).hasSize(featureCnt + additionalFeatureCnt);
   }
 
   @Test
-  public void testUpdateSession_clearHead() {
+  public void testUpdateSession_storeClearHead() {
+    headSession.initializeSession(ImmutableList.of(), SCHEMA_VERSION);
+
     int featureCnt = 3;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder().addClearOperation();
     addFeatures(protocolBuilder, featureCnt, 1);
@@ -225,9 +229,10 @@ public class HeadSessionImplTest {
     assertThat(streamStructures).hasSize(4);
 
     // 1 clear, 3 features
-    headSession.updateSession(false, streamStructures, null);
+    headSession.updateSession(false, streamStructures, SCHEMA_VERSION + 1, null);
     assertThat(headSession.getContentInSession()).hasSize(featureCnt);
     assertThat(getContentInSession()).hasSize(featureCnt);
+    assertThat(headSession.getSchemaVersion()).isEqualTo(SCHEMA_VERSION);
 
     // Clear head and add 2 features, make sure we have new content ids
     int newFeatureCnt = 2;
@@ -240,9 +245,29 @@ public class HeadSessionImplTest {
 
     // 0 features
     fakeStore.clearHead();
-    headSession.updateSession(false, streamStructures, null);
+    headSession.updateSession(false, streamStructures, SCHEMA_VERSION + 1, null);
     assertThat(headSession.getContentInSession()).hasSize(newFeatureCnt);
     assertThat(getContentInSession()).hasSize(newFeatureCnt);
+    assertThat(headSession.getSchemaVersion()).isEqualTo(SCHEMA_VERSION);
+  }
+
+  @Test
+  public void testUpdateSession_clearHeadUpdatesSchemaVersion() {
+    headSession.initializeSession(ImmutableList.of(), SCHEMA_VERSION);
+    headSession.updateSession(
+        /* clearHead= */ true, ImmutableList.of(), SCHEMA_VERSION + 1, /* mutationContext= */ null);
+    assertThat(headSession.getSchemaVersion()).isEqualTo(SCHEMA_VERSION + 1);
+  }
+
+  @Test
+  public void testUpdateSession_schemaVersionUnchanged() {
+    headSession.initializeSession(ImmutableList.of(), SCHEMA_VERSION);
+    headSession.updateSession(
+        /* clearHead= */ false,
+        ImmutableList.of(),
+        SCHEMA_VERSION + 1,
+        /* mutationContext= */ null);
+    assertThat(headSession.getSchemaVersion()).isEqualTo(SCHEMA_VERSION);
   }
 
   @Test
@@ -254,6 +279,7 @@ public class HeadSessionImplTest {
     headSession.updateSession(
         /* clearHead= */ false,
         protocolBuilder.buildAsStreamStructure(),
+        SCHEMA_VERSION,
         /* mutationContext= */ null);
     assertThat(headSession.getContentInSession()).hasSize(1);
     assertThat(getContentInSession()).hasSize(1);

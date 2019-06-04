@@ -225,7 +225,7 @@ public final class SessionManagerMutation implements Dumpable {
     private final List<StreamStructure> streamStructures = new ArrayList<>();
 
     @VisibleForTesting boolean clearedHead = false;
-    private List<StreamDataOperation> dataOperations;
+    private Model model;
 
     private MutationCommitter(
         String task,
@@ -264,8 +264,8 @@ public final class SessionManagerMutation implements Dumpable {
         }
         return;
       }
-      dataOperations = updateResults.getValue().streamDataOperations;
-      for (StreamDataOperation operation : dataOperations) {
+      model = updateResults.getValue();
+      for (StreamDataOperation operation : model.streamDataOperations) {
         if (operation.getStreamStructure().getOperation() == Operation.CLEAR_ALL) {
           clearedHead = true;
           break;
@@ -302,7 +302,7 @@ public final class SessionManagerMutation implements Dumpable {
       ContentMutation contentMutation = store.editContent();
       SemanticPropertiesMutation semanticPropertiesMutation = store.editSemanticProperties();
       ActionPropertiesMutation actionPropertiesMutation = store.editActionProperties();
-      for (StreamDataOperation dataOperation : dataOperations) {
+      for (StreamDataOperation dataOperation : model.streamDataOperations) {
         Operation operation = dataOperation.getStreamStructure().getOperation();
         if (operation == Operation.CLEAR_ALL) {
           streamStructures.add(dataOperation.getStreamStructure());
@@ -368,7 +368,7 @@ public final class SessionManagerMutation implements Dumpable {
             }
             contentCache.finishMutation();
           });
-      timeTracker.stop("", "contentUpdate", "items", dataOperations.size());
+      timeTracker.stop("", "contentUpdate", "items", model.streamDataOperations.size());
     }
 
     private void commitSessionUpdates() {
@@ -399,8 +399,9 @@ public final class SessionManagerMutation implements Dumpable {
         if (session == head) {
           long updateTime = clock.currentTimeMillis();
           if (clearedHead) {
-            session.updateSession(clearedHead, streamStructures, mutationContext);
-            sessionCache.updateHeadLastAddedTimeMillis(updateTime);
+            session.updateSession(
+                clearedHead, streamStructures, model.schemaVersion, mutationContext);
+            sessionCache.updateHeadMetadata(updateTime, model.schemaVersion);
             schedulerApi.onReceiveNewContent(updateTime);
             if (knownContentListener != null) {
               knownContentListener.onNewContentReceived(/* isNewRefresh */ true, updateTime);
@@ -415,7 +416,7 @@ public final class SessionManagerMutation implements Dumpable {
           }
         }
         Logger.i(TAG, "Update Session %s", session.getSessionId());
-        session.updateSession(clearedHead, streamStructures, mutationContext);
+        session.updateSession(clearedHead, streamStructures, model.schemaVersion, mutationContext);
       }
       timeTracker.stop("", "sessionUpdate", "sessions", updates.size());
     }

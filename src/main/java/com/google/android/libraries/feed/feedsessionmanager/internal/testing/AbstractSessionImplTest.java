@@ -39,6 +39,7 @@ import org.mockito.Mock;
 /** Abstract class implementing many of the core SessionImpl tests. */
 public abstract class AbstractSessionImplTest {
   protected static final String TEST_SESSION_ID = "TEST$1";
+  protected static final int SCHEMA_VERSION = 1;
 
   protected final ContentIdGenerators contentIdGenerators = new ContentIdGenerators();
 
@@ -80,7 +81,7 @@ public abstract class AbstractSessionImplTest {
   @Test
   public void testUpdateSession_notFullyInitialized() {
     SessionImpl session = getSessionImpl();
-    assertThatRunnable(() -> session.updateSession(false, new ArrayList<>(), null))
+    assertThatRunnable(() -> session.updateSession(false, new ArrayList<>(), SCHEMA_VERSION, null))
         .throwsAnExceptionOfType(NullPointerException.class);
   }
 
@@ -96,7 +97,7 @@ public abstract class AbstractSessionImplTest {
 
     // 1 clear, 3 features
     assertThat(streamStructures).hasSize(4);
-    session.updateSession(false, streamStructures, null);
+    session.updateSession(false, streamStructures, SCHEMA_VERSION, null);
     assertThat(fakeSessionMutation.streamStructures).hasSize(featureCnt);
     FakeModelMutation fakeModelMutation = fakeModelProvider.getLatestModelMutation();
     assertThat(fakeModelMutation.addedChildren).hasSize(featureCnt);
@@ -126,11 +127,11 @@ public abstract class AbstractSessionImplTest {
 
     List<StreamStructure> tokenStructures =
         new InternalProtocolBuilder().addToken(token.getContentId()).buildAsStreamStructure();
-    session.updateSession(false, tokenStructures, null);
+    session.updateSession(false, tokenStructures, SCHEMA_VERSION, null);
 
     session.bindModelProvider(modelProvider, null);
 
-    session.updateSession(false, streamStructures, context);
+    session.updateSession(false, streamStructures, SCHEMA_VERSION, context);
     FakeModelMutation fakeModelMutation = fakeModelProvider.getLatestModelMutation();
     assertThat(fakeModelMutation.mutationContext).isEqualTo(context);
   }
@@ -150,7 +151,7 @@ public abstract class AbstractSessionImplTest {
     StreamToken token =
         StreamToken.newBuilder().setContentId(contentIdGenerators.createTokenContentId(2)).build();
     MutationContext context = new MutationContext.Builder().setContinuationToken(token).build();
-    session.updateSession(false, streamStructures, context);
+    session.updateSession(false, streamStructures, SCHEMA_VERSION, context);
     assertThat(session.getContentInSession()).isEmpty();
   }
 
@@ -165,7 +166,7 @@ public abstract class AbstractSessionImplTest {
     List<StreamStructure> streamStructures = protocolBuilder.buildAsStreamStructure();
 
     sessionMutationResults = false;
-    session.updateSession(false, streamStructures, null);
+    session.updateSession(false, streamStructures, SCHEMA_VERSION, null);
     FakeModelMutation fakeModelMutation = fakeModelProvider.getLatestModelMutation();
     assertThat(fakeModelMutation.isCommitted()).isTrue(); // Optimistic write will still call this
   }
@@ -181,7 +182,7 @@ public abstract class AbstractSessionImplTest {
     protocolBuilder.removeFeature(
         contentIdGenerators.createFeatureContentId(1), contentIdGenerators.createRootContentId(0));
     List<StreamStructure> streamStructures = protocolBuilder.buildAsStreamStructure();
-    session.updateSession(false, streamStructures, null);
+    session.updateSession(false, streamStructures, SCHEMA_VERSION, null);
     FakeModelMutation fakeModelMutation = fakeModelProvider.getLatestModelMutation();
     assertThat(fakeModelMutation.removedChildren).hasSize(1);
     assertThat(session.getContentInSession()).hasSize(1);

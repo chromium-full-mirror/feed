@@ -340,15 +340,21 @@ public final class SessionCache implements Dumpable {
     }
   }
 
-  /** Updates the last time content was added to HEAD and writes data to disk. */
-  void updateHeadLastAddedTimeMillis(long lastAddedTimeMillis) {
+  /**
+   * Updates the last time content was added to HEAD and its schema version and writes data to disk.
+   */
+  void updateHeadMetadata(long lastAddedTimeMillis, int schemaVersion) {
     threadUtils.checkNotMainThread();
     synchronized (lock) {
       SessionMetadata metadata = sessionsMetadata.get(head.getSessionId());
       SessionMetadata.Builder builder =
           metadata == null ? SessionMetadata.newBuilder() : metadata.toBuilder();
       sessionsMetadata.put(
-          head.getSessionId(), builder.setLastAddedTimeMillis(lastAddedTimeMillis).build());
+          head.getSessionId(),
+          builder
+              .setLastAddedTimeMillis(lastAddedTimeMillis)
+              .setSchemaVersion(schemaVersion)
+              .build());
     }
     updatePersistedSessionsMetadata();
   }

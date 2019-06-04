@@ -54,6 +54,7 @@ import com.google.android.libraries.feed.feedstore.testing.DelegatingStore;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
 import com.google.android.libraries.feed.testing.host.logging.FakeBasicLoggingApi;
+import com.google.common.collect.ImmutableList;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
@@ -166,6 +167,24 @@ public class SessionManagerMutationTest {
     assertThat(mutationCommitter.clearedHead).isTrue();
     verify(schedulerApi).onReceiveNewContent(5L);
     verify(knownContentListener).onNewContentReceived(true, 5L);
+  }
+
+  @Test
+  public void testUpdateHeadMetadata() {
+    int schemaVersion = 3;
+    long currentTime = 8L;
+    fakeClock.set(currentTime);
+    MutationCommitter mutationCommitter = getMutationCommitter(MutationContext.EMPTY_CONTEXT);
+    mutationCommitter.accept(
+        Result.success(
+            Model.of(
+                ImmutableList.of(
+                    getStreamDataOperation(
+                        StreamStructure.newBuilder().setOperation(Operation.CLEAR_ALL).build(),
+                        /* payload= */ null)),
+                schemaVersion)));
+    assertThat(sessionCache.getHead().getSchemaVersion()).isEqualTo(schemaVersion);
+    assertThat(sessionCache.getHeadLastAddedTimeMillis()).isEqualTo(currentTime);
   }
 
   @Test

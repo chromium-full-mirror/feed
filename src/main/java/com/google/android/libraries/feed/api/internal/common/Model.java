@@ -34,7 +34,11 @@ public final class Model {
   }
 
   public static Model of(List<StreamDataOperation> streamDataOperations) {
-    return new Model(streamDataOperations, CURRENT_SCHEMA_VERSION);
+    return of(streamDataOperations, CURRENT_SCHEMA_VERSION);
+  }
+
+  public static Model of(List<StreamDataOperation> streamDataOperations, int schemaVersion) {
+    return new Model(streamDataOperations, schemaVersion);
   }
 
   public static Model empty() {

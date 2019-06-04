@@ -77,9 +77,14 @@ public class HeadSessionImpl implements Session, Dumpable {
   public void updateSession(
       boolean clearHead,
       List<StreamStructure> streamStructures,
+      int schemaVersion,
       /*@Nullable*/ MutationContext mutationContext) {
     ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
     updateCount++;
+
+    if (clearHead) {
+      this.schemaVersion = schemaVersion;
+    }
 
     StreamToken mutationSourceToken =
         mutationContext != null ? mutationContext.getContinuationToken() : null;
