@@ -24,10 +24,12 @@ import com.google.android.libraries.feed.api.internal.common.PayloadWithId;
 import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ResponseBuilder;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
+import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.ResponseProto.Response;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.Test;
@@ -37,6 +39,18 @@ import org.robolectric.RobolectricTestRunner;
 /** Tests that assert the behavior of garbage collection. */
 @RunWith(RobolectricTestRunner.class)
 public final class GcTest {
+  private static final ContentId PIET_SHARED_STATE_1 =
+      ContentId.newBuilder()
+          .setContentDomain("piet-shared-state")
+          .setId(1)
+          .setTable("feature")
+          .build();
+  private static final ContentId PIET_SHARED_STATE_2 =
+      ContentId.newBuilder()
+          .setContentDomain("piet-shared-state")
+          .setId(2)
+          .setTable("feature")
+          .build();
   private static final ContentId[] REQUEST_1 =
       new ContentId[] {
         ResponseBuilder.createFeatureContentId(1), ResponseBuilder.createFeatureContentId(2)
@@ -58,7 +72,7 @@ public final class GcTest {
   public void testGc_contentInLiveSessionRetained() {
     scope
         .getFakeFeedRequestManager()
-        .queueResponse(createResponse(REQUEST_1))
+        .queueResponse(createResponse(REQUEST_1, PIET_SHARED_STATE_1))
         .triggerRefresh(
             RequestReason.OPEN_WITHOUT_CONTENT,
             scope.getFeedSessionManager().getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
@@ -73,7 +87,7 @@ public final class GcTest {
     // Populate HEAD with new data.
     scope
         .getFakeFeedRequestManager()
-        .queueResponse(createResponse(REQUEST_2))
+        .queueResponse(createResponse(REQUEST_2, PIET_SHARED_STATE_2))
         .triggerRefresh(
             RequestReason.OPEN_WITHOUT_CONTENT,
             scope.getFeedSessionManager().getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
@@ -82,14 +96,16 @@ public final class GcTest {
     fakeClock.advance(LIFETIME_MS / 2);
     InfraIntegrationScope secondScope = scope.clone();
     assertPayloads(REQUEST_1, secondScope, /* shouldExist= */ true);
+    assertSharedStates(new ContentId[] {PIET_SHARED_STATE_1}, secondScope, /* shouldExist= */ true);
     assertPayloads(REQUEST_2, secondScope, /* shouldExist= */ true);
+    assertSharedStates(new ContentId[] {PIET_SHARED_STATE_2}, secondScope, /* shouldExist= */ true);
   }
 
   @Test
   public void testGc_contentInExpiredSessionDeleted() {
     scope
         .getFakeFeedRequestManager()
-        .queueResponse(createResponse(REQUEST_1))
+        .queueResponse(createResponse(REQUEST_1, PIET_SHARED_STATE_1))
         .triggerRefresh(
             RequestReason.OPEN_WITHOUT_CONTENT,
             scope.getFeedSessionManager().getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
@@ -104,7 +120,7 @@ public final class GcTest {
     // Populate HEAD with new data.
     scope
         .getFakeFeedRequestManager()
-        .queueResponse(createResponse(REQUEST_2))
+        .queueResponse(createResponse(REQUEST_2, PIET_SHARED_STATE_2))
         .triggerRefresh(
             RequestReason.OPEN_WITHOUT_CONTENT,
             scope.getFeedSessionManager().getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
@@ -114,7 +130,9 @@ public final class GcTest {
     fakeClock.advance(LIFETIME_MS + 1L);
     InfraIntegrationScope secondScope = scope.clone();
     assertPayloads(REQUEST_1, secondScope, /* shouldExist= */ false);
+    assertSharedStates(new ContentId[] {PIET_SHARED_STATE_1}, secondScope, /* shouldExist= */ true);
     assertPayloads(REQUEST_2, secondScope, /* shouldExist= */ true);
+    assertSharedStates(new ContentId[] {PIET_SHARED_STATE_2}, secondScope, /* shouldExist= */ true);
   }
 
   private static void assertPayloads(
@@ -136,7 +154,31 @@ public final class GcTest {
     }
   }
 
-  private static Response createResponse(ContentId[] contentIds) {
-    return ResponseBuilder.forClearAllWithCards(contentIds).build();
+  private static void assertSharedStates(
+      ContentId[] contentIds, InfraIntegrationScope scope, boolean shouldExist) {
+    scope.getFakeThreadUtils().enforceMainThread(false);
+    List<String> sharedStateContentIds = new ArrayList<>();
+    for (StreamSharedState streamSharedState : scope.getStore().getSharedStates().getValue()) {
+      sharedStateContentIds.add(streamSharedState.getContentId());
+    }
+    List<String> expectedContentIds = new ArrayList<>(contentIds.length);
+    for (ContentId contentId : contentIds) {
+      expectedContentIds.add(scope.getProtocolAdapter().getStreamContentId(contentId));
+    }
+
+    if (shouldExist) {
+      assertThat(sharedStateContentIds).containsAtLeastElementsIn(expectedContentIds);
+    } else {
+      assertThat(sharedStateContentIds).containsNoneIn(expectedContentIds);
+    }
+  }
+
+  private static Response createResponse(ContentId[] cards, ContentId pietSharedStateContentId) {
+    return ResponseBuilder.builder()
+        .addClearOperation()
+        .addPietSharedState(pietSharedStateContentId)
+        .addRootFeature()
+        .addCardsToRoot(cards)
+        .build();
   }
 }

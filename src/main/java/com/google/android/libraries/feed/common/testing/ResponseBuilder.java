@@ -16,6 +16,8 @@ package com.google.android.libraries.feed.common.testing;
 
 import com.google.protobuf.ByteString;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
+import com.google.search.now.ui.stream.StreamStructureProto.Content;
+import com.google.search.now.ui.stream.StreamStructureProto.PietContent;
 import com.google.search.now.wire.feed.ActionPropertiesProto.ActionProperties;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.DataOperationProto.DataOperation;
@@ -52,6 +54,7 @@ public class ResponseBuilder {
 
   private final WireProtocolInfo wireProtocolInfo = new WireProtocolInfo();
   private final FeedResponse.Builder feedResponseBuilder = FeedResponse.newBuilder();
+  private final List<ContentId> pietSharedStateContentIds = new ArrayList<>();
 
   private int tokenId = 0;
   /*@Nullable*/ private ByteString token = null;
@@ -72,8 +75,13 @@ public class ResponseBuilder {
   }
 
   public ResponseBuilder addPietSharedState() {
+    return addPietSharedState(PIET_SHARED_STATE);
+  }
+
+  public ResponseBuilder addPietSharedState(ContentId pietSharedStateContentId) {
+    pietSharedStateContentIds.add(pietSharedStateContentId);
     PayloadMetadata payloadMetadata =
-        PayloadMetadata.newBuilder().setContentId(PIET_SHARED_STATE).build();
+        PayloadMetadata.newBuilder().setContentId(pietSharedStateContentId).build();
     feedResponseBuilder.addDataOperation(
         DataOperation.newBuilder()
             .setOperation(Operation.UPDATE_OR_APPEND)
@@ -141,6 +149,16 @@ public class ResponseBuilder {
         Feature.newBuilder()
             .setRenderableUnit(RenderableUnit.CONTENT)
             .setParentId(contentId)
+            .setExtension(
+                Content.contentExtension,
+                Content.newBuilder()
+                    .setType(Content.Type.PIET)
+                    .setExtension(
+                        PietContent.pietContentExtension,
+                        PietContent.newBuilder()
+                            .addAllPietSharedStates(pietSharedStateContentIds)
+                            .build())
+                    .build())
             .build();
     feedResponseBuilder.addDataOperation(
         DataOperation.newBuilder()
