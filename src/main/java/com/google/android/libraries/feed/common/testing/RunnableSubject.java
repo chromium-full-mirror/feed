@@ -25,7 +25,7 @@ import com.google.common.truth.ThrowableSubject;
 
 /** A Truth subject for testing exceptions. */
 @SuppressWarnings("nullness")
-public final class RunnableSubject extends Subject<RunnableSubject, ThrowingRunnable> {
+public final class RunnableSubject extends Subject {
   private static final Subject.Factory<RunnableSubject, ThrowingRunnable> RUNNABLE_SUBJECT_FACTORY =
       RunnableSubject::new;
 
