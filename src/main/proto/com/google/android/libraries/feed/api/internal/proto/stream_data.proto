@@ -21,7 +21,6 @@ option optimize_for=LITE_RUNTIME;
 import "src/main/proto/search/now/ui/stream/stream_structure.proto";
 import "src/main/proto/search/now/wire/feed/action_payload.proto";
 import "src/main/proto/search/now/wire/feed/consistency_token.proto";
-import "src/main/proto/search/now/wire/feed/opaque_action_data.proto";
 import "src/main/proto/search/now/wire/feed/piet_shared_state_item.proto";
 
 option java_package = "com.google.search.now.feed.client";
@@ -165,15 +164,11 @@ message StreamPayload {
     // FeedStoreConstants.SEMANTIC_PROPERTIES_PREFIX) allowing prefix queries.
     bytes semantic_data = 7;
 
-    // The action data associated with a Feature.  These are stored as content
-    // with a prefix added by the Store (see
-    // FeedStoreConstants.ACTION_PROPERTIES_PREFIX) allowing prefix queries.
-    wire.feed.OpaqueActionData action_data = 8;
-
     // The consistency token used to ensure that we are recording actions to
     // the same server store.
     wire.feed.ConsistencyToken consistency_token = 9;
   }
+  reserved 8;
 }
 
 // Allow the payload to contain Legacy Stream content.

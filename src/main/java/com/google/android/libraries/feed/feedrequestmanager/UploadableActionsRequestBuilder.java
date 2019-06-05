@@ -14,33 +14,24 @@
 
 package com.google.android.libraries.feed.feedrequestmanager;
 
-import com.google.android.libraries.feed.api.internal.actionmanager.ActionReader;
-import com.google.android.libraries.feed.api.internal.common.ActionPropertiesWithId;
 import com.google.android.libraries.feed.api.internal.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.common.Result;
 import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
 import com.google.search.now.wire.feed.ActionPayloadProto.ActionPayload;
-import com.google.search.now.wire.feed.ActionPropertiesProto.ActionProperties;
 import com.google.search.now.wire.feed.ActionRequestProto.ActionRequest;
 import com.google.search.now.wire.feed.ConsistencyTokenProto.ConsistencyToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.FeedActionProto.FeedAction;
 import com.google.search.now.wire.feed.FeedActionRequestProto.FeedActionRequest;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 // A class that creates an ActionsRequest for uploading actions
 final class UploadableActionsRequestBuilder {
   private Set<StreamUploadableAction> uploadableActions;
   private ConsistencyToken token;
-  private final ActionReader actionReader;
   private final ProtocolAdapter protocolAdapter;
 
-  UploadableActionsRequestBuilder(ActionReader actionReader, ProtocolAdapter protocolAdapter) {
-    this.actionReader = actionReader;
+  UploadableActionsRequestBuilder(ProtocolAdapter protocolAdapter) {
     this.protocolAdapter = protocolAdapter;
   }
 
@@ -64,17 +55,6 @@ final class UploadableActionsRequestBuilder {
             .setRequestVersion(ActionRequest.RequestVersion.FEED_UPLOAD_ACTION);
     FeedActionRequest.Builder feedActionRequestBuilder = FeedActionRequest.newBuilder();
     if (uploadableActions != null) {
-      Map<String, ActionProperties> actionPropertyMap = new HashMap<>();
-      List<String> contentIds = new ArrayList<>(uploadableActions.size());
-      for (StreamUploadableAction action : uploadableActions) {
-        contentIds.add(action.getFeatureContentId());
-      }
-      List<ActionPropertiesWithId> actionProperties = getActionPropertiesForIds(contentIds);
-      for (ActionPropertiesWithId property : actionProperties) {
-        actionPropertyMap.put(
-            property.contentId,
-            ActionProperties.newBuilder().setActionData(property.actionData).build());
-      }
       for (StreamUploadableAction action : uploadableActions) {
         String contentId = action.getFeatureContentId();
         ActionPayload payload = action.getPayload();
@@ -85,10 +65,6 @@ final class UploadableActionsRequestBuilder {
                     FeedAction.ClientData.newBuilder()
                         .setTimestampSeconds(action.getTimestampSeconds())
                         .build());
-        ActionProperties properties = actionPropertyMap.get(contentId);
-        if (properties != null) {
-          feedAction.setActionProperties(properties);
-        }
         Result<ContentId> contentIdResult = protocolAdapter.getWireContentId(contentId);
         if (contentIdResult.isSuccessful()) {
           feedAction.setContentId(contentIdResult.getValue());
@@ -103,13 +79,5 @@ final class UploadableActionsRequestBuilder {
         FeedActionRequest.feedActionRequest, feedActionRequestBuilder.build());
 
     return requestBuilder.build();
-  }
-
-  private List<ActionPropertiesWithId> getActionPropertiesForIds(List<String> ids) {
-    Result<List<ActionPropertiesWithId>> actionResult = actionReader.getActionProperties(ids);
-    if (actionResult.isSuccessful()) {
-      return actionResult.getValue();
-    }
-    return new ArrayList<>();
   }
 }

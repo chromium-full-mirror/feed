@@ -20,12 +20,10 @@ import com.google.android.libraries.feed.api.host.logging.Task;
 import com.google.android.libraries.feed.api.host.storage.CommitResult;
 import com.google.android.libraries.feed.api.host.storage.ContentStorageDirect;
 import com.google.android.libraries.feed.api.host.storage.JournalStorageDirect;
-import com.google.android.libraries.feed.api.internal.common.ActionPropertiesWithId;
 import com.google.android.libraries.feed.api.internal.common.PayloadWithId;
 import com.google.android.libraries.feed.api.internal.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.api.internal.common.ThreadUtils;
 import com.google.android.libraries.feed.api.internal.lifecycle.Resettable;
-import com.google.android.libraries.feed.api.internal.store.ActionPropertiesMutation;
 import com.google.android.libraries.feed.api.internal.store.ContentMutation;
 import com.google.android.libraries.feed.api.internal.store.LocalActionMutation;
 import com.google.android.libraries.feed.api.internal.store.SemanticPropertiesMutation;
@@ -144,11 +142,6 @@ public class FeedStore extends FeedObservable<StoreListener>
   }
 
   @Override
-  public Result<List<ActionPropertiesWithId>> getActionProperties(List<String> contentIds) {
-    return delegate.getActionProperties(contentIds);
-  }
-
-  @Override
   public Result<List<StreamLocalAction>> getAllDismissLocalActions() {
     return delegate.getAllDismissLocalActions();
   }
@@ -186,11 +179,6 @@ public class FeedStore extends FeedObservable<StoreListener>
   @Override
   public SemanticPropertiesMutation editSemanticProperties() {
     return delegate.editSemanticProperties();
-  }
-
-  @Override
-  public ActionPropertiesMutation editActionProperties() {
-    return delegate.editActionProperties();
   }
 
   @Override

@@ -21,7 +21,6 @@ import com.google.android.libraries.feed.api.host.network.HttpRequest;
 import com.google.android.libraries.feed.api.host.network.HttpRequest.HttpMethod;
 import com.google.android.libraries.feed.api.host.network.NetworkClient;
 import com.google.android.libraries.feed.api.host.storage.CommitResult;
-import com.google.android.libraries.feed.api.internal.actionmanager.ActionReader;
 import com.google.android.libraries.feed.api.internal.common.ThreadUtils;
 import com.google.android.libraries.feed.api.internal.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.internal.requestmanager.ActionUploadRequestManager;
@@ -54,7 +53,6 @@ public final class FeedActionUploadRequestManager implements ActionUploadRequest
   private final FeedExtensionRegistry extensionRegistry;
   private final TaskQueue taskQueue;
   private final ThreadUtils threadUtils;
-  private final ActionReader actionReader;
   private final Store store;
   private final Clock clock;
   private final long maxActionUploadAttempts;
@@ -71,7 +69,6 @@ public final class FeedActionUploadRequestManager implements ActionUploadRequest
       FeedExtensionRegistry extensionRegistry,
       TaskQueue taskQueue,
       ThreadUtils threadUtils,
-      ActionReader actionReader,
       Store store,
       Clock clock) {
     this.configuration = configuration;
@@ -80,7 +77,6 @@ public final class FeedActionUploadRequestManager implements ActionUploadRequest
     this.extensionRegistry = extensionRegistry;
     this.taskQueue = taskQueue;
     this.threadUtils = threadUtils;
-    this.actionReader = actionReader;
     this.store = store;
     this.clock = clock;
     maxBytesPerRequest =
@@ -118,7 +114,7 @@ public final class FeedActionUploadRequestManager implements ActionUploadRequest
       return;
     }
     UploadableActionsRequestBuilder requestBuilder =
-        new UploadableActionsRequestBuilder(actionReader, protocolAdapter);
+        new UploadableActionsRequestBuilder(protocolAdapter);
     int actionPayloadBytes = 0;
     Set<StreamUploadableAction> actionsToUpload = new HashSet<>();
     for (StreamUploadableAction action : actions) {

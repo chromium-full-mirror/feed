@@ -13,9 +13,9 @@
 // limitations under the License.
 package com.google.android.libraries.feed.feedstore.internal;
 
-import static com.google.android.libraries.feed.feedstore.internal.FeedStoreConstants.ACTION_PROPERTIES_PREFIX;
 import static com.google.android.libraries.feed.feedstore.internal.FeedStoreConstants.SEMANTIC_PROPERTIES_PREFIX;
 import static com.google.android.libraries.feed.feedstore.internal.FeedStoreConstants.SHARED_STATE_PREFIX;
+import static com.google.android.libraries.feed.feedstore.internal.FeedStoreConstants.UPLOADABLE_ACTION_PREFIX;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
@@ -32,7 +32,6 @@ import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.common.collect.ImmutableSet;
 import com.google.search.now.feed.client.StreamDataProto.StreamLocalAction;
-import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Before;
@@ -52,8 +51,7 @@ public class ContentGcTest {
   private static final String CONTENT_ID_2 = "contentId2";
   private static final String SEMANTIC_PROPERTIES_1 = SEMANTIC_PROPERTIES_PREFIX + CONTENT_ID_1;
   private static final String SEMANTIC_PROPERTIES_2 = SEMANTIC_PROPERTIES_PREFIX + CONTENT_ID_2;
-  private static final String ACTION_PROPERTIES_1 = ACTION_PROPERTIES_PREFIX + CONTENT_ID_1;
-  private static final String ACTION_PROPERTIES_2 = ACTION_PROPERTIES_PREFIX + CONTENT_ID_2;
+  private static final String ACTION_1 = UPLOADABLE_ACTION_PREFIX + CONTENT_ID_1;
 
   private final TimingUtils timingUtils = new TimingUtils();
 
@@ -72,7 +70,6 @@ public class ContentGcTest {
         new ContentGc(
             ImmutableSet::of,
             ImmutableSet.of(),
-            ImmutableSet::of,
             ImmutableSet::of,
             contentStorage,
             timingUtils,
@@ -98,7 +95,6 @@ public class ContentGcTest {
             () -> ImmutableSet.of(CONTENT_ID_1),
             ImmutableSet.of(),
             ImmutableSet::of,
-            ImmutableSet::of,
             contentStorage,
             timingUtils,
             /* keepSharedStates= */ true);
@@ -123,7 +119,6 @@ public class ContentGcTest {
             ImmutableSet::of,
             ImmutableSet.of(CONTENT_ID_1),
             ImmutableSet::of,
-            ImmutableSet::of,
             contentStorage,
             timingUtils,
             /* keepSharedStates= */ true);
@@ -138,16 +133,14 @@ public class ContentGcTest {
   }
 
   @Test
-  public void gc_actionProperties_noAction() {
+  public void gc_actionUploads_validAction() {
     List<String> contentKeys = new ArrayList<>();
-    contentKeys.add(ACTION_PROPERTIES_1);
-    contentKeys.add(ACTION_PROPERTIES_2);
+    contentKeys.add(ACTION_1);
     mockContentStorageWithContents(contentKeys);
     ContentGc contentGc =
         new ContentGc(
             ImmutableSet::of,
             ImmutableSet.of(),
-            ImmutableSet::of,
             ImmutableSet::of,
             contentStorage,
             timingUtils,
@@ -156,71 +149,12 @@ public class ContentGcTest {
     ArgumentCaptor<ContentMutation> contentMutationCaptor =
         ArgumentCaptor.forClass(ContentMutation.class);
     verify(contentStorage).commit(contentMutationCaptor.capture());
-    List<ContentOperation> expectedOperations =
-        new Builder()
-            .delete(ACTION_PROPERTIES_1)
-            .delete(ACTION_PROPERTIES_2)
-            .build()
-            .getOperations();
+    List<ContentOperation> expectedOperations = new Builder().build().getOperations();
     List<ContentOperation> resultOperations = contentMutationCaptor.getValue().getOperations();
     assertListsContainSameElements(expectedOperations, resultOperations);
   }
 
-  @Test
-  public void gc_actionProperties_validAction() {
-    List<String> contentKeys = new ArrayList<>();
-    contentKeys.add(ACTION_PROPERTIES_1);
-    contentKeys.add(ACTION_PROPERTIES_2);
-    mockContentStorageWithContents(contentKeys);
-    ContentGc contentGc =
-        new ContentGc(
-            ImmutableSet::of,
-            ImmutableSet.of(),
-            ImmutableSet::of,
-            () ->
-                ImmutableSet.of(
-                    StreamUploadableAction.newBuilder()
-                        .setUploadAttempts(1)
-                        .setFeatureContentId(CONTENT_ID_1)
-                        .build()),
-            contentStorage,
-            timingUtils,
-            /* keepSharedStates= */ true);
-    contentGc.gc();
-    ArgumentCaptor<ContentMutation> contentMutationCaptor =
-        ArgumentCaptor.forClass(ContentMutation.class);
-    verify(contentStorage).commit(contentMutationCaptor.capture());
-    List<ContentOperation> expectedOperations =
-        new Builder().delete(ACTION_PROPERTIES_2).build().getOperations();
-    List<ContentOperation> resultOperations = contentMutationCaptor.getValue().getOperations();
-    assertListsContainSameElements(expectedOperations, resultOperations);
-  }
 
-  @Test
-  public void gc_actionProperties_accessibleContent() {
-    List<String> contentKeys = new ArrayList<>();
-    contentKeys.add(CONTENT_ID_1);
-    contentKeys.add(ACTION_PROPERTIES_1);
-    contentKeys.add(ACTION_PROPERTIES_2);
-    mockContentStorageWithContents(contentKeys);
-    ContentGc contentGc =
-        new ContentGc(
-            () -> ImmutableSet.of(CONTENT_ID_1),
-            ImmutableSet.of(),
-            ImmutableSet::of,
-            ImmutableSet::of,
-            contentStorage,
-            timingUtils,
-            /* keepSharedStates= */ true);
-    contentGc.gc();
-    ArgumentCaptor<ContentMutation> contentMutationCaptor =
-        ArgumentCaptor.forClass(ContentMutation.class);
-    verify(contentStorage).commit(contentMutationCaptor.capture());
-    List<ContentOperation> expectedOperations =
-        new Builder().delete(ACTION_PROPERTIES_2).build().getOperations();
-    List<ContentOperation> resultOperations = contentMutationCaptor.getValue().getOperations();
-    assertListsContainSameElements(expectedOperations, resultOperations);
-  }
 
   @Test
   public void gc_semanticProperties_noAction() {
@@ -232,7 +166,6 @@ public class ContentGcTest {
         new ContentGc(
             ImmutableSet::of,
             ImmutableSet.of(),
-            ImmutableSet::of,
             ImmutableSet::of,
             contentStorage,
             timingUtils,
@@ -267,7 +200,6 @@ public class ContentGcTest {
                         .setAction(ActionType.DISMISS)
                         .setFeatureContentId(CONTENT_ID_1)
                         .build()),
-            ImmutableSet::of,
             contentStorage,
             timingUtils,
             /* keepSharedStates= */ true);
@@ -293,7 +225,6 @@ public class ContentGcTest {
             () -> ImmutableSet.of(CONTENT_ID_1),
             ImmutableSet.of(),
             ImmutableSet::of,
-            ImmutableSet::of,
             contentStorage,
             timingUtils,
             /* keepSharedStates= */ true);
@@ -318,7 +249,6 @@ public class ContentGcTest {
             ImmutableSet::of,
             ImmutableSet.of(),
             ImmutableSet::of,
-            ImmutableSet::of,
             contentStorage,
             timingUtils,
             /* keepSharedStates= */ true);
@@ -342,7 +272,6 @@ public class ContentGcTest {
         new ContentGc(
             ImmutableSet::of,
             ImmutableSet.of(),
-            ImmutableSet::of,
             ImmutableSet::of,
             contentStorage,
             timingUtils,
@@ -371,7 +300,6 @@ public class ContentGcTest {
         new ContentGc(
             () -> ImmutableSet.of(CONTENT_ID_1),
             ImmutableSet.of(),
-            ImmutableSet::of,
             ImmutableSet::of,
             contentStorage,
             timingUtils,

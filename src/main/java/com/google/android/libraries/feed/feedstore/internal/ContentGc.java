@@ -14,9 +14,9 @@
 
 package com.google.android.libraries.feed.feedstore.internal;
 
-import static com.google.android.libraries.feed.feedstore.internal.FeedStoreConstants.ACTION_PROPERTIES_PREFIX;
 import static com.google.android.libraries.feed.feedstore.internal.FeedStoreConstants.SEMANTIC_PROPERTIES_PREFIX;
 import static com.google.android.libraries.feed.feedstore.internal.FeedStoreConstants.SHARED_STATE_PREFIX;
+import static com.google.android.libraries.feed.feedstore.internal.FeedStoreConstants.UPLOADABLE_ACTION_PREFIX;
 
 import com.google.android.libraries.feed.api.host.storage.CommitResult;
 import com.google.android.libraries.feed.api.host.storage.ContentMutation;
@@ -27,7 +27,6 @@ import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTracker;
 import com.google.search.now.feed.client.StreamDataProto.StreamLocalAction;
-import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -40,7 +39,6 @@ public final class ContentGc {
   private final Supplier<Set<String>> accessibleContentSupplier;
   private final Set<String> reservedContentIds;
   private final Supplier<Set<StreamLocalAction>> actionsSupplier;
-  private final Supplier<Set<StreamUploadableAction>> uploadableActionsSupplier;
   private final ContentStorageDirect contentStorageDirect;
   private final TimingUtils timingUtils;
   private final boolean keepSharedStates;
@@ -49,14 +47,12 @@ public final class ContentGc {
       Supplier<Set<String>> accessibleContentSupplier,
       Set<String> reservedContentIds,
       Supplier<Set<StreamLocalAction>> actionsSupplier,
-      Supplier<Set<StreamUploadableAction>> uploadableActionsSupplier,
       ContentStorageDirect contentStorageDirect,
       TimingUtils timingUtils,
       boolean keepSharedStates) {
     this.accessibleContentSupplier = accessibleContentSupplier;
     this.reservedContentIds = reservedContentIds;
     this.actionsSupplier = actionsSupplier;
-    this.uploadableActionsSupplier = uploadableActionsSupplier;
     this.contentStorageDirect = contentStorageDirect;
     this.timingUtils = timingUtils;
     this.keepSharedStates = keepSharedStates;
@@ -72,8 +68,7 @@ public final class ContentGc {
     population.removeAll(reservedContentIds);
     population.removeAll(getAccessibleSemanticProperties(accessibleContent));
     population.removeAll(getLocalActionSemanticProperties(getLocalActions()));
-    population.removeAll(getAccessibleActionProperties(accessibleContent));
-    population.removeAll(getUploadableActionProperties(getUploadableActions()));
+    filterUploadableActions(population);
     if (keepSharedStates) {
       filterSharedStates(population);
     } else {
@@ -100,16 +95,24 @@ public final class ContentGc {
   }
 
   private void filterSharedStates(Set<String> population) {
+    filterPrefix(population, SHARED_STATE_PREFIX);
+  }
+
+  private void filterUploadableActions(Set<String> population) {
+    filterPrefix(population, UPLOADABLE_ACTION_PREFIX);
+  }
+
+  private void filterPrefix(Set<String> population, String prefix) {
     int size = population.size();
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
     Iterator<String> i = population.iterator();
     while (i.hasNext()) {
       String key = i.next();
-      if (key.startsWith(SHARED_STATE_PREFIX)) {
+      if (key.startsWith(prefix)) {
         i.remove();
       }
     }
-    tracker.stop("", "filterSharedStates", population.size() - size);
+    tracker.stop("", "filterPrefix " + prefix, population.size() - size);
   }
 
   private Set<String> getAccessible() {
@@ -126,13 +129,6 @@ public final class ContentGc {
     return actions;
   }
 
-  private Set<StreamUploadableAction> getUploadableActions() {
-    ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
-    Set<StreamUploadableAction> actions = uploadableActionsSupplier.get();
-    tracker.stop("", "geUploadableActions", "actionCount", actions.size());
-    return actions;
-  }
-
   private Set<String> getPopulation() {
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
     Set<String> population = new HashSet<>();
@@ -144,21 +140,6 @@ public final class ContentGc {
     }
     tracker.stop("", "getPopulation", "contentPopulation", population.size());
     return population;
-  }
-
-  private Set<String> getAccessibleActionProperties(Set<String> accessibleContent) {
-    ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
-    Set<String> actionPropertiesKeys = new HashSet<>();
-    for (String accessibleContentId : accessibleContent) {
-      String actionPropertyKey = ACTION_PROPERTIES_PREFIX + accessibleContentId;
-      actionPropertiesKeys.add(actionPropertyKey);
-    }
-    tracker.stop(
-        "",
-        "getAccessibleActionProperties",
-        "accessibleActionPropertiesSize",
-        actionPropertiesKeys.size());
-    return actionPropertiesKeys;
   }
 
   private Set<String> getAccessibleSemanticProperties(Set<String> accessibleContent) {
@@ -201,20 +182,5 @@ public final class ContentGc {
         "actionSemanticPropertiesSize",
         semanticPropertiesKeys.size());
     return semanticPropertiesKeys;
-  }
-
-  private Set<String> getUploadableActionProperties(Set<StreamUploadableAction> actions) {
-    ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
-    Set<String> actionPropertiesKeys = new HashSet<>();
-    for (StreamUploadableAction action : actions) {
-      String actionPropertyKey = ACTION_PROPERTIES_PREFIX + action.getFeatureContentId();
-      actionPropertiesKeys.add(actionPropertyKey);
-    }
-    tracker.stop(
-        "",
-        "getLocalActionActionProperties",
-        "actionActopmPropertiesSize",
-        actionPropertiesKeys.size());
-    return actionPropertiesKeys;
   }
 }

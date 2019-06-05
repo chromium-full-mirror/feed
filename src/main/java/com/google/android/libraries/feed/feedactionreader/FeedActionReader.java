@@ -18,7 +18,6 @@ import com.google.android.libraries.feed.api.host.config.Configuration;
 import com.google.android.libraries.feed.api.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.api.host.logging.Task;
 import com.google.android.libraries.feed.api.internal.actionmanager.ActionReader;
-import com.google.android.libraries.feed.api.internal.common.ActionPropertiesWithId;
 import com.google.android.libraries.feed.api.internal.common.DismissActionWithSemanticProperties;
 import com.google.android.libraries.feed.api.internal.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.api.internal.protocoladapter.ProtocolAdapter;
@@ -62,11 +61,6 @@ public final class FeedActionReader implements ActionReader {
             ConfigKey.DEFAULT_ACTION_TTL_SECONDS, TimeUnit.DAYS.toSeconds(3L));
     minValidActionRatio =
         configuration.getValueOrDefault(ConfigKey.MINIMUM_VALID_ACTION_RATIO, 0.3);
-  }
-
-  @Override
-  public Result<List<ActionPropertiesWithId>> getActionProperties(List<String> contentIds) {
-    return store.getActionProperties(contentIds);
   }
 
   @Override

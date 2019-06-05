@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.api.internal.actionmanager;
 
-import com.google.android.libraries.feed.api.internal.common.ActionPropertiesWithId;
 import com.google.android.libraries.feed.api.internal.common.DismissActionWithSemanticProperties;
 import com.google.android.libraries.feed.common.Result;
 import java.util.List;
@@ -24,6 +23,4 @@ public interface ActionReader {
 
   /** Retrieves list of {@link DismissActionWithSemanticProperties} for all valid dismiss actions */
   Result<List<DismissActionWithSemanticProperties>> getDismissActionsWithSemanticProperties();
-  /** Retrieves list of {@link ActionProperties} for the corresponding contentId */
-  Result<List<ActionPropertiesWithId>> getActionProperties(List<String> contentIds);
 }

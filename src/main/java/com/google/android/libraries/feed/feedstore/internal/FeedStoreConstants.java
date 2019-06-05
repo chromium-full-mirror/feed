@@ -34,7 +34,4 @@ public final class FeedStoreConstants {
 
   /** The name of the journal used to store dismiss actions */
   public static final String DISMISS_ACTION_JOURNAL = "action-dismiss";
-
-  /** Key used to prefix Feed action properties keys in {@link ContentStorage} */
-  public static final String ACTION_PROPERTIES_PREFIX = "ap::";
 }

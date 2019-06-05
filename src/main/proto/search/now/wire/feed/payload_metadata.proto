@@ -18,7 +18,6 @@ package search.now.wire.feed;
 
 option optimize_for=LITE_RUNTIME;
 
-import "src/main/proto/search/now/wire/feed/action_properties.proto";
 import "src/main/proto/search/now/wire/feed/content_id.proto";
 import "src/main/proto/search/now/wire/feed/semantic_properties.proto";
 
@@ -33,6 +32,5 @@ message PayloadMetadata {
   // Payload semantic properties
   optional SemanticProperties semantic_properties = 2;
 
-  // Data relevant for actions that can be taken on this content.
-  optional ActionProperties action_properties = 3;
+  reserved 3;
 }

@@ -250,7 +250,6 @@ public final class ProcessScopeBuilder {
             extensionRegistry,
             taskQueue,
             threadUtils,
-            actionReader,
             store,
             clock);
     FeedSessionManagerFactory fsmFactory =

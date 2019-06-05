@@ -15,10 +15,8 @@
 package com.google.android.libraries.feed.feedstore.internal;
 
 import com.google.android.libraries.feed.api.host.storage.CommitResult;
-import com.google.android.libraries.feed.api.internal.common.ActionPropertiesWithId;
 import com.google.android.libraries.feed.api.internal.common.PayloadWithId;
 import com.google.android.libraries.feed.api.internal.common.SemanticPropertiesWithId;
-import com.google.android.libraries.feed.api.internal.store.ActionPropertiesMutation;
 import com.google.android.libraries.feed.api.internal.store.ContentMutation;
 import com.google.android.libraries.feed.api.internal.store.LocalActionMutation;
 import com.google.android.libraries.feed.api.internal.store.LocalActionMutation.ActionType;
@@ -36,7 +34,6 @@ import com.google.search.now.feed.client.StreamDataProto.StreamLocalAction;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
-import com.google.search.now.wire.feed.OpaqueActionDataProto.OpaqueActionData;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -59,7 +56,6 @@ public final class EphemeralFeedStore implements ClearableStore {
   private final Map<String, PayloadWithId> payloadWithIdMap = new HashMap<>();
   private final Map<String, StreamSharedState> sharedStateMap = new HashMap<>();
   private final Map<String, ByteString> semanticPropertiesMap = new HashMap<>();
-  private final Map<String, OpaqueActionData> actionPropertiesMap = new HashMap<>();
   private final Map<Integer, List<StreamLocalAction>> actionsMap = new HashMap<>();
   private final Map<String, Set<StreamUploadableAction>> uploadableActionsMap = new HashMap<>();
   private final Map<String, List<StreamStructure>> sessionsMap = new HashMap<>();
@@ -106,18 +102,6 @@ public final class EphemeralFeedStore implements ClearableStore {
       }
     }
     return Result.success(returnValues);
-  }
-
-  @Override
-  public Result<List<ActionPropertiesWithId>> getActionProperties(List<String> contentIds) {
-    List<ActionPropertiesWithId> actionPropertiesWithIds = new ArrayList<>(contentIds.size());
-    for (String contentId : contentIds) {
-      OpaqueActionData actionProperties = actionPropertiesMap.get(contentId);
-      if (actionProperties != null) {
-        actionPropertiesWithIds.add(new ActionPropertiesWithId(contentId, actionProperties));
-      }
-    }
-    return Result.success(actionPropertiesWithIds);
   }
 
   @Override
@@ -232,19 +216,6 @@ public final class EphemeralFeedStore implements ClearableStore {
   }
 
   @Override
-  public ActionPropertiesMutation editActionProperties() {
-    return new FeedActionPropertiesMutation(this::commitActionPropertiesMutation);
-  }
-
-  private CommitResult commitActionPropertiesMutation(
-      Map<String, OpaqueActionData> actionPropertiesMap) {
-    ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
-    this.actionPropertiesMap.putAll(actionPropertiesMap);
-    tracker.stop("", "commitActionPropertiesMutation", "mutations", actionPropertiesMap.size());
-    return CommitResult.SUCCESS;
-  }
-
-  @Override
   public UploadableActionMutation editUploadableActions() {
     return new FeedUploadableActionMutation(this::commitUploadableActionMutation);
   }
@@ -342,7 +313,6 @@ public final class EphemeralFeedStore implements ClearableStore {
     payloadWithIdMap.clear();
     actionsMap.clear();
     semanticPropertiesMap.clear();
-    actionPropertiesMap.clear();
     sessionsMap.clear();
     sharedStateMap.clear();
     return true;

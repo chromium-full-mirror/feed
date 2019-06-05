@@ -32,7 +32,6 @@ import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.DataOperationProto.DataOperation;
-import com.google.search.now.wire.feed.OpaqueActionDataProto.OpaqueActionData;
 import com.google.search.now.wire.feed.ResponseProto.Response;
 import java.nio.charset.Charset;
 import java.util.List;
@@ -147,21 +146,6 @@ public class FeedProtocolAdapterTest {
     StreamDataOperation sdo = results.getValue().streamDataOperations.get(1);
     assertThat(sdo.getStreamPayload().hasSemanticData()).isTrue();
     assertThat(sdo.getStreamPayload().getSemanticData()).isEqualTo(semanticData);
-  }
-
-  @Test
-  public void testSimpleResponse_feature_actionProperties() {
-    ContentId contentId = ResponseBuilder.createFeatureContentId(13);
-    OpaqueActionData actionData = OpaqueActionData.getDefaultInstance();
-    Response response = new ResponseBuilder().addCardWithActionData(contentId, actionData).build();
-
-    Result<Model> results = protocolAdapter.createModel(response);
-    assertThat(results.isSuccessful()).isTrue();
-    // Note that 2 operations are created (the card and the action data). We want the latter.
-    assertThat(results.getValue().streamDataOperations).hasSize(2);
-    StreamDataOperation sdo = results.getValue().streamDataOperations.get(1);
-    assertThat(sdo.getStreamPayload().hasActionData()).isTrue();
-    assertThat(sdo.getStreamPayload().getActionData()).isEqualTo(actionData);
   }
 
   @Test

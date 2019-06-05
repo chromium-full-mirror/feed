@@ -189,7 +189,6 @@ public final class FakeStore extends FeedStore {
     contentIds.add(contentId);
     ArrayList<Object> result = new ArrayList<>();
     result.addAll(getPayloads(contentIds).getValue());
-    result.addAll(getActionProperties(contentIds).getValue());
     result.addAll(getSemanticProperties(contentIds).getValue());
     for (StreamUploadableAction action : getAllUploadableActions().getValue()) {
       if (action.getFeatureContentId().equals(contentId)) {

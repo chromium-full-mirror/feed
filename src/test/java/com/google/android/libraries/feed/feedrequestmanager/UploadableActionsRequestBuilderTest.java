@@ -17,20 +17,16 @@ package com.google.android.libraries.feed.feedrequestmanager;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.testing.actionmanager.FakeActionReader;
 import com.google.android.libraries.feed.testing.protocoladapter.FakeProtocolAdapter;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
 import com.google.search.now.wire.feed.ActionPayloadForTestProto.ActionPayloadForTest;
 import com.google.search.now.wire.feed.ActionPayloadProto.ActionPayload;
-import com.google.search.now.wire.feed.ActionPropertiesProto.ActionProperties;
 import com.google.search.now.wire.feed.ActionRequestProto.ActionRequest;
 import com.google.search.now.wire.feed.ConsistencyTokenProto.ConsistencyToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.FeedActionProto.FeedAction;
 import com.google.search.now.wire.feed.FeedActionRequestProto.FeedActionRequest;
-import com.google.search.now.wire.feed.OpaqueActionDataForTestProto.OpaqueActionDataForTest;
-import com.google.search.now.wire.feed.OpaqueActionDataProto.OpaqueActionData;
 import java.util.HashSet;
 import org.junit.Before;
 import org.junit.Test;
@@ -54,24 +50,14 @@ public class UploadableActionsRequestBuilderTest {
       ConsistencyToken.newBuilder().setToken(ByteString.copyFrom(new byte[] {0x1, 0xf})).build();
   private ActionRequest.Builder requestBuilder;
   private FeedActionRequest.Builder feedActionRequestBuilder;
-  private OpaqueActionData data;
   private FakeProtocolAdapter fakeProtocolAdapter;
-  private FakeActionReader fakeActionReader;
 
   @Before
   public void setUp() {
     initMocks(this);
     fakeProtocolAdapter = new FakeProtocolAdapter();
-    fakeActionReader = new FakeActionReader();
-    data =
-        OpaqueActionData.newBuilder()
-            .setExtension(
-                OpaqueActionDataForTest.opaqueActionDataForTestExtension,
-                OpaqueActionDataForTest.newBuilder().setId(CONTENT_ID).build())
-            .build();
-    fakeActionReader.addActionProperties(CONTENT_ID, data);
     fakeProtocolAdapter.addContentId(CONTENT_ID, ContentId.getDefaultInstance());
-    builder = new UploadableActionsRequestBuilder(fakeActionReader, fakeProtocolAdapter);
+    builder = new UploadableActionsRequestBuilder(fakeProtocolAdapter);
     actionSet.add(
         StreamUploadableAction.newBuilder()
             .setFeatureContentId(CONTENT_ID)
@@ -87,13 +73,12 @@ public class UploadableActionsRequestBuilderTest {
   @Test
   public void testUploadableActionsRequest_noToken() throws Exception {
 
-    FeedAction.Builder feedAction =
+    FeedAction feedAction =
         FeedAction.newBuilder()
-            .setActionProperties(ActionProperties.newBuilder().setActionData(data).build());
-    feedAction.setContentId(ContentId.getDefaultInstance());
-    feedAction.setActionPayload(payload);
-
-    feedAction.setClientData(FeedAction.ClientData.newBuilder().setTimestampSeconds(TIME).build());
+            .setContentId(ContentId.getDefaultInstance())
+            .setActionPayload(payload)
+            .setClientData(FeedAction.ClientData.newBuilder().setTimestampSeconds(TIME).build())
+            .build();
     feedActionRequestBuilder.addFeedAction(feedAction);
     requestBuilder.setExtension(
         FeedActionRequest.feedActionRequest, feedActionRequestBuilder.build());
@@ -116,12 +101,12 @@ public class UploadableActionsRequestBuilderTest {
 
   @Test
   public void testUploadableActionsRequest() throws Exception {
-    FeedAction.Builder feedAction =
+    FeedAction feedAction =
         FeedAction.newBuilder()
-            .setActionProperties(ActionProperties.newBuilder().setActionData(data).build());
-    feedAction.setContentId(ContentId.getDefaultInstance());
-    feedAction.setActionPayload(payload);
-    feedAction.setClientData(FeedAction.ClientData.newBuilder().setTimestampSeconds(TIME).build());
+            .setContentId(ContentId.getDefaultInstance())
+            .setActionPayload(payload)
+            .setClientData(FeedAction.ClientData.newBuilder().setTimestampSeconds(TIME).build())
+            .build();
     feedActionRequestBuilder.addFeedAction(feedAction);
     feedActionRequestBuilder.setConsistencyToken(token);
     requestBuilder.setExtension(

@@ -29,7 +29,6 @@ import com.google.android.libraries.feed.api.host.logging.RequestReason;
 import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi.RequestBehavior;
 import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi.SessionState;
-import com.google.android.libraries.feed.api.internal.common.ActionPropertiesWithId;
 import com.google.android.libraries.feed.api.internal.common.Model;
 import com.google.android.libraries.feed.api.internal.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.api.internal.common.testing.ContentIdGenerators;
@@ -78,8 +77,6 @@ import com.google.search.now.ui.piet.PietProto.Stylesheet;
 import com.google.search.now.ui.piet.PietProto.Template;
 import com.google.search.now.wire.feed.ConsistencyTokenProto.ConsistencyToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
-import com.google.search.now.wire.feed.OpaqueActionDataForTestProto.OpaqueActionDataForTest;
-import com.google.search.now.wire.feed.OpaqueActionDataProto.OpaqueActionData;
 import com.google.search.now.wire.feed.PietSharedStateItemProto.PietSharedStateItem;
 import com.google.search.now.wire.feed.ResponseProto.Response;
 import java.nio.charset.Charset;
@@ -483,33 +480,6 @@ public class FeedSessionManagerImplTest {
     // verify this still runs (as a noop)
     updateConsumer.accept(Result.success(Model.empty()));
     assertThat(sessionManager.outstandingMutations).isEmpty();
-  }
-
-  @Test
-  public void testEdit_actionProperties() {
-    FeedSessionManagerImpl sessionManager = getInitializedSessionManager();
-
-    OpaqueActionData actionData =
-        OpaqueActionData.newBuilder()
-            .setExtension(
-                OpaqueActionDataForTest.opaqueActionDataForTestExtension,
-                OpaqueActionDataForTest.newBuilder().setId("id").build())
-            .build();
-    StreamDataOperation streamDataOperation =
-        StreamDataOperation.newBuilder()
-            .setStreamPayload(StreamPayload.newBuilder().setActionData(actionData))
-            .setStreamStructure(
-                StreamStructure.newBuilder()
-                    .setContentId(rootContentId)
-                    .setOperation(Operation.UPDATE_OR_APPEND))
-            .build();
-
-    Consumer<Result<Model>> updateConsumer = sessionManager.getUpdateConsumer(EMPTY_MUTATION);
-    Result<Model> result = Result.success(Model.of(ImmutableList.of(streamDataOperation)));
-    updateConsumer.accept(result);
-
-    assertThat(fakeStore.getContentById(rootContentId))
-        .contains(new ActionPropertiesWithId(rootContentId, actionData));
   }
 
   @Test

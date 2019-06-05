@@ -17,7 +17,6 @@ package com.google.android.libraries.feed.feedstore.testing;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.android.libraries.feed.api.host.storage.CommitResult;
-import com.google.android.libraries.feed.api.internal.common.ActionPropertiesWithId;
 import com.google.android.libraries.feed.api.internal.common.PayloadWithId;
 import com.google.android.libraries.feed.api.internal.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.api.internal.store.LocalActionMutation.ActionType;
@@ -30,8 +29,6 @@ import com.google.search.now.feed.client.StreamDataProto.StreamLocalAction;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
-import com.google.search.now.wire.feed.OpaqueActionDataForTestProto.OpaqueActionDataForTest;
-import com.google.search.now.wire.feed.OpaqueActionDataProto.OpaqueActionData;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -62,18 +59,6 @@ public abstract class AbstractClearableFeedStoreTest extends AbstractFeedStoreTe
           .build();
   protected static final byte[] SEMANTIC_PROPERTIES = new byte[] {14, 23, 54, 7};
   protected static final byte[] SEMANTIC_PROPERTIES_2 = new byte[] {12, 24, 18, 9};
-  protected static final OpaqueActionData ACTION_PROPERTIES =
-      OpaqueActionData.newBuilder()
-          .setExtension(
-              OpaqueActionDataForTest.opaqueActionDataForTestExtension,
-              OpaqueActionDataForTest.newBuilder().setId(CONTENT_ID).build())
-          .build();
-  protected static final OpaqueActionData ACTION_PROPERTIES_2 =
-      OpaqueActionData.newBuilder()
-          .setExtension(
-              OpaqueActionDataForTest.opaqueActionDataForTestExtension,
-              OpaqueActionDataForTest.newBuilder().setId(CONTENT_ID_2).build())
-          .build();
 
   @Test
   public void clearAll() {
@@ -96,20 +81,6 @@ public abstract class AbstractClearableFeedStoreTest extends AbstractFeedStoreTe
         store.getPayloads(Arrays.asList(CONTENT_ID, CONTENT_ID_2));
     assertThat(payloadsResult.isSuccessful()).isTrue();
     assertThat(payloadsResult.getValue()).hasSize(2);
-
-    // Action properties
-    commitResult =
-        store
-            .editActionProperties()
-            .add(CONTENT_ID, ACTION_PROPERTIES)
-            .add(CONTENT_ID_2, ACTION_PROPERTIES_2)
-            .commit();
-    assertThat(commitResult).isEqualTo(CommitResult.SUCCESS);
-
-    Result<List<ActionPropertiesWithId>> actionPropertiesResult =
-        store.getActionProperties(Arrays.asList(CONTENT_ID, CONTENT_ID_2));
-    assertThat(actionPropertiesResult.isSuccessful()).isTrue();
-    assertThat(actionPropertiesResult.getValue()).hasSize(2);
 
     // Semantic properties
     commitResult =
@@ -188,11 +159,6 @@ public abstract class AbstractClearableFeedStoreTest extends AbstractFeedStoreTe
     semanticPropertiesResult = store.getSemanticProperties(Arrays.asList(CONTENT_ID, CONTENT_ID_2));
     assertThat(semanticPropertiesResult.isSuccessful()).isTrue();
     assertThat(semanticPropertiesResult.getValue()).hasSize(0);
-
-    // Action properties (should not be cleared)
-    actionPropertiesResult = store.getActionProperties(Arrays.asList(CONTENT_ID, CONTENT_ID_2));
-    assertThat(actionPropertiesResult.isSuccessful()).isTrue();
-    assertThat(actionPropertiesResult.getValue()).isEmpty();
 
     // Shared state
     sharedStatesResult = store.getSharedStates();

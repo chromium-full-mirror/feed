@@ -17,7 +17,6 @@ package com.google.android.libraries.feed.feedstore.testing;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.android.libraries.feed.api.host.storage.CommitResult;
-import com.google.android.libraries.feed.api.internal.common.ActionPropertiesWithId;
 import com.google.android.libraries.feed.api.internal.common.PayloadWithId;
 import com.google.android.libraries.feed.api.internal.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.api.internal.common.testing.ContentIdGenerators;
@@ -40,8 +39,6 @@ import com.google.search.now.feed.client.StreamDataProto.StreamPayload.Builder;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
-import com.google.search.now.wire.feed.OpaqueActionDataForTestProto.OpaqueActionDataForTest;
-import com.google.search.now.wire.feed.OpaqueActionDataProto.OpaqueActionData;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -275,57 +272,6 @@ public abstract class AbstractFeedStoreTest {
               store.removeSession(Store.HEAD_SESSION_ID);
             })
         .throwsAnExceptionOfType(IllegalStateException.class);
-  }
-
-  @Test
-  public void editActionProperties() {
-    Store store = getStore(mainThreadRunner);
-    assertThat(store.editSemanticProperties()).isNotNull();
-  }
-
-  @Test
-  public void getActionProperties() {
-    OpaqueActionData actionData =
-        OpaqueActionData.newBuilder()
-            .setExtension(
-                OpaqueActionDataForTest.opaqueActionDataForTestExtension,
-                OpaqueActionDataForTest.newBuilder().setId("").build())
-            .build();
-    Store store = getStore(mainThreadRunner);
-    store.editActionProperties().add(PAYLOAD_CONTENT_ID, actionData).commit();
-    Result<List<ActionPropertiesWithId>> actionPropertiesResult =
-        store.getActionProperties(Collections.singletonList(PAYLOAD_CONTENT_ID));
-    assertThat(actionPropertiesResult.isSuccessful()).isTrue();
-    List<ActionPropertiesWithId> actionProperties = actionPropertiesResult.getValue();
-    assertThat(actionProperties).hasSize(1);
-    assertThat(actionProperties.get(0).contentId).isEqualTo(PAYLOAD_CONTENT_ID);
-  }
-
-  @Test
-  public void getActionProperties_requestDifferentKey() {
-    OpaqueActionData actionData =
-        OpaqueActionData.newBuilder()
-            .setExtension(
-                OpaqueActionDataForTest.opaqueActionDataForTestExtension,
-                OpaqueActionDataForTest.newBuilder().setId(PAYLOAD_CONTENT_ID).build())
-            .build();
-    Store store = getStore(mainThreadRunner);
-    store.editActionProperties().add(PAYLOAD_CONTENT_ID, actionData).commit();
-    Result<List<ActionPropertiesWithId>> actionPropertiesResult =
-        store.getActionProperties(Collections.singletonList(OPERATION_CONTENT_ID));
-    assertThat(actionPropertiesResult.isSuccessful()).isTrue();
-    List<ActionPropertiesWithId> actionProperties = actionPropertiesResult.getValue();
-    assertThat(actionProperties).isEmpty();
-  }
-
-  @Test
-  public void getActionProperties_doesNotExist() {
-    Store store = getStore(mainThreadRunner);
-    Result<List<ActionPropertiesWithId>> actionPropertiesResult =
-        store.getActionProperties(Collections.singletonList(PAYLOAD_CONTENT_ID));
-    assertThat(actionPropertiesResult.isSuccessful()).isTrue();
-    List<ActionPropertiesWithId> actionProperties = actionPropertiesResult.getValue();
-    assertThat(actionProperties).isEmpty();
   }
 
   @Test
