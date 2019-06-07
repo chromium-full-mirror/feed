@@ -17,7 +17,6 @@ package com.google.android.libraries.feed.basicstream.internal.drivers;
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.android.libraries.feed.testing.modelprovider.FakeModelCursor.getCardModelFeatureWithCursor;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -91,7 +90,7 @@ import org.robolectric.RobolectricTestRunner;
 /** Tests for {@link StreamDriver}. */
 @RunWith(RobolectricTestRunner.class)
 public class StreamDriverTest {
-
+  private static final String CONTENT_ID = "contentID";
   private static final FakeModelCursor CURSOR_WITH_INVALID_CHILDREN =
       FakeModelCursor.newBuilder()
           .addChild(
@@ -782,35 +781,63 @@ public class StreamDriverTest {
 
   @Test
   public void testTriggerPendingDismiss_noAction() {
+    setCards(CONTENT_ID);
     SnackbarCallbackApi snackbarCallbackApi =
-        triggerPendingDismiss(UndoAction.newBuilder().setConfirmationLabel("confirmation").build());
+        triggerPendingDismiss(
+            UndoAction.newBuilder().setConfirmationLabel("confirmation").build(), CONTENT_ID);
 
     assertThat(streamDriver.isZeroStateBeingShown()).isTrue();
 
     snackbarCallbackApi.onDismissNoAction();
-    
+
     verify(pendingDismissCallback).onDismissCommitted();
     assertThat(streamDriver.isZeroStateBeingShown()).isTrue();
   }
 
   @Test
-  public void testTriggerPendingDismiss_actionTaken() {
+  public void testTriggerPendingDismiss_actionTaken_lastCard() {
+    setCards(CONTENT_ID);
     SnackbarCallbackApi snackbarCallbackApi =
-        triggerPendingDismiss(UndoAction.newBuilder().setConfirmationLabel("confirmation").build());
+        triggerPendingDismiss(
+            UndoAction.newBuilder().setConfirmationLabel("confirmation").build(), CONTENT_ID);
 
+    List<LeafFeatureDriver> leafFeatureDrivers = streamDriver.getLeafFeatureDrivers();
+    assertThat(leafFeatureDrivers).hasSize(1);
     assertThat(streamDriver.isZeroStateBeingShown()).isTrue();
+
+    snackbarCallbackApi.onDismissedWithAction();
+
+    verify(pendingDismissCallback).onDismissReverted();
+    leafFeatureDrivers = streamDriver.getLeafFeatureDrivers();
+    assertThat(leafFeatureDrivers).hasSize(1);
+    assertThat(streamDriver.isZeroStateBeingShown()).isFalse();
+  }
+
+  @Test
+  public void testTriggerPendingDismiss_actionTaken_multipleCards() {
+    setCards(CONTENT_ID, CONTENT_ID + "1");
+    SnackbarCallbackApi snackbarCallbackApi =
+        triggerPendingDismiss(
+            UndoAction.newBuilder().setConfirmationLabel("confirmation").build(), CONTENT_ID);
+
+    List<LeafFeatureDriver> leafFeatureDrivers = streamDriver.getLeafFeatureDrivers();
+    assertThat(leafFeatureDrivers).hasSize(1);
+    assertThat(streamDriver.isZeroStateBeingShown()).isFalse();
 
     snackbarCallbackApi.onDismissedWithAction();
     
     verify(pendingDismissCallback).onDismissReverted();
-    verify(contentListener, times(2)).notifyContentsAdded(eq(0), any());
+    leafFeatureDrivers = streamDriver.getLeafFeatureDrivers();
+    assertThat(leafFeatureDrivers).hasSize(2);
     assertThat(streamDriver.isZeroStateBeingShown()).isFalse();
   }
 
   @Test
   public void testTriggerPendingDismiss_actionStringSent() {
+    setCards(CONTENT_ID);
     triggerPendingDismiss(
-        UndoAction.newBuilder().setConfirmationLabel("conf").setUndoLabel("undo label").build());
+        UndoAction.newBuilder().setConfirmationLabel("conf").setUndoLabel("undo label").build(),
+        CONTENT_ID);
   }
 
   @Test
@@ -934,19 +961,22 @@ public class StreamDriverTest {
     return streamDriver.childrenCreated.get(i).getLeafFeatureDriver();
   }
 
-  private SnackbarCallbackApi triggerPendingDismiss(UndoAction undoAction) {
+  private void setCards(String... contentId) {
+    FakeModelCursor.Builder cursor = FakeModelCursor.newBuilder();
+    for (String id : contentId) {
+      cursor.addChild(
+          FakeModelChild.newBuilder()
+              .setModelFeature(getCardModelFeatureWithCursor(EMPTY_MODEL_CURSOR))
+              .setContentId(id)
+              .build());
+    }
+    when(streamFeature.getCursor()).thenReturn(cursor.build());
+  }
+
+  private SnackbarCallbackApi triggerPendingDismiss(UndoAction undoAction, String contentId) {
     ArgumentCaptor<SnackbarCallbackApi> snackbarCallbackApi =
         ArgumentCaptor.forClass(SnackbarCallbackApi.class);
-    String contentId = "contentId";
-    when(streamFeature.getCursor())
-        .thenReturn(
-            FakeModelCursor.newBuilder()
-                .addChild(
-                    FakeModelChild.newBuilder()
-                        .setModelFeature(getCardModelFeatureWithCursor(EMPTY_MODEL_CURSOR))
-                        .setContentId(contentId)
-                        .build())
-                .build());
+
 
     // Causes StreamDriver to build a list of children based on the children from the cursor.
     streamDriver.getLeafFeatureDrivers();
@@ -1055,5 +1085,4 @@ public class StreamDriverTest {
       return zeroStateDriver;
     }
   }
-
 }

@@ -388,6 +388,16 @@ public class StreamDriver
     maybeRestoreScroll();
   }
 
+  private void alwaysRemoveNoContentOrZeroStateCardIfPresent() {
+    if (featureDrivers.size() == 1
+        && ((featureDrivers.get(0) instanceof NoContentDriver)
+            || (featureDrivers.get(0) instanceof ZeroStateDriver))) {
+      featureDrivers.get(0).onDestroy();
+      featureDrivers.remove(0);
+      notifyContentRemoved(0);
+    }
+  }
+
   private void maybeRemoveNoContentOrZeroStateCard() {
     if (shouldRemoveNoContentCardOrZeroState()) {
       featureDrivers.get(0).onDestroy();
@@ -677,7 +687,7 @@ public class StreamDriver
 
           @Override
           public void onDismissedWithAction() {
-            maybeRemoveNoContentOrZeroStateCard();
+            alwaysRemoveNoContentOrZeroStateCardIfPresent();
             pendingDismissCallback.onDismissReverted();
             createFeatureChildAndInsertAtIndex(modelChild, index);
           }
