@@ -95,7 +95,7 @@ message ElementBindingRef {
 // VED binding references are always optional.
 message VedBindingRef {
   // The unique ID for this binding. See comments at the top of the file.
-  optional string binding_id = 1;
+  optional string binding_id = 1 [deprecated = true];
 }
 
 message TemplateBindingRef {
@@ -120,6 +120,12 @@ message StyleBindingRef {
 
 // Visibility bindings are always optional.
 message VisibilityBindingRef {
+  // The unique ID for this binding. See comments at the top of the file.
+  optional string binding_id = 1;
+}
+
+// LogData binding references are always optional.
+message LogDataBindingRef {
   // The unique ID for this binding. See comments at the top of the file.
   optional string binding_id = 1;
 }

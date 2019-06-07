@@ -14,14 +14,15 @@
 
 syntax = "proto2";
 
-import "src/main/proto/search/now/ui/piet/actions.proto";
-import "src/main/proto/search/now/ui/piet/elements.proto";
-import "src/main/proto/search/now/ui/piet/media_queries.proto";
-import "src/main/proto/search/now/ui/piet/styles.proto";
-
 package search.now.ui.piet;
 
 option optimize_for=LITE_RUNTIME;
+
+import "src/main/proto/search/now/ui/piet/actions.proto";
+import "src/main/proto/search/now/ui/piet/elements.proto";
+import "src/main/proto/search/now/ui/piet/log_data.proto";
+import "src/main/proto/search/now/ui/piet/media_queries.proto";
+import "src/main/proto/search/now/ui/piet/styles.proto";
 
 option java_package = "com.google.search.now.ui.piet";
 option java_outer_classname = "PietProto";
@@ -79,7 +80,7 @@ option cc_enable_arenas = true;
 // A Frame is the top-level UI construct in Piet. Every layout is contained
 // within a Frame. Each frame defines the contents displayed to the user as a
 // single view, which may contain a complex set of child views.
-// NextId: 12
+// NextId: 13
 message Frame {
   // A string tag for the frame, currently used for debugging purposes. Need not
   // be unique.
@@ -143,7 +144,10 @@ message Frame {
 
   // A Base64-encoded serialized ClickTrackingCGI proto that identifies the
   // logged Visual Element corresponding to this Frame.
-  optional string ved = 8;
+  optional string ved = 8 [deprecated = true];
+
+  //
+  optional LogData log_data = 12;
 
   // Please use CL numbers you own for extension numbers.
   extensions 10000 to max;

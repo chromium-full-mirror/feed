@@ -22,6 +22,7 @@ import "src/main/proto/search/now/ui/piet/accessibility.proto";
 import "src/main/proto/search/now/ui/piet/actions.proto";
 import "src/main/proto/search/now/ui/piet/binding_refs.proto";
 import "src/main/proto/search/now/ui/piet/images.proto";
+import "src/main/proto/search/now/ui/piet/log_data.proto";
 import "src/main/proto/search/now/ui/piet/styles.proto";
 import "src/main/proto/search/now/ui/piet/text.proto";
 
@@ -126,7 +127,7 @@ message VisibilityState {
 // Element size expands to fill its container, unless the content is taller than
 // the container, and the container height is not specified explicitly. In that
 // case, the Element and the container both get the height of the content.
-// Next Id: 25
+// Next Id: 27
 message Element {
   // The specific content represented by this Element.
   oneof elements {
@@ -235,11 +236,11 @@ message Element {
   oneof ved_value {
     // A base64 encoded serialized ClickTrackingCGI proto that identifies the
     // logged Visual Element corresponding to this piet Element.
-    string ved = 9;
+    string ved = 9 [deprecated = true];
 
     // A VedBindingRef to the VED that this Element will be bound to.
     // This is only meant to be used for Elements defined by a Template.
-    VedBindingRef ved_binding = 10;
+    VedBindingRef ved_binding = 10 [deprecated = true];
   }
 
   // Styles to apply to this Element. If any style_ids cannot be found,
@@ -248,6 +249,10 @@ message Element {
 
   // Visibility state that can be controlled with binding.
   optional VisibilityState visibility_state = 23;
+  oneof log_data_value {
+    LogData log_data = 25;
+    LogDataBindingRef log_data_ref = 26;
+  }
 
   // Please use CL numbers you own for extension numbers.
   extensions 10000 to max;
@@ -542,7 +547,7 @@ message BindingContext {
 
 // A BindingValue is a name/value pair which provides a value to be substituted
 // wherever the specified `binding_id` is defined in the Template.
-// Next Id: 17
+// Next Id: 18
 message BindingValue {
   // The name of the binding within the Template where this BindingValue should
   // be substituted. Must be unique within a binding context.
@@ -652,6 +657,8 @@ message BindingValue {
     // A Base64-encoded serialized ClickTrackingCGI proto that identifies the
     // logged Visual Element corresponding to a bound Piet Template.
     string ved = 7;
+
+    LogData log_data = 17;
   }
 
   // Data to provide a host in order for host to fulfill a binding for Piet.
