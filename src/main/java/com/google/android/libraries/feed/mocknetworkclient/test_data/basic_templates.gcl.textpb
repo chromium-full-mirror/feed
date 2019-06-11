@@ -15,16 +15,6 @@ initial_response {
       piet_shared_state {
         templates {
           template_id: "story-content-template"
-          stylesheet {
-            styles {
-              style_id: "title"
-              color: 4294901760
-            }
-            styles {
-              style_id: "subtitle"
-              color: 4278190335
-            }
-          }
           element {
             element_list {
               contents {
@@ -50,6 +40,18 @@ initial_response {
                     style_ids: "subtitle"
                   }
                 }
+              }
+            }
+          }
+          stylesheets {
+            stylesheets {
+              styles {
+                style_id: "title"
+                color: 4294901760
+              }
+              styles {
+                style_id: "subtitle"
+                color: 4278190335
               }
             }
           }

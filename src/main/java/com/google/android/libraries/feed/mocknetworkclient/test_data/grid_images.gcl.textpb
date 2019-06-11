@@ -164,7 +164,6 @@ initial_response {
               table: "piet-shared-state"
             }
             frame {
-              stylesheet_id: "basic-stylesheet"
               contents {
                 element {
                   text_element {
@@ -904,6 +903,9 @@ initial_response {
                     style_ids: "subtitle"
                   }
                 }
+              }
+              stylesheets {
+                stylesheet_ids: "basic-stylesheet"
               }
             }
           }

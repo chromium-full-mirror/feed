@@ -26,104 +26,6 @@ initial_response {
         }
         templates {
           template_id: "template1"
-          stylesheet {
-            styles {
-              style_id: "C1"
-              color: 4294901760
-            }
-            styles {
-              style_id: "C2"
-              color: 4278190335
-            }
-            styles {
-              style_id: "C3"
-              color: 4278255360
-            }
-            styles {
-              style_id: "B1"
-              background {
-                color: 4294902015
-              }
-            }
-            styles {
-              style_id: "B2"
-              background {
-                color: 4294967040
-              }
-            }
-            styles {
-              style_id: "B3"
-              background {
-                color: 4278255615
-              }
-            }
-            styles {
-              style_id: "F1"
-              font {
-                size: 6
-              }
-            }
-            styles {
-              style_id: "F2"
-              font {
-                size: 12
-              }
-            }
-            styles {
-              style_id: "F3"
-              font {
-                size: 18
-              }
-            }
-            styles {
-              style_id: "FS1"
-              font {
-                italic: true
-              }
-            }
-            styles {
-              style_id: "FS2"
-              font {
-                weight: BOLD
-              }
-            }
-            styles {
-              style_id: "M1"
-              margins {
-                top: 12
-                bottom: 12
-                start: 0
-                end: 0
-              }
-            }
-            styles {
-              style_id: "M2"
-              margins {
-                top: 0
-                bottom: 0
-                start: 12
-                end: 12
-              }
-            }
-            styles {
-              style_id: "P1"
-              margins {
-                top: 12
-                bottom: 12
-                start: 0
-                end: 0
-              }
-            }
-            styles {
-              style_id: "P2"
-              margins {
-                top: 0
-                bottom: 0
-                start: 12
-                end: 12
-              }
-            }
-          }
           element {
             grid_row {
               cells {
@@ -456,6 +358,106 @@ initial_response {
                       style_ids: "P2"
                     }
                   }
+                }
+              }
+            }
+          }
+          stylesheets {
+            stylesheets {
+              styles {
+                style_id: "C1"
+                color: 4294901760
+              }
+              styles {
+                style_id: "C2"
+                color: 4278190335
+              }
+              styles {
+                style_id: "C3"
+                color: 4278255360
+              }
+              styles {
+                style_id: "B1"
+                background {
+                  color: 4294902015
+                }
+              }
+              styles {
+                style_id: "B2"
+                background {
+                  color: 4294967040
+                }
+              }
+              styles {
+                style_id: "B3"
+                background {
+                  color: 4278255615
+                }
+              }
+              styles {
+                style_id: "F1"
+                font {
+                  size: 6
+                }
+              }
+              styles {
+                style_id: "F2"
+                font {
+                  size: 12
+                }
+              }
+              styles {
+                style_id: "F3"
+                font {
+                  size: 18
+                }
+              }
+              styles {
+                style_id: "FS1"
+                font {
+                  italic: true
+                }
+              }
+              styles {
+                style_id: "FS2"
+                font {
+                  weight: BOLD
+                }
+              }
+              styles {
+                style_id: "M1"
+                margins {
+                  top: 12
+                  bottom: 12
+                  start: 0
+                  end: 0
+                }
+              }
+              styles {
+                style_id: "M2"
+                margins {
+                  top: 0
+                  bottom: 0
+                  start: 12
+                  end: 12
+                }
+              }
+              styles {
+                style_id: "P1"
+                margins {
+                  top: 12
+                  bottom: 12
+                  start: 0
+                  end: 0
+                }
+              }
+              styles {
+                style_id: "P2"
+                margins {
+                  top: 0
+                  bottom: 0
+                  start: 12
+                  end: 12
                 }
               }
             }

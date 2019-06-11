@@ -122,7 +122,6 @@ initial_response {
               table: "piet-shared-state"
             }
             frame {
-              stylesheet_id: "basic-stylesheet"
               contents {
                 element {
                   grid_row {
@@ -185,6 +184,9 @@ initial_response {
                     style_ids: "subtitle"
                   }
                 }
+              }
+              stylesheets {
+                stylesheet_ids: "basic-stylesheet"
               }
             }
           }

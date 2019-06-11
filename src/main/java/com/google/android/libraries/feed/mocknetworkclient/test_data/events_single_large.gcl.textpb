@@ -89,104 +89,6 @@ initial_response {
           type: PIET
           [search.now.ui.stream.PietContent.piet_content_extension] {
             frame {
-              stylesheet {
-                styles {
-                  style_id: "FullWidthWithPadding"
-                  padding {
-                    start: 16
-                    end: 16
-                  }
-                }
-                styles {
-                  style_id: "CardCapTitle"
-                  font {
-                    size: 16
-                  }
-                  padding {
-                    top: 8
-                  }
-                }
-                styles {
-                  style_id: "CardCapSubtitle"
-                  color: 2566914048
-                  font {
-                    size: 14
-                  }
-                  padding {
-                    top: 4
-                    bottom: 8
-                  }
-                }
-                styles {
-                  style_id: "CardCapImage"
-                  padding {
-                    top: 12
-                    end: 16
-                  }
-                  width: 32
-                  height: 32
-                  scale_type: CENTER_INSIDE
-                }
-                styles {
-                  style_id: "Roboto"
-                  font {
-                    typefaces: "Roboto"
-                  }
-                }
-                styles {
-                  style_id: "Tagline"
-                  color: 2566914048
-                  font {
-                    size: 14
-                  }
-                  padding {
-                    top: 8
-                    bottom: 8
-                  }
-                }
-                styles {
-                  style_id: "EventDetails"
-                  margins {
-                    top: 16
-                    bottom: 16
-                  }
-                }
-                styles {
-                  style_id: "EventDateDD"
-                  color: 2566914048
-                  font {
-                    size: 28
-                    weight: LIGHT
-                  }
-                }
-                styles {
-                  style_id: "EventDateMM"
-                  color: 1711276032
-                  font {
-                    size: 12
-                  }
-                }
-                styles {
-                  style_id: "EventTitle"
-                  font {
-                    size: 18
-                  }
-                  margins {
-                    bottom: 8
-                  }
-                  padding {
-                    top: 4
-                  }
-                }
-                styles {
-                  style_id: "EventMetadata"
-                  color: 2566914048
-                  font {
-                    size: 14
-                    line_height_ratio: 1.4
-                  }
-                }
-              }
               contents {
                 element {
                   grid_row {
@@ -368,6 +270,106 @@ initial_response {
                   style_references {
                     style_ids: "FullWidthWithPadding"
                     style_ids: "EventDetails"
+                  }
+                }
+              }
+              stylesheets {
+                stylesheets {
+                  styles {
+                    style_id: "FullWidthWithPadding"
+                    padding {
+                      start: 16
+                      end: 16
+                    }
+                  }
+                  styles {
+                    style_id: "CardCapTitle"
+                    font {
+                      size: 16
+                    }
+                    padding {
+                      top: 8
+                    }
+                  }
+                  styles {
+                    style_id: "CardCapSubtitle"
+                    color: 2566914048
+                    font {
+                      size: 14
+                    }
+                    padding {
+                      top: 4
+                      bottom: 8
+                    }
+                  }
+                  styles {
+                    style_id: "CardCapImage"
+                    padding {
+                      top: 12
+                      end: 16
+                    }
+                    width: 32
+                    height: 32
+                    scale_type: CENTER_INSIDE
+                  }
+                  styles {
+                    style_id: "Roboto"
+                    font {
+                      typefaces: "Roboto"
+                    }
+                  }
+                  styles {
+                    style_id: "Tagline"
+                    color: 2566914048
+                    font {
+                      size: 14
+                    }
+                    padding {
+                      top: 8
+                      bottom: 8
+                    }
+                  }
+                  styles {
+                    style_id: "EventDetails"
+                    margins {
+                      top: 16
+                      bottom: 16
+                    }
+                  }
+                  styles {
+                    style_id: "EventDateDD"
+                    color: 2566914048
+                    font {
+                      size: 28
+                      weight: LIGHT
+                    }
+                  }
+                  styles {
+                    style_id: "EventDateMM"
+                    color: 1711276032
+                    font {
+                      size: 12
+                    }
+                  }
+                  styles {
+                    style_id: "EventTitle"
+                    font {
+                      size: 18
+                    }
+                    margins {
+                      bottom: 8
+                    }
+                    padding {
+                      top: 4
+                    }
+                  }
+                  styles {
+                    style_id: "EventMetadata"
+                    color: 2566914048
+                    font {
+                      size: 14
+                      line_height_ratio: 1.4
+                    }
                   }
                 }
               }

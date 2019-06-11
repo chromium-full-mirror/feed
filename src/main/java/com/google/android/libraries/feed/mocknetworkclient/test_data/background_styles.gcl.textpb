@@ -90,14 +90,6 @@ initial_response {
           [search.now.ui.stream.PietContent.piet_content_extension] {
             frame {
               tag: "Card Background Color"
-              stylesheet {
-                styles {
-                  style_id: "style:now-card"
-                  background {
-                    color: 4283782655
-                  }
-                }
-              }
               style_references {
                 style_ids: "style:now-card"
               }
@@ -106,6 +98,16 @@ initial_response {
                   text_element {
                     parameterized_text {
                       text: "Simple blue background"
+                    }
+                  }
+                }
+              }
+              stylesheets {
+                stylesheets {
+                  styles {
+                    style_id: "style:now-card"
+                    background {
+                      color: 4283782655
                     }
                   }
                 }
@@ -189,26 +191,6 @@ initial_response {
           [search.now.ui.stream.PietContent.piet_content_extension] {
             frame {
               tag: "Card Padding and Margins"
-              stylesheet {
-                styles {
-                  style_id: "style:now-card"
-                  background {
-                    color: 4283782655
-                  }
-                  margins {
-                    top: 32
-                    bottom: 32
-                    start: 16
-                    end: 16
-                  }
-                  padding {
-                    top: 16
-                    bottom: 16
-                    start: 32
-                    end: 32
-                  }
-                }
-              }
               contents {
                 element {
                   text_element {
@@ -218,6 +200,28 @@ initial_response {
                   }
                   style_references {
                     style_ids: "style:now-card"
+                  }
+                }
+              }
+              stylesheets {
+                stylesheets {
+                  styles {
+                    style_id: "style:now-card"
+                    background {
+                      color: 4283782655
+                    }
+                    margins {
+                      top: 32
+                      bottom: 32
+                      start: 16
+                      end: 16
+                    }
+                    padding {
+                      top: 16
+                      bottom: 16
+                      start: 32
+                      end: 32
+                    }
                   }
                 }
               }
@@ -300,30 +304,6 @@ initial_response {
           [search.now.ui.stream.PietContent.piet_content_extension] {
             frame {
               tag: "Card Padding and Margins with corners"
-              stylesheet {
-                styles {
-                  style_id: "style:now-card"
-                  background {
-                    color: 4283782655
-                  }
-                  margins {
-                    top: 32
-                    bottom: 32
-                    start: 16
-                    end: 16
-                  }
-                  padding {
-                    top: 16
-                    bottom: 16
-                    start: 32
-                    end: 32
-                  }
-                  rounded_corners {
-                    bitmask: 0
-                    radius: 12
-                  }
-                }
-              }
               contents {
                 element {
                   text_element {
@@ -333,6 +313,32 @@ initial_response {
                   }
                   style_references {
                     style_ids: "style:now-card"
+                  }
+                }
+              }
+              stylesheets {
+                stylesheets {
+                  styles {
+                    style_id: "style:now-card"
+                    background {
+                      color: 4283782655
+                    }
+                    margins {
+                      top: 32
+                      bottom: 32
+                      start: 16
+                      end: 16
+                    }
+                    padding {
+                      top: 16
+                      bottom: 16
+                      start: 32
+                      end: 32
+                    }
+                    rounded_corners {
+                      bitmask: 0
+                      radius_dp: 12
+                    }
                   }
                 }
               }
@@ -415,41 +421,6 @@ initial_response {
           [search.now.ui.stream.PietContent.piet_content_extension] {
             frame {
               tag: "Card Gradient Rounded Corners"
-              stylesheet {
-                styles {
-                  style_id: "style:now-card"
-                  background {
-                    linear_gradient {
-                      stops {
-                        color: 4294901760
-                      }
-                      stops {
-                        color: 4278255360
-                      }
-                      stops {
-                        color: 4278190335
-                      }
-                      stops {
-                        color: 4294901760
-                      }
-                      stops {
-                        color: 4278190335
-                      }
-                      direction_deg: 45
-                    }
-                  }
-                  padding {
-                    top: 16
-                    bottom: 16
-                    start: 16
-                    end: 16
-                  }
-                  rounded_corners {
-                    bitmask: 9
-                    radius: 12
-                  }
-                }
-              }
               contents {
                 element {
                   text_element {
@@ -459,6 +430,43 @@ initial_response {
                   }
                   style_references {
                     style_ids: "style:now-card"
+                  }
+                }
+              }
+              stylesheets {
+                stylesheets {
+                  styles {
+                    style_id: "style:now-card"
+                    background {
+                      linear_gradient {
+                        stops {
+                          color: 4294901760
+                        }
+                        stops {
+                          color: 4278255360
+                        }
+                        stops {
+                          color: 4278190335
+                        }
+                        stops {
+                          color: 4294901760
+                        }
+                        stops {
+                          color: 4278190335
+                        }
+                        direction_deg: 45
+                      }
+                    }
+                    padding {
+                      top: 16
+                      bottom: 16
+                      start: 16
+                      end: 16
+                    }
+                    rounded_corners {
+                      bitmask: 9
+                      radius_dp: 12
+                    }
                   }
                 }
               }
@@ -541,31 +549,6 @@ initial_response {
           [search.now.ui.stream.PietContent.piet_content_extension] {
             frame {
               tag: "Image corners"
-              stylesheet {
-                styles {
-                  style_id: "style:now-card"
-                  background {
-                    color: 4283782655
-                  }
-                }
-                styles {
-                  style_id: "image"
-                  background {
-                    color: 4294901760
-                  }
-                  padding {
-                    start: 16
-                    end: 16
-                  }
-                  width: 196
-                  height: 196
-                  rounded_corners {
-                    bitmask: 9
-                    radius: 40
-                  }
-                  scale_type: CENTER_CROP
-                }
-              }
               style_references {
                 style_ids: "style:now-card"
               }
@@ -589,6 +572,33 @@ initial_response {
                     parameterized_text {
                       text: "Image with padding and rounded corners"
                     }
+                  }
+                }
+              }
+              stylesheets {
+                stylesheets {
+                  styles {
+                    style_id: "style:now-card"
+                    background {
+                      color: 4283782655
+                    }
+                  }
+                  styles {
+                    style_id: "image"
+                    background {
+                      color: 4294901760
+                    }
+                    padding {
+                      start: 16
+                      end: 16
+                    }
+                    width: 196
+                    height: 196
+                    rounded_corners {
+                      bitmask: 9
+                      radius_dp: 40
+                    }
+                    scale_type: CENTER_CROP
                   }
                 }
               }
@@ -671,50 +681,6 @@ initial_response {
           [search.now.ui.stream.PietContent.piet_content_extension] {
             frame {
               tag: "Grid Background Color"
-              stylesheet {
-                styles {
-                  style_id: "style:now-card"
-                  padding {
-                    start: 16
-                    end: 16
-                  }
-                }
-                styles {
-                  style_id: "cell"
-                  margins {
-                    top: 4
-                    bottom: 4
-                    start: 8
-                    end: 8
-                  }
-                }
-                styles {
-                  style_id: "red"
-                  background {
-                    color: 4294901760
-                  }
-                }
-                styles {
-                  style_id: "green"
-                  background {
-                    color: 4278255360
-                  }
-                }
-                styles {
-                  style_id: "blue"
-                  background {
-                    color: 4278190335
-                  }
-                }
-                styles {
-                  style_id: "bottom"
-                  gravity_vertical: GRAVITY_BOTTOM
-                }
-                styles {
-                  style_id: "middle"
-                  gravity_vertical: GRAVITY_MIDDLE
-                }
-              }
               style_references {
                 style_ids: "style:now-card"
               }
@@ -857,6 +823,52 @@ initial_response {
                         }
                       }
                     }
+                  }
+                }
+              }
+              stylesheets {
+                stylesheets {
+                  styles {
+                    style_id: "style:now-card"
+                    padding {
+                      start: 16
+                      end: 16
+                    }
+                  }
+                  styles {
+                    style_id: "cell"
+                    margins {
+                      top: 4
+                      bottom: 4
+                      start: 8
+                      end: 8
+                    }
+                  }
+                  styles {
+                    style_id: "red"
+                    background {
+                      color: 4294901760
+                    }
+                  }
+                  styles {
+                    style_id: "green"
+                    background {
+                      color: 4278255360
+                    }
+                  }
+                  styles {
+                    style_id: "blue"
+                    background {
+                      color: 4278190335
+                    }
+                  }
+                  styles {
+                    style_id: "bottom"
+                    gravity_vertical: GRAVITY_BOTTOM
+                  }
+                  styles {
+                    style_id: "middle"
+                    gravity_vertical: GRAVITY_MIDDLE
                   }
                 }
               }

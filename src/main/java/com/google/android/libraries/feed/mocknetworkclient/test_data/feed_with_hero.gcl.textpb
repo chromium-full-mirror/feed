@@ -25,68 +25,6 @@ initial_response {
         }
         templates {
           template_id: "two-line-card-cap-template"
-          stylesheet {
-            styles {
-              style_id: "card-cap"
-              padding {
-                top: 4
-                bottom: 4
-                start: 16
-                end: 16
-              }
-              min_height: 42
-            }
-            styles {
-              style_id: "title-container"
-              padding {
-                top: 0
-                bottom: 0
-                start: 0
-                end: 0
-              }
-            }
-            styles {
-              style_id: "title"
-              color: 2315255808
-              font {
-                size: 14
-              }
-            }
-            styles {
-              style_id: "subtitle"
-              color: 2315255808
-              font {
-                size: 12
-                italic: true
-              }
-              padding {
-                top: 2
-                bottom: 0
-                start: 0
-                end: 0
-              }
-            }
-            styles {
-              style_id: "icon-cell"
-              padding {
-                top: 0
-                bottom: 0
-                start: 0
-                end: 0
-              }
-            }
-            styles {
-              style_id: "icon"
-              margins {
-                top: 0
-                bottom: 0
-                start: 0
-                end: 8
-              }
-              width: 24
-              height: 24
-            }
-          }
           element {
             grid_row {
               cells {
@@ -148,93 +86,73 @@ initial_response {
               style_ids: "card-cap"
             }
           }
-        }
-        templates {
-          template_id: "story-content-template"
-          stylesheet {
-            styles {
-              style_id: "story"
-              padding {
-                top: 0
-                bottom: 0
-                start: 8
-                end: 8
+          stylesheets {
+            stylesheets {
+              styles {
+                style_id: "card-cap"
+                padding {
+                  top: 4
+                  bottom: 4
+                  start: 16
+                  end: 16
+                }
+                min_height: 42
               }
-            }
-            styles {
-              style_id: "image"
-              margins {
-                start: 8
-                end: 16
+              styles {
+                style_id: "title-container"
+                padding {
+                  top: 0
+                  bottom: 0
+                  start: 0
+                  end: 0
+                }
               }
-              width: 72
-              height: 72
-              scale_type: CENTER_CROP
-            }
-            styles {
-              style_id: "title"
-              color: 3724541952
-              font {
-                size: 18
+              styles {
+                style_id: "title"
+                color: 2315255808
+                font {
+                  size: 14
+                }
               }
-              padding {
-                top: 0
-                bottom: 4
-                start: 8
-                end: 8
+              styles {
+                style_id: "subtitle"
+                color: 2315255808
+                font {
+                  size: 12
+                  italic: true
+                }
+                padding {
+                  top: 2
+                  bottom: 0
+                  start: 0
+                  end: 0
+                }
               }
-              max_lines: 2
-            }
-            styles {
-              style_id: "snippet"
-              color: 2315255808
-              font {
-                size: 14
+              styles {
+                style_id: "icon-cell"
+                padding {
+                  top: 0
+                  bottom: 0
+                  start: 0
+                  end: 0
+                }
               }
-              padding {
-                top: 0
-                bottom: 8
-                start: 8
-                end: 8
-              }
-              max_lines: 2
-            }
-            styles {
-              style_id: "source-row"
-              padding {
-                top: 0
-                bottom: 12
-                start: 8
-                end: 8
-              }
-            }
-            styles {
-              style_id: "source-icon-list"
-              padding {
-                top: 0
-                bottom: 0
-                start: 0
-                end: 0
-              }
-            }
-            styles {
-              style_id: "source-icon"
-              width: 16
-              height: 16
-            }
-            styles {
-              style_id: "source"
-              font {
-                size: 14
-              }
-              padding {
-                top: 0
-                bottom: 0
-                start: 12
-                end: 0
+              styles {
+                style_id: "icon"
+                margins {
+                  top: 0
+                  bottom: 0
+                  start: 0
+                  end: 8
+                }
+                width: 24
+                height: 24
               }
             }
           }
+        }
+        templates {
+          template_id: "story-content-template"
           element {
             grid_row {
               cells {
@@ -338,108 +256,95 @@ initial_response {
               binding_id: "actions-binding"
             }
           }
-        }
-        templates {
-          template_id: "hero-story-content-template"
-          stylesheet {
-            styles {
-              style_id: "story"
-              padding {
-                top: 0
-                bottom: 0
-                start: 8
-                end: 8
+          stylesheets {
+            stylesheets {
+              styles {
+                style_id: "story"
+                padding {
+                  top: 0
+                  bottom: 0
+                  start: 8
+                  end: 8
+                }
               }
-            }
-            styles {
-              style_id: "image"
-              padding {
-                top: 0
-                bottom: 8
-                start: 16
-                end: 16
+              styles {
+                style_id: "image"
+                margins {
+                  start: 8
+                  end: 16
+                }
+                width: 72
+                height: 72
+                scale_type: CENTER_CROP
               }
-              height: 180
-              scale_type: CENTER_CROP
-            }
-            styles {
-              style_id: "overlay1"
-              width: 128
-              height: 128
-              scale_type: CENTER_CROP
-              gravity_horizontal: GRAVITY_CENTER
-            }
-            styles {
-              style_id: "overlay2"
-              width: 64
-              height: 64
-              scale_type: CENTER_CROP
-              gravity_horizontal: GRAVITY_CENTER
-            }
-            styles {
-              style_id: "title"
-              color: 3724541952
-              font {
-                size: 18
+              styles {
+                style_id: "title"
+                color: 3724541952
+                font {
+                  size: 18
+                }
+                padding {
+                  top: 0
+                  bottom: 4
+                  start: 8
+                  end: 8
+                }
+                max_lines: 2
               }
-              padding {
-                top: 0
-                bottom: 0
-                start: 16
-                end: 16
+              styles {
+                style_id: "snippet"
+                color: 2315255808
+                font {
+                  size: 14
+                }
+                padding {
+                  top: 0
+                  bottom: 8
+                  start: 8
+                  end: 8
+                }
+                max_lines: 2
               }
-              max_lines: 2
-            }
-            styles {
-              style_id: "snippet"
-              color: 2315255808
-              font {
-                size: 14
+              styles {
+                style_id: "source-row"
+                padding {
+                  top: 0
+                  bottom: 12
+                  start: 8
+                  end: 8
+                }
               }
-              padding {
-                top: 4
-                bottom: 8
-                start: 16
-                end: 16
+              styles {
+                style_id: "source-icon-list"
+                padding {
+                  top: 0
+                  bottom: 0
+                  start: 0
+                  end: 0
+                }
               }
-              max_lines: 2
-            }
-            styles {
-              style_id: "source-row"
-              padding {
-                top: 0
-                bottom: 12
-                start: 16
-                end: 16
+              styles {
+                style_id: "source-icon"
+                width: 16
+                height: 16
               }
-            }
-            styles {
-              style_id: "source-icon-list"
-              padding {
-                top: 0
-                bottom: 0
-                start: 0
-                end: 0
-              }
-            }
-            styles {
-              style_id: "source-icon"
-              width: 16
-              height: 16
-            }
-            styles {
-              style_id: "source"
-              font {
-                size: 14
-              }
-              padding {
-                top: 0
-                bottom: 0
-                start: 12
-                end: 0
+              styles {
+                style_id: "source"
+                font {
+                  size: 14
+                }
+                padding {
+                  top: 0
+                  bottom: 0
+                  start: 12
+                  end: 0
+                }
               }
             }
           }
+        }
+        templates {
+          template_id: "hero-story-content-template"
           element {
             element_list {
               contents {
@@ -552,6 +457,107 @@ initial_response {
             }
             actions_binding {
               binding_id: "actions-binding"
+            }
+          }
+          stylesheets {
+            stylesheets {
+              styles {
+                style_id: "story"
+                padding {
+                  top: 0
+                  bottom: 0
+                  start: 8
+                  end: 8
+                }
+              }
+              styles {
+                style_id: "image"
+                padding {
+                  top: 0
+                  bottom: 8
+                  start: 16
+                  end: 16
+                }
+                height: 180
+                scale_type: CENTER_CROP
+              }
+              styles {
+                style_id: "overlay1"
+                width: 128
+                height: 128
+                scale_type: CENTER_CROP
+                gravity_horizontal: GRAVITY_CENTER
+              }
+              styles {
+                style_id: "overlay2"
+                width: 64
+                height: 64
+                scale_type: CENTER_CROP
+                gravity_horizontal: GRAVITY_CENTER
+              }
+              styles {
+                style_id: "title"
+                color: 3724541952
+                font {
+                  size: 18
+                }
+                padding {
+                  top: 0
+                  bottom: 0
+                  start: 16
+                  end: 16
+                }
+                max_lines: 2
+              }
+              styles {
+                style_id: "snippet"
+                color: 2315255808
+                font {
+                  size: 14
+                }
+                padding {
+                  top: 4
+                  bottom: 8
+                  start: 16
+                  end: 16
+                }
+                max_lines: 2
+              }
+              styles {
+                style_id: "source-row"
+                padding {
+                  top: 0
+                  bottom: 12
+                  start: 16
+                  end: 16
+                }
+              }
+              styles {
+                style_id: "source-icon-list"
+                padding {
+                  top: 0
+                  bottom: 0
+                  start: 0
+                  end: 0
+                }
+              }
+              styles {
+                style_id: "source-icon"
+                width: 16
+                height: 16
+              }
+              styles {
+                style_id: "source"
+                font {
+                  size: 14
+                }
+                padding {
+                  top: 0
+                  bottom: 0
+                  start: 12
+                  end: 0
+                }
+              }
             }
           }
         }

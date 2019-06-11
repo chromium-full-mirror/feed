@@ -117,7 +117,6 @@ initial_response {
               table: "piet-shared-state"
             }
             frame {
-              stylesheet_id: "basic-stylesheet"
               contents {
                 element {
                   element_list {
@@ -147,6 +146,9 @@ initial_response {
                     }
                   }
                 }
+              }
+              stylesheets {
+                stylesheet_ids: "basic-stylesheet"
               }
             }
           }

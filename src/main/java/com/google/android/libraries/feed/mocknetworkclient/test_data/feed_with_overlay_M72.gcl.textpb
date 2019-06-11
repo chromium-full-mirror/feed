@@ -529,7 +529,7 @@ initial_response {
                                       feed_action_payload {
                                         [search.now.ui.action.FeedAction.feed_action_extension] {
                                           metadata {
-                                            type: NOT_INTERESTED_IN_TOPIC
+                                            type: NOT_INTERESTED_IN
                                             not_interested_in_data {
                                               undo_action {
                                                 confirmation_label: "You will not see this topic anymore"
@@ -552,6 +552,7 @@ initial_response {
                                                   }
                                                 }
                                               }
+                                              interest_type_value: 1
                                             }
                                           }
                                         }
@@ -899,7 +900,7 @@ initial_response {
                                       feed_action_payload {
                                         [search.now.ui.action.FeedAction.feed_action_extension] {
                                           metadata {
-                                            type: NOT_INTERESTED_IN_TOPIC
+                                            type: NOT_INTERESTED_IN
                                             not_interested_in_data {
                                               undo_action {
                                                 confirmation_label: "You will not see this topic anymore"
@@ -922,6 +923,7 @@ initial_response {
                                                   }
                                                 }
                                               }
+                                              interest_type_value: 1
                                             }
                                           }
                                         }
@@ -1269,7 +1271,7 @@ initial_response {
                                       feed_action_payload {
                                         [search.now.ui.action.FeedAction.feed_action_extension] {
                                           metadata {
-                                            type: NOT_INTERESTED_IN_TOPIC
+                                            type: NOT_INTERESTED_IN
                                             not_interested_in_data {
                                               undo_action {
                                                 confirmation_label: "You will not see this topic anymore"
@@ -1292,6 +1294,7 @@ initial_response {
                                                   }
                                                 }
                                               }
+                                              interest_type_value: 1
                                             }
                                           }
                                         }
@@ -1639,7 +1642,7 @@ initial_response {
                                       feed_action_payload {
                                         [search.now.ui.action.FeedAction.feed_action_extension] {
                                           metadata {
-                                            type: NOT_INTERESTED_IN_TOPIC
+                                            type: NOT_INTERESTED_IN
                                             not_interested_in_data {
                                               undo_action {
                                                 confirmation_label: "You will not see this topic anymore"
@@ -1662,6 +1665,7 @@ initial_response {
                                                   }
                                                 }
                                               }
+                                              interest_type_value: 1
                                             }
                                           }
                                         }
@@ -2009,7 +2013,7 @@ initial_response {
                                       feed_action_payload {
                                         [search.now.ui.action.FeedAction.feed_action_extension] {
                                           metadata {
-                                            type: NOT_INTERESTED_IN_TOPIC
+                                            type: NOT_INTERESTED_IN
                                             not_interested_in_data {
                                               undo_action {
                                                 confirmation_label: "You will not see this topic anymore"
@@ -2032,6 +2036,7 @@ initial_response {
                                                   }
                                                 }
                                               }
+                                              interest_type_value: 1
                                             }
                                           }
                                         }
@@ -2379,7 +2384,7 @@ initial_response {
                                       feed_action_payload {
                                         [search.now.ui.action.FeedAction.feed_action_extension] {
                                           metadata {
-                                            type: NOT_INTERESTED_IN_TOPIC
+                                            type: NOT_INTERESTED_IN
                                             not_interested_in_data {
                                               undo_action {
                                                 confirmation_label: "You will not see this topic anymore"
@@ -2402,6 +2407,7 @@ initial_response {
                                                   }
                                                 }
                                               }
+                                              interest_type_value: 1
                                             }
                                           }
                                         }
@@ -2749,7 +2755,7 @@ initial_response {
                                       feed_action_payload {
                                         [search.now.ui.action.FeedAction.feed_action_extension] {
                                           metadata {
-                                            type: NOT_INTERESTED_IN_TOPIC
+                                            type: NOT_INTERESTED_IN
                                             not_interested_in_data {
                                               undo_action {
                                                 confirmation_label: "You will not see this topic anymore"
@@ -2772,6 +2778,7 @@ initial_response {
                                                   }
                                                 }
                                               }
+                                              interest_type_value: 1
                                             }
                                           }
                                         }
@@ -3119,7 +3126,7 @@ initial_response {
                                       feed_action_payload {
                                         [search.now.ui.action.FeedAction.feed_action_extension] {
                                           metadata {
-                                            type: NOT_INTERESTED_IN_TOPIC
+                                            type: NOT_INTERESTED_IN
                                             not_interested_in_data {
                                               undo_action {
                                                 confirmation_label: "You will not see this topic anymore"
@@ -3142,6 +3149,7 @@ initial_response {
                                                   }
                                                 }
                                               }
+                                              interest_type_value: 1
                                             }
                                           }
                                         }

@@ -90,60 +90,6 @@ initial_response {
           [search.now.ui.stream.PietContent.piet_content_extension] {
             frame {
               tag: "Font Card"
-              stylesheet {
-                styles {
-                  style_id: "style:now-card"
-                  color: 3724541952
-                  padding {
-                    top: 2
-                    bottom: 2
-                    start: 16
-                    end: 16
-                  }
-                }
-                styles {
-                  style_id: "font-regular"
-                  font {
-                    size: 16
-                    weight: REGULAR
-                  }
-                }
-                styles {
-                  style_id: "font-thin"
-                  font {
-                    size: 16
-                    weight: THIN
-                  }
-                }
-                styles {
-                  style_id: "font-light"
-                  font {
-                    size: 16
-                    weight: LIGHT
-                  }
-                }
-                styles {
-                  style_id: "font-medium"
-                  font {
-                    size: 16
-                    weight: MEDIUM
-                  }
-                }
-                styles {
-                  style_id: "font-bold"
-                  font {
-                    size: 16
-                    weight: BOLD
-                  }
-                }
-                styles {
-                  style_id: "font-black"
-                  font {
-                    size: 16
-                    weight: BLACK
-                  }
-                }
-              }
               style_references {
                 style_ids: "style:now-card"
               }
@@ -216,6 +162,62 @@ initial_response {
                   }
                   style_references {
                     style_ids: "font-black"
+                  }
+                }
+              }
+              stylesheets {
+                stylesheets {
+                  styles {
+                    style_id: "style:now-card"
+                    color: 3724541952
+                    padding {
+                      top: 2
+                      bottom: 2
+                      start: 16
+                      end: 16
+                    }
+                  }
+                  styles {
+                    style_id: "font-regular"
+                    font {
+                      size: 16
+                      weight: REGULAR
+                    }
+                  }
+                  styles {
+                    style_id: "font-thin"
+                    font {
+                      size: 16
+                      weight: THIN
+                    }
+                  }
+                  styles {
+                    style_id: "font-light"
+                    font {
+                      size: 16
+                      weight: LIGHT
+                    }
+                  }
+                  styles {
+                    style_id: "font-medium"
+                    font {
+                      size: 16
+                      weight: MEDIUM
+                    }
+                  }
+                  styles {
+                    style_id: "font-bold"
+                    font {
+                      size: 16
+                      weight: BOLD
+                    }
+                  }
+                  styles {
+                    style_id: "font-black"
+                    font {
+                      size: 16
+                      weight: BLACK
+                    }
                   }
                 }
               }
@@ -298,66 +300,6 @@ initial_response {
           [search.now.ui.stream.PietContent.piet_content_extension] {
             frame {
               tag: "Font Card"
-              stylesheet {
-                styles {
-                  style_id: "style:now-card"
-                  color: 2315255808
-                  padding {
-                    top: 2
-                    bottom: 2
-                    start: 16
-                    end: 16
-                  }
-                }
-                styles {
-                  style_id: "font-regular"
-                  font {
-                    size: 16
-                    weight: REGULAR
-                    italic: true
-                  }
-                }
-                styles {
-                  style_id: "font-thin"
-                  font {
-                    size: 16
-                    weight: THIN
-                    italic: true
-                  }
-                }
-                styles {
-                  style_id: "font-light"
-                  font {
-                    size: 16
-                    weight: LIGHT
-                    italic: true
-                  }
-                }
-                styles {
-                  style_id: "font-medium"
-                  font {
-                    size: 16
-                    weight: MEDIUM
-                    italic: true
-                  }
-                }
-                styles {
-                  style_id: "font-bold"
-                  font {
-                    size: 16
-                    weight: BOLD
-                    italic: true
-                  }
-                }
-                styles {
-                  style_id: "font-black"
-                  font {
-                    size: 16
-                    weight: BLACK
-                    italic: true
-                  }
-                }
-              }
               style_references {
                 style_ids: "style:now-card"
               }
@@ -430,6 +372,68 @@ initial_response {
                   }
                   style_references {
                     style_ids: "font-black"
+                  }
+                }
+              }
+              stylesheets {
+                stylesheets {
+                  styles {
+                    style_id: "style:now-card"
+                    color: 2315255808
+                    padding {
+                      top: 2
+                      bottom: 2
+                      start: 16
+                      end: 16
+                    }
+                  }
+                  styles {
+                    style_id: "font-regular"
+                    font {
+                      size: 16
+                      weight: REGULAR
+                      italic: true
+                    }
+                  }
+                  styles {
+                    style_id: "font-thin"
+                    font {
+                      size: 16
+                      weight: THIN
+                      italic: true
+                    }
+                  }
+                  styles {
+                    style_id: "font-light"
+                    font {
+                      size: 16
+                      weight: LIGHT
+                      italic: true
+                    }
+                  }
+                  styles {
+                    style_id: "font-medium"
+                    font {
+                      size: 16
+                      weight: MEDIUM
+                      italic: true
+                    }
+                  }
+                  styles {
+                    style_id: "font-bold"
+                    font {
+                      size: 16
+                      weight: BOLD
+                      italic: true
+                    }
+                  }
+                  styles {
+                    style_id: "font-black"
+                    font {
+                      size: 16
+                      weight: BLACK
+                      italic: true
+                    }
                   }
                 }
               }
