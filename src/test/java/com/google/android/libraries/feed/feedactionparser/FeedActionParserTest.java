@@ -58,6 +58,7 @@ import com.google.search.now.ui.action.FeedActionProto.TooltipData.FeatureName;
 import com.google.search.now.ui.action.FeedActionProto.UndoAction;
 import com.google.search.now.ui.action.PietExtensionsProto.PietFeedActionPayload;
 import com.google.search.now.ui.piet.ActionsProto.Action;
+import com.google.search.now.ui.piet.LogDataProto.LogData;
 import com.google.search.now.wire.feed.ActionPayloadProto.ActionPayload;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.DataOperationProto.DataOperation;
@@ -434,7 +435,7 @@ public class FeedActionParserTest {
         OPEN_URL_ACTION,
         streamActionApi,
         /* view= */ null,
-        /* veLoggingToken= */ null,
+        LogData.getDefaultInstance(),
         ActionSource.CLICK);
 
     verify(streamActionApi).openUrl(URL);
@@ -448,7 +449,7 @@ public class FeedActionParserTest {
         OPEN_URL_WITH_PARAM_ACTION,
         streamActionApi,
         /* view= */ null,
-        /* veLoggingToken= */ null,
+        LogData.getDefaultInstance(),
         ActionSource.CLICK);
 
     verify(streamActionApi).openUrl(URL, PARAM);
@@ -462,7 +463,7 @@ public class FeedActionParserTest {
         OPEN_NEW_WINDOW_ACTION,
         streamActionApi,
         /* view= */ null,
-        /* veLoggingToken= */ null,
+        LogData.getDefaultInstance(),
         ActionSource.CLICK);
 
     verify(streamActionApi).openUrlInNewWindow(URL);
@@ -476,7 +477,7 @@ public class FeedActionParserTest {
         OPEN_NEW_WINDOW_WITH_PARAM_ACTION,
         streamActionApi,
         /* view= */ null,
-        /* veLoggingToken= */ null,
+        LogData.getDefaultInstance(),
         ActionSource.CLICK);
 
     verify(streamActionApi).openUrlInNewWindow(URL, PARAM);
@@ -490,7 +491,7 @@ public class FeedActionParserTest {
         OPEN_INCOGNITO_ACTION,
         streamActionApi,
         /* view= */ null,
-        /* veLoggingToken= */ null,
+        LogData.getDefaultInstance(),
         ActionSource.CLICK);
 
     verify(streamActionApi).openUrlInIncognitoMode(URL);
@@ -504,7 +505,7 @@ public class FeedActionParserTest {
         OPEN_INCOGNITO_WITH_PARAM_ACTION,
         streamActionApi,
         /* view= */ null,
-        /* veLoggingToken= */ null,
+        LogData.getDefaultInstance(),
         ActionSource.CLICK);
 
     verify(streamActionApi).openUrlInIncognitoMode(URL, PARAM);
@@ -518,7 +519,7 @@ public class FeedActionParserTest {
         OPEN_NEW_TAB_ACTION,
         streamActionApi,
         /* view= */ null,
-        /* veLoggingToken= */ null,
+        LogData.getDefaultInstance(),
         ActionSource.CLICK);
 
     verify(streamActionApi).openUrlInNewTab(URL);
@@ -532,7 +533,7 @@ public class FeedActionParserTest {
         OPEN_NEW_TAB_WITH_PARAM_ACTION,
         streamActionApi,
         /* view= */ null,
-        /* veLoggingToken= */ null,
+        LogData.getDefaultInstance(),
         ActionSource.CLICK);
 
     verify(streamActionApi).openUrlInNewTab(URL, PARAM);
@@ -555,7 +556,7 @@ public class FeedActionParserTest {
             .build(),
         streamActionApi,
         /* view= */ view,
-        /* veLoggingToken= */ null,
+        LogData.getDefaultInstance(),
         ActionSource.CLICK);
 
     verify(streamActionApi)

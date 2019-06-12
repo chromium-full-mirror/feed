@@ -1184,7 +1184,7 @@ public class ElementAdapterTest {
             eq(ActionType.VIEW),
             eq(frame),
             eq(view),
-            eq(null));
+            eq(LogData.getDefaultInstance()));
   }
 
   @Config(shadows = {ExtendedShadowView.class})
@@ -1250,7 +1250,7 @@ public class ElementAdapterTest {
             eq(ActionType.VIEW),
             eq(frame),
             eq(view),
-            eq(null));
+            eq(LogData.getDefaultInstance()));
 
     // Actions defined, and fully visible
     viewShadow.setHeight(50);
@@ -1265,7 +1265,7 @@ public class ElementAdapterTest {
             eq(ActionType.VIEW),
             eq(frame),
             eq(view),
-            eq(null));
+            eq(LogData.getDefaultInstance()));
   }
 
   @Config(shadows = {ExtendedShadowView.class})
@@ -1320,13 +1320,23 @@ public class ElementAdapterTest {
     adapter.triggerHideActions(frameContext);
 
     verify(actionHandler)
-        .handleAction(same(hideAction), eq(ActionType.VIEW), eq(frame), eq(view), eq(null));
+        .handleAction(
+            same(hideAction),
+            eq(ActionType.VIEW),
+            eq(frame),
+            eq(view),
+            eq(LogData.getDefaultInstance()));
 
     // Ensure actions do not trigger again
     adapter.triggerHideActions(frameContext);
 
     verify(actionHandler) // Only once, not twice
-        .handleAction(same(hideAction), eq(ActionType.VIEW), eq(frame), eq(view), eq(null));
+        .handleAction(
+            same(hideAction),
+            eq(ActionType.VIEW),
+            eq(frame),
+            eq(view),
+            eq(LogData.getDefaultInstance()));
   }
 
   @Test

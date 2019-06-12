@@ -53,6 +53,7 @@ import com.google.search.now.ui.piet.ElementsProto.TextElement;
 import com.google.search.now.ui.piet.ElementsProto.Visibility;
 import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
 import com.google.search.now.ui.piet.ImagesProto.Image;
+import com.google.search.now.ui.piet.LogDataProto.LogData;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.StylesProto.Font.FontWeight;
 import com.google.search.now.ui.piet.TextProto.Chunk;
@@ -416,7 +417,7 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
     @Override
     public void onClick(View widget) {
       // TODO: Pass VE information with the action.
-      handler.handleAction(action, ActionType.CLICK, frame, widget, /* veLoggingToken= */ null);
+      handler.handleAction(action, ActionType.CLICK, frame, widget, LogData.getDefaultInstance());
     }
 
     @Override

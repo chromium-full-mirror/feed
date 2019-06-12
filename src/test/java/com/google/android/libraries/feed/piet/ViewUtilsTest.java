@@ -39,6 +39,7 @@ import com.google.android.libraries.feed.testing.shadows.ExtendedShadowView;
 import com.google.search.now.ui.piet.ActionsProto.Action;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.ActionsProto.VisibilityAction;
+import com.google.search.now.ui.piet.LogDataProto.LogData;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.StylesProto.GravityHorizontal;
 import com.google.search.now.ui.piet.StylesProto.GravityVertical;
@@ -161,7 +162,8 @@ public class ViewUtilsTest {
 
     view.callOnClick();
     verify(mockActionHandler)
-        .handleAction(DEFAULT_ACTION, ActionType.CLICK, DEFAULT_FRAME, view, null);
+        .handleAction(
+            DEFAULT_ACTION, ActionType.CLICK, DEFAULT_FRAME, view, LogData.getDefaultInstance());
     assertThat(view.getForeground()).isInstanceOf(RippleDrawable.class);
   }
 
@@ -171,7 +173,12 @@ public class ViewUtilsTest {
 
     view.performLongClick();
     verify(mockActionHandler)
-        .handleAction(DEFAULT_ACTION, ActionType.LONG_CLICK, DEFAULT_FRAME, view, null);
+        .handleAction(
+            DEFAULT_ACTION,
+            ActionType.LONG_CLICK,
+            DEFAULT_FRAME,
+            view,
+            LogData.getDefaultInstance());
     assertThat(view.getForeground()).isInstanceOf(RippleDrawable.class);
   }
 
@@ -274,7 +281,7 @@ public class ViewUtilsTest {
             eq(ActionType.VIEW),
             same(DEFAULT_FRAME),
             same(view),
-            eq(null));
+            eq(LogData.getDefaultInstance()));
   }
 
   @Test
@@ -284,14 +291,18 @@ public class ViewUtilsTest {
         view, viewport, VIEW_ACTIONS, mockActionHandler, DEFAULT_FRAME, activeActions);
     verify(mockActionHandler)
         .handleAction(
-            same(FULL_VIEW_ACTION), eq(ActionType.VIEW), same(DEFAULT_FRAME), same(view), eq(null));
+            same(FULL_VIEW_ACTION),
+            eq(ActionType.VIEW),
+            same(DEFAULT_FRAME),
+            same(view),
+            eq(LogData.getDefaultInstance()));
     verify(mockActionHandler)
         .handleAction(
             same(PARTIAL_VIEW_ACTION),
             eq(ActionType.VIEW),
             same(DEFAULT_FRAME),
             same(view),
-            eq(null));
+            eq(LogData.getDefaultInstance()));
   }
 
   @Test
@@ -308,14 +319,18 @@ public class ViewUtilsTest {
         view, viewport, VIEW_ACTIONS, mockActionHandler, DEFAULT_FRAME, activeActions);
     verify(mockActionHandler)
         .handleAction(
-            same(FULL_VIEW_ACTION), eq(ActionType.VIEW), same(DEFAULT_FRAME), same(view), eq(null));
+            same(FULL_VIEW_ACTION),
+            eq(ActionType.VIEW),
+            same(DEFAULT_FRAME),
+            same(view),
+            eq(LogData.getDefaultInstance()));
     verify(mockActionHandler)
         .handleAction(
             same(PARTIAL_VIEW_ACTION),
             eq(ActionType.VIEW),
             same(DEFAULT_FRAME),
             same(view),
-            eq(null));
+            eq(LogData.getDefaultInstance()));
   }
 
   @Test
@@ -335,7 +350,11 @@ public class ViewUtilsTest {
         activeActions);
     verify(mockActionHandler)
         .handleAction(
-            same(FULL_VIEW_ACTION), eq(ActionType.VIEW), same(DEFAULT_FRAME), same(view), eq(null));
+            same(FULL_VIEW_ACTION),
+            eq(ActionType.VIEW),
+            same(DEFAULT_FRAME),
+            same(view),
+            eq(LogData.getDefaultInstance()));
   }
 
   @Test
@@ -359,7 +378,7 @@ public class ViewUtilsTest {
             eq(ActionType.VIEW),
             same(DEFAULT_FRAME),
             same(view),
-            eq(null));
+            eq(LogData.getDefaultInstance()));
   }
 
   @Test
@@ -401,7 +420,7 @@ public class ViewUtilsTest {
             eq(ActionType.VIEW),
             same(DEFAULT_FRAME),
             same(view),
-            eq(null));
+            eq(LogData.getDefaultInstance()));
   }
 
   @Test
@@ -466,7 +485,12 @@ public class ViewUtilsTest {
         view, VIEW_AND_HIDE_ACTIONS, mockActionHandler, DEFAULT_FRAME, activeActions);
     assertThat(activeActions).containsExactly(HIDE_ACTION);
     verify(mockActionHandler)
-        .handleAction(HIDE_ACTION.getAction(), ActionType.VIEW, DEFAULT_FRAME, view, null);
+        .handleAction(
+            HIDE_ACTION.getAction(),
+            ActionType.VIEW,
+            DEFAULT_FRAME,
+            view,
+            LogData.getDefaultInstance());
   }
 
   @Test
@@ -474,7 +498,12 @@ public class ViewUtilsTest {
     ViewUtils.triggerHideActions(
         view, VIEW_AND_HIDE_ACTIONS, mockActionHandler, DEFAULT_FRAME, activeActions);
     verify(mockActionHandler)
-        .handleAction(HIDE_ACTION.getAction(), ActionType.VIEW, DEFAULT_FRAME, view, null);
+        .handleAction(
+            HIDE_ACTION.getAction(),
+            ActionType.VIEW,
+            DEFAULT_FRAME,
+            view,
+            LogData.getDefaultInstance());
 
     assertThat(activeActions).containsExactly(HIDE_ACTION);
 
@@ -482,7 +511,12 @@ public class ViewUtilsTest {
     ViewUtils.triggerHideActions(
         view, VIEW_AND_HIDE_ACTIONS, mockActionHandler, DEFAULT_FRAME, activeActions);
     verify(mockActionHandler, times(1))
-        .handleAction(HIDE_ACTION.getAction(), ActionType.VIEW, DEFAULT_FRAME, view, null);
+        .handleAction(
+            HIDE_ACTION.getAction(),
+            ActionType.VIEW,
+            DEFAULT_FRAME,
+            view,
+            LogData.getDefaultInstance());
   }
 
   @Test

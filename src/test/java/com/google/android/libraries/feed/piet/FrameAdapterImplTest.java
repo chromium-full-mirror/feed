@@ -425,8 +425,7 @@ public class FrameAdapterImplTest {
                                             .setGravityHorizontal(GravityHorizontal.GRAVITY_START)
                                             .setGravityVertical(GravityVertical.GRAVITY_BOTTOM)
                                             .setImageElement(
-                                                defaultImage
-                                                    .toBuilder()
+                                                defaultImage.toBuilder()
                                                     .setStyleReferences(
                                                         StyleIdsStack.newBuilder()
                                                             .addStyleIds("style1")))))))
@@ -443,8 +442,7 @@ public class FrameAdapterImplTest {
                                         Element.newBuilder()
                                             .setGravityHorizontal(GravityHorizontal.GRAVITY_END)
                                             .setImageElement(
-                                                defaultImage
-                                                    .toBuilder()
+                                                defaultImage.toBuilder()
                                                     .setStyleReferences(
                                                         StyleIdsStack.newBuilder()
                                                             .addStyleIds("style2")))))))
@@ -858,7 +856,7 @@ public class FrameAdapterImplTest {
             eq(ActionType.VIEW),
             eq(frameWithActions),
             any(View.class),
-            eq(null));
+            eq(LogData.getDefaultInstance()));
     verify(elementAdapter).triggerHideActions(frameContext);
   }
 

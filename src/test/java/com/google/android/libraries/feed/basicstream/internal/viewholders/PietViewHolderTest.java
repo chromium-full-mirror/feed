@@ -55,6 +55,7 @@ import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
 import com.google.search.now.ui.action.FeedActionProto.FeedAction;
 import com.google.search.now.ui.piet.ActionsProto.Action;
 import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
+import com.google.search.now.ui.piet.LogDataProto.LogData;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import java.util.ArrayList;
@@ -78,7 +79,7 @@ public class PietViewHolderTest {
       FeedActionPayload.newBuilder()
           .setExtension(FeedAction.feedActionExtension, FeedAction.getDefaultInstance())
           .build();
-  private static final String VE_LOGGING_TOKEN = "token";
+  private static final LogData VE_LOGGING_INFO = LogData.getDefaultInstance();
 
   private CardConfiguration cardConfiguration;
   @Mock private ActionParser actionParser;
@@ -367,11 +368,11 @@ public class PietViewHolderTest {
         loggingListener,
         actionParser);
 
-    actionHandler.handleAction(ACTION, ActionType.CLICK, FRAME, view, VE_LOGGING_TOKEN);
+    actionHandler.handleAction(ACTION, ActionType.CLICK, FRAME, view, VE_LOGGING_INFO);
 
     verify(loggingListener).onContentClicked();
     verify(actionParser)
-        .parseAction(ACTION, streamActionApi, view, VE_LOGGING_TOKEN, ActionSource.CLICK);
+        .parseAction(ACTION, streamActionApi, view, VE_LOGGING_INFO, ActionSource.CLICK);
   }
 
   @Test
@@ -384,11 +385,11 @@ public class PietViewHolderTest {
         loggingListener,
         actionParser);
 
-    actionHandler.handleAction(ACTION, ActionType.LONG_CLICK, FRAME, view, VE_LOGGING_TOKEN);
+    actionHandler.handleAction(ACTION, ActionType.LONG_CLICK, FRAME, view, VE_LOGGING_INFO);
 
     verify(loggingListener, never()).onContentClicked();
     verify(actionParser)
-        .parseAction(ACTION, streamActionApi, view, VE_LOGGING_TOKEN, ActionSource.LONG_CLICK);
+        .parseAction(ACTION, streamActionApi, view, VE_LOGGING_INFO, ActionSource.LONG_CLICK);
   }
 
   @Test
@@ -401,11 +402,11 @@ public class PietViewHolderTest {
         loggingListener,
         actionParser);
 
-    actionHandler.handleAction(ACTION, ActionType.VIEW, FRAME, view, VE_LOGGING_TOKEN);
+    actionHandler.handleAction(ACTION, ActionType.VIEW, FRAME, view, VE_LOGGING_INFO);
 
     verify(loggingListener, never()).onContentClicked();
     verify(actionParser)
-        .parseAction(ACTION, streamActionApi, view, VE_LOGGING_TOKEN, ActionSource.VIEW);
+        .parseAction(ACTION, streamActionApi, view, VE_LOGGING_INFO, ActionSource.VIEW);
   }
 
   @Test
@@ -433,7 +434,7 @@ public class PietViewHolderTest {
             Action.getDefaultInstance(),
             streamActionApi,
             frameAdapter.getFrameContainer(),
-            null,
+            LogData.getDefaultInstance(),
             ActionSourceConverter.convertPietAction(ActionType.VIEW));
   }
 

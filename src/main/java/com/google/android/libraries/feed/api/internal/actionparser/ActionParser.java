@@ -18,6 +18,7 @@ import android.view.View;
 import com.google.android.libraries.feed.api.host.action.StreamActionApi;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
 import com.google.search.now.ui.piet.ActionsProto.Action;
+import com.google.search.now.ui.piet.LogDataProto.LogData;
 
 /** Parses actions from Piet and directs the Stream to handle the action. */
 public interface ActionParser {
@@ -26,7 +27,7 @@ public interface ActionParser {
       Action action,
       StreamActionApi streamActionApi,
       View view,
-      /*@Nullable*/ String veLoggingToken,
+      LogData logData,
       @ActionSource int actionSource);
 
   void parseFeedActionPayload(

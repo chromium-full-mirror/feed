@@ -43,6 +43,7 @@ import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata;
 import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.Type;
 import com.google.search.now.ui.action.FeedActionProto.OpenUrlData;
 import com.google.search.now.ui.piet.ActionsProto.Action;
+import com.google.search.now.ui.piet.LogDataProto.LogData;
 import java.util.List;
 
 /**
@@ -74,7 +75,7 @@ public final class FeedActionParser implements ActionParser {
       Action action,
       StreamActionApi streamActionApi,
       View view,
-      /*@Nullable*/ String veLoggingToken,
+      LogData logData,
       @ActionSource int actionSource) {
     FeedActionPayload feedActionPayload =
         pietFeedActionPayloadRetriever.getFeedActionPayload(action);

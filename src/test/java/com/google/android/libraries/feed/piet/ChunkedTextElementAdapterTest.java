@@ -73,6 +73,7 @@ import com.google.search.now.ui.piet.ElementsProto.Visibility;
 import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
 import com.google.search.now.ui.piet.ImagesProto.Image;
 import com.google.search.now.ui.piet.ImagesProto.ImageSource;
+import com.google.search.now.ui.piet.LogDataProto.LogData;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.StylesProto.EdgeWidths;
 import com.google.search.now.ui.piet.StylesProto.Font;
@@ -721,7 +722,7 @@ public class ChunkedTextElementAdapterTest {
             ActionType.CLICK,
             Frame.getDefaultInstance(),
             adapter.getBaseView(),
-            null);
+            LogData.getDefaultInstance());
   }
 
   @Test
@@ -753,7 +754,7 @@ public class ChunkedTextElementAdapterTest {
             ActionType.CLICK,
             Frame.getDefaultInstance(),
             adapter.getBaseView(),
-            null);
+            LogData.getDefaultInstance());
   }
 
   @Test

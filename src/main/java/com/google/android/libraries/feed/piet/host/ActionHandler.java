@@ -17,6 +17,7 @@ package com.google.android.libraries.feed.piet.host;
 import android.support.annotation.IntDef;
 import android.view.View;
 import com.google.search.now.ui.piet.ActionsProto.Action;
+import com.google.search.now.ui.piet.LogDataProto.LogData;
 import com.google.search.now.ui.piet.PietProto.Frame;
 
 /**
@@ -28,11 +29,7 @@ public interface ActionHandler {
   /** Called on a event, such as a click of a view, on a UI element */
   // TODO: Do we need the veLoggingToken, one is defined in the Action
   void handleAction(
-      Action action,
-      @ActionType int actionType,
-      Frame frame,
-      View view,
-      /*@Nullable*/ String veLoggingToken);
+      Action action, @ActionType int actionType, Frame frame, View view, LogData logData);
 
   /** Possible action types. */
   @IntDef({ActionType.VIEW, ActionType.CLICK, ActionType.LONG_CLICK})

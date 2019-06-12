@@ -24,6 +24,7 @@ import com.google.android.libraries.feed.piet.FrameAdapter;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.ActionHandler.ActionType;
 import com.google.search.now.ui.piet.ActionsProto.Action;
+import com.google.search.now.ui.piet.LogDataProto.LogData;
 import com.google.search.now.ui.piet.PietAndroidSupport;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
@@ -90,7 +91,11 @@ public class FakeFrameAdapter implements FrameAdapter {
 
     for (Action action : hideActions) {
       actionHandler.handleAction(
-          action, ActionType.VIEW, checkNotNull(frame), frameContainer, /* veLoggingToken= */ null);
+          action,
+          ActionType.VIEW,
+          checkNotNull(frame),
+          frameContainer,
+          LogData.getDefaultInstance());
     }
 
     viewActionsTriggered = false;
@@ -109,7 +114,11 @@ public class FakeFrameAdapter implements FrameAdapter {
     // Assume all view actions are fired when triggerViewActions is called.
     for (Action action : viewActions) {
       actionHandler.handleAction(
-          action, ActionType.VIEW, checkNotNull(frame), frameContainer, /* veLoggingToken= */ null);
+          action,
+          ActionType.VIEW,
+          checkNotNull(frame),
+          frameContainer,
+          /* logData= */ LogData.getDefaultInstance());
     }
 
     viewActionsTriggered = true;
@@ -169,10 +178,6 @@ public class FakeFrameAdapter implements FrameAdapter {
 
     @Override
     public void handleAction(
-        Action action,
-        @ActionType int actionType,
-        Frame frame,
-        View view,
-        /*@Nullable*/ String veLoggingToken) {}
+        Action action, @ActionType int actionType, Frame frame, View view, LogData logData) {}
   }
 }

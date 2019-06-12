@@ -85,7 +85,7 @@ public class PietViewHolder extends FeedViewHolder implements SwipeableViewHolde
     this.frameAdapter =
         pietManager.createPietFrameAdapter(
             () -> cardView,
-            (action, actionType, frame, view, veLoggingToken) -> {
+            (action, actionType, frame, view, logData) -> {
               if (actionParser == null) {
                 Logger.wtf(TAG, "Action being performed while unbound.");
                 return;
@@ -99,7 +99,7 @@ public class PietViewHolder extends FeedViewHolder implements SwipeableViewHolde
                       action,
                       getStreamActionApi(),
                       view,
-                      veLoggingToken,
+                      logData,
                       ActionSourceConverter.convertPietAction(actionType));
             },
             eventLogger::logEvents,
