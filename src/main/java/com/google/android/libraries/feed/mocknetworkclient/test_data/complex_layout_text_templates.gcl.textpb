@@ -465,104 +465,6 @@ initial_response {
         }
         templates {
           template_id: "template2"
-          stylesheet {
-            styles {
-              style_id: "c1"
-              color: 4294901760
-            }
-            styles {
-              style_id: "c2"
-              color: 4278190335
-            }
-            styles {
-              style_id: "c3"
-              color: 4278255360
-            }
-            styles {
-              style_id: "b1"
-              background {
-                color: 4294902015
-              }
-            }
-            styles {
-              style_id: "b2"
-              background {
-                color: 4294967040
-              }
-            }
-            styles {
-              style_id: "b3"
-              background {
-                color: 4278255615
-              }
-            }
-            styles {
-              style_id: "f1"
-              font {
-                size: 6
-              }
-            }
-            styles {
-              style_id: "f2"
-              font {
-                size: 12
-              }
-            }
-            styles {
-              style_id: "f3"
-              font {
-                size: 18
-              }
-            }
-            styles {
-              style_id: "fs1"
-              font {
-                italic: true
-              }
-            }
-            styles {
-              style_id: "fs2"
-              font {
-                weight: BOLD
-              }
-            }
-            styles {
-              style_id: "m1"
-              margins {
-                top: 12
-                bottom: 12
-                start: 0
-                end: 0
-              }
-            }
-            styles {
-              style_id: "m2"
-              margins {
-                top: 0
-                bottom: 0
-                start: 12
-                end: 12
-              }
-            }
-            styles {
-              style_id: "p1"
-              margins {
-                top: 12
-                bottom: 12
-                start: 0
-                end: 0
-              }
-            }
-            styles {
-              style_id: "p2"
-              margins {
-                top: 0
-                bottom: 0
-                start: 12
-                end: 12
-              }
-            }
-          }
           element {
             element_list {
               contents {
@@ -740,6 +642,106 @@ initial_response {
               }
             }
           }
+          stylesheets {
+            stylesheets {
+              styles {
+                style_id: "c1"
+                color: 4294901760
+              }
+              styles {
+                style_id: "c2"
+                color: 4278190335
+              }
+              styles {
+                style_id: "c3"
+                color: 4278255360
+              }
+              styles {
+                style_id: "b1"
+                background {
+                  color: 4294902015
+                }
+              }
+              styles {
+                style_id: "b2"
+                background {
+                  color: 4294967040
+                }
+              }
+              styles {
+                style_id: "b3"
+                background {
+                  color: 4278255615
+                }
+              }
+              styles {
+                style_id: "f1"
+                font {
+                  size: 6
+                }
+              }
+              styles {
+                style_id: "f2"
+                font {
+                  size: 12
+                }
+              }
+              styles {
+                style_id: "f3"
+                font {
+                  size: 18
+                }
+              }
+              styles {
+                style_id: "fs1"
+                font {
+                  italic: true
+                }
+              }
+              styles {
+                style_id: "fs2"
+                font {
+                  weight: BOLD
+                }
+              }
+              styles {
+                style_id: "m1"
+                margins {
+                  top: 12
+                  bottom: 12
+                  start: 0
+                  end: 0
+                }
+              }
+              styles {
+                style_id: "m2"
+                margins {
+                  top: 0
+                  bottom: 0
+                  start: 12
+                  end: 12
+                }
+              }
+              styles {
+                style_id: "p1"
+                margins {
+                  top: 12
+                  bottom: 12
+                  start: 0
+                  end: 0
+                }
+              }
+              styles {
+                style_id: "p2"
+                margins {
+                  top: 0
+                  bottom: 0
+                  start: 12
+                  end: 12
+                }
+              }
+            }
+          }
         }
       }
     }
@@ -834,7 +836,6 @@ initial_response {
               table: "piet-shared-state"
             }
             frame {
-              stylesheet_id: "basic-stylesheet"
               contents {
                 template_invocation {
                   template_id: "template1"
@@ -956,6 +957,9 @@ initial_response {
                   }
                 }
               }
+              stylesheets {
+                stylesheet_ids: "basic-stylesheet"
+              }
             }
           }
         }
@@ -1039,7 +1043,6 @@ initial_response {
               table: "piet-shared-state"
             }
             frame {
-              stylesheet_id: "basic-stylesheet"
               contents {
                 template_invocation {
                   template_id: "template1"
@@ -1161,6 +1164,9 @@ initial_response {
                   }
                 }
               }
+              stylesheets {
+                stylesheet_ids: "basic-stylesheet"
+              }
             }
           }
         }
@@ -1244,7 +1250,6 @@ initial_response {
               table: "piet-shared-state"
             }
             frame {
-              stylesheet_id: "basic-stylesheet"
               contents {
                 template_invocation {
                   template_id: "template1"
@@ -1366,6 +1371,9 @@ initial_response {
                   }
                 }
               }
+              stylesheets {
+                stylesheet_ids: "basic-stylesheet"
+              }
             }
           }
         }
@@ -1449,7 +1457,6 @@ initial_response {
               table: "piet-shared-state"
             }
             frame {
-              stylesheet_id: "basic-stylesheet"
               contents {
                 template_invocation {
                   template_id: "template1"
@@ -1571,6 +1578,9 @@ initial_response {
                   }
                 }
               }
+              stylesheets {
+                stylesheet_ids: "basic-stylesheet"
+              }
             }
           }
         }
@@ -1654,7 +1664,6 @@ initial_response {
               table: "piet-shared-state"
             }
             frame {
-              stylesheet_id: "basic-stylesheet"
               contents {
                 template_invocation {
                   template_id: "template1"
@@ -1776,6 +1785,9 @@ initial_response {
                   }
                 }
               }
+              stylesheets {
+                stylesheet_ids: "basic-stylesheet"
+              }
             }
           }
         }
@@ -1859,7 +1871,6 @@ initial_response {
               table: "piet-shared-state"
             }
             frame {
-              stylesheet_id: "basic-stylesheet"
               contents {
                 template_invocation {
                   template_id: "template1"
@@ -1981,6 +1992,9 @@ initial_response {
                   }
                 }
               }
+              stylesheets {
+                stylesheet_ids: "basic-stylesheet"
+              }
             }
           }
         }
@@ -2064,7 +2078,6 @@ initial_response {
               table: "piet-shared-state"
             }
             frame {
-              stylesheet_id: "basic-stylesheet"
               contents {
                 template_invocation {
                   template_id: "template1"
@@ -2186,6 +2199,9 @@ initial_response {
                   }
                 }
               }
+              stylesheets {
+                stylesheet_ids: "basic-stylesheet"
+              }
             }
           }
         }
@@ -2269,7 +2285,6 @@ initial_response {
               table: "piet-shared-state"
             }
             frame {
-              stylesheet_id: "basic-stylesheet"
               contents {
                 template_invocation {
                   template_id: "template1"
@@ -2391,6 +2406,9 @@ initial_response {
                   }
                 }
               }
+              stylesheets {
+                stylesheet_ids: "basic-stylesheet"
+              }
             }
           }
         }
@@ -2474,7 +2492,6 @@ initial_response {
               table: "piet-shared-state"
             }
             frame {
-              stylesheet_id: "basic-stylesheet"
               contents {
                 template_invocation {
                   template_id: "template1"
@@ -2596,6 +2613,9 @@ initial_response {
                   }
                 }
               }
+              stylesheets {
+                stylesheet_ids: "basic-stylesheet"
+              }
             }
           }
         }
@@ -2679,7 +2699,6 @@ initial_response {
               table: "piet-shared-state"
             }
             frame {
-              stylesheet_id: "basic-stylesheet"
               contents {
                 template_invocation {
                   template_id: "template1"
@@ -2801,6 +2820,9 @@ initial_response {
                   }
                 }
               }
+              stylesheets {
+                stylesheet_ids: "basic-stylesheet"
+              }
             }
           }
         }
@@ -2884,7 +2906,6 @@ initial_response {
               table: "piet-shared-state"
             }
             frame {
-              stylesheet_id: "basic-stylesheet"
               contents {
                 template_invocation {
                   template_id: "template2"
@@ -2945,6 +2966,9 @@ initial_response {
                     }
                   }
                 }
+              }
+              stylesheets {
+                stylesheet_ids: "basic-stylesheet"
               }
             }
           }
@@ -3029,7 +3053,6 @@ initial_response {
               table: "piet-shared-state"
             }
             frame {
-              stylesheet_id: "basic-stylesheet"
               contents {
                 template_invocation {
                   template_id: "template2"
@@ -3090,6 +3113,9 @@ initial_response {
                     }
                   }
                 }
+              }
+              stylesheets {
+                stylesheet_ids: "basic-stylesheet"
               }
             }
           }
@@ -3174,7 +3200,6 @@ initial_response {
               table: "piet-shared-state"
             }
             frame {
-              stylesheet_id: "basic-stylesheet"
               contents {
                 template_invocation {
                   template_id: "template2"
@@ -3235,6 +3260,9 @@ initial_response {
                     }
                   }
                 }
+              }
+              stylesheets {
+                stylesheet_ids: "basic-stylesheet"
               }
             }
           }
@@ -3319,7 +3347,6 @@ initial_response {
               table: "piet-shared-state"
             }
             frame {
-              stylesheet_id: "basic-stylesheet"
               contents {
                 template_invocation {
                   template_id: "template2"
@@ -3380,6 +3407,9 @@ initial_response {
                     }
                   }
                 }
+              }
+              stylesheets {
+                stylesheet_ids: "basic-stylesheet"
               }
             }
           }
@@ -3464,7 +3494,6 @@ initial_response {
               table: "piet-shared-state"
             }
             frame {
-              stylesheet_id: "basic-stylesheet"
               contents {
                 template_invocation {
                   template_id: "template2"
@@ -3525,6 +3554,9 @@ initial_response {
                     }
                   }
                 }
+              }
+              stylesheets {
+                stylesheet_ids: "basic-stylesheet"
               }
             }
           }
@@ -3609,7 +3641,6 @@ initial_response {
               table: "piet-shared-state"
             }
             frame {
-              stylesheet_id: "basic-stylesheet"
               contents {
                 template_invocation {
                   template_id: "template2"
@@ -3670,6 +3701,9 @@ initial_response {
                     }
                   }
                 }
+              }
+              stylesheets {
+                stylesheet_ids: "basic-stylesheet"
               }
             }
           }
@@ -3754,7 +3788,6 @@ initial_response {
               table: "piet-shared-state"
             }
             frame {
-              stylesheet_id: "basic-stylesheet"
               contents {
                 template_invocation {
                   template_id: "template2"
@@ -3815,6 +3848,9 @@ initial_response {
                     }
                   }
                 }
+              }
+              stylesheets {
+                stylesheet_ids: "basic-stylesheet"
               }
             }
           }
@@ -3899,7 +3935,6 @@ initial_response {
               table: "piet-shared-state"
             }
             frame {
-              stylesheet_id: "basic-stylesheet"
               contents {
                 template_invocation {
                   template_id: "template2"
@@ -3960,6 +3995,9 @@ initial_response {
                     }
                   }
                 }
+              }
+              stylesheets {
+                stylesheet_ids: "basic-stylesheet"
               }
             }
           }
@@ -4044,7 +4082,6 @@ initial_response {
               table: "piet-shared-state"
             }
             frame {
-              stylesheet_id: "basic-stylesheet"
               contents {
                 template_invocation {
                   template_id: "template2"
@@ -4105,6 +4142,9 @@ initial_response {
                     }
                   }
                 }
+              }
+              stylesheets {
+                stylesheet_ids: "basic-stylesheet"
               }
             }
           }
@@ -4189,7 +4229,6 @@ initial_response {
               table: "piet-shared-state"
             }
             frame {
-              stylesheet_id: "basic-stylesheet"
               contents {
                 template_invocation {
                   template_id: "template2"
@@ -4250,6 +4289,9 @@ initial_response {
                     }
                   }
                 }
+              }
+              stylesheets {
+                stylesheet_ids: "basic-stylesheet"
               }
             }
           }
@@ -4334,7 +4376,6 @@ initial_response {
               table: "piet-shared-state"
             }
             frame {
-              stylesheet_id: "basic-stylesheet"
               contents {
                 template_invocation {
                   template_id: "template1"
@@ -4456,6 +4497,9 @@ initial_response {
                   }
                 }
               }
+              stylesheets {
+                stylesheet_ids: "basic-stylesheet"
+              }
             }
           }
         }
@@ -4539,7 +4583,6 @@ initial_response {
               table: "piet-shared-state"
             }
             frame {
-              stylesheet_id: "basic-stylesheet"
               contents {
                 template_invocation {
                   template_id: "template2"
@@ -4600,6 +4643,9 @@ initial_response {
                     }
                   }
                 }
+              }
+              stylesheets {
+                stylesheet_ids: "basic-stylesheet"
               }
             }
           }
@@ -4684,7 +4730,6 @@ initial_response {
               table: "piet-shared-state"
             }
             frame {
-              stylesheet_id: "basic-stylesheet"
               contents {
                 template_invocation {
                   template_id: "template1"
@@ -4806,6 +4851,9 @@ initial_response {
                   }
                 }
               }
+              stylesheets {
+                stylesheet_ids: "basic-stylesheet"
+              }
             }
           }
         }
@@ -4889,7 +4937,6 @@ initial_response {
               table: "piet-shared-state"
             }
             frame {
-              stylesheet_id: "basic-stylesheet"
               contents {
                 template_invocation {
                   template_id: "template2"
@@ -4950,6 +4997,9 @@ initial_response {
                     }
                   }
                 }
+              }
+              stylesheets {
+                stylesheet_ids: "basic-stylesheet"
               }
             }
           }
@@ -5034,7 +5084,6 @@ initial_response {
               table: "piet-shared-state"
             }
             frame {
-              stylesheet_id: "basic-stylesheet"
               contents {
                 template_invocation {
                   template_id: "template1"
@@ -5156,6 +5205,9 @@ initial_response {
                   }
                 }
               }
+              stylesheets {
+                stylesheet_ids: "basic-stylesheet"
+              }
             }
           }
         }
@@ -5239,7 +5291,6 @@ initial_response {
               table: "piet-shared-state"
             }
             frame {
-              stylesheet_id: "basic-stylesheet"
               contents {
                 template_invocation {
                   template_id: "template2"
@@ -5300,6 +5351,9 @@ initial_response {
                     }
                   }
                 }
+              }
+              stylesheets {
+                stylesheet_ids: "basic-stylesheet"
               }
             }
           }
@@ -5384,7 +5438,6 @@ initial_response {
               table: "piet-shared-state"
             }
             frame {
-              stylesheet_id: "basic-stylesheet"
               contents {
                 template_invocation {
                   template_id: "template1"
@@ -5506,6 +5559,9 @@ initial_response {
                   }
                 }
               }
+              stylesheets {
+                stylesheet_ids: "basic-stylesheet"
+              }
             }
           }
         }
@@ -5589,7 +5645,6 @@ initial_response {
               table: "piet-shared-state"
             }
             frame {
-              stylesheet_id: "basic-stylesheet"
               contents {
                 template_invocation {
                   template_id: "template2"
@@ -5650,6 +5705,9 @@ initial_response {
                     }
                   }
                 }
+              }
+              stylesheets {
+                stylesheet_ids: "basic-stylesheet"
               }
             }
           }
@@ -5734,7 +5792,6 @@ initial_response {
               table: "piet-shared-state"
             }
             frame {
-              stylesheet_id: "basic-stylesheet"
               contents {
                 template_invocation {
                   template_id: "template1"
@@ -5856,6 +5913,9 @@ initial_response {
                   }
                 }
               }
+              stylesheets {
+                stylesheet_ids: "basic-stylesheet"
+              }
             }
           }
         }
@@ -5939,7 +5999,6 @@ initial_response {
               table: "piet-shared-state"
             }
             frame {
-              stylesheet_id: "basic-stylesheet"
               contents {
                 template_invocation {
                   template_id: "template2"
@@ -6000,6 +6059,9 @@ initial_response {
                     }
                   }
                 }
+              }
+              stylesheets {
+                stylesheet_ids: "basic-stylesheet"
               }
             }
           }
@@ -6084,7 +6146,6 @@ initial_response {
               table: "piet-shared-state"
             }
             frame {
-              stylesheet_id: "basic-stylesheet"
               contents {
                 template_invocation {
                   template_id: "template1"
@@ -6206,6 +6267,9 @@ initial_response {
                   }
                 }
               }
+              stylesheets {
+                stylesheet_ids: "basic-stylesheet"
+              }
             }
           }
         }
@@ -6289,7 +6353,6 @@ initial_response {
               table: "piet-shared-state"
             }
             frame {
-              stylesheet_id: "basic-stylesheet"
               contents {
                 template_invocation {
                   template_id: "template2"
@@ -6350,6 +6413,9 @@ initial_response {
                     }
                   }
                 }
+              }
+              stylesheets {
+                stylesheet_ids: "basic-stylesheet"
               }
             }
           }
@@ -6434,7 +6500,6 @@ initial_response {
               table: "piet-shared-state"
             }
             frame {
-              stylesheet_id: "basic-stylesheet"
               contents {
                 template_invocation {
                   template_id: "template1"
@@ -6556,6 +6621,9 @@ initial_response {
                   }
                 }
               }
+              stylesheets {
+                stylesheet_ids: "basic-stylesheet"
+              }
             }
           }
         }
@@ -6639,7 +6707,6 @@ initial_response {
               table: "piet-shared-state"
             }
             frame {
-              stylesheet_id: "basic-stylesheet"
               contents {
                 template_invocation {
                   template_id: "template2"
@@ -6700,6 +6767,9 @@ initial_response {
                     }
                   }
                 }
+              }
+              stylesheets {
+                stylesheet_ids: "basic-stylesheet"
               }
             }
           }
@@ -6784,7 +6854,6 @@ initial_response {
               table: "piet-shared-state"
             }
             frame {
-              stylesheet_id: "basic-stylesheet"
               contents {
                 template_invocation {
                   template_id: "template1"
@@ -6906,6 +6975,9 @@ initial_response {
                   }
                 }
               }
+              stylesheets {
+                stylesheet_ids: "basic-stylesheet"
+              }
             }
           }
         }
@@ -6989,7 +7061,6 @@ initial_response {
               table: "piet-shared-state"
             }
             frame {
-              stylesheet_id: "basic-stylesheet"
               contents {
                 template_invocation {
                   template_id: "template2"
@@ -7050,6 +7121,9 @@ initial_response {
                     }
                   }
                 }
+              }
+              stylesheets {
+                stylesheet_ids: "basic-stylesheet"
               }
             }
           }
@@ -7134,7 +7208,6 @@ initial_response {
               table: "piet-shared-state"
             }
             frame {
-              stylesheet_id: "basic-stylesheet"
               contents {
                 template_invocation {
                   template_id: "template1"
@@ -7256,6 +7329,9 @@ initial_response {
                   }
                 }
               }
+              stylesheets {
+                stylesheet_ids: "basic-stylesheet"
+              }
             }
           }
         }
@@ -7339,7 +7415,6 @@ initial_response {
               table: "piet-shared-state"
             }
             frame {
-              stylesheet_id: "basic-stylesheet"
               contents {
                 template_invocation {
                   template_id: "template2"
@@ -7400,6 +7475,9 @@ initial_response {
                     }
                   }
                 }
+              }
+              stylesheets {
+                stylesheet_ids: "basic-stylesheet"
               }
             }
           }
@@ -7484,7 +7562,6 @@ initial_response {
               table: "piet-shared-state"
             }
             frame {
-              stylesheet_id: "basic-stylesheet"
               contents {
                 template_invocation {
                   template_id: "template1"
@@ -7606,6 +7683,9 @@ initial_response {
                   }
                 }
               }
+              stylesheets {
+                stylesheet_ids: "basic-stylesheet"
+              }
             }
           }
         }
@@ -7689,7 +7769,6 @@ initial_response {
               table: "piet-shared-state"
             }
             frame {
-              stylesheet_id: "basic-stylesheet"
               contents {
                 template_invocation {
                   template_id: "template2"
@@ -7750,6 +7829,9 @@ initial_response {
                     }
                   }
                 }
+              }
+              stylesheets {
+                stylesheet_ids: "basic-stylesheet"
               }
             }
           }

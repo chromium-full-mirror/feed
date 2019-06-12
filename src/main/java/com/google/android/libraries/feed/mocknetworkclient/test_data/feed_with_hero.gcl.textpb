@@ -657,7 +657,6 @@ initial_response {
             }
             frame {
               tag: "Story-Card-Feed"
-              stylesheet_id: "feed-story-card"
               style_references {
                 style_ids: "card"
               }
@@ -751,6 +750,9 @@ initial_response {
                   }
                 }
               }
+              stylesheets {
+                stylesheet_ids: "feed-story-card"
+              }
             }
           }
         }
@@ -835,7 +837,6 @@ initial_response {
             }
             frame {
               tag: "Story-Card-Feed"
-              stylesheet_id: "feed-story-card"
               style_references {
                 style_ids: "card"
               }
@@ -929,6 +930,9 @@ initial_response {
                   }
                 }
               }
+              stylesheets {
+                stylesheet_ids: "feed-story-card"
+              }
             }
           }
         }
@@ -1013,7 +1017,6 @@ initial_response {
             }
             frame {
               tag: "Story-Card-Feed"
-              stylesheet_id: "feed-story-card"
               style_references {
                 style_ids: "card"
               }
@@ -1105,6 +1108,9 @@ initial_response {
                   }
                 }
               }
+              stylesheets {
+                stylesheet_ids: "feed-story-card"
+              }
             }
           }
         }
@@ -1189,7 +1195,6 @@ initial_response {
             }
             frame {
               tag: "Story-Card-Feed"
-              stylesheet_id: "feed-story-card"
               style_references {
                 style_ids: "card"
               }
@@ -1282,6 +1287,9 @@ initial_response {
                     }
                   }
                 }
+              }
+              stylesheets {
+                stylesheet_ids: "feed-story-card"
               }
             }
           }
