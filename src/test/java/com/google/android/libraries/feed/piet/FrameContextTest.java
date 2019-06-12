@@ -137,7 +137,8 @@ public class FrameContextTest {
     context = Robolectric.buildActivity(Activity.class).get();
     hostBindingProvider = new HostBindingProvider();
     hostProviders =
-        new HostProviders(assetProvider, mock(CustomElementProvider.class), hostBindingProvider);
+        new HostProviders(
+            assetProvider, mock(CustomElementProvider.class), hostBindingProvider, null);
     defaultStyleProvider = new StyleProvider(assetProvider);
 
     defaultStylesheet.put(SAMPLE_STYLE_ID, SAMPLE_STYLE);

@@ -29,6 +29,7 @@ import com.google.android.libraries.feed.piet.host.EmptyStringFormatter;
 import com.google.android.libraries.feed.piet.host.EventLogger;
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
 import com.google.android.libraries.feed.piet.host.ImageLoader;
+import com.google.android.libraries.feed.piet.host.LogDataCallback;
 import com.google.android.libraries.feed.piet.host.NullImageLoader;
 import com.google.android.libraries.feed.piet.host.NullTypefaceProvider;
 import com.google.android.libraries.feed.piet.host.StringFormatter;
@@ -47,6 +48,13 @@ public interface PietManager {
       ActionHandler actionHandler,
       EventLogger eventLogger,
       Context context);
+
+  FrameAdapter createPietFrameAdapter(
+      Supplier</*@Nullable*/ ViewGroup> cardViewProducer,
+      ActionHandler actionHandler,
+      EventLogger eventLogger,
+      Context context,
+      /*@Nullable*/ LogDataCallback logDataCallback);
 
   void purgeRecyclerPools();
 

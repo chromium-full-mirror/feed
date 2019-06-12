@@ -25,6 +25,7 @@ import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.host.EventLogger;
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
+import com.google.android.libraries.feed.piet.host.LogDataCallback;
 
 /** Implementation of {@link PietManager}. */
 class PietManagerImpl implements PietManager {
@@ -61,7 +62,17 @@ class PietManagerImpl implements PietManager {
       ActionHandler actionHandler,
       EventLogger eventLogger,
       Context context) {
-    AdapterParameters parameters = getAdapterParameters(context, cardViewProducer);
+    return createPietFrameAdapter(cardViewProducer, actionHandler, eventLogger, context, null);
+  }
+
+  @Override
+  public FrameAdapter createPietFrameAdapter(
+      Supplier</*@Nullable*/ ViewGroup> cardViewProducer,
+      ActionHandler actionHandler,
+      EventLogger eventLogger,
+      Context context,
+      /*@Nullable*/ LogDataCallback logDataCallback) {
+    AdapterParameters parameters = getAdapterParameters(context, cardViewProducer, logDataCallback);
 
     return new FrameAdapterImpl(context, parameters, actionHandler, eventLogger, debugBehavior);
   }
@@ -72,13 +83,16 @@ class PietManagerImpl implements PietManager {
    */
   @VisibleForTesting
   AdapterParameters getAdapterParameters(
-      Context context, Supplier</*@Nullable*/ ViewGroup> cardViewProducer) {
+      Context context,
+      Supplier</*@Nullable*/ ViewGroup> cardViewProducer,
+      /*@Nullable*/ LogDataCallback logDataCallback) {
     if (adapterParameters == null || adapterParameters.context != context) {
       adapterParameters =
           new AdapterParameters(
               context,
               cardViewProducer,
-              new HostProviders(assetProvider, customElementProvider, hostBindingProvider),
+              new HostProviders(
+                  assetProvider, customElementProvider, hostBindingProvider, logDataCallback),
               clock,
               useLegacyRoundedCornerImpl,
               useOutlineRoundedCornerImpl);

@@ -31,6 +31,7 @@ import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.android.libraries.feed.piet.TemplateBinder.TemplateAdapterModel;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.EventLogger;
+import com.google.android.libraries.feed.piet.host.LogDataCallback;
 import com.google.search.now.ui.piet.ActionsProto.VisibilityAction;
 import com.google.search.now.ui.piet.ElementsProto.BindingContext;
 import com.google.search.now.ui.piet.ElementsProto.Content;
@@ -149,6 +150,11 @@ public class FrameAdapterImpl implements FrameAdapter {
       }
     }
     eventLogger.logEvents(localFrameContext.getDebugLogger().getErrorCodes());
+    LogDataCallback callback = parameters.hostProviders.getLogDataCallback();
+    Frame localFrame = localFrameContext.getFrame();
+    if (callback != null && localFrame != null && localFrame.hasLogData()) {
+      callback.onBind(localFrame.getLogData(), frameView);
+    }
   }
 
   @Override
@@ -156,6 +162,13 @@ public class FrameAdapterImpl implements FrameAdapter {
     triggerHideActions();
 
     LinearLayout view = checkNotNull(this.view);
+    LogDataCallback callback = parameters.hostProviders.getLogDataCallback();
+    if (frameContext != null) {
+      Frame frame = frameContext.getFrame();
+      if (callback != null && frame != null && frame.hasLogData()) {
+        callback.onUnbind(frame.getLogData(), view);
+      }
+    }
     for (ElementAdapter<?, ?> child : childAdapters) {
       parameters.elementAdapterFactory.releaseAdapter(child);
     }

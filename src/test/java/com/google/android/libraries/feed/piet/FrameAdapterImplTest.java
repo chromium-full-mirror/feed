@@ -47,6 +47,7 @@ import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.host.EventLogger;
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
+import com.google.android.libraries.feed.piet.host.LogDataCallback;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerMaskCache;
 import com.google.search.now.ui.piet.ActionsProto.Action;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
@@ -64,6 +65,7 @@ import com.google.search.now.ui.piet.ElementsProto.TemplateInvocation;
 import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
 import com.google.search.now.ui.piet.GradientsProto.Fill;
 import com.google.search.now.ui.piet.ImagesProto.Image;
+import com.google.search.now.ui.piet.LogDataProto.LogData;
 import com.google.search.now.ui.piet.PietAndroidSupport.ShardingControl;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
@@ -102,6 +104,7 @@ public class FrameAdapterImplTest {
                               Content.newBuilder().setElement(Element.getDefaultInstance()))))
           .build();
   private static final int FRAME_WIDTH = 321;
+  private final LogData logDataTest = LogData.getDefaultInstance();
 
   @Mock private AssetProvider assetProvider;
   @Mock private ElementAdapterFactory adapterFactory;
@@ -124,13 +127,28 @@ public class FrameAdapterImplTest {
   private Context context;
   private List<PietSharedState> pietSharedStates;
   private AdapterParameters adapterParameters;
-
+  private boolean callbackBound;
+  private boolean callbackUnbound;
   private FrameAdapterImpl frameAdapter;
 
   @Before
   public void setUp() throws Exception {
     initMocks(this);
     context = Robolectric.buildActivity(Activity.class).get();
+    LogDataCallback logDataCallback =
+        new LogDataCallback() {
+          @Override
+          public void onBind(LogData logData, View view) {
+            assertThat(logDataTest).isEqualTo(logData);
+            callbackBound = true;
+          }
+
+          @Override
+          public void onUnbind(LogData logData, View view) {
+            assertThat(logDataTest).isEqualTo(logData);
+            callbackUnbound = true;
+          }
+        };
     adapterParameters =
         new AdapterParameters(
             null,
@@ -157,6 +175,7 @@ public class FrameAdapterImplTest {
     when(templateAdapter.getHorizontalGravity(anyInt())).thenReturn(Gravity.CENTER_HORIZONTAL);
     when(templateAdapter.getVerticalGravity(anyInt())).thenReturn(Gravity.BOTTOM);
     when(hostProviders.getAssetProvider()).thenReturn(assetProvider);
+    when(hostProviders.getLogDataCallback()).thenReturn(logDataCallback);
     when(assetProvider.isRtLSupplier()).thenReturn(Suppliers.of(false));
     when(frameContext.reportMessage(eq(MessageType.ERROR), anyString()))
         .thenAnswer(
@@ -166,6 +185,7 @@ public class FrameAdapterImplTest {
     when(frameContext.getDebugLogger()).thenReturn(debugLogger);
     when(frameContext.getDebugBehavior()).thenReturn(DebugBehavior.VERBOSE);
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(styleProvider);
+    when(frameContext.getFrame()).thenReturn(Frame.getDefaultInstance());
     when(elementAdapter.getElementStyle()).thenReturn(styleProvider);
     when(templateAdapter.getElementStyle()).thenReturn(styleProvider);
 
@@ -300,7 +320,8 @@ public class FrameAdapterImplTest {
             debugBehavior,
             new DebugLogger(),
             actionHandler,
-            new HostProviders(assetProvider, customElementProvider, new HostBindingProvider()),
+            new HostProviders(
+                assetProvider, customElementProvider, new HostBindingProvider(), null),
             new FrameLayout(context));
 
     frameAdapter =
@@ -839,5 +860,25 @@ public class FrameAdapterImplTest {
             any(View.class),
             eq(null));
     verify(elementAdapter).triggerHideActions(frameContext);
+  }
+
+  @Test
+  public void testBindModel_callsOnBindLogDataCallback() {
+    Frame frame = Frame.newBuilder().addContents(DEFAULT_CONTENT).setLogData(logDataTest).build();
+    when(frameContext.getFrame()).thenReturn(frame);
+    frameAdapter.bindModel(frame, FRAME_WIDTH, (ShardingControl) null, pietSharedStates);
+
+    assertThat(callbackBound).isTrue();
+  }
+
+  @Test
+  public void testUnbindModel_callsOnBindLogDataCallback() {
+    Frame frame = Frame.newBuilder().addContents(DEFAULT_CONTENT).setLogData(logDataTest).build();
+    when(frameContext.getFrame()).thenReturn(frame);
+    frameAdapter.bindModel(frame, FRAME_WIDTH, (ShardingControl) null, pietSharedStates);
+
+    when(frameContext.getActionHandler()).thenReturn(actionHandler);
+    frameAdapter.unbindModel();
+    assertThat(callbackUnbound).isTrue();
   }
 }

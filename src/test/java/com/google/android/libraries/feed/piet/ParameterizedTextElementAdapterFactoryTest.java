@@ -63,7 +63,7 @@ public class ParameterizedTextElementAdapterFactoryTest {
         new AdapterParameters(
             null,
             null,
-            new HostProviders(mock(AssetProvider.class), null, null),
+            new HostProviders(mock(AssetProvider.class), null, null, null),
             new FakeClock(),
             false,
             false);

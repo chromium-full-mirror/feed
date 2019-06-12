@@ -26,6 +26,7 @@ import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.FrameLayout;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
+import com.google.android.libraries.feed.piet.host.LogDataCallback;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerWrapperView;
 import com.google.search.now.ui.piet.AccessibilityProto.Accessibility;
 import com.google.search.now.ui.piet.AccessibilityProto.AccessibilityRole;
@@ -292,6 +293,10 @@ abstract class ElementAdapter<V extends View, M> {
     getBaseView()
         .setContentDescription(
             getAccessibilityString(baseElement.getAccessibility(), frameContext));
+    LogDataCallback callback = parameters.hostProviders.getLogDataCallback();
+    if (callback != null && baseElement.hasLogData()) {
+      callback.onBind(baseElement.getLogData(), getView());
+    }
   }
 
   private CharSequence getAccessibilityString(
@@ -414,6 +419,10 @@ abstract class ElementAdapter<V extends View, M> {
     // If the visibility was GONE, we may not have ever called onBindModel.
     if (created) {
       onUnbindModel();
+    }
+    LogDataCallback callback = parameters.hostProviders.getLogDataCallback();
+    if (callback != null && baseElement.hasLogData()) {
+      callback.onUnbind(baseElement.getLogData(), getView());
     }
     model = null;
     baseElement = Element.getDefaultInstance();

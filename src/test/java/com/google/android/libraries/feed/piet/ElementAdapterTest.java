@@ -42,6 +42,7 @@ import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.ActionHandler.ActionType;
+import com.google.android.libraries.feed.piet.host.LogDataCallback;
 import com.google.android.libraries.feed.piet.ui.BitmapMaskingRoundedCornerWrapperView;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerMaskCache;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerWrapperView;
@@ -62,6 +63,7 @@ import com.google.search.now.ui.piet.ElementsProto.ElementList;
 import com.google.search.now.ui.piet.ElementsProto.ElementStack;
 import com.google.search.now.ui.piet.ElementsProto.Visibility;
 import com.google.search.now.ui.piet.ElementsProto.VisibilityState;
+import com.google.search.now.ui.piet.LogDataProto.LogData;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
 import com.google.search.now.ui.piet.StylesProto.Borders;
@@ -87,6 +89,8 @@ public class ElementAdapterTest {
   private static final boolean LEGACY_CORNERS_FLAG = false;
   private static final boolean OUTLINE_CORNERS_FLAG = false;
 
+  private final LogData logDataTest = LogData.getDefaultInstance();
+
   @Mock private FrameContext frameContext;
   @Mock private HostProviders hostProviders;
   @Mock private ActionHandler actionHandler;
@@ -98,11 +102,27 @@ public class ElementAdapterTest {
   private RoundedCornerMaskCache maskCache;
 
   private TestElementAdapter adapter;
+  private boolean callbackBound;
+  private boolean callbackUnbound;
 
   @Before
   public void setUp() {
     initMocks(this);
     context = Robolectric.buildActivity(Activity.class).get();
+    LogDataCallback logDataCallback =
+        new LogDataCallback() {
+          @Override
+          public void onBind(LogData logData, View view) {
+            assertThat(logDataTest).isEqualTo(logData);
+            callbackBound = true;
+          }
+
+          @Override
+          public void onUnbind(LogData logData, View view) {
+            assertThat(logDataTest).isEqualTo(logData);
+            callbackUnbound = true;
+          }
+        };
     parameters =
         new AdapterParameters(
             context,
@@ -112,6 +132,7 @@ public class ElementAdapterTest {
             LEGACY_CORNERS_FLAG,
             OUTLINE_CORNERS_FLAG);
     maskCache = parameters.roundedCornerMaskCache;
+    when(hostProviders.getLogDataCallback()).thenReturn(logDataCallback);
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(styleProvider);
     when(frameContext.getActionHandler()).thenReturn(actionHandler);
     when(styleProvider.hasRoundedCorners()).thenReturn(false);
@@ -491,6 +512,15 @@ public class ElementAdapterTest {
   }
 
   @Test
+  public void testBindModel_callsOnBindLogDataCallback() {
+    Element defaultElement = Element.newBuilder().setLogData(logDataTest).build();
+
+    adapter.bindModel(defaultElement, defaultElement, frameContext);
+
+    assertThat(callbackBound).isTrue();
+  }
+
+  @Test
   public void testBindModel_extractsModelFromElement() {
     Element element = Element.getDefaultInstance();
 
@@ -829,6 +859,15 @@ public class ElementAdapterTest {
 
     adapter.unbindModel();
     assertThat(adapter.testAdapterBound).isFalse();
+  }
+
+  @Test
+  public void testUnbindModel_callsOnBindLogDataCallback() {
+    Element defaultElement = Element.newBuilder().setLogData(logDataTest).build();
+
+    adapter.bindModel(defaultElement, defaultElement, frameContext);
+    adapter.unbindModel();
+    assertThat(callbackUnbound).isTrue();
   }
 
   @Test

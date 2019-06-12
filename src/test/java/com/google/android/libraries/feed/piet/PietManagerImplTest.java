@@ -23,6 +23,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -41,11 +42,13 @@ import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.host.EventLogger;
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
 import com.google.android.libraries.feed.piet.host.ImageLoader;
+import com.google.android.libraries.feed.piet.host.LogDataCallback;
 import com.google.android.libraries.feed.piet.host.StringFormatter;
 import com.google.android.libraries.feed.piet.host.ThrowingCustomElementProvider;
 import com.google.android.libraries.feed.piet.host.TypefaceProvider;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerMaskCache;
 import com.google.search.now.ui.piet.ImagesProto.Image;
+import com.google.search.now.ui.piet.LogDataProto.LogData;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import java.util.Collections;
 import java.util.Locale;
@@ -94,8 +97,27 @@ public class PietManagerImplTest {
     FrameAdapterImpl frameAdapter =
         (FrameAdapterImpl)
             pietManager.createPietFrameAdapter(
-                cardViewSupplier, actionHandler, eventLogger, context);
+                cardViewSupplier, actionHandler, eventLogger, context, /* logDataCallback= */ null);
     assertThat(frameAdapter.getParameters().parentViewSupplier).isSameInstanceAs(cardViewSupplier);
+  }
+
+  @Test
+  public void testCreatePietFrameAdapter_loggingCallback() {
+    LogDataCallback logDataCallback =
+        new LogDataCallback() {
+          @Override
+          public void onBind(LogData logData, View view) {}
+
+          @Override
+          public void onUnbind(LogData logData, View view) {}
+        };
+    Supplier<ViewGroup> cardViewSupplier = Suppliers.of(viewGroup1);
+    FrameAdapterImpl frameAdapter =
+        (FrameAdapterImpl)
+            pietManager.createPietFrameAdapter(
+                cardViewSupplier, actionHandler, eventLogger, context, logDataCallback);
+    assertThat(frameAdapter.getParameters().hostProviders.getLogDataCallback())
+        .isEqualTo(logDataCallback);
   }
 
   @Test
@@ -108,23 +130,28 @@ public class PietManagerImplTest {
     AdapterParameters returnParams;
 
     // Get params for a context that does not exist
-    returnParams = pietManager.getAdapterParameters(context1, viewGroupProducer1);
+    returnParams =
+        pietManager.getAdapterParameters(context1, viewGroupProducer1, /* logDataCallback= */ null);
     assertThat(returnParams.parentViewSupplier).isEqualTo(viewGroupProducer1);
     assertThat(returnParams.context).isEqualTo(context1);
 
     // Get params for the same context again (use cached value)
-    returnParams = pietManager.getAdapterParameters(context1, Suppliers.of(null));
+    returnParams =
+        pietManager.getAdapterParameters(context1, Suppliers.of(null), /* logDataCallback= */ null);
     assertThat(returnParams.parentViewSupplier).isEqualTo(viewGroupProducer1);
 
     // Get params for a different context
-    returnParams = pietManager.getAdapterParameters(context2, viewGroupProducer2);
+    returnParams =
+        pietManager.getAdapterParameters(context2, viewGroupProducer2, /* logDataCallback= */ null);
     assertThat(returnParams.parentViewSupplier).isEqualTo(viewGroupProducer2);
   }
 
   @Test
   public void testBuilder_defaults() {
     PietManagerImpl manager = (PietManagerImpl) PietManager.builder().build();
-    AdapterParameters parameters = manager.getAdapterParameters(context, Suppliers.of(viewGroup1));
+    AdapterParameters parameters =
+        manager.getAdapterParameters(
+            context, Suppliers.of(viewGroup1), /* logDataCallback= */ null);
     assertThat(parameters.hostProviders.getCustomElementProvider())
         .isInstanceOf(ThrowingCustomElementProvider.class);
     assertThat(parameters.clock).isInstanceOf(SystemClockImpl.class);
@@ -133,7 +160,11 @@ public class PietManagerImplTest {
     FrameAdapterImpl frameAdapter =
         (FrameAdapterImpl)
             manager.createPietFrameAdapter(
-                Suppliers.of(viewGroup1), actionHandler, eventLogger, context);
+                Suppliers.of(viewGroup1),
+                actionHandler,
+                eventLogger,
+                context,
+                /* logDataCallback= */ null);
     FrameContext frameContext =
         frameAdapter.createFrameContext(
             Frame.getDefaultInstance(), 0, Collections.emptyList(), viewGroup2);
@@ -184,7 +215,9 @@ public class PietManagerImplTest {
                 .setHostBindingProvider(hostBindingProvider)
                 .setClock(clock)
                 .build();
-    AdapterParameters parameters = manager.getAdapterParameters(context, Suppliers.of(viewGroup1));
+    AdapterParameters parameters =
+        manager.getAdapterParameters(
+            context, Suppliers.of(viewGroup1), /* logDataCallback= */ null);
     assertThat(parameters.hostProviders.getCustomElementProvider())
         .isSameInstanceAs(customElementProvider);
     assertThat(parameters.hostProviders.getHostBindingProvider())
@@ -194,7 +227,11 @@ public class PietManagerImplTest {
     FrameAdapterImpl frameAdapter =
         (FrameAdapterImpl)
             manager.createPietFrameAdapter(
-                Suppliers.of(viewGroup1), actionHandler, eventLogger, context);
+                Suppliers.of(viewGroup1),
+                actionHandler,
+                eventLogger,
+                context,
+                /* logDataCallback= */ null);
     FrameContext frameContext =
         frameAdapter.createFrameContext(
             Frame.getDefaultInstance(), 0, Collections.emptyList(), viewGroup2);
