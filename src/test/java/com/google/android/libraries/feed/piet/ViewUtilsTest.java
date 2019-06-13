@@ -156,29 +156,31 @@ public class ViewUtilsTest {
 
   @Test
   public void testSetOnClickActions_success() {
-    ViewUtils.setOnClickActions(DEFAULT_ACTIONS, view, mockFrameContext);
+    LogData logData = LogData.newBuilder().build();
+    ViewUtils.setOnClickActions(DEFAULT_ACTIONS, view, mockFrameContext, logData);
 
     assertThat(view.hasOnClickListeners()).isTrue();
 
     view.callOnClick();
     verify(mockActionHandler)
         .handleAction(
-            DEFAULT_ACTION, ActionType.CLICK, DEFAULT_FRAME, view, LogData.getDefaultInstance());
+            eq(DEFAULT_ACTION), eq(ActionType.CLICK), eq(DEFAULT_FRAME), eq(view), same(logData));
     assertThat(view.getForeground()).isInstanceOf(RippleDrawable.class);
   }
 
   @Test
   public void testSetOnLongClickActions_success() {
-    ViewUtils.setOnClickActions(LONG_CLICK_ACTIONS, view, mockFrameContext);
+    LogData logData = LogData.newBuilder().build();
+    ViewUtils.setOnClickActions(LONG_CLICK_ACTIONS, view, mockFrameContext, logData);
 
     view.performLongClick();
     verify(mockActionHandler)
         .handleAction(
-            DEFAULT_ACTION,
-            ActionType.LONG_CLICK,
-            DEFAULT_FRAME,
-            view,
-            LogData.getDefaultInstance());
+            eq(DEFAULT_ACTION),
+            eq(ActionType.LONG_CLICK),
+            eq(DEFAULT_FRAME),
+            eq(view),
+            same(logData));
     assertThat(view.getForeground()).isInstanceOf(RippleDrawable.class);
   }
 
@@ -187,7 +189,8 @@ public class ViewUtilsTest {
     view.setOnClickListener(mockListener);
     assertThat(view.hasOnClickListeners()).isTrue();
 
-    ViewUtils.setOnClickActions(Actions.getDefaultInstance(), view, mockFrameContext);
+    ViewUtils.setOnClickActions(
+        Actions.getDefaultInstance(), view, mockFrameContext, LogData.getDefaultInstance());
 
     assertViewNotClickable();
     assertThat(view.getForeground()).isNull();
@@ -198,7 +201,8 @@ public class ViewUtilsTest {
     view.setOnLongClickListener(mockLongClickListener);
     assertThat(view.isLongClickable()).isTrue();
 
-    ViewUtils.setOnClickActions(Actions.getDefaultInstance(), view, mockFrameContext);
+    ViewUtils.setOnClickActions(
+        Actions.getDefaultInstance(), view, mockFrameContext, LogData.getDefaultInstance());
 
     assertThat(view.isLongClickable()).isFalse();
     assertThat(view.getForeground()).isNull();
@@ -232,8 +236,10 @@ public class ViewUtilsTest {
             .setOnLongClickAction(DEFAULT_ACTION)
             .build(),
         view,
-        mockFrameContext);
-    ViewUtils.setOnClickActions(Actions.getDefaultInstance(), view, mockFrameContext);
+        mockFrameContext,
+        LogData.getDefaultInstance());
+    ViewUtils.setOnClickActions(
+        Actions.getDefaultInstance(), view, mockFrameContext, LogData.getDefaultInstance());
 
     assertViewNotClickable();
     assertThat(view.isLongClickable()).isFalse();

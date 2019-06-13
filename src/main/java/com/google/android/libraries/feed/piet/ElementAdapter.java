@@ -345,12 +345,12 @@ abstract class ElementAdapter<V extends View, M> {
     switch (baseElement.getActionsDataCase()) {
       case ACTIONS:
         actions = baseElement.getActions();
-        ViewUtils.setOnClickActions(actions, getBaseView(), frameContext);
+        ViewUtils.setOnClickActions(actions, getBaseView(), frameContext, baseElement.getLogData());
         break;
       case ACTIONS_BINDING:
         // Get the actions from the actions_binding in the template
         actions = frameContext.getActionsFromBinding(baseElement.getActionsBinding());
-        ViewUtils.setOnClickActions(actions, getBaseView(), frameContext);
+        ViewUtils.setOnClickActions(actions, getBaseView(), frameContext, baseElement.getLogData());
         break;
       default: // No actions defined.
         actions = Actions.getDefaultInstance();

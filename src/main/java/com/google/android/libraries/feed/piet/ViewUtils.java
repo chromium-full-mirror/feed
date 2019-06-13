@@ -86,7 +86,8 @@ public class ViewUtils {
    * RippleDrawable is added to the foreground of the view, so that a ripple animation happens on
    * each click.
    */
-  static void setOnClickActions(Actions actions, View view, FrameContext frameContext) {
+  static void setOnClickActions(
+      Actions actions, View view, FrameContext frameContext, LogData logData) {
     ActionHandler handler = frameContext.getActionHandler();
     if (actions.hasOnLongClickAction()) {
       view.setOnLongClickListener(
@@ -96,7 +97,7 @@ public class ViewUtils {
                 ActionType.LONG_CLICK,
                 frameContext.getFrame(),
                 view,
-                LogData.getDefaultInstance());
+                logData);
             return true;
           });
     } else {
@@ -110,7 +111,7 @@ public class ViewUtils {
                 ActionType.CLICK,
                 frameContext.getFrame(),
                 view,
-                LogData.getDefaultInstance());
+                logData);
           });
     } else {
       clearOnClickActions(view);

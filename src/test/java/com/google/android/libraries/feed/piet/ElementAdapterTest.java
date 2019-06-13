@@ -149,7 +149,6 @@ public class ElementAdapterTest {
   public void testGetters() {
     Element defaultElement =
         Element.newBuilder()
-            .setVed("VED")
             .setGravityHorizontal(GravityHorizontal.GRAVITY_CENTER)
             .build();
     Frame frame = Frame.newBuilder().setTag("FRAME").build();
