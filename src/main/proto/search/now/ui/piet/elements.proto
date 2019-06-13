@@ -232,17 +232,6 @@ message Element {
   optional OverflowBehavior horizontal_overflow = 16
       [default = OVERFLOW_HIDDEN];
 
-  // The value of the VED token to be used by this Element.
-  oneof ved_value {
-    // A base64 encoded serialized ClickTrackingCGI proto that identifies the
-    // logged Visual Element corresponding to this piet Element.
-    string ved = 9 [deprecated = true];
-
-    // A VedBindingRef to the VED that this Element will be bound to.
-    // This is only meant to be used for Elements defined by a Template.
-    VedBindingRef ved_binding = 10 [deprecated = true];
-  }
-
   // Styles to apply to this Element. If any style_ids cannot be found,
   // ERR_MISSING_STYLES is raised.
   optional StyleIdsStack style_references = 17;
@@ -258,7 +247,7 @@ message Element {
   extensions 10000 to max;
 
   // Deprecated field IDs.
-  reserved 4, 7, 8, 13, 19, 20;
+  reserved 4, 7, 8, 13, 19, 20, 9, 10;
 }
 
 /*

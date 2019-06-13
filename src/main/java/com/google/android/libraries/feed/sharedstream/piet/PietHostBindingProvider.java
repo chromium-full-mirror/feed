@@ -123,7 +123,7 @@ public class PietHostBindingProvider extends HostBindingProvider {
   }
 
   @Override
-  public BindingValue getVedBindingForValue(BindingValue bindingValue) {
+  public BindingValue getLogDataBindingForValue(BindingValue bindingValue) {
     BindingValue genericBindingResult = getGenericBindingForValue(bindingValue);
 
     if (genericBindingResult != null) {
@@ -131,9 +131,9 @@ public class PietHostBindingProvider extends HostBindingProvider {
     }
 
     if (hostHostBindingProvider != null) {
-      return hostHostBindingProvider.getVedBindingForValue(bindingValue);
+      return hostHostBindingProvider.getLogDataBindingForValue(bindingValue);
     }
-    return super.getVedBindingForValue(bindingValue);
+    return super.getLogDataBindingForValue(bindingValue);
   }
 
   @Override

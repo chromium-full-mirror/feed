@@ -181,18 +181,18 @@ public class PietHostBindingProviderTest {
   }
 
   @Test
-  public void testGetVedBindingForValue() {
-    assertThat(hostBindingProvider.getVedBindingForValue(BINDING_WITH_HOST_DATA))
+  public void testGetLogDataBindingForValue() {
+    assertThat(hostBindingProvider.getLogDataBindingForValue(BINDING_WITH_HOST_DATA))
         .isEqualTo(BINDING_WITHOUT_HOST_DATA);
   }
 
   @Test
-  public void testGetVedBindingForValue_delegating() {
+  public void testGetLogDataBindingForValue_delegating() {
     BindingValue hostBinding = BindingValue.newBuilder().setBindingId("ved").build();
-    when(hostHostBindingProvider.getVedBindingForValue(BINDING_WITH_HOST_DATA))
+    when(hostHostBindingProvider.getLogDataBindingForValue(BINDING_WITH_HOST_DATA))
         .thenReturn(hostBinding);
 
-    assertThat(delegatingHostBindingProvider.getVedBindingForValue(BINDING_WITH_HOST_DATA))
+    assertThat(delegatingHostBindingProvider.getLogDataBindingForValue(BINDING_WITH_HOST_DATA))
         .isEqualTo(hostBinding);
   }
 

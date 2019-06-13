@@ -142,18 +142,14 @@ message Frame {
   // Actions associated with the full Frame.
   optional Actions actions = 7;
 
-  // A Base64-encoded serialized ClickTrackingCGI proto that identifies the
-  // logged Visual Element corresponding to this Frame.
-  optional string ved = 8 [deprecated = true];
-
-  //
+  // Data used for logging info sent to the host.
   optional LogData log_data = 12;
 
   // Please use CL numbers you own for extension numbers.
   extensions 10000 to max;
 
   // Deprecated field IDs.
-  reserved 6, 9;
+  reserved 6, 9, 8;
 }
 
 // UI Elements in a Frame or Template use a Stylesheet to resolve the Styles
