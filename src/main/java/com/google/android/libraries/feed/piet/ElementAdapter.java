@@ -180,8 +180,8 @@ abstract class ElementAdapter<V extends View, M> {
         elementStyle.createWrapperView(
             context,
             parameters.roundedCornerMaskCache,
-            parameters.useLegacyRoundedCornerImpl,
-            parameters.useOutlineRoundedCornerImpl);
+            parameters.allowLegacyRoundedCornerImpl,
+            parameters.allowOutlineRoundedCornerImpl);
     wrapper.addView(getBaseView());
 
     if (baseElement.getOverlaysCount() > 0) {

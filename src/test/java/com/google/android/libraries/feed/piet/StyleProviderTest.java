@@ -26,7 +26,6 @@ import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.ShapeDrawable;
-import android.os.Build;
 import android.os.Build.VERSION_CODES;
 import android.view.Gravity;
 import android.view.View;
@@ -39,11 +38,8 @@ import android.widget.TextView;
 import com.google.android.libraries.feed.common.functional.Suppliers;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
-import com.google.android.libraries.feed.piet.ui.BitmapMaskingRoundedCornerWrapperView;
 import com.google.android.libraries.feed.piet.ui.BorderDrawable;
 import com.google.android.libraries.feed.piet.ui.GradientDrawable;
-import com.google.android.libraries.feed.piet.ui.LegacyRoundedCornerWrapperView;
-import com.google.android.libraries.feed.piet.ui.OutlineRoundedCornerWrapperView;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerMaskCache;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerWrapperView;
 import com.google.search.now.ui.piet.GradientsProto.ColorStop;
@@ -400,11 +396,12 @@ public class StyleProviderTest {
     StyleProvider styleProvider =
         new StyleProvider(
             Style.newBuilder()
-                .setRoundedCorners(RoundedCorners.newBuilder().setRadius(0).setBitmask(4))
+                .setRoundedCorners(RoundedCorners.newBuilder().setRadiusDp(0).setBitmask(4))
                 .build(),
             mockAssetProvider);
 
     FrameLayout wrapperView = styleProvider.createWrapperView(context, maskCache, false, false);
+
     assertThat(wrapperView).isNotInstanceOf(RoundedCornerWrapperView.class);
     assertThat(wrapperView.getOutlineProvider()).isEqualTo(ViewOutlineProvider.BOUNDS);
   }
@@ -414,83 +411,14 @@ public class StyleProviderTest {
     StyleProvider styleProvider =
         new StyleProvider(
             Style.newBuilder()
-                .setRoundedCorners(RoundedCorners.newBuilder().setRadius(9).setBitmask(4))
+                .setRoundedCorners(RoundedCorners.newBuilder().setRadiusDp(16).setBitmask(4))
                 .build(),
             mockAssetProvider);
 
     FrameLayout wrapperView = styleProvider.createWrapperView(context, maskCache, false, false);
-    assertThat(wrapperView).isInstanceOf(BitmapMaskingRoundedCornerWrapperView.class);
-    assertThat(wrapperView.getOutlineProvider()).isNotNull();
-  }
 
-  @Test
-  public void testCreateWrapperView_roundedCornersOutline() {
-    StyleProvider styleProvider =
-        new StyleProvider(
-            Style.newBuilder()
-                .setRoundedCorners(RoundedCorners.newBuilder().setRadius(9).setBitmask(15))
-                .build(),
-            mockAssetProvider);
-
-    FrameLayout wrapperView = styleProvider.createWrapperView(context, maskCache, false, true);
-    assertThat(wrapperView).isInstanceOf(OutlineRoundedCornerWrapperView.class);
-    assertThat(wrapperView.getOutlineProvider()).isNotNull();
-  }
-
-  @Test
-  public void testCreateWrapperView_roundedCornersOutlineButNotFourCorners() {
-    StyleProvider styleProvider =
-        new StyleProvider(
-            Style.newBuilder()
-                .setRoundedCorners(RoundedCorners.newBuilder().setRadius(9).setBitmask(4))
-                .build(),
-            mockAssetProvider);
-
-    FrameLayout wrapperView = styleProvider.createWrapperView(context, maskCache, false, true);
-    assertThat(wrapperView).isInstanceOf(BitmapMaskingRoundedCornerWrapperView.class);
-    assertThat(wrapperView.getOutlineProvider()).isNotNull();
-  }
-
-  @Test
-  @Config(sdk = {Build.VERSION_CODES.KITKAT})
-  public void testCreateWrapperView_legacyButFlagOff() {
-    StyleProvider styleProvider =
-        new StyleProvider(
-            Style.newBuilder()
-                .setRoundedCorners(RoundedCorners.newBuilder().setRadius(9).setBitmask(4))
-                .build(),
-            mockAssetProvider);
-
-    assertThat(styleProvider.createWrapperView(context, maskCache, false, false))
-        .isInstanceOf(BitmapMaskingRoundedCornerWrapperView.class);
-  }
-
-  @Test
-  @Config(sdk = {Build.VERSION_CODES.KITKAT})
-  public void testCreateWrapperView_legacyWithFlagOn() {
-    StyleProvider styleProvider =
-        new StyleProvider(
-            Style.newBuilder()
-                .setRoundedCorners(RoundedCorners.newBuilder().setRadius(9).setBitmask(4))
-                .build(),
-            mockAssetProvider);
-
-    assertThat(styleProvider.createWrapperView(context, maskCache, true, false))
-        .isInstanceOf(LegacyRoundedCornerWrapperView.class);
-  }
-
-  @Test
-  @Config(sdk = {Build.VERSION_CODES.KITKAT})
-  public void testCreateWrapperView_legacyWithBothFlagsOn() {
-    StyleProvider styleProvider =
-        new StyleProvider(
-            Style.newBuilder()
-                .setRoundedCorners(RoundedCorners.newBuilder().setRadius(9).setBitmask(15))
-                .build(),
-            mockAssetProvider);
-
-    assertThat(styleProvider.createWrapperView(context, maskCache, true, true))
-        .isInstanceOf(LegacyRoundedCornerWrapperView.class);
+    assertThat(wrapperView).isInstanceOf(RoundedCornerWrapperView.class);
+    assertThat(wrapperView.getOutlineProvider()).isNotEqualTo(ViewOutlineProvider.BOUNDS);
   }
 
   @Test

@@ -41,8 +41,8 @@ import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.PietStylesHelper.PietStylesHelperFactory;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
-import com.google.android.libraries.feed.piet.ui.BitmapMaskingRoundedCornerWrapperView;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerMaskCache;
+import com.google.android.libraries.feed.piet.ui.RoundedCornerWrapperView;
 import com.google.search.now.ui.piet.BindingRefsProto.ImageBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
@@ -132,13 +132,15 @@ public class ImageElementAdapterTest {
     when(styleProvider.createWrapperView(
             context, maskCache, LEGACY_CORNERS_FLAG, OUTLINE_CORNERS_FLAG))
         .thenReturn(
-            new BitmapMaskingRoundedCornerWrapperView(
+            new RoundedCornerWrapperView(
                 context,
                 CORNERS,
                 maskCache,
                 Suppliers.of(false),
                 /*radiusOverride= */ 0,
-                /* borders= */ null));
+                /* borders= */ null,
+                /* allowClipPath= */ false,
+                /* allowOutlineRounding= */ false));
     setStyle(null, null);
 
     adapter = new ImageElementAdapterForTest(context, parameters);

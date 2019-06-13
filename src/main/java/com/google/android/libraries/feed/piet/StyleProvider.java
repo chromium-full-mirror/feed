@@ -30,13 +30,11 @@ import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
-import com.google.android.libraries.feed.piet.ui.BitmapMaskingRoundedCornerWrapperView;
 import com.google.android.libraries.feed.piet.ui.BorderDrawable;
 import com.google.android.libraries.feed.piet.ui.GradientDrawable;
-import com.google.android.libraries.feed.piet.ui.LegacyRoundedCornerWrapperView;
-import com.google.android.libraries.feed.piet.ui.OutlineRoundedCornerWrapperView;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerMaskCache;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerViewHelper;
+import com.google.android.libraries.feed.piet.ui.RoundedCornerWrapperView;
 import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
 import com.google.search.now.ui.piet.GradientsProto.Fill;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
@@ -413,8 +411,8 @@ class StyleProvider {
   FrameLayout createWrapperView(
       Context context,
       RoundedCornerMaskCache maskCache,
-      boolean useLegacyImpl,
-      boolean useOutlineImpl) {
+      boolean allowClipPathRounding,
+      boolean allowOutlineRounding) {
     if (!hasRoundedCorners()) {
       FrameLayout view = new FrameLayout(context);
       if (Build.VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
@@ -426,33 +424,15 @@ class StyleProvider {
     int radiusOverride =
         getRoundedCorners().getUseHostRadiusOverride() ? assetProvider.getDefaultCornerRadius() : 0;
 
-    boolean allFourCornersRounded =
-        getRoundedCorners().getBitmask() == 0 || getRoundedCorners().getBitmask() == 15;
-    if (Build.VERSION.SDK_INT < VERSION_CODES.LOLLIPOP && useLegacyImpl) {
-      return new LegacyRoundedCornerWrapperView(
-          context,
-          getRoundedCorners(),
-          assetProvider.isRtLSupplier(),
-          radiusOverride,
-          getBorders());
-    } else if (Build.VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP
-        && useOutlineImpl
-        && allFourCornersRounded) {
-      return new OutlineRoundedCornerWrapperView(
-          context,
-          getRoundedCorners(),
-          assetProvider.isRtLSupplier(),
-          radiusOverride,
-          getBorders());
-    } else {
-      return new BitmapMaskingRoundedCornerWrapperView(
-          context,
-          getRoundedCorners(),
-          maskCache,
-          assetProvider.isRtLSupplier(),
-          radiusOverride,
-          getBorders());
-    }
+    return new RoundedCornerWrapperView(
+        context,
+        getRoundedCorners(),
+        maskCache,
+        assetProvider.isRtLSupplier(),
+        radiusOverride,
+        getBorders(),
+        allowClipPathRounding,
+        allowOutlineRounding);
   }
 
   /**

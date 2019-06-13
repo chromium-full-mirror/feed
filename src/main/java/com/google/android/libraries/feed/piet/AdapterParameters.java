@@ -44,8 +44,8 @@ class AdapterParameters {
   final Clock clock;
   final PietStylesHelperFactory pietStylesHelperFactory;
   final RoundedCornerMaskCache roundedCornerMaskCache;
-  final boolean useLegacyRoundedCornerImpl;
-  final boolean useOutlineRoundedCornerImpl;
+  final boolean allowLegacyRoundedCornerImpl;
+  final boolean allowOutlineRoundedCornerImpl;
 
   // Doesn't like passing "this" to the new ElementAdapterFactory; however, nothing in the factory's
   // construction will reference the elementAdapterFactory member of this, so should be safe.
@@ -55,8 +55,8 @@ class AdapterParameters {
       Supplier</*@Nullable*/ ViewGroup> parentViewSupplier,
       HostProviders hostProviders,
       Clock clock,
-      boolean useLegacyRoundedCornerImpl,
-      boolean useOutlineRoundedCornerImpl) {
+      boolean allowLegacyRoundedCornerImpl,
+      boolean allowOutlineRoundedCornerImpl) {
     this.context = context;
     this.parentViewSupplier = parentViewSupplier;
     this.hostProviders = hostProviders;
@@ -74,8 +74,8 @@ class AdapterParameters {
     this.pietStylesHelperFactory = new PietStylesHelperFactory();
     this.roundedCornerMaskCache = new RoundedCornerMaskCache();
 
-    this.useLegacyRoundedCornerImpl = useLegacyRoundedCornerImpl;
-    this.useOutlineRoundedCornerImpl = useOutlineRoundedCornerImpl;
+    this.allowLegacyRoundedCornerImpl = allowLegacyRoundedCornerImpl;
+    this.allowOutlineRoundedCornerImpl = allowOutlineRoundedCornerImpl;
   }
 
   /** Testing-only constructor for mocking the internally-constructed objects. */
@@ -114,8 +114,8 @@ class AdapterParameters {
       Clock clock,
       PietStylesHelperFactory pietStylesHelperFactory,
       RoundedCornerMaskCache maskCache,
-      boolean useLegacyRoundedCornerImpl,
-      boolean useOutlineRoundedCornerImpl) {
+      boolean allowLegacyRoundedCornerImpl,
+      boolean allowOutlineRoundedCornerImpl) {
     this.context = context;
     this.parentViewSupplier = parentViewSupplier;
     this.hostProviders = hostProviders;
@@ -127,7 +127,7 @@ class AdapterParameters {
     this.clock = clock;
     this.pietStylesHelperFactory = pietStylesHelperFactory;
     this.roundedCornerMaskCache = maskCache;
-    this.useLegacyRoundedCornerImpl = useLegacyRoundedCornerImpl;
-    this.useOutlineRoundedCornerImpl = useOutlineRoundedCornerImpl;
+    this.allowLegacyRoundedCornerImpl = allowLegacyRoundedCornerImpl;
+    this.allowOutlineRoundedCornerImpl = allowOutlineRoundedCornerImpl;
   }
 }

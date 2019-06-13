@@ -43,7 +43,6 @@ import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplie
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.ActionHandler.ActionType;
 import com.google.android.libraries.feed.piet.host.LogDataCallback;
-import com.google.android.libraries.feed.piet.ui.BitmapMaskingRoundedCornerWrapperView;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerMaskCache;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerWrapperView;
 import com.google.android.libraries.feed.testing.shadows.ExtendedShadowView;
@@ -172,7 +171,7 @@ public class ElementAdapterTest {
 
   // TODO: remove Element gravity and roll this test into the above testGetters
   @Test
-  public void testGravityGetter() {
+  public void getGravity() {
     // Pre-creation
     assertThat(adapter.getHorizontalGravity(Gravity.CLIP_HORIZONTAL))
         .isEqualTo(Gravity.CLIP_HORIZONTAL);
@@ -203,7 +202,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testSetLayoutParams() {
+  public void setLayoutParams() {
     adapter.setLayoutParams(new LayoutParams(WIDTH, HEIGHT));
 
     assertThat(view.getLayoutParams().width).isEqualTo(WIDTH);
@@ -211,7 +210,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testSetLayoutParams_overlay() {
+  public void setLayoutParams_overlay() {
     Element elementWithOverlays =
         Element.newBuilder()
             .addOverlays(
@@ -240,7 +239,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testSetLayoutParams_resetsMarginsWithOverlay() {
+  public void setLayoutParams_resetsMarginsWithOverlay() {
     Element elementWithOverlays =
         Element.newBuilder()
             .addOverlays(
@@ -268,13 +267,13 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testGetComputedDimensions_defaults() {
+  public void getComputedDimensions_defaults() {
     assertThat(adapter.getComputedWidthPx()).isEqualTo(DIMENSION_NOT_SET);
     assertThat(adapter.getComputedHeightPx()).isEqualTo(DIMENSION_NOT_SET);
   }
 
   @Test
-  public void testGetComputedDimensions_explicit() {
+  public void getComputedDimensions_explicit() {
     adapter.setDims(WIDTH, HEIGHT);
 
     assertThat(adapter.getComputedWidthPx()).isEqualTo(WIDTH);
@@ -282,7 +281,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testCreateAdapter_callsOnCreateAdapter() {
+  public void createAdapter_callsOnCreateAdapter() {
     Element defaultElement = Element.getDefaultInstance();
 
     adapter.createAdapter(defaultElement, defaultElement, frameContext);
@@ -291,7 +290,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testCreateAdapter_extractsModelFromElement() {
+  public void createAdapter_extractsModelFromElement() {
     Element element = Element.getDefaultInstance();
 
     adapter.createAdapter(element, frameContext);
@@ -300,7 +299,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testCreateAdapter_createsOverlays() {
+  public void createAdapter_createsOverlays() {
     Element elementWithOverlays =
         Element.newBuilder()
             .addOverlays(
@@ -317,7 +316,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testCreateAdapter_setsOverlayLayoutParams() {
+  public void createAdapter_setsOverlayLayoutParams() {
     Content overlayContent =
         Content.newBuilder()
             .setElement(Element.newBuilder().setElementList(ElementList.getDefaultInstance()))
@@ -344,8 +343,8 @@ public class ElementAdapterTest {
     when(styleProvider.createWrapperView(
             context,
             parameters.roundedCornerMaskCache,
-            parameters.useLegacyRoundedCornerImpl,
-            parameters.useOutlineRoundedCornerImpl))
+            parameters.allowLegacyRoundedCornerImpl,
+            parameters.allowOutlineRoundedCornerImpl))
         .thenReturn(new FrameLayout(context));
     adapter = new TestElementAdapter(context, parameters, view);
 
@@ -359,7 +358,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testCreateAdapter_doesNothingForBoundOverlays() {
+  public void createAdapter_doesNothingForBoundOverlays() {
     ElementBindingRef bindingRef = ElementBindingRef.newBuilder().setBindingId("overlay").build();
     BindingValue bindingValue =
         BindingValue.newBuilder()
@@ -376,7 +375,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testCreateAdapter_addsBorders() {
+  public void createAdapter_addsBorders() {
     when(styleProvider.hasBorders()).thenReturn(true);
 
     adapter.createAdapter(Element.getDefaultInstance(), Element.getDefaultInstance(), frameContext);
@@ -385,7 +384,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testCreateAdapter_appliesVisibility() {
+  public void createAdapter_appliesVisibility() {
     Element defaultElement =
         Element.newBuilder()
             .setVisibilityState(
@@ -398,7 +397,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testCreateAdapter_doesNothingWithVisibilityGone() {
+  public void createAdapter_doesNothingWithVisibilityGone() {
     Element defaultElement =
         Element.newBuilder()
             .setVisibilityState(VisibilityState.newBuilder().setDefaultVisibility(Visibility.GONE))
@@ -411,7 +410,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testCreateAdapter_ignoresBoundVisibility() {
+  public void createAdapter_ignoresBoundVisibility() {
     String visibilityBindingId = "invisible";
     VisibilityBindingRef visibilityBinding =
         VisibilityBindingRef.newBuilder().setBindingId(visibilityBindingId).build();
@@ -431,7 +430,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testCreateAdapter_setsDimensions() {
+  public void createAdapter_setsDimensions() {
     int width = 10;
     int height = 20;
 
@@ -447,7 +446,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testCreateAdapter_resetsUnsetDimensions() {
+  public void createAdapter_resetsUnsetDimensions() {
     // Set some dimensions first
     int width = 10;
     int height = 20;
@@ -473,7 +472,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testCreateAdapter_dimensionsDontOverrideSubclass() {
+  public void createAdapter_dimensionsDontOverrideSubclass() {
     int width = 10;
     int height = 20;
 
@@ -502,7 +501,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testBindModel_callsOnBindModel() {
+  public void bindModel_callsOnBindModel() {
     Element defaultElement = Element.getDefaultInstance();
 
     adapter.bindModel(defaultElement, defaultElement, frameContext);
@@ -520,7 +519,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testBindModel_extractsModelFromElement() {
+  public void bindModel_extractsModelFromElement() {
     Element element = Element.getDefaultInstance();
 
     adapter.bindModel(element, frameContext);
@@ -529,7 +528,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testBindModel_bindsOverlays() {
+  public void bindModel_bindsOverlays() {
     Content overlayContent =
         Content.newBuilder()
             .setElement(
@@ -556,7 +555,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testBindModel_bindsBoundOverlays() {
+  public void bindModel_bindsBoundOverlays() {
     ElementBindingRef bindingRef = ElementBindingRef.newBuilder().setBindingId("overlay").build();
     BindingValue bindingValue =
         BindingValue.newBuilder()
@@ -573,7 +572,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testBindModel_setsActions() {
+  public void bindModel_setsActions() {
     Actions actions = Actions.newBuilder().setOnClickAction(Action.getDefaultInstance()).build();
     Element elementWithActions = Element.newBuilder().setActions(actions).build();
 
@@ -583,7 +582,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testBindModel_setsActionsOnBaseView() {
+  public void bindModel_setsActionsOnBaseView() {
     Actions actions = Actions.newBuilder().setOnClickAction(Action.getDefaultInstance()).build();
     Element elementWithActions =
         Element.newBuilder()
@@ -602,7 +601,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testBindModel_setsActionsWithBinding() {
+  public void bindModel_setsActionsWithBinding() {
     Actions actions = Actions.newBuilder().setOnClickAction(Action.getDefaultInstance()).build();
     ActionsBindingRef actionsBinding =
         ActionsBindingRef.newBuilder().setBindingId("ACTION!").build();
@@ -615,7 +614,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testBindModel_unsetsActions() {
+  public void bindModel_unsetsActions() {
     Actions actions = Actions.newBuilder().setOnClickAction(Action.getDefaultInstance()).build();
     Element elementWithActions = Element.newBuilder().setActions(actions).build();
     Element elementWithoutActions = Element.getDefaultInstance();
@@ -630,7 +629,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testBindModel_unsetsActionsOnBaseView() {
+  public void bindModel_unsetsActionsOnBaseView() {
     Actions actions = Actions.newBuilder().setOnClickAction(Action.getDefaultInstance()).build();
     Element elementWithActions =
         Element.newBuilder()
@@ -656,7 +655,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testBindModel_failsWithIncompatibleOverlays() {
+  public void bindModel_failsWithIncompatibleOverlays() {
     Content overlayContent =
         Content.newBuilder()
             .setElement(
@@ -680,7 +679,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testBindModel_setsVisibility() {
+  public void bindModel_setsVisibility() {
     Element visibleElement =
         Element.newBuilder()
             .setVisibilityState(
@@ -700,7 +699,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testBindModel_doesNothingWhenVisibilityIsGone() {
+  public void bindModel_doesNothingWhenVisibilityIsGone() {
     Element visibleElement =
         Element.newBuilder()
             .setVisibilityState(
@@ -719,7 +718,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testBindModel_recreatesWhenVisibilityWasGone() {
+  public void bindModel_recreatesWhenVisibilityWasGone() {
     Element goneElement =
         Element.newBuilder()
             .setVisibilityState(VisibilityState.newBuilder().setDefaultVisibility(Visibility.GONE))
@@ -739,7 +738,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testBindModel_recreatesWhenVisibilityWasGone_bound() {
+  public void bindModel_recreatesWhenVisibilityWasGone_bound() {
     VisibilityBindingRef visibilityBinding =
         VisibilityBindingRef.newBuilder().setBindingId("camo").build();
     Element elementWithVisibilityBinding =
@@ -769,7 +768,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testBindModel_doesntRecreateWhenWasCreatedButVisibilityGone() {
+  public void bindModel_doesntRecreateWhenWasCreatedButVisibilityGone() {
     // Create a real adapter for a visible element.
     Element visibileElement =
         Element.newBuilder()
@@ -804,7 +803,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testBindModel_accessibility() {
+  public void bindModel_accessibility() {
     Element accessibilityElement =
         Element.newBuilder()
             .setAccessibility(
@@ -821,7 +820,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testBindModel_accessibilityBinding() {
+  public void bindModel_accessibilityBinding() {
     ParameterizedTextBindingRef textBinding =
         ParameterizedTextBindingRef.newBuilder().setBindingId("binding").build();
     Element accessibilityElement =
@@ -840,7 +839,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testBindModel_accessibilityReset() {
+  public void bindModel_accessibilityReset() {
     adapter.getView().setContentDescription("OLD CONTENT DESCRIPTION");
 
     adapter.bindModel(Element.getDefaultInstance(), frameContext);
@@ -849,7 +848,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testUnbindModel_callsOnUnbindModel() {
+  public void unbindModel_callsOnUnbindModel() {
     Element defaultElement = Element.getDefaultInstance();
 
     adapter.createAdapter(defaultElement, defaultElement, frameContext);
@@ -870,7 +869,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testUnbindModel_unsetsModel() {
+  public void unbindModel_unsetsModel() {
     Element element = Element.getDefaultInstance();
 
     adapter.createAdapter(element, element, frameContext);
@@ -883,7 +882,7 @@ public class ElementAdapterTest {
 
   // If onBindModel was never called, onUnbindModel should not be called.
   @Test
-  public void testUnbindModel_visibilityWasGone() {
+  public void unbindModel_visibilityWasGone() {
     Element goneElement =
         Element.newBuilder()
             .setVisibilityState(VisibilityState.newBuilder().setDefaultVisibility(Visibility.GONE))
@@ -905,7 +904,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testUnbindModel_unsetsActions() {
+  public void unbindModel_unsetsActions() {
     Element elementWithOverlaysAndActions =
         Element.newBuilder()
             .addOverlays(
@@ -931,7 +930,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testUnbindModel_unbindsOverlayAdapters() {
+  public void unbindModel_unbindsOverlayAdapters() {
     Content overlayContent =
         Content.newBuilder()
             .setElement(
@@ -949,7 +948,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testUnbindModel_releasesBoundOverlays() {
+  public void unbindModel_releasesBoundOverlays() {
     Element overlayElement =
         Element.newBuilder()
             .setGravityVertical(GravityVertical.GRAVITY_MIDDLE)
@@ -981,7 +980,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testUnbindModel_affectsVisibilityCalculations() {
+  public void unbindModel_affectsVisibilityCalculations() {
     VisibilityBindingRef visibilityBinding =
         VisibilityBindingRef.newBuilder().setBindingId("vis").build();
     Element element =
@@ -1007,7 +1006,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testReleaseAdapter_callsOnReleaseAdapter() {
+  public void releaseAdapter_callsOnReleaseAdapter() {
     Element defaultElement = Element.getDefaultInstance();
 
     adapter.createAdapter(defaultElement, defaultElement, frameContext);
@@ -1018,7 +1017,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testReleaseAdapter_removesOverlays() {
+  public void releaseAdapter_removesOverlays() {
     Element elementWithOverlays =
         Element.newBuilder()
             .addOverlays(
@@ -1046,7 +1045,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testReleaseAdapter_resetsVisibility() {
+  public void releaseAdapter_resetsVisibility() {
     Element defaultElement = Element.getDefaultInstance();
 
     adapter.createAdapter(defaultElement, defaultElement, frameContext);
@@ -1058,7 +1057,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testReleaseAdapter_resetsDimensions() {
+  public void releaseAdapter_resetsDimensions() {
     Element defaultElement = Element.getDefaultInstance();
 
     adapter.createAdapter(defaultElement, defaultElement, frameContext);
@@ -1071,7 +1070,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testSetVisibility() {
+  public void setVisibility() {
     adapter.createAdapter(Element.getDefaultInstance(), Element.getDefaultInstance(), frameContext);
     adapter.getBaseView().setVisibility(View.GONE);
     adapter.setVisibilityOnView(Visibility.VISIBLE);
@@ -1085,7 +1084,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testGetVisibilityForElement() {
+  public void getVisibilityForElement() {
     VisibilityBindingRef bindingRef =
         VisibilityBindingRef.newBuilder().setBindingId("binding").build();
     Element elementWithDefaultVisibility =
@@ -1125,7 +1124,7 @@ public class ElementAdapterTest {
 
   @Config(shadows = {ExtendedShadowView.class})
   @Test
-  public void testGetOnFullViewActions() {
+  public void getOnFullViewActions() {
     Frame frame = Frame.newBuilder().setTag("FRAME").build();
     when(frameContext.getFrame()).thenReturn(frame);
     View viewport = new View(context);
@@ -1188,7 +1187,7 @@ public class ElementAdapterTest {
 
   @Config(shadows = {ExtendedShadowView.class})
   @Test
-  public void testGetOnPartialViewActions() {
+  public void getOnPartialViewActions() {
     Frame frame = Frame.newBuilder().setTag("FRAME").build();
     when(frameContext.getFrame()).thenReturn(frame);
     View viewport = new View(context);
@@ -1269,7 +1268,7 @@ public class ElementAdapterTest {
 
   @Config(shadows = {ExtendedShadowView.class})
   @Test
-  public void testTriggerHideActions() {
+  public void triggerHideActions() {
     Frame frame = Frame.newBuilder().setTag("FRAME").build();
     when(frameContext.getFrame()).thenReturn(frame);
     View viewport = new View(context);
@@ -1339,16 +1338,18 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testRoundedCorners() {
+  public void createRoundedCorners() {
     RoundedCorners roundedCorners = RoundedCorners.newBuilder().setRadiusDp(10).build();
     RoundedCornerWrapperView roundedCornerWrapperView =
-        new BitmapMaskingRoundedCornerWrapperView(
+        new RoundedCornerWrapperView(
             context,
             roundedCorners,
             maskCache,
             Suppliers.of(false),
             /*radiusOverride= */ 0,
-            Borders.getDefaultInstance());
+            Borders.getDefaultInstance(),
+            LEGACY_CORNERS_FLAG,
+            OUTLINE_CORNERS_FLAG);
     when(styleProvider.hasRoundedCorners()).thenReturn(true);
     when(styleProvider.createWrapperView(
             context, maskCache, LEGACY_CORNERS_FLAG, OUTLINE_CORNERS_FLAG))
@@ -1360,16 +1361,18 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testRoundedCornersWithVisibility() {
+  public void setVisibilityWithRoundedCorners() {
     RoundedCorners roundedCorners = RoundedCorners.newBuilder().setRadiusDp(10).build();
     RoundedCornerWrapperView roundedCornerWrapperView =
-        new BitmapMaskingRoundedCornerWrapperView(
+        new RoundedCornerWrapperView(
             context,
             roundedCorners,
             maskCache,
             Suppliers.of(false),
             /*radiusOverride= */ 0,
-            Borders.getDefaultInstance());
+            Borders.getDefaultInstance(),
+            LEGACY_CORNERS_FLAG,
+            OUTLINE_CORNERS_FLAG);
     when(styleProvider.hasRoundedCorners()).thenReturn(true);
     when(styleProvider.createWrapperView(
             context, maskCache, LEGACY_CORNERS_FLAG, OUTLINE_CORNERS_FLAG))
@@ -1398,7 +1401,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testGetStyleIdsStack() {
+  public void getStyleIdsStack() {
     StyleIdsStack style = StyleIdsStack.newBuilder().addStyleIds("style").build();
     Element elementWithStyle = Element.newBuilder().setStyleReferences(style).build();
 
