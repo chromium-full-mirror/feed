@@ -27,7 +27,7 @@ import android.view.ViewGroup;
  * RoundedCornerWrapperView} decides which rounding strategy to use and sets the appropriate
  * delegate.
  */
-class ClipPathRoundedCornerDelegate implements RoundedCornerDelegate {
+class ClipPathRoundedCornerDelegate extends RoundedCornerDelegate {
 
   private final Path clipPath = new Path();
 

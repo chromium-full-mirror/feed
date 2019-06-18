@@ -33,7 +33,7 @@ import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners.Corners;
  * RoundedCornerWrapperView} decides which rounding strategy to use and sets the appropriate
  * delegate.
  */
-class BitmapMaskingRoundedCornerDelegate implements RoundedCornerDelegate {
+class BitmapMaskingRoundedCornerDelegate extends RoundedCornerDelegate {
   private final Paint paint;
   private final Paint maskPaint;
   private final RoundedCornerMaskCache maskCache;

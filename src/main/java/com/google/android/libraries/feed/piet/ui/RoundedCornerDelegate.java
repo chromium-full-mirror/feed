@@ -35,35 +35,35 @@ import android.view.ViewParent;
  * RoundedCornerWrapperView}, because that view doesn't need to know which strategies require extra
  * logic in specific methods.
  */
-interface RoundedCornerDelegate {
+abstract class RoundedCornerDelegate {
 
   /**
    * Initializes anything that needs to be changed on the view that is being rounded.
    *
    * <p>This should be the opposite of what is torn down in destroy().
    */
-  default void initializeForView(ViewGroup view) {}
+  void initializeForView(ViewGroup view) {}
 
   /** Allows a rounded corner delegate to add logic when child views are drawn. */
-  default void dispatchDraw(Canvas canvas) {}
+  void dispatchDraw(Canvas canvas) {}
 
   /** Allows a rounded corner delegate to add logic during layout. */
-  default void onLayout(int radius, boolean isRtL, int width, int height) {}
+  void onLayout(int radius, boolean isRtL, int width, int height) {}
 
   /**
    * Allows a rounded corner delegate to add logic during {@link
    * ViewParent#onDescendantInvalidated}.
    */
-  default void onDescendantInvalidated(View roundedCornerView, View invalidatedDescendant) {}
+  void onDescendantInvalidated(View roundedCornerView, View invalidatedDescendant) {}
 
   /**
    * Allows a rounded corner delegate to add logic during {@link
    * ViewParent#invalidateChildInParent}.
    */
-  default void invalidateChildInParent(View view, final Rect dirty) {}
+  void invalidateChildInParent(View view, final Rect dirty) {}
 
   /** Allows a rounded corner delegate to add logic when the size changes. */
-  default void onSizeChanged(int radius, int width, int height, int bitmask, boolean isRtL) {}
+  void onSizeChanged(int radius, int width, int height, int bitmask, boolean isRtL) {}
 
   /**
    * Renders the view to this canvas.
@@ -75,7 +75,7 @@ interface RoundedCornerDelegate {
    * <p>If this is overridden, view.drawSuper() must be called, even if it is with a different
    * {@link Canvas}.
    */
-  default void draw(RoundedCornerWrapperView view, Canvas canvas) {
+  void draw(RoundedCornerWrapperView view, Canvas canvas) {
     view.drawSuper(canvas);
   }
 
@@ -85,5 +85,5 @@ interface RoundedCornerDelegate {
    * <p>This should be called on the current {@link RoundedCornerDelegate} when switching from one
    * delegate to another.
    */
-  default void destroy(ViewGroup view) {}
+  void destroy(ViewGroup view) {}
 }

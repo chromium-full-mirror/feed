@@ -22,7 +22,7 @@ import android.view.ViewGroup;
  * <p>Adds logic to clip rounded corner views to their outline. {@link RoundedCornerWrapperView}
  * decides which rounding strategy to use and sets the appropriate delegate.
  */
-class OutlineProviderRoundedCornerDelegate implements RoundedCornerDelegate {
+class OutlineProviderRoundedCornerDelegate extends RoundedCornerDelegate {
 
   /**
    * Sets clipToOutline to true.
