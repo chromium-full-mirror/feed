@@ -38,6 +38,7 @@ import com.google.search.now.ui.piet.ElementsProto.ElementStack;
 import com.google.search.now.ui.piet.ElementsProto.Visibility;
 import com.google.search.now.ui.piet.ElementsProto.VisibilityState;
 import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
+import com.google.search.now.ui.piet.LogDataProto.LogData;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import java.util.HashSet;
 import java.util.Set;
@@ -60,6 +61,7 @@ abstract class ElementAdapter<V extends View, M> {
   private Element baseElement = Element.getDefaultInstance();
   /*@Nullable*/ private RecyclerKey key;
   private StyleProvider elementStyle;
+  /*@Nullable*/ private LogData logData = null;
 
   /**
    * Set to {@code true} when {@link #createAdapter} has completed successfully; unset at the end of
@@ -294,8 +296,21 @@ abstract class ElementAdapter<V extends View, M> {
         .setContentDescription(
             getAccessibilityString(baseElement.getAccessibility(), frameContext));
     LogDataCallback callback = parameters.hostProviders.getLogDataCallback();
-    if (callback != null && baseElement.hasLogData()) {
-      callback.onBind(baseElement.getLogData(), getView());
+    if (callback != null) {
+      switch (baseElement.getLogDataValueCase()) {
+        case LOG_DATA:
+          logData = baseElement.getLogData();
+          break;
+        case LOG_DATA_REF:
+          // Get the logData from the binding in the template
+          logData = frameContext.getLogDataFromBinding(baseElement.getLogDataRef());
+          break;
+        default: // No log Data
+      }
+      if (logData != null) {
+
+        callback.onBind(logData, getView());
+      }
     }
   }
 
@@ -421,8 +436,9 @@ abstract class ElementAdapter<V extends View, M> {
       onUnbindModel();
     }
     LogDataCallback callback = parameters.hostProviders.getLogDataCallback();
-    if (callback != null && baseElement.hasLogData()) {
-      callback.onUnbind(baseElement.getLogData(), getView());
+    if (callback != null && logData != null) {
+      callback.onUnbind(logData, getView());
+      logData = null;
     }
     model = null;
     baseElement = Element.getDefaultInstance();

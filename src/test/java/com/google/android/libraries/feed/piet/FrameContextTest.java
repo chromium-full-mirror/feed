@@ -39,6 +39,7 @@ import com.google.search.now.ui.piet.BindingRefsProto.CustomBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ElementBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.GridCellWidthBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ImageBindingRef;
+import com.google.search.now.ui.piet.BindingRefsProto.LogDataBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ParameterizedTextBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.TemplateBindingRef;
@@ -58,6 +59,7 @@ import com.google.search.now.ui.piet.GradientsProto.Fill;
 import com.google.search.now.ui.piet.GradientsProto.LinearGradient;
 import com.google.search.now.ui.piet.ImagesProto.Image;
 import com.google.search.now.ui.piet.ImagesProto.ImageSource;
+import com.google.search.now.ui.piet.LogDataProto.LogData;
 import com.google.search.now.ui.piet.MediaQueriesProto.ComparisonCondition;
 import com.google.search.now.ui.piet.MediaQueriesProto.DarkLightCondition;
 import com.google.search.now.ui.piet.MediaQueriesProto.DarkLightCondition.DarkLightMode;
@@ -711,6 +713,41 @@ public class FrameContextTest {
             frameContext.getActionsFromBinding(
                 ActionsBindingRef.newBuilder().setBindingId(BINDING_ID).build()))
         .isEqualTo(Actions.getDefaultInstance());
+  }
+
+  @Test
+  public void testGetLogDataFromBinding() {
+    LogData logData = LogData.newBuilder().build();
+    frameContext = makeFrameContextWithBinding(defaultBinding().setLogData(logData).build());
+    assertThat(
+            frameContext.getLogDataFromBinding(
+                LogDataBindingRef.newBuilder().setBindingId(BINDING_ID).build()))
+        .isSameInstanceAs(logData);
+
+    assertThat(
+            frameContext.getLogDataFromBinding(
+                LogDataBindingRef.newBuilder().setBindingId(INVALID_BINDING_ID).build()))
+        .isNull();
+
+    frameContext = makeFrameContextWithNoBindings();
+    assertThat(
+            frameContext.getLogDataFromBinding(
+                LogDataBindingRef.newBuilder().setBindingId(BINDING_ID).build()))
+        .isNull();
+  }
+
+  @Test
+  public void testGetLogDataFromBinding_hostBinding() {
+    frameContext =
+        makeFrameContextWithBinding(
+            defaultBinding()
+                .setHostBindingData(HostBindingData.newBuilder())
+                .setLogData(LogData.getDefaultInstance())
+                .build());
+    assertThat(
+            frameContext.getLogDataFromBinding(
+                LogDataBindingRef.newBuilder().setBindingId(BINDING_ID).build()))
+        .isEqualTo(LogData.getDefaultInstance());
   }
 
   @Test

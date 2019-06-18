@@ -53,6 +53,7 @@ import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.ActionsProto.VisibilityAction;
 import com.google.search.now.ui.piet.BindingRefsProto.ActionsBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ElementBindingRef;
+import com.google.search.now.ui.piet.BindingRefsProto.LogDataBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ParameterizedTextBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.VisibilityBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
@@ -88,7 +89,7 @@ public class ElementAdapterTest {
   private static final boolean LEGACY_CORNERS_FLAG = false;
   private static final boolean OUTLINE_CORNERS_FLAG = false;
 
-  private final LogData logDataTest = LogData.getDefaultInstance();
+  private final LogData logDataTest = LogData.newBuilder().build();
 
   @Mock private FrameContext frameContext;
   @Mock private HostProviders hostProviders;
@@ -519,6 +520,17 @@ public class ElementAdapterTest {
   }
 
   @Test
+  public void testBindModel_callsOnBindLogDataCallback_bindingRef() {
+    LogDataBindingRef logDataBinding =
+        LogDataBindingRef.newBuilder().setBindingId("LogData!").build();
+    Element defaultElement = Element.newBuilder().setLogDataRef(logDataBinding).build();
+    when(frameContext.getLogDataFromBinding(logDataBinding)).thenReturn(logDataTest);
+    adapter.bindModel(defaultElement, defaultElement, frameContext);
+
+    assertThat(callbackBound).isTrue();
+  }
+
+  @Test
   public void bindModel_extractsModelFromElement() {
     Element element = Element.getDefaultInstance();
 
@@ -862,6 +874,18 @@ public class ElementAdapterTest {
   @Test
   public void testUnbindModel_callsOnBindLogDataCallback() {
     Element defaultElement = Element.newBuilder().setLogData(logDataTest).build();
+
+    adapter.bindModel(defaultElement, defaultElement, frameContext);
+    adapter.unbindModel();
+    assertThat(callbackUnbound).isTrue();
+  }
+
+  @Test
+  public void testUnbindModel_callsOnBindLogDataCallback_bindingRef() {
+    LogDataBindingRef logDataBinding =
+        LogDataBindingRef.newBuilder().setBindingId("LogData!").build();
+    Element defaultElement = Element.newBuilder().setLogDataRef(logDataBinding).build();
+    when(frameContext.getLogDataFromBinding(logDataBinding)).thenReturn(logDataTest);
 
     adapter.bindModel(defaultElement, defaultElement, frameContext);
     adapter.unbindModel();

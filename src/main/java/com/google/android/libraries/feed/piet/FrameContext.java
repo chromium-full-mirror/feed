@@ -36,6 +36,7 @@ import com.google.search.now.ui.piet.BindingRefsProto.CustomBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ElementBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.GridCellWidthBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ImageBindingRef;
+import com.google.search.now.ui.piet.BindingRefsProto.LogDataBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ParameterizedTextBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.TemplateBindingRef;
@@ -47,6 +48,7 @@ import com.google.search.now.ui.piet.ElementsProto.Visibility;
 import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
 import com.google.search.now.ui.piet.ImagesProto.Image;
 import com.google.search.now.ui.piet.ImagesProto.ImageSource;
+import com.google.search.now.ui.piet.LogDataProto.LogData;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.ui.piet.PietProto.Stylesheet;
@@ -550,6 +552,31 @@ class FrameContext {
     } else {
       return bindingValue;
     }
+  }
+
+  /**
+   * Return an {@link LogData} for the binding if there is one defined; otherwise returns the
+   * default instance.
+   */
+  /*@Nullable*/
+  LogData getLogDataFromBinding(LogDataBindingRef binding) {
+    BindingValue bindingValue = bindingValues.get(binding.getBindingId());
+    if (bindingValue != null && bindingValue.hasHostBindingData()) {
+      bindingValue = hostBindingProvider.getLogDataBindingForValue(bindingValue);
+    }
+    if (bindingValue == null) {
+      return null;
+    }
+    if (!bindingValue.hasLogData()) {
+      Logger.w(
+          TAG,
+          reportMessage(
+              MessageType.WARNING,
+              ERR_BINDING_VALUE_TYPE_MISMATCH,
+              String.format("No logData found for binding %s", binding.getBindingId())));
+      return null;
+    }
+    return bindingValue.getLogData();
   }
 
   /** Returns the root view of this Frame. */
