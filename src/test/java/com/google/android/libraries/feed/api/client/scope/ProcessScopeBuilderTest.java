@@ -83,6 +83,8 @@ public class ProcessScopeBuilderTest {
                 context,
                 applicationInfo,
                 tooltipSupportedApi)
+            .setJournalStorageDirect(mock(JournalStorageDirect.class))
+            .setContentStorageDirect(mock(ContentStorageDirect.class))
             .build();
 
     assertThat(processScope.getRequestManager()).isNotNull();
@@ -106,6 +108,8 @@ public class ProcessScopeBuilderTest {
                 applicationInfo,
                 tooltipSupportedApi)
             .setProtoExtensionProvider(protoExtensionProvider)
+            .setJournalStorageDirect(mock(JournalStorageDirect.class))
+            .setContentStorageDirect(mock(ContentStorageDirect.class))
             .build();
 
     assertThat(processScope.getRequestManager()).isNotNull();

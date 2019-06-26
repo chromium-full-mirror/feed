@@ -12,23 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.hostimpl.storage;
+package com.google.android.libraries.feed.hostimpl.storage.testing;
 
-import static org.mockito.MockitoAnnotations.initMocks;
-
-import com.google.android.libraries.feed.feedstore.testing.DelegatingJournalStorage;
-import com.google.android.libraries.feed.testing.conformance.storage.JournalStorageConformanceTest;
+import com.google.android.libraries.feed.testing.conformance.storage.JournalStorageDirectConformanceTest;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 
 /** Tests for {@link InMemoryJournalStorage}. */
 @RunWith(RobolectricTestRunner.class)
-public class InMemoryJournalStorageTest extends JournalStorageConformanceTest {
-
+public class InMemoryJournalStorageDirectTest extends JournalStorageDirectConformanceTest {
   @Before
   public void setUp() {
-    initMocks(this);
-    journalStorage = new DelegatingJournalStorage(new InMemoryJournalStorage());
+    journalStorage = new InMemoryJournalStorage();
   }
 }

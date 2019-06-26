@@ -82,7 +82,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/common/protoextensions",
         "//src/main/java/com/google/android/libraries/feed/feedstore/internal",
         "//src/main/java/com/google/android/libraries/feed/feedstore/testing",
-        "//src/main/java/com/google/android/libraries/feed/hostimpl/storage",
+        "//src/main/java/com/google/android/libraries/feed/hostimpl/storage/testing",
         "//src/main/proto/com/google/android/libraries/feed/api/internal/proto:client_feed_java_proto_lite",
         "//third_party:robolectric",
         "@com_google_protobuf_javalite//:protobuf_java_lite",

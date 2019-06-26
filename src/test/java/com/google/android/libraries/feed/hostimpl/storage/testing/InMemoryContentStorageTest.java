@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.hostimpl.storage;
+package com.google.android.libraries.feed.hostimpl.storage.testing;
 
 import com.google.android.libraries.feed.feedstore.testing.DelegatingContentStorage;
 import com.google.android.libraries.feed.testing.conformance.storage.ContentStorageConformanceTest;

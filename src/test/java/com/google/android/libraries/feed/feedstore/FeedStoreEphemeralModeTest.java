@@ -26,8 +26,8 @@ import com.google.android.libraries.feed.common.concurrent.testing.FakeTaskQueue
 import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.feedstore.testing.AbstractFeedStoreTest;
-import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
-import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
+import com.google.android.libraries.feed.hostimpl.storage.testing.InMemoryContentStorage;
+import com.google.android.libraries.feed.hostimpl.storage.testing.InMemoryJournalStorage;
 import com.google.android.libraries.feed.testing.host.logging.FakeBasicLoggingApi;
 import java.util.ArrayList;
 import org.junit.Before;

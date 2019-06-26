@@ -12,19 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.hostimpl.storage;
+package com.google.android.libraries.feed.hostimpl.storage.testing;
 
-
-import com.google.android.libraries.feed.testing.conformance.storage.JournalStorageDirectConformanceTest;
+import com.google.android.libraries.feed.testing.conformance.storage.ContentStorageDirectConformanceTest;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 
-/** Tests for {@link InMemoryJournalStorage}. */
+/** Tests for {@link InMemoryContentStorage}. */
 @RunWith(RobolectricTestRunner.class)
-public class InMemoryJournalStorageDirectTest extends JournalStorageDirectConformanceTest {
+public class InMemoryContentStorageDirectTest extends ContentStorageDirectConformanceTest {
   @Before
   public void setUp() {
-    journalStorage = new InMemoryJournalStorage();
+    storage = new InMemoryContentStorage();
   }
 }

@@ -61,8 +61,6 @@ import com.google.android.libraries.feed.feedstore.FeedStore;
 import com.google.android.libraries.feed.feedstore.JournalStorageDirectImpl;
 import com.google.android.libraries.feed.hostimpl.network.NetworkClientWrapper;
 import com.google.android.libraries.feed.hostimpl.scheduler.SchedulerApiWrapper;
-import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
-import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
 import com.google.android.libraries.feed.sharedstream.piet.PietRequiredContentAdapter;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -83,11 +81,15 @@ public final class ProcessScopeBuilder {
 
   // Optional fields - if they are not provided, we will use default implementations.
   /*@MonotonicNonNull*/ private ProtoExtensionProvider protoExtensionProvider = null;
-  /*@MonotonicNonNull*/ ContentStorageDirect contentStorage = null;
-  /*@MonotonicNonNull*/ JournalStorageDirect journalStorage = null;
-  /*@MonotonicNonNull*/ private ContentStorage rawContentStorage = null;
-  /*@MonotonicNonNull*/ private JournalStorage rawJournalStorage = null;
   /*@MonotonicNonNull*/ private Clock clock;
+
+  // Either contentStorage or rawContentStorage must be provided.
+  /*@MonotonicNonNull*/ ContentStorageDirect contentStorage = null;
+  /*@MonotonicNonNull*/ private ContentStorage rawContentStorage = null;
+
+  // Either journalStorage or rawJournalStorage must be provided.
+  /*@MonotonicNonNull*/ JournalStorageDirect journalStorage = null;
+  /*@MonotonicNonNull*/ private JournalStorage rawJournalStorage = null;
 
   /** The APIs are all required to construct the scope. */
   public ProcessScopeBuilder(
@@ -148,7 +150,8 @@ public final class ProcessScopeBuilder {
       } else if (rawContentStorage != null) {
         contentStorage = new ContentStorageDirectImpl(rawContentStorage, mainThreadRunner);
       } else {
-        contentStorage = new InMemoryContentStorage();
+        throw new IllegalStateException(
+            "one of ContentStorage, ContentStorageDirect must be provided");
       }
     }
     return contentStorage;
@@ -165,7 +168,8 @@ public final class ProcessScopeBuilder {
       } else if (rawJournalStorage != null) {
         journalStorage = new JournalStorageDirectImpl(rawJournalStorage, mainThreadRunner);
       } else {
-        journalStorage = new InMemoryJournalStorage();
+        throw new IllegalStateException(
+            "one of JournalStorage, JournalStorageDirect must be provided");
       }
     }
     return journalStorage;

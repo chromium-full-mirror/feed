@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.hostimpl.storage;
+package com.google.android.libraries.feed.hostimpl.storage.testing;
 
 import static com.google.android.libraries.feed.api.host.storage.ContentOperation.Type.DELETE;
 import static com.google.android.libraries.feed.api.host.storage.ContentOperation.Type.DELETE_BY_PREFIX;

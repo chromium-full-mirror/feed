@@ -38,8 +38,8 @@ import com.google.android.libraries.feed.common.protoextensions.FeedExtensionReg
 import com.google.android.libraries.feed.feedstore.testing.AbstractClearableFeedStoreTest;
 import com.google.android.libraries.feed.feedstore.testing.DelegatingContentStorage;
 import com.google.android.libraries.feed.feedstore.testing.DelegatingJournalStorage;
-import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
-import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
+import com.google.android.libraries.feed.hostimpl.storage.testing.InMemoryContentStorage;
+import com.google.android.libraries.feed.hostimpl.storage.testing.InMemoryJournalStorage;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamLocalAction;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
