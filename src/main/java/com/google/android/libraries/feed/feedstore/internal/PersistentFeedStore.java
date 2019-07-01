@@ -152,8 +152,9 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
       try {
         sharedStates.add(StreamSharedState.parseFrom(byteArray));
       } catch (InvalidProtocolBufferException e) {
-        tracker.stop("getSharedStates", "failed");
         Logger.e(TAG, e, "Error parsing protocol buffer from bytes %s", byteArray);
+        tracker.stop("getSharedStates", "failed");
+        return Result.failure();
       }
     }
     tracker.stop("", "getSharedStates", "items", sharedStates.size());

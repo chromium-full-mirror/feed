@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.feedstore.internal;
 
+import static com.google.android.libraries.feed.feedstore.internal.FeedStoreConstants.SHARED_STATE_PREFIX;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
@@ -410,5 +411,34 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
     Result<Set<StreamUploadableAction>> uploadableActionsResult = store.getAllUploadableActions();
     assertThat(uploadableActionsResult.isSuccessful()).isTrue();
     assertThat(uploadableActionsResult.getValue()).isEmpty();
+  }
+
+  @Test
+  public void getSharedStates_noContent() {
+    Result<List<StreamSharedState>> result = getStore(mainThreadRunner).getSharedStates();
+    assertThat(result.isSuccessful()).isTrue();
+    assertThat(result.getValue()).isEmpty();
+  }
+
+  @Test
+  public void getSharedStates_withContent() {
+    StreamSharedState sharedState = StreamSharedState.newBuilder().setContentId("foo").build();
+    contentStorage.commit(
+        new ContentMutation.Builder()
+            .upsert(SHARED_STATE_PREFIX + "bar", sharedState.toByteArray())
+            .build());
+
+    Result<List<StreamSharedState>> result = getStore(mainThreadRunner).getSharedStates();
+    assertThat(result.isSuccessful()).isTrue();
+    assertThat(result.getValue()).containsExactly(sharedState);
+  }
+
+  @Test
+  public void getSharedStates_cannotParse() {
+    contentStorage.commit(
+        new ContentMutation.Builder().upsert(SHARED_STATE_PREFIX + "bar", new byte[] {5}).build());
+
+    Result<List<StreamSharedState>> result = getStore(mainThreadRunner).getSharedStates();
+    assertThat(result.isSuccessful()).isFalse();
   }
 }
