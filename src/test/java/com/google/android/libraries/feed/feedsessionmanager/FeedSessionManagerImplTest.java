@@ -80,14 +80,18 @@ import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.PietSharedStateItemProto.PietSharedStateItem;
 import com.google.search.now.wire.feed.ResponseProto.Response;
 import java.nio.charset.Charset;
+import java.util.Arrays;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.robolectric.RobolectricTestRunner;
+import org.robolectric.ParameterizedRobolectricTestRunner;
+import org.robolectric.ParameterizedRobolectricTestRunner.Parameter;
+import org.robolectric.ParameterizedRobolectricTestRunner.Parameters;
 
 /** Tests of the {@link FeedSessionManagerImpl} class. */
-@RunWith(RobolectricTestRunner.class)
+@RunWith(ParameterizedRobolectricTestRunner.class)
 public class FeedSessionManagerImplTest {
 
   private static final MutationContext EMPTY_MUTATION = new MutationContext.Builder().build();
@@ -99,14 +103,13 @@ public class FeedSessionManagerImplTest {
           .build();
   private static final String SESSION_ID = "session:1";
 
-  private final Configuration configuration =
-      new Configuration.Builder().put(ConfigKey.UNDOABLE_ACTIONS_ENABLED, true).build();
   private final ContentIdGenerators contentIdGenerators = new ContentIdGenerators();
   private final ContentIdGenerators idGenerators = new ContentIdGenerators();
   private final FakeClock fakeClock = new FakeClock();
   private final String rootContentId = idGenerators.createRootContentId(0);
   private final TimingUtils timingUtils = new TimingUtils();
 
+  private Configuration configuration;
   private FakeActionUploadRequestManager fakeActionUploadRequestManager;
   private FakeMainThreadRunner fakeMainThreadRunner;
   private FakeProtocolAdapter fakeProtocolAdapter;
@@ -117,9 +120,21 @@ public class FeedSessionManagerImplTest {
   private FeedAppLifecycleListener appLifecycleListener;
   @Mock private SchedulerApi schedulerApi;
 
+  @Parameters
+  public static List<Object[]> data() {
+    return Arrays.asList(new Object[][] {{true}, {false}});
+  }
+
+  @Parameter(0)
+  public boolean uploadingActionsEnabled;
+
   @Before
   public void setUp() {
     initMocks(this);
+    configuration =
+        new Configuration.Builder()
+            .put(ConfigKey.UNDOABLE_ACTIONS_ENABLED, uploadingActionsEnabled)
+            .build();
     fakeThreadUtils = FakeThreadUtils.withThreadChecks();
     fakeMainThreadRunner =
         FakeMainThreadRunner.runTasksImmediatelyWithThreadChecks(fakeThreadUtils);
@@ -399,6 +414,8 @@ public class FeedSessionManagerImplTest {
     sessionManager.handleToken(SESSION_ID, streamToken);
 
     assertThat(fakeRequestManager.getLatestStreamToken()).isEqualTo(streamToken);
+    assertThat(fakeStore.getContentById(SessionCache.CONSISTENCY_TOKEN_CONTENT_ID))
+        .hasSize(uploadingActionsEnabled ? 1 : 0);
   }
 
   @Test
@@ -616,10 +633,12 @@ public class FeedSessionManagerImplTest {
     FeedSessionManagerImpl sessionManager = getInitializedSessionManager();
     ConsistencyToken token =
         ConsistencyToken.newBuilder().setToken(ByteString.copyFrom(new byte[] {0x1, 0xf})).build();
+    ConsistencyToken expectedToken =
+        uploadingActionsEnabled ? token : ConsistencyToken.getDefaultInstance();
     Consumer<Result<ConsistencyToken>> consumer =
         result -> {
           assertThat(result.isSuccessful()).isTrue();
-          assertThat(result.getValue()).isEqualTo(token);
+          assertThat(result.getValue()).isEqualTo(expectedToken);
         };
     fakeActionUploadRequestManager.setResult(Result.success(token));
     fakeThreadUtils.enforceMainThread(false);

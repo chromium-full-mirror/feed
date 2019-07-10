@@ -546,6 +546,9 @@ public final class FeedSessionManagerImpl
 
   private ConsistencyToken handleUpdateConsistencyToken(Result<ConsistencyToken> result) {
     threadUtils.checkNotMainThread();
+    if (!uploadingActionsEnabled) {
+      return getConsistencyToken();
+    }
 
     ConsistencyToken consistencyToken;
     if (result.isSuccessful()) {
