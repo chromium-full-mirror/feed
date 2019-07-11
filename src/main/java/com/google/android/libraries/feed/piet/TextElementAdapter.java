@@ -80,8 +80,8 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
 
     if (textStyle.getFont().hasLineHeight()) {
       textView.setIncludeFontPadding(false);
-      textView.setLineSpacing(
-          /* add= */ getExtraLineHeight().betweenLinesExtraPx(), /* mult= */ 1.0f);
+      ExtraLineHeight extraLineHeight = getExtraLineHeight();
+      textView.setLineSpacing(/* add= */ extraLineHeight.betweenLinesExtraPx(), /* mult= */ 1.0f);
     } else if (textStyle.getFont().hasLineHeightRatio()) {
       // TODO Remove this code once transition to line height is complete.
       textView.setIncludeFontPadding(false);
@@ -144,6 +144,9 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
 
     if (textLine.getStyleReferences().hasStyleBinding()) {
       updateTextStyle();
+    } else if (baseFontHeightChanged()) {
+      updateTextStyle();
+      getElementStyle().applyElementStyles(this);
     }
   }
 
@@ -164,7 +167,7 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
     textView.setText("");
   }
 
-  private float calculateOriginalAndExpectedLineHeightDifference() {
+  private float calculateCurrentAndExpectedLineHeightDifference() {
     TextView textView = getBaseView();
     StyleProvider textStyle = getElementStyle();
 
@@ -183,21 +186,22 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
   ExtraLineHeight getExtraLineHeight() {
     Font font = getElementStyle().getFont();
 
-    // The line height cannot change in the same text element adapter, so there is no need to
-    // calculate this more than once. In fact, it should not be calculated more than once, because
-    // if calculateOriginalAndExpectedLineHeightDifference() is called again after adjusting line
-    // spacing, it will return 0, even though we still need the original calculation for padding. If
-    // it was already calculated or there is no line height set, return the saved object.
-    if (extraLineHeight.betweenLinesExtraPx() != 0
-        || (!font.hasLineHeight() && !font.hasLineHeightRatio())) {
+    if (!font.hasLineHeight() && !font.hasLineHeightRatio()) {
       return extraLineHeight;
     }
 
-    float extraLineHeightBetweenLinesFloat = calculateOriginalAndExpectedLineHeightDifference();
-    int extraLineHeightBetweenLines = Math.round(extraLineHeightBetweenLinesFloat);
-
     int totalExtraPadding = 0;
+    int extraLineHeightBetweenLines = 0;
     if (font.hasLineHeight()) {
+      float changeInLineHeight = calculateCurrentAndExpectedLineHeightDifference();
+      if (changeInLineHeight == 0) {
+        return extraLineHeight;
+      }
+
+      float extraLineHeightBetweenLinesFloat =
+          extraLineHeight.betweenLinesExtraPx() + changeInLineHeight;
+      extraLineHeightBetweenLines = Math.round(extraLineHeightBetweenLinesFloat);
+
       // Adjust the rounding for the extra top and bottom padding, to make the total height of the
       // text element a little more exact.
       totalExtraPadding = adjustRounding(extraLineHeightBetweenLinesFloat);
@@ -231,6 +235,19 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
             .build();
 
     return extraLineHeight;
+  }
+
+  private boolean baseFontHeightChanged() {
+    // Check if we've already calculated the extra line height and there is a significant difference
+    // between the current and expected line heights.
+    if (extraLineHeight.betweenLinesExtraPx() == 0) {
+      return false;
+    }
+    float lineHeightDifference = calculateCurrentAndExpectedLineHeightDifference();
+    if (Math.round(lineHeightDifference) == 0) {
+      return false;
+    }
+    return true;
   }
 
   /**

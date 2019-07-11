@@ -670,6 +670,36 @@ public class TextElementAdapterTest {
   }
 
   @Test
+  public void bindWithUpdatedDensity_shouldUpdateLineHeight() {
+    final int lineHeightInTextElement = 50;
+    context.getResources().getDisplayMetrics().scaledDensity = 1;
+    Style style =
+        Style.newBuilder()
+            .setFont(Font.newBuilder().setLineHeight(lineHeightInTextElement))
+            .build();
+    StyleProvider styleProvider = new StyleProvider(style, mockAssetProvider);
+    Element textElement = getBaseTextElement(styleProvider);
+
+    adapter.createAdapter(textElement, frameContext);
+    adapter.bindModel(textElement, frameContext);
+    assertThat(adapter.getBaseView().getLineHeight()).isEqualTo(lineHeightInTextElement);
+
+    adapter.unbindModel();
+    // Change line height by changing the scale density
+    context.getResources().getDisplayMetrics().scaledDensity = 2;
+    adapter.bindModel(textElement, frameContext);
+    // getLineHeight() still returns pixels. The number of pixels should have been updated to
+    // reflect the new density.
+    assertThat(adapter.getBaseView().getLineHeight()).isEqualTo(lineHeightInTextElement * 2);
+
+    adapter.unbindModel();
+    // Make sure the line height is updated again when the scale density is changed back.
+    context.getResources().getDisplayMetrics().scaledDensity = 1;
+    adapter.bindModel(textElement, frameContext);
+    assertThat(adapter.getBaseView().getLineHeight()).isEqualTo(lineHeightInTextElement);
+  }
+
+  @Test
   public void testUnbind() {
     Element textElement = getBaseTextElement(null);
     adapter.createAdapter(textElement, frameContext);
