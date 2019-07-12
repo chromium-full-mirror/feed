@@ -237,6 +237,32 @@ public class BasicStreamTest {
   }
 
   @Test
+  public void testOnSessionStart_logsOnOpenedWithStreamContentAfterOnShow_whenRestoring() {
+    basicStream.onShow();
+
+    String savedInstanceState = basicStream.getSavedInstanceStateString();
+
+    basicStream.onHide();
+    basicStream.onDestroy();
+
+    when(modelProviderFactory.create(SESSION_ID, UiContext.getDefaultInstance()))
+        .thenReturn(restoredModelProvider);
+
+    basicStream = createBasicStream(new LinearLayoutManager(context));
+
+    basicStream.onCreate(savedInstanceState);
+
+    clock.set(15L);
+    basicStream.onShow();
+
+    when(streamDriver.hasContent()).thenReturn(true);
+    clock.advance(5L);
+    basicStream.onSessionStart(UiContext.getDefaultInstance());
+
+    verify(basicLoggingApi).onOpenedWithContent(5, 0);
+  }
+
+  @Test
   public void testOnSessionStart_doesNotLogOnOpenedWithStreamContentAfterInitialOnShow() {
     basicStream.onShow();
     basicStream.onSessionStart(UiContext.getDefaultInstance());

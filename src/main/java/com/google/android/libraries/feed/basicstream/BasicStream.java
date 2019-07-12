@@ -668,11 +668,11 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
 
   private void logContent() {
     if (loggingState == LoggingState.STARTING) {
-      if (clock.currentTimeMillis() - sessionStartTimestamp > immediateContentThreshold) {
+      long timeToPopulateMs = clock.currentTimeMillis() - sessionStartTimestamp;
+      if (timeToPopulateMs > immediateContentThreshold) {
         basicLoggingApi.onOpenedWithNoImmediateContent();
       }
 
-      long timeToPopulateMs = clock.currentTimeMillis() - sessionStartTimestamp;
       if (checkNotNull(streamDriver).hasContent()) {
         basicLoggingApi.onOpenedWithContent(
             (int) timeToPopulateMs, checkNotNull(streamDriver).getLeafFeatureDrivers().size());
@@ -741,7 +741,6 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
 
   private void createModelProviderAndStreamDriver() {
     if (modelProvider == null) {
-
       // For nullness checker
       ModelProvider localModelProvider = null;
       String localSavedSessionId = savedSessionId;
@@ -757,9 +756,9 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
         Logger.d(TAG, "Creating new session for showing.");
         localModelProvider =
             modelProviderFactory.createNew(deepestContentTracker, UiContext.getDefaultInstance());
-        sessionStartTimestamp = clock.currentTimeMillis();
       }
 
+      sessionStartTimestamp = clock.currentTimeMillis();
       modelProvider = localModelProvider;
 
       registerObserversOnModelProvider(modelProvider);
