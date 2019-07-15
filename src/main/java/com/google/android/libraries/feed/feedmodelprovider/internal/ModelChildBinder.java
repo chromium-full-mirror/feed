@@ -19,7 +19,6 @@ import com.google.android.libraries.feed.api.internal.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelChild.Type;
 import com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.common.Result;
-import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTracker;
@@ -50,8 +49,7 @@ public final class ModelChildBinder {
     this.timingUtils = timingUtils;
   }
 
-  public void bindChildren(
-      List<UpdatableModelChild> childrenToBind, Consumer<Result<Void>> consumer) {
+  public boolean bindChildren(List<UpdatableModelChild> childrenToBind) {
     ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
     Map<String, UpdatableModelChild> bindingChildren = new HashMap<>();
     List<String> contentIds = new ArrayList<>();
@@ -60,47 +58,45 @@ public final class ModelChildBinder {
       contentIds.add(key);
       bindingChildren.put(key, child);
     }
-    feedSessionManager.getStreamFeatures(
-        contentIds,
-        results -> {
-          if (!results.isSuccessful()) {
-            // If we failed, it's likely that this ModelProvider will soon be invalidated by the
-            // FeedSessionManager
-            Logger.e(TAG, "Unable to get the stream features.");
-            consumer.accept(Result.failure());
+
+    Result<List<PayloadWithId>> results = feedSessionManager.getStreamFeatures(contentIds);
+    if (!results.isSuccessful()) {
+      // If we failed, it's likely that this ModelProvider will soon be invalidated by the
+      // FeedSessionManager
+      Logger.e(TAG, "Unable to get the stream features.");
+      return false;
+    }
+    List<PayloadWithId> payloads = results.getValue();
+    if (contentIds.size() > payloads.size()) {
+      Logger.e(
+          TAG,
+          "Didn't find all of the unbound content, found %s, expected %s",
+          payloads.size(),
+          contentIds.size());
+    }
+    for (PayloadWithId childPayload : payloads) {
+      String key = childPayload.contentId;
+      UpdatableModelChild child = bindingChildren.get(key);
+      if (child != null) {
+        StreamPayload payload = childPayload.payload;
+        if (child.getType() == Type.UNBOUND) {
+          if (payload.hasStreamFeature()) {
+            child.bindFeature(
+                new UpdatableModelFeature(payload.getStreamFeature(), cursorProvider));
+          } else if (payload.hasStreamToken()) {
+            child.bindToken(new UpdatableModelToken(payload.getStreamToken(), false));
+            continue;
+          } else {
+            Logger.e(TAG, "Unsupported Payload Type");
           }
-          List<PayloadWithId> payloads = results.getValue();
-          if (contentIds.size() > payloads.size()) {
-            Logger.e(
-                TAG,
-                "Didn't find all of the unbound content, found %s, expected %s",
-                payloads.size(),
-                contentIds.size());
-          }
-          for (PayloadWithId childPayload : payloads) {
-            String key = childPayload.contentId;
-            UpdatableModelChild child = bindingChildren.get(key);
-            if (child != null) {
-              StreamPayload payload = childPayload.payload;
-              if (child.getType() == Type.UNBOUND) {
-                if (payload.hasStreamFeature()) {
-                  child.bindFeature(
-                      new UpdatableModelFeature(payload.getStreamFeature(), cursorProvider));
-                } else if (payload.hasStreamToken()) {
-                  child.bindToken(new UpdatableModelToken(payload.getStreamToken(), false));
-                  continue;
-                } else {
-                  Logger.e(TAG, "Unsupported Payload Type");
-                }
-                child.updateFeature(childPayload.payload);
-              } else {
-                child.updateFeature(payload);
-              }
-            }
-          }
-          // TODO: log an error if any children are still left unbounded.
-          timeTracker.stop("", "bindingChildren", "childrenToBind", childrenToBind.size());
-          consumer.accept(Result.success(null));
-        });
+          child.updateFeature(childPayload.payload);
+        } else {
+          child.updateFeature(payload);
+        }
+      }
+    }
+    // TODO: log an error if any children are still left unbounded.
+    timeTracker.stop("", "bindingChildren", "childrenToBind", childrenToBind.size());
+    return true;
   }
 }

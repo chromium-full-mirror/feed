@@ -36,14 +36,12 @@ import com.google.android.libraries.feed.api.internal.modelprovider.RemoveTracki
 import com.google.android.libraries.feed.api.internal.modelprovider.TokenCompleted;
 import com.google.android.libraries.feed.api.internal.modelprovider.TokenCompletedObserver;
 import com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager;
-import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.Validators;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
 import com.google.android.libraries.feed.common.feedobservable.FeedObservable;
 import com.google.android.libraries.feed.common.functional.Committer;
-import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.functional.Predicate;
 import com.google.android.libraries.feed.common.logging.Dumpable;
 import com.google.android.libraries.feed.common.logging.Dumper;
@@ -647,16 +645,13 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
             }
           }
 
-          bindChildrenAndTokens(
-              childrenToBind,
-              (result) -> {
-                if (result.isSuccessful()) {
-                  mutationHandler.postMutation();
-                } else {
-                  Logger.e(TAG, "bindChildrenAndTokens failed, not processing mutation");
-                  invalidate();
-                }
-              });
+          boolean success = bindChildrenAndTokens(childrenToBind);
+          if (success) {
+            mutationHandler.postMutation();
+          } else {
+            Logger.e(TAG, "bindChildrenAndTokens failed, not processing mutation");
+            invalidate();
+          }
           timeTracker.stop("", "modelProviderCommit");
           StreamToken token =
               (change.mutationContext != null)
@@ -793,10 +788,9 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
         }
       };
 
-  private void bindChildrenAndTokens(
-      List<UpdatableModelChild> childrenToBind, Consumer<Result<Void>> consumer) {
+  private boolean bindChildrenAndTokens(List<UpdatableModelChild> childrenToBind) {
     // Bind the unbound children
-    modelChildBinder.bindChildren(childrenToBind, consumer);
+    boolean success = modelChildBinder.bindChildren(childrenToBind);
 
     synchronized (lock) {
       // Track any tokens we added to the tree
@@ -817,6 +811,8 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
         }
       }
     }
+
+    return success;
   }
 
   private boolean shouldInsertSyntheticToken() {
@@ -951,20 +947,21 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
       SyntheticTokenTracker tokenTracker = new SyntheticTokenTracker(currentRoot, pos, pageSize);
       List<UpdatableModelChild> childrenToBind = tokenTracker.insertToken();
       List<UpdatableModelChild> cursorSublist = rootChildren.subList(pos, rootChildren.size());
-      bindChildrenAndTokens(
-          childrenToBind,
-          (bindingCount) -> {
-            ModelCursorImpl cursor = new ModelCursorImpl(streamToken.getParentId(), cursorSublist);
 
-            TokenCompleted tokenCompleted = new TokenCompleted(cursor);
-            mainThreadRunner.execute(
-                TAG + " onTokenChange",
-                () -> {
-                  List<TokenCompletedObserver> observerList = token.getObserversToNotify();
-                  for (TokenCompletedObserver observer : observerList) {
-                    observer.onTokenCompleted(tokenCompleted);
-                  }
-                });
+      boolean success = bindChildrenAndTokens(childrenToBind);
+      if (!success) {
+        Logger.e(TAG, "bindChildren was unsuccessful");
+      }
+
+      ModelCursorImpl cursor = new ModelCursorImpl(streamToken.getParentId(), cursorSublist);
+      TokenCompleted tokenCompleted = new TokenCompleted(cursor);
+      mainThreadRunner.execute(
+          TAG + " onTokenChange",
+          () -> {
+            List<TokenCompletedObserver> observerList = token.getObserversToNotify();
+            for (TokenCompletedObserver observer : observerList) {
+              observer.onTokenCompleted(tokenCompleted);
+            }
           });
     }
 

@@ -49,7 +49,6 @@ import com.google.android.libraries.feed.api.internal.sessionmanager.FeedSession
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
-import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedmodelprovider.FeedModelProvider.InitializeModel;
 import com.google.android.libraries.feed.feedmodelprovider.FeedModelProvider.TokenMutation;
@@ -100,16 +99,7 @@ public class FeedModelProviderTest {
   public void setUp() {
     initMocks(this);
     childBindings.clear();
-    doAnswer(
-            invocation -> {
-              @SuppressWarnings("unchecked")
-              Consumer<Result<List<PayloadWithId>>> consumer =
-                  (Consumer<Result<List<PayloadWithId>>>) invocation.getArguments()[1];
-              consumer.accept(Result.success(childBindings));
-              return null;
-            })
-        .when(feedSessionManager)
-        .getStreamFeatures(any(), any());
+    when(feedSessionManager.getStreamFeatures(any())).thenReturn(Result.success(childBindings));
     fakeMainThreadRunner = FakeMainThreadRunner.runTasksImmediately();
   }
 

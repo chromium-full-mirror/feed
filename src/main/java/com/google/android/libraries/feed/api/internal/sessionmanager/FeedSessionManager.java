@@ -93,11 +93,10 @@ public interface FeedSessionManager extends Resettable {
       /*@Nullable*/ String sessionId, @RequestReason int requestReason, UiContext uiContext);
 
   /**
-   * Returns a List of {@link StreamPayload} for each of the keys. This operation may perform disk
-   * reads, therefore the payloads are returned through a consumer. The returned values will contain
-   * both the payload and the content id of the payload.
+   * Returns a List of {@link StreamPayload} for each of the keys. This must be called on the
+   * background thread.
    */
-  void getStreamFeatures(List<String> contentIds, Consumer<Result<List<PayloadWithId>>> consumer);
+  Result<List<PayloadWithId>> getStreamFeatures(List<String> contentIds);
 
   /**
    * Return the shared state. This operation will be fast, so it can be called on the UI Thread.

@@ -619,8 +619,7 @@ public final class FeedSessionManagerImpl
   }
 
   @Override
-  public void getStreamFeatures(
-      List<String> contentIds, Consumer<Result<List<PayloadWithId>>> consumer) {
+  public Result<List<PayloadWithId>> getStreamFeatures(List<String> contentIds) {
     threadUtils.checkNotMainThread();
     List<PayloadWithId> results = new ArrayList<>();
     List<String> cacheMisses = new ArrayList<>();
@@ -641,7 +640,7 @@ public final class FeedSessionManagerImpl
       } else {
         // since we couldn't populate the content, switch to ephemeral mode
         switchToEphemeralMode("Unable to get the payloads in getStreamFeatures");
-        consumer.accept(Result.failure());
+        return Result.failure();
       }
     }
     Logger.i(
@@ -650,7 +649,7 @@ public final class FeedSessionManagerImpl
         contentIds.size(),
         cacheMisses.size(),
         contentSize);
-    consumer.accept(Result.success(results));
+    return Result.success(results);
   }
 
   @Override
