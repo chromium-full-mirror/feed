@@ -138,7 +138,9 @@ public class InfraIntegrationScope {
                 schedulerApi,
                 configuration,
                 fakeClock,
-                appLifecycleListener)
+                appLifecycleListener,
+                fakeMainThreadRunner,
+                fakeBasicLoggingApi)
             .create();
     new ClearAllListener(
         taskQueue, feedSessionManager, store, fakeThreadUtils, appLifecycleListener);

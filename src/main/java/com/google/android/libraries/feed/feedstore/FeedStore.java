@@ -87,6 +87,9 @@ public class FeedStore extends FeedObservable<StoreListener>
 
   private boolean isEphemeralMode = false;
 
+  protected final ContentStorageDirect contentStorage;
+  protected final JournalStorageDirect journalStorage;
+
   public FeedStore(
       TimingUtils timingUtils,
       FeedExtensionRegistry extensionRegistry,
@@ -103,6 +106,8 @@ public class FeedStore extends FeedObservable<StoreListener>
     this.threadUtils = threadUtils;
     this.basicLoggingApi = basicLoggingApi;
     this.mainThreadRunner = mainThreadRunner;
+    this.contentStorage = contentStorage;
+    this.journalStorage = journalStorage;
 
     this.persistentStore =
         new PersistentFeedStore(

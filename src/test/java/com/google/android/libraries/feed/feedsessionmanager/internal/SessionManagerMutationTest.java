@@ -19,7 +19,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -28,8 +27,8 @@ import android.util.Pair;
 import com.google.android.libraries.feed.api.client.knowncontent.KnownContent;
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.host.config.Configuration;
+import com.google.android.libraries.feed.api.host.logging.InternalFeedError;
 import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi;
-import com.google.android.libraries.feed.api.host.storage.ContentStorageDirect;
 import com.google.android.libraries.feed.api.internal.common.Model;
 import com.google.android.libraries.feed.api.internal.common.PayloadWithId;
 import com.google.android.libraries.feed.api.internal.common.SemanticPropertiesWithId;
@@ -38,21 +37,16 @@ import com.google.android.libraries.feed.api.internal.modelprovider.ModelError;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelError.ErrorType;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider.State;
-import com.google.android.libraries.feed.api.internal.store.Store;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeTaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.functional.Supplier;
-import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionManagerMutation.MutationCommitter;
-import com.google.android.libraries.feed.feedstore.FeedStore;
-import com.google.android.libraries.feed.feedstore.testing.DelegatingStore;
-import com.google.android.libraries.feed.hostimpl.storage.testing.InMemoryContentStorage;
-import com.google.android.libraries.feed.hostimpl.storage.testing.InMemoryJournalStorage;
 import com.google.android.libraries.feed.testing.host.logging.FakeBasicLoggingApi;
+import com.google.android.libraries.feed.testing.store.FakeStore;
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
@@ -78,11 +72,11 @@ import org.robolectric.RobolectricTestRunner;
 public class SessionManagerMutationTest {
   private final Configuration configuration = new Configuration.Builder().build();
   private final ContentIdGenerators idGenerators = new ContentIdGenerators();
-  private final ContentStorageDirect contentStorage = new InMemoryContentStorage();
   private final FakeBasicLoggingApi fakeBasicLoggingApi = new FakeBasicLoggingApi();
   private final FakeClock fakeClock = new FakeClock();
+  private final FakeMainThreadRunner fakeMainThreadRunner =
+      FakeMainThreadRunner.runTasksImmediately();
   private final FakeThreadUtils fakeThreadUtils = FakeThreadUtils.withThreadChecks();
-  private final FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(ArrayList::new);
   private final String rootContentId = idGenerators.createRootContentId(0);
   private final TimingUtils timingUtils = new TimingUtils();
 
@@ -93,33 +87,21 @@ public class SessionManagerMutationTest {
   private ModelError notifyError;
   private Session notifySession;
   private SessionCache sessionCache;
-  private Store storeSpy;
+  private FakeStore fakeStore;
 
   @Before
   public void setUp() {
     initMocks(this);
-    storeSpy = null;
     notifySession = null;
     fakeTaskQueue = new FakeTaskQueue(fakeClock, fakeThreadUtils);
     fakeTaskQueue.initialize(() -> {});
     fakeThreadUtils.enforceMainThread(false);
-    Store store =
-        new FeedStore(
-            timingUtils,
-            extensionRegistry,
-            contentStorage,
-            new InMemoryJournalStorage(),
-            fakeThreadUtils,
-            fakeTaskQueue,
-            fakeClock,
-            fakeBasicLoggingApi,
-            FakeMainThreadRunner.runTasksImmediately());
-    storeSpy = spy(new DelegatingStore(store));
+    fakeStore = new FakeStore(fakeThreadUtils, fakeTaskQueue, fakeClock);
     SessionFactory sessionFactory =
-        new SessionFactory(storeSpy, fakeTaskQueue, timingUtils, fakeThreadUtils, configuration);
+        new SessionFactory(fakeStore, fakeTaskQueue, timingUtils, fakeThreadUtils, configuration);
     sessionCache =
         new SessionCache(
-            storeSpy, fakeTaskQueue, sessionFactory, 10L, timingUtils, fakeThreadUtils, fakeClock);
+            fakeStore, fakeTaskQueue, sessionFactory, 10L, timingUtils, fakeThreadUtils, fakeClock);
     sessionCache.initialize();
     contentCache = new ContentCache();
   }
@@ -202,7 +184,7 @@ public class SessionManagerMutationTest {
     MutationCommitter mutationCommitter = getMutationCommitter(EMPTY_CONTEXT);
     mutationCommitter.accept(Result.success(Model.of(dataOperations)));
 
-    Result<List<PayloadWithId>> result = storeSpy.getPayloads(contentIds);
+    Result<List<PayloadWithId>> result = fakeStore.getPayloads(contentIds);
     assertThat(result.isSuccessful()).isTrue();
     assertThat(result.getValue()).hasSize(contentIds.size());
     for (PayloadWithId payload : result.getValue()) {
@@ -211,6 +193,29 @@ public class SessionManagerMutationTest {
     assertThat(contentCache.size()).isEqualTo(0);
     verify(schedulerApi, never()).onReceiveNewContent(anyLong());
     verify(knownContentListener).onNewContentReceived(false, 8L);
+  }
+
+  @Test
+  public void testUpdateContent_failedCommitLogsError() {
+    fakeStore.setAllowEditContent(false);
+
+    List<String> contentIds = getContentIds(3);
+    List<Pair<StreamStructure, StreamPayload>> features =
+        getFeatures(
+            contentIds,
+            () ->
+                StreamPayload.newBuilder()
+                    .setStreamFeature(StreamFeature.getDefaultInstance())
+                    .build());
+    List<StreamDataOperation> dataOperations = new ArrayList<>();
+    for (Pair<StreamStructure, StreamPayload> feature : features) {
+      dataOperations.add(getStreamDataOperation(feature.first, feature.second));
+    }
+    MutationCommitter mutationCommitter = getMutationCommitter(EMPTY_CONTEXT);
+    mutationCommitter.accept(Result.success(Model.of(dataOperations)));
+
+    assertThat(fakeBasicLoggingApi.lastInternalError)
+        .isEqualTo(InternalFeedError.CONTENT_MUTATION_FAILED);
   }
 
   @Test
@@ -230,7 +235,7 @@ public class SessionManagerMutationTest {
     MutationCommitter mutationCommitter = getMutationCommitter(EMPTY_CONTEXT);
     mutationCommitter.accept(Result.success(Model.of(dataOperations)));
 
-    Result<List<SemanticPropertiesWithId>> result = storeSpy.getSemanticProperties(contentIds);
+    Result<List<SemanticPropertiesWithId>> result = fakeStore.getSemanticProperties(contentIds);
     assertThat(result.isSuccessful()).isTrue();
     assertThat(result.getValue()).hasSize(contentIds.size());
     for (SemanticPropertiesWithId payload : result.getValue()) {
@@ -274,7 +279,7 @@ public class SessionManagerMutationTest {
   public void testInvalidateHead() {
     MutationCommitter mutationCommitter = getMutationCommitter(EMPTY_CONTEXT);
     mutationCommitter.resetHead(null);
-    verify(storeSpy).clearHead();
+    assertThat(fakeStore.getClearHeadCalled()).isTrue();
   }
 
   @Test
@@ -332,14 +337,16 @@ public class SessionManagerMutationTest {
   private MutationCommitter getMutationCommitter(MutationContext mutationContext) {
     SessionManagerMutation mutation =
         new SessionManagerMutation(
-            storeSpy,
+            fakeStore,
             sessionCache,
             contentCache,
             fakeTaskQueue,
             schedulerApi,
             fakeThreadUtils,
             timingUtils,
-            fakeClock);
+            fakeClock,
+            fakeMainThreadRunner,
+            fakeBasicLoggingApi);
     return (MutationCommitter)
         mutation.createCommitter(
             "task", mutationContext, this::notifySessionError, knownContentListener);

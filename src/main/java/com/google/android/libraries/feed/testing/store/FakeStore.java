@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.testing.store;
 
+import com.google.android.libraries.feed.api.host.storage.CommitResult;
 import com.google.android.libraries.feed.api.internal.common.PayloadWithId;
 import com.google.android.libraries.feed.api.internal.store.ContentMutation;
 import com.google.android.libraries.feed.api.internal.store.SessionMutation;
@@ -41,9 +42,11 @@ import java.util.List;
 public final class FakeStore extends FeedStore {
   private final FakeThreadUtils fakeThreadUtils;
   private boolean allowCreateNewSession = true;
+  private boolean allowEditContent = true;
   private boolean allowGetPayloads = true;
   private boolean allowGetStreamStructures = true;
   private boolean allowGetSharedStates = true;
+  private boolean clearHeadCalled = false;
 
   public FakeStore(FakeThreadUtils fakeThreadUtils, TaskQueue taskQueue, Clock clock) {
     super(
@@ -78,6 +81,12 @@ public final class FakeStore extends FeedStore {
   }
 
   @Override
+  public void clearHead() {
+    clearHeadCalled = true;
+    super.clearHead();
+  }
+
+  @Override
   public Result<String> createNewSession() {
     if (!allowCreateNewSession) {
       return Result.failure();
@@ -95,9 +104,48 @@ public final class FakeStore extends FeedStore {
     return super.getSharedStates();
   }
 
+  @Override
+  public ContentMutation editContent() {
+    if (!allowEditContent) {
+      return new ContentMutation() {
+        @Override
+        public ContentMutation add(String contentId, StreamPayload payload) {
+          return this;
+        }
+
+        @Override
+        public CommitResult commit() {
+          return CommitResult.FAILURE;
+        }
+      };
+    }
+
+    return super.editContent();
+  }
+
+  /** Returns if {@link FeedStore#clearAll()} was called. */
+  public boolean getClearHeadCalled() {
+    return clearHeadCalled;
+  }
+
+  /** Clears all content storage. */
+  public FakeStore clearContent() {
+    contentStorage.commit(
+        new com.google.android.libraries.feed.api.host.storage.ContentMutation.Builder()
+            .deleteAll()
+            .build());
+    return this;
+  }
+
   /** Sets whether to fail on calls to {@link getStreamStructures(String)}. */
   public FakeStore setAllowGetStreamStructures(boolean value) {
     allowGetStreamStructures = value;
+    return this;
+  }
+
+  /** Sets whether to fail on calls to {@link editContent()}. */
+  public FakeStore setAllowEditContent(boolean value) {
+    allowEditContent = value;
     return this;
   }
 

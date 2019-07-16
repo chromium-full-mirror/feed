@@ -20,6 +20,8 @@ import com.google.android.libraries.feed.api.client.knowncontent.KnownContent.Li
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.host.config.Configuration;
 import com.google.android.libraries.feed.api.host.config.Configuration.ConfigKey;
+import com.google.android.libraries.feed.api.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.api.host.logging.InternalFeedError;
 import com.google.android.libraries.feed.api.host.logging.RequestReason;
 import com.google.android.libraries.feed.api.host.logging.Task;
 import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi;
@@ -40,6 +42,7 @@ import com.google.android.libraries.feed.api.internal.store.Store;
 import com.google.android.libraries.feed.api.internal.store.StoreListener;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.Validators;
+import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
 import com.google.android.libraries.feed.common.feedobservable.FeedObservable;
@@ -135,6 +138,9 @@ public final class FeedSessionManagerImpl
   private final SchedulerApi schedulerApi;
   private final TaskQueue taskQueue;
   private final Clock clock;
+  private final Configuration configuration;
+  private final MainThreadRunner mainThreadRunner;
+  private final BasicLoggingApi basicLoggingApi;
   private final long sessionPopulationTimeoutMs;
   private final boolean uploadingActionsEnabled;
 
@@ -162,7 +168,9 @@ public final class FeedSessionManagerImpl
       SchedulerApi schedulerApi,
       Configuration configuration,
       Clock clock,
-      FeedObservable<FeedLifecycleListener> lifecycleListenerObservable) {
+      FeedObservable<FeedLifecycleListener> lifecycleListenerObservable,
+      MainThreadRunner mainThreadRunner,
+      BasicLoggingApi basicLoggingApi) {
     this.taskQueue = taskQueue;
     this.sessionFactory = sessionFactory;
     this.sessionCache = sessionCache;
@@ -177,6 +185,9 @@ public final class FeedSessionManagerImpl
     this.actionUploadRequestManager = actionUploadRequestManager;
     this.schedulerApi = schedulerApi;
     this.clock = clock;
+    this.configuration = configuration;
+    this.mainThreadRunner = mainThreadRunner;
+    this.basicLoggingApi = basicLoggingApi;
     uploadingActionsEnabled =
         configuration.getValueOrDefault(ConfigKey.UNDOABLE_ACTIONS_ENABLED, false);
     sessionPopulationTimeoutMs =
@@ -635,9 +646,32 @@ public final class FeedSessionManagerImpl
 
     if (!cacheMisses.isEmpty()) {
       Result<List<PayloadWithId>> contentResult = store.getPayloads(cacheMisses);
-      if (contentResult.isSuccessful()) {
+      boolean successfulRead =
+          contentResult.isSuccessful()
+              && (contentResult.getValue().size()
+                      + configuration.getValueOrDefault(ConfigKey.STORAGE_MISS_THRESHOLD, 4L)
+                  >= cacheMisses.size());
+      if (successfulRead) {
+        Logger.i(
+            TAG,
+            "getStreamFeatures; requestedItems(%d), result(%d)",
+            cacheMisses.size(),
+            contentResult.getValue().size());
         results.addAll(contentResult.getValue());
       } else {
+        if (contentResult.isSuccessful()) {
+          Logger.e(
+              TAG,
+              "Storage miss beyond threshold; requestedItems(%d), returned(%d)",
+              cacheMisses.size(),
+              contentResult.getValue().size());
+          mainThreadRunner.execute(
+              "STORAGE_MISS_BEYOND_THRESHOLD",
+              () -> {
+                basicLoggingApi.onInternalError(InternalFeedError.STORAGE_MISS_BEYOND_THRESHOLD);
+              });
+        }
+
         // since we couldn't populate the content, switch to ephemeral mode
         switchToEphemeralMode("Unable to get the payloads in getStreamFeatures");
         return Result.failure();

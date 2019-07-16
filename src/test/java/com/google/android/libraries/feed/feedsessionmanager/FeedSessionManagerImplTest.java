@@ -25,6 +25,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.host.config.Configuration;
 import com.google.android.libraries.feed.api.host.config.Configuration.ConfigKey;
+import com.google.android.libraries.feed.api.host.logging.InternalFeedError;
 import com.google.android.libraries.feed.api.host.logging.RequestReason;
 import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi.RequestBehavior;
@@ -56,6 +57,7 @@ import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManagerIm
 import com.google.android.libraries.feed.feedsessionmanager.internal.HeadSessionImpl;
 import com.google.android.libraries.feed.feedsessionmanager.internal.Session;
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionCache;
+import com.google.android.libraries.feed.testing.host.logging.FakeBasicLoggingApi;
 import com.google.android.libraries.feed.testing.proto.UiContextForTestProto.UiContextForTest;
 import com.google.android.libraries.feed.testing.protocoladapter.FakeProtocolAdapter;
 import com.google.android.libraries.feed.testing.requestmanager.FakeActionUploadRequestManager;
@@ -102,6 +104,7 @@ public class FeedSessionManagerImplTest {
           .setTable("piet-shared-state")
           .build();
   private static final String SESSION_ID = "session:1";
+  private static final int STORAGE_MISS_THRESHOLD = 4;
 
   private final ContentIdGenerators contentIdGenerators = new ContentIdGenerators();
   private final ContentIdGenerators idGenerators = new ContentIdGenerators();
@@ -111,6 +114,7 @@ public class FeedSessionManagerImplTest {
 
   private Configuration configuration;
   private FakeActionUploadRequestManager fakeActionUploadRequestManager;
+  private FakeBasicLoggingApi fakeBasicLoggingApi;
   private FakeMainThreadRunner fakeMainThreadRunner;
   private FakeProtocolAdapter fakeProtocolAdapter;
   private FakeFeedRequestManager fakeRequestManager;
@@ -134,7 +138,9 @@ public class FeedSessionManagerImplTest {
     configuration =
         new Configuration.Builder()
             .put(ConfigKey.UNDOABLE_ACTIONS_ENABLED, uploadingActionsEnabled)
+            .put(ConfigKey.STORAGE_MISS_THRESHOLD, STORAGE_MISS_THRESHOLD)
             .build();
+    fakeBasicLoggingApi = new FakeBasicLoggingApi();
     fakeThreadUtils = FakeThreadUtils.withThreadChecks();
     fakeMainThreadRunner =
         FakeMainThreadRunner.runTasksImmediatelyWithThreadChecks(fakeThreadUtils);
@@ -348,6 +354,30 @@ public class FeedSessionManagerImplTest {
     assertThat(fakeTaskQueue.getImmediateTaskCount()).isEqualTo(1);
     assertThat(fakeTaskQueue.getBackgroundTaskCount()).isEqualTo(0);
     assertThat(fakeTaskQueue.getUserFacingTaskCount()).isEqualTo(0);
+  }
+
+  @Test
+  public void testMissingFeaturesBeyondThreshold_switchToEphemeralMode() {
+    FeedSessionManagerImpl sessionManager = getInitializedSessionManager();
+    populateSession(sessionManager, STORAGE_MISS_THRESHOLD, 1, true, null);
+    fakeStore.clearContent();
+
+    ModelProvider modelProvider = getModelProvider(sessionManager);
+    assertThat(modelProvider).isNotNull();
+    assertThat(fakeStore.isEphemeralMode()).isTrue();
+    assertThat(fakeBasicLoggingApi.lastInternalError)
+        .isEqualTo(InternalFeedError.STORAGE_MISS_BEYOND_THRESHOLD);
+  }
+
+  @Test
+  public void testMissingFeaturesAtThreshold_doesNotSwitchToEphemeralMode() {
+    FeedSessionManagerImpl sessionManager = getInitializedSessionManager();
+    populateSession(sessionManager, STORAGE_MISS_THRESHOLD - 1, 1, true, null);
+    fakeStore.clearContent();
+
+    ModelProvider modelProvider = getModelProvider(sessionManager);
+    assertThat(modelProvider).isNotNull();
+    assertThat(fakeStore.isEphemeralMode()).isFalse();
   }
 
   @Test
@@ -802,7 +832,9 @@ public class FeedSessionManagerImplTest {
             schedulerApi,
             configuration,
             fakeClock,
-            appLifecycleListener)
+            appLifecycleListener,
+            fakeMainThreadRunner,
+            fakeBasicLoggingApi)
         .create();
   }
 }

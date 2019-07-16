@@ -268,7 +268,9 @@ public final class ProcessScopeBuilder {
             schedulerApi,
             configuration,
             clock,
-            lifecycleListener);
+            lifecycleListener,
+            mainThreadRunner,
+            basicLoggingApi);
     FeedSessionManager feedSessionManager = fsmFactory.create();
     RequestManagerImpl clientRequestManager =
         new RequestManagerImpl(feedRequestManager, feedSessionManager);

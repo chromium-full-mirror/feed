@@ -16,6 +16,7 @@ package com.google.android.libraries.feed.feedsessionmanager;
 
 import com.google.android.libraries.feed.api.host.config.Configuration;
 import com.google.android.libraries.feed.api.host.config.Configuration.ConfigKey;
+import com.google.android.libraries.feed.api.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.api.internal.common.ThreadUtils;
 import com.google.android.libraries.feed.api.internal.protocoladapter.ProtocolAdapter;
@@ -23,6 +24,7 @@ import com.google.android.libraries.feed.api.internal.requestmanager.ActionUploa
 import com.google.android.libraries.feed.api.internal.requestmanager.FeedRequestManager;
 import com.google.android.libraries.feed.api.internal.sessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.api.internal.store.Store;
+import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.feedobservable.FeedObservable;
 import com.google.android.libraries.feed.common.time.Clock;
@@ -53,6 +55,8 @@ public final class FeedSessionManagerFactory {
   private final Configuration configuration;
   private final Clock clock;
   private final FeedObservable<FeedLifecycleListener> lifecycleListenerObservable;
+  private final MainThreadRunner mainThreadRunner;
+  private final BasicLoggingApi basicLoggingApi;
 
   public FeedSessionManagerFactory(
       TaskQueue taskQueue,
@@ -65,7 +69,9 @@ public final class FeedSessionManagerFactory {
       SchedulerApi schedulerApi,
       Configuration configuration,
       Clock clock,
-      FeedObservable<FeedLifecycleListener> lifecycleListenerObservable) {
+      FeedObservable<FeedLifecycleListener> lifecycleListenerObservable,
+      MainThreadRunner mainThreadRunner,
+      BasicLoggingApi basicLoggingApi) {
     this.taskQueue = taskQueue;
     this.store = store;
     this.timingUtils = timingUtils;
@@ -77,6 +83,8 @@ public final class FeedSessionManagerFactory {
     this.configuration = configuration;
     this.clock = clock;
     this.lifecycleListenerObservable = lifecycleListenerObservable;
+    this.mainThreadRunner = mainThreadRunner;
+    this.basicLoggingApi = basicLoggingApi;
   }
 
   /** Creates a new FeedSessionManager and initializes it */
@@ -98,7 +106,9 @@ public final class FeedSessionManagerFactory {
             schedulerApi,
             threadUtils,
             timingUtils,
-            clock);
+            clock,
+            mainThreadRunner,
+            basicLoggingApi);
 
     return new FeedSessionManagerImpl(
         taskQueue,
@@ -115,6 +125,8 @@ public final class FeedSessionManagerFactory {
         schedulerApi,
         configuration,
         clock,
-        lifecycleListenerObservable);
+        lifecycleListenerObservable,
+        mainThreadRunner,
+        basicLoggingApi);
   }
 }

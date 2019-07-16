@@ -29,6 +29,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/feedmodelprovider",
         "//src/main/java/com/google/android/libraries/feed/feedsessionmanager",
         "//src/main/java/com/google/android/libraries/feed/feedsessionmanager/internal",
+        "//src/main/java/com/google/android/libraries/feed/testing/host/logging",
         "//src/main/java/com/google/android/libraries/feed/testing/protocoladapter",
         "//src/main/java/com/google/android/libraries/feed/testing/requestmanager",
         "//src/main/java/com/google/android/libraries/feed/testing/store",

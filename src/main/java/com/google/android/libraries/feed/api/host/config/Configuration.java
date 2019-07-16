@@ -83,6 +83,8 @@ public class Configuration {
     // Minimum time before a spinner should show before disappearing. Only used for feed wide
     // spinners, not for more button spinners.
     ConfigKey.SPINNER_MINIMUM_SHOW_TIME_MS,
+    // The number of items that can be missing from a call to FeedStore before failing.
+    ConfigKey.STORAGE_MISS_THRESHOLD,
     // Time in ms for the length of the timeout
     ConfigKey.TIMEOUT_TIMEOUT_MS,
     ConfigKey.TRIGGER_IMMEDIATE_PAGINATION,
@@ -135,6 +137,7 @@ public class Configuration {
     String SNIPPETS_ENABLED = "snippets_enabled";
     String SPINNER_DELAY_MS = "spinner_delay";
     String SPINNER_MINIMUM_SHOW_TIME_MS = "spinner_minimum_show_time";
+    String STORAGE_MISS_THRESHOLD = "storage_miss_threshold";
     String TIMEOUT_TIMEOUT_MS = "timeout_timeout_ms";
     String TRIGGER_IMMEDIATE_PAGINATION = "trigger_immediate_pagination_bool";
     String UNDOABLE_ACTIONS_ENABLED = "undoable_actions_enabled";

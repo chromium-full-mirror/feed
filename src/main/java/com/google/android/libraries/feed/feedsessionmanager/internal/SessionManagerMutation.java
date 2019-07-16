@@ -18,6 +18,8 @@ import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
 import com.google.android.libraries.feed.api.client.knowncontent.KnownContent;
 import com.google.android.libraries.feed.api.common.MutationContext;
+import com.google.android.libraries.feed.api.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.api.host.logging.InternalFeedError;
 import com.google.android.libraries.feed.api.host.logging.Task;
 import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.api.host.storage.CommitResult;
@@ -31,6 +33,7 @@ import com.google.android.libraries.feed.api.internal.store.ContentMutation;
 import com.google.android.libraries.feed.api.internal.store.SemanticPropertiesMutation;
 import com.google.android.libraries.feed.api.internal.store.Store;
 import com.google.android.libraries.feed.common.Result;
+import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
 import com.google.android.libraries.feed.common.functional.Consumer;
@@ -68,6 +71,8 @@ public final class SessionManagerMutation implements Dumpable {
   private final ThreadUtils threadUtils;
   private final TimingUtils timingUtils;
   private final Clock clock;
+  private final MainThreadRunner mainThreadRunner;
+  private final BasicLoggingApi basicLoggingApi;
 
   // operation counts for the dumper
   private int createCount = 0;
@@ -89,7 +94,9 @@ public final class SessionManagerMutation implements Dumpable {
       SchedulerApi schedulerApi,
       ThreadUtils threadUtils,
       TimingUtils timingUtils,
-      Clock clock) {
+      Clock clock,
+      MainThreadRunner mainThreadRunner,
+      BasicLoggingApi basicLoggingApi) {
     this.store = store;
     this.sessionCache = sessionCache;
     this.contentCache = contentCache;
@@ -98,6 +105,8 @@ public final class SessionManagerMutation implements Dumpable {
     this.threadUtils = threadUtils;
     this.timingUtils = timingUtils;
     this.clock = clock;
+    this.mainThreadRunner = mainThreadRunner;
+    this.basicLoggingApi = basicLoggingApi;
   }
 
   /**
@@ -110,7 +119,13 @@ public final class SessionManagerMutation implements Dumpable {
       ModelErrorObserver modelErrorObserver,
       KnownContent./*@Nullable*/ Listener knownContentListener) {
     createCount++;
-    return new MutationCommitter(task, mutationContext, modelErrorObserver, knownContentListener);
+    return new MutationCommitter(
+        task,
+        mutationContext,
+        modelErrorObserver,
+        knownContentListener,
+        mainThreadRunner,
+        basicLoggingApi);
   }
 
   public void resetHead() {
@@ -217,6 +232,8 @@ public final class SessionManagerMutation implements Dumpable {
     private final KnownContent./*@Nullable*/ Listener knownContentListener;
 
     private final List<StreamStructure> streamStructures = new ArrayList<>();
+    private final MainThreadRunner mainThreadRunner;
+    private final BasicLoggingApi basicLoggingApi;
 
     @VisibleForTesting boolean clearedHead = false;
     private Model model;
@@ -225,11 +242,15 @@ public final class SessionManagerMutation implements Dumpable {
         String task,
         MutationContext mutationContext,
         ModelErrorObserver modelErrorObserver,
-        KnownContent./*@Nullable*/ Listener knownContentListener) {
+        KnownContent./*@Nullable*/ Listener knownContentListener,
+        MainThreadRunner mainThreadRunner,
+        BasicLoggingApi basicLoggingApi) {
       this.task = task;
       this.mutationContext = mutationContext;
       this.modelErrorObserver = modelErrorObserver;
       this.knownContentListener = knownContentListener;
+      this.mainThreadRunner = mainThreadRunner;
+      this.basicLoggingApi = basicLoggingApi;
     }
 
     @Override
@@ -348,6 +369,11 @@ public final class SessionManagerMutation implements Dumpable {
             if (contentMutation.commit().getResult() == CommitResult.Result.FAILURE) {
               contentCommitErrorCount++;
               Logger.e(TAG, "contentMutation failed");
+              mainThreadRunner.execute(
+                  "CONTENT_MUTATION_FAILED",
+                  () -> {
+                    basicLoggingApi.onInternalError(InternalFeedError.CONTENT_MUTATION_FAILED);
+                  });
             }
             if (semanticPropertiesMutation.commit().getResult() == CommitResult.Result.FAILURE) {
               semanticPropertiesCommitErrorCount++;

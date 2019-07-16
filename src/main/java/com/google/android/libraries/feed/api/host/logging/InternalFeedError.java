@@ -37,6 +37,10 @@ import android.support.annotation.IntDef;
   InternalFeedError.FAILED_TO_CREATE_LEAF,
   InternalFeedError.UNHANDLED_TOKEN,
   InternalFeedError.TASK_QUEUE_STARVATION,
+  InternalFeedError.CONTENT_STORAGE_MISSING_ITEM,
+  InternalFeedError.ITEM_NOT_PARSED,
+  InternalFeedError.STORAGE_MISS_BEYOND_THRESHOLD,
+  InternalFeedError.CONTENT_MUTATION_FAILED,
   InternalFeedError.NEXT_VALUE
 })
 public @interface InternalFeedError {
@@ -89,6 +93,15 @@ public @interface InternalFeedError {
   /** Represents bytes from ContentStorage that cannot be parsed into the proto. */
   int ITEM_NOT_PARSED = 14;
 
+  /**
+   * Represents a storage miss where FeedStore reports success but is missing a number of items that
+   * exceeds the configurable threshold.
+   */
+  int STORAGE_MISS_BEYOND_THRESHOLD = 15;
+
+  /** Represents a failed content mutation in FeedSessionManager. */
+  int CONTENT_MUTATION_FAILED = 16;
+
   /** The next value that should be used when adding additional values to the IntDef. */
-  int NEXT_VALUE = 15;
+  int NEXT_VALUE = 17;
 }
