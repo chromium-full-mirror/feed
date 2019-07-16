@@ -20,6 +20,8 @@ import static com.google.android.libraries.feed.feedstore.internal.FeedStoreCons
 import static com.google.android.libraries.feed.feedstore.internal.FeedStoreConstants.UPLOADABLE_ACTION_PREFIX;
 
 import android.util.Base64;
+import com.google.android.libraries.feed.api.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.api.host.logging.InternalFeedError;
 import com.google.android.libraries.feed.api.host.storage.CommitResult;
 import com.google.android.libraries.feed.api.host.storage.ContentMutation.Builder;
 import com.google.android.libraries.feed.api.host.storage.ContentStorage;
@@ -38,6 +40,7 @@ import com.google.android.libraries.feed.api.internal.store.SessionMutation;
 import com.google.android.libraries.feed.api.internal.store.StoreListener;
 import com.google.android.libraries.feed.api.internal.store.UploadableActionMutation;
 import com.google.android.libraries.feed.common.Result;
+import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.intern.Interner;
 import com.google.android.libraries.feed.common.intern.InternerWithStats;
@@ -80,6 +83,8 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
   private final ThreadUtils threadUtils;
   private final Clock clock;
   private final FeedStoreHelper storeHelper;
+  private final BasicLoggingApi basicLoggingApi;
+  private final MainThreadRunner mainThreadRunner;
 
   // We use a common string interner pool because the same content IDs are reused across different
   // protos. The actual proto interners below are backed by thisl common pool.
@@ -97,7 +102,9 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
       JournalStorageDirect journalStorageDirect,
       ThreadUtils threadUtils,
       Clock clock,
-      FeedStoreHelper storeHelper) {
+      FeedStoreHelper storeHelper,
+      BasicLoggingApi basicLoggingApi,
+      MainThreadRunner mainThreadRunner) {
     this.timingUtils = timingUtils;
     this.extensionRegistry = extensionRegistry;
     this.contentStorageDirect = contentStorageDirect;
@@ -105,6 +112,8 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
     this.threadUtils = threadUtils;
     this.clock = clock;
     this.storeHelper = storeHelper;
+    this.basicLoggingApi = basicLoggingApi;
+    this.mainThreadRunner = mainThreadRunner;
   }
 
   @Override
@@ -119,8 +128,15 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
       return Result.failure();
     }
 
-    // TODO: This code should be asserting that all requested contentIds have been
-    // provided, otherwise an unbound child could be exposed to the UI.
+    if (contentResult.getValue().entrySet().size() != contentIds.size()) {
+      Logger.e(TAG, "ContentStorage is missing content");
+      mainThreadRunner.execute(
+          "CONTENT_STORAGE_MISSING_ITEM",
+          () -> {
+            basicLoggingApi.onInternalError(InternalFeedError.CONTENT_STORAGE_MISSING_ITEM);
+          });
+    }
+
     for (Map.Entry<String, byte[]> entry : contentResult.getValue().entrySet()) {
       try {
         StreamPayload streamPayload =
@@ -130,9 +146,14 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
         payloads.add(new PayloadWithId(entry.getKey(), streamPayload));
       } catch (InvalidProtocolBufferException e) {
         Logger.e(TAG, "Couldn't parse content proto for id %s", entry.getKey());
+        mainThreadRunner.execute(
+            "ITEM_NOT_PARSED",
+            () -> {
+              basicLoggingApi.onInternalError(InternalFeedError.ITEM_NOT_PARSED);
+            });
       }
     }
-    tracker.stop("", "getPayloads", "items", contentIds.size());
+    tracker.stop("", "getPayloads", "items", payloads.size());
     return Result.success(payloads);
   }
 

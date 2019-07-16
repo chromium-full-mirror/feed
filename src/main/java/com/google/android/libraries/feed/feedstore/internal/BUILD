@@ -6,10 +6,12 @@ android_library(
     name = "internal",
     srcs = glob(["*.java"]),
     deps = [
+        "//src/main/java/com/google/android/libraries/feed/api/host/logging",
         "//src/main/java/com/google/android/libraries/feed/api/host/storage",
         "//src/main/java/com/google/android/libraries/feed/api/internal/common",
         "//src/main/java/com/google/android/libraries/feed/api/internal/store",
         "//src/main/java/com/google/android/libraries/feed/common",
+        "//src/main/java/com/google/android/libraries/feed/common/concurrent",
         "//src/main/java/com/google/android/libraries/feed/common/functional",
         "//src/main/java/com/google/android/libraries/feed/common/intern",
         "//src/main/java/com/google/android/libraries/feed/common/logging",

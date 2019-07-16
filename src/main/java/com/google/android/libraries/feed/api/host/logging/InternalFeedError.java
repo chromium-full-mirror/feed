@@ -83,6 +83,12 @@ public @interface InternalFeedError {
    */
   int TASK_QUEUE_STARVATION = 12;
 
+  /** Represents a call to ContentStorage that returned with a missing item. */
+  int CONTENT_STORAGE_MISSING_ITEM = 13;
+
+  /** Represents bytes from ContentStorage that cannot be parsed into the proto. */
+  int ITEM_NOT_PARSED = 14;
+
   /** The next value that should be used when adding additional values to the IntDef. */
-  int NEXT_VALUE = 13;
+  int NEXT_VALUE = 15;
 }

@@ -22,6 +22,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.google.android.libraries.feed.api.host.logging.InternalFeedError;
 import com.google.android.libraries.feed.api.host.storage.CommitResult;
 import com.google.android.libraries.feed.api.host.storage.ContentMutation;
 import com.google.android.libraries.feed.api.host.storage.ContentStorageDirect;
@@ -41,8 +42,12 @@ import com.google.android.libraries.feed.feedstore.testing.DelegatingContentStor
 import com.google.android.libraries.feed.feedstore.testing.DelegatingJournalStorage;
 import com.google.android.libraries.feed.hostimpl.storage.testing.InMemoryContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.testing.InMemoryJournalStorage;
+import com.google.android.libraries.feed.testing.host.logging.FakeBasicLoggingApi;
+import com.google.common.collect.ImmutableList;
 import com.google.protobuf.ByteString;
+import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.feed.client.StreamDataProto.StreamLocalAction;
+import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
@@ -67,12 +72,12 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
   private final FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(ArrayList::new);
   private final ContentStorageDirect contentStorage = new InMemoryContentStorage();
   private final JournalStorageDirect journalStorage = new InMemoryJournalStorage();
-  private FakeMainThreadRunner mainThreadRunner;
+  private final FakeBasicLoggingApi basicLoggingApi = new FakeBasicLoggingApi();
+  private final FakeMainThreadRunner mainThreadRunner = FakeMainThreadRunner.runTasksImmediately();
 
   @Before
   public void setUp() throws Exception {
     initMocks(this);
-    mainThreadRunner = FakeMainThreadRunner.runTasksImmediately();
   }
 
   @Override
@@ -84,7 +89,9 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
         journalStorage,
         threadUtils,
         fakeClock,
-        new FeedStoreHelper());
+        new FeedStoreHelper(),
+        basicLoggingApi,
+        mainThreadRunner);
   }
 
   @Test
@@ -98,7 +105,9 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
             journalStorage,
             threadUtils,
             fakeClock,
-            new FeedStoreHelper());
+            new FeedStoreHelper(),
+            basicLoggingApi,
+            mainThreadRunner);
     doAnswer(ans -> Result.failure()).when(contentStorageSpy).getAllKeys();
 
     boolean clearSuccess = store.clearNonActionContent();
@@ -116,7 +125,9 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
             journalStorage,
             threadUtils,
             fakeClock,
-            new FeedStoreHelper());
+            new FeedStoreHelper(),
+            basicLoggingApi,
+            mainThreadRunner);
 
     CommitResult commitResult = store.editContent().add(CONTENT_ID, STREAM_PAYLOAD).commit();
     assertThat(commitResult).isEqualTo(CommitResult.SUCCESS);
@@ -146,7 +157,9 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
             journalStorageSpy,
             threadUtils,
             fakeClock,
-            new FeedStoreHelper());
+            new FeedStoreHelper(),
+            basicLoggingApi,
+            mainThreadRunner);
 
     boolean commitResult =
         store
@@ -179,7 +192,9 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
             journalStorageSpy,
             threadUtils,
             fakeClock,
-            new FeedStoreHelper());
+            new FeedStoreHelper(),
+            basicLoggingApi,
+            mainThreadRunner);
     doAnswer(ans -> Result.failure()).when(journalStorageSpy).getAllJournals();
 
     boolean clearSuccess = store.clearNonActionContent();
@@ -411,6 +426,41 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
     Result<Set<StreamUploadableAction>> uploadableActionsResult = store.getAllUploadableActions();
     assertThat(uploadableActionsResult.isSuccessful()).isTrue();
     assertThat(uploadableActionsResult.getValue()).isEmpty();
+  }
+
+  @Test
+  public void getPayloads_noContent() {
+    Result<List<PayloadWithId>> result =
+        getStore(mainThreadRunner).getPayloads(ImmutableList.of("foo"));
+    assertThat(result.isSuccessful()).isTrue();
+    assertThat(result.getValue()).isEmpty();
+    assertThat(basicLoggingApi.lastInternalError)
+        .isEqualTo(InternalFeedError.CONTENT_STORAGE_MISSING_ITEM);
+  }
+
+  @Test
+  public void getPayloads_withContent() {
+    StreamPayload streamPayload =
+        StreamPayload.newBuilder().setStreamFeature(StreamFeature.getDefaultInstance()).build();
+    contentStorage.commit(
+        new ContentMutation.Builder().upsert("foo", streamPayload.toByteArray()).build());
+
+    Result<List<PayloadWithId>> result =
+        getStore(mainThreadRunner).getPayloads(ImmutableList.of("foo"));
+    assertThat(result.isSuccessful()).isTrue();
+    assertThat(result.getValue()).hasSize(1);
+    assertThat(result.getValue().get(0).payload).isEqualTo(streamPayload);
+  }
+
+  @Test
+  public void getPayloads_cannotParse() {
+    contentStorage.commit(new ContentMutation.Builder().upsert("foo", new byte[] {5}).build());
+
+    Result<List<PayloadWithId>> result =
+        getStore(mainThreadRunner).getPayloads(ImmutableList.of("foo"));
+    assertThat(result.isSuccessful()).isTrue();
+    assertThat(result.getValue()).isEmpty();
+    assertThat(basicLoggingApi.lastInternalError).isEqualTo(InternalFeedError.ITEM_NOT_PARSED);
   }
 
   @Test

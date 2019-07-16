@@ -112,7 +112,9 @@ public class FeedStore extends FeedObservable<StoreListener>
             journalStorage,
             threadUtils,
             this.clock,
-            this.storeHelper);
+            this.storeHelper,
+            basicLoggingApi,
+            mainThreadRunner);
     delegate = persistentStore;
   }
 
