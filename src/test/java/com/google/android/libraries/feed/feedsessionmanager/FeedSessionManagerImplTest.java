@@ -798,7 +798,8 @@ public class FeedSessionManagerImplTest {
             timingUtils,
             fakeTaskQueue,
             fakeMainThreadRunner,
-            configuration);
+            configuration,
+            fakeBasicLoggingApi);
     if (sessionId == null) {
       return modelProviderFactory.createNew(/* viewDepthProvider= */ null, uiContext);
     } else {

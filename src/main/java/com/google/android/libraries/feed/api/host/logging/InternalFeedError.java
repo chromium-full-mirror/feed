@@ -41,6 +41,7 @@ import android.support.annotation.IntDef;
   InternalFeedError.ITEM_NOT_PARSED,
   InternalFeedError.STORAGE_MISS_BEYOND_THRESHOLD,
   InternalFeedError.CONTENT_MUTATION_FAILED,
+  InternalFeedError.ROOT_NOT_BOUND_TO_FEATURE,
   InternalFeedError.NEXT_VALUE
 })
 public @interface InternalFeedError {
@@ -102,6 +103,9 @@ public @interface InternalFeedError {
   /** Represents a failed content mutation in FeedSessionManager. */
   int CONTENT_MUTATION_FAILED = 16;
 
+  /** Represents a root feature that is not bound as expected. */
+  int ROOT_NOT_BOUND_TO_FEATURE = 17;
+
   /** The next value that should be used when adding additional values to the IntDef. */
-  int NEXT_VALUE = 17;
+  int NEXT_VALUE = 18;
 }

@@ -18,6 +18,8 @@ import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.host.config.Configuration;
 import com.google.android.libraries.feed.api.host.config.Configuration.ConfigKey;
+import com.google.android.libraries.feed.api.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.api.host.logging.InternalFeedError;
 import com.google.android.libraries.feed.api.host.logging.RequestReason;
 import com.google.android.libraries.feed.api.host.logging.Task;
 import com.google.android.libraries.feed.api.internal.common.ThreadUtils;
@@ -127,6 +129,7 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
   private final MainThreadRunner mainThreadRunner;
   private final ModelChildBinder modelChildBinder;
   private final TimingUtils timingUtils;
+  private final BasicLoggingApi basicLoggingApi;
 
   /*@Nullable*/ private final Predicate<StreamStructure> filterPredicate;
   /*@Nullable*/ private RemoveTrackingFactory<?> removeTrackingFactory;
@@ -135,7 +138,7 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
   private final int pageSize;
   private final int minPageSize;
 
-  /*@Nullable*/ @VisibleForTesting String sessionId;
+  @VisibleForTesting /*@Nullable*/ String sessionId;
 
   @GuardedBy("lock")
   private boolean delayedTriggerRefresh = false;
@@ -151,7 +154,8 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
       TaskQueue taskQueue,
       MainThreadRunner mainThreadRunner,
       /*@Nullable*/ Predicate<StreamStructure> filterPredicate,
-      Configuration config) {
+      Configuration config,
+      BasicLoggingApi basicLoggingApi) {
     this.feedSessionManager = feedSessionManager;
     this.threadUtils = threadUtils;
     this.timingUtils = timingUtils;
@@ -162,6 +166,7 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
     this.pageSize = (int) config.getValueOrDefault(ConfigKey.NON_CACHED_PAGE_SIZE, 0L);
     this.minPageSize = (int) config.getValueOrDefault(ConfigKey.NON_CACHED_MIN_PAGE_SIZE, 0L);
     this.filterPredicate = filterPredicate;
+    this.basicLoggingApi = basicLoggingApi;
 
     CursorProvider cursorProvider =
         parentId -> {
@@ -185,15 +190,17 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
   /*@Nullable*/
   public ModelFeature getRootFeature() {
     synchronized (lock) {
-      if (root == null) {
+      UpdatableModelChild localRoot = root;
+      if (localRoot == null) {
         Logger.i(TAG, "Found Empty Stream");
         return null;
       }
-      if (root.getType() != Type.FEATURE) {
-        Logger.e(TAG, "Root is bound to the wrong type %s", root.getType());
+      if (localRoot.getType() != Type.FEATURE) {
+        basicLoggingApi.onInternalError(InternalFeedError.ROOT_NOT_BOUND_TO_FEATURE);
+        Logger.e(TAG, "Root is bound to the wrong type %s", localRoot.getType());
         return null;
       }
-      return root.getModelFeature();
+      return localRoot.getModelFeature();
     }
   }
 

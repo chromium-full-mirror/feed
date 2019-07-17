@@ -26,6 +26,7 @@ import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.time.TimingUtils;
+import com.google.android.libraries.feed.testing.host.logging.FakeBasicLoggingApi;
 import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,6 +38,7 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class FeedModelProviderFactoryTest {
 
+  private final FakeBasicLoggingApi fakeBasicLoggingApi = new FakeBasicLoggingApi();
   @Mock private ThreadUtils threadUtils;
   @Mock private TimingUtils timingUtils;
   @Mock private FeedSessionManager feedSessionManager;
@@ -60,7 +62,13 @@ public class FeedModelProviderFactoryTest {
   public void testModelProviderFactory() {
     FeedModelProviderFactory factory =
         new FeedModelProviderFactory(
-            feedSessionManager, threadUtils, timingUtils, taskQueue, mainThreadRunner, config);
+            feedSessionManager,
+            threadUtils,
+            timingUtils,
+            taskQueue,
+            mainThreadRunner,
+            config,
+            fakeBasicLoggingApi);
     assertThat(factory.createNew(null, UiContext.getDefaultInstance())).isNotNull();
   }
 }

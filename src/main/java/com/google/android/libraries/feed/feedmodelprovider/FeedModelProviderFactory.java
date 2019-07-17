@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.feedmodelprovider;
 
 import com.google.android.libraries.feed.api.host.config.Configuration;
+import com.google.android.libraries.feed.api.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.api.internal.common.ThreadUtils;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider.ViewDepthProvider;
@@ -38,6 +39,7 @@ public final class FeedModelProviderFactory implements ModelProviderFactory {
   private final TaskQueue taskQueue;
   private final MainThreadRunner mainThreadRunner;
   private final Configuration config;
+  private final BasicLoggingApi basicLoggingApi;
 
   public FeedModelProviderFactory(
       FeedSessionManager feedSessionManager,
@@ -45,13 +47,15 @@ public final class FeedModelProviderFactory implements ModelProviderFactory {
       TimingUtils timingUtils,
       TaskQueue taskQueue,
       MainThreadRunner mainThreadRunner,
-      Configuration config) {
+      Configuration config,
+      BasicLoggingApi basicLoggingApi) {
     this.feedSessionManager = feedSessionManager;
     this.threadUtils = threadUtils;
     this.timingUtils = timingUtils;
     this.taskQueue = taskQueue;
     this.mainThreadRunner = mainThreadRunner;
     this.config = config;
+    this.basicLoggingApi = basicLoggingApi;
   }
 
   @Override
@@ -64,7 +68,8 @@ public final class FeedModelProviderFactory implements ModelProviderFactory {
             taskQueue,
             mainThreadRunner,
             null,
-            config);
+            config,
+            basicLoggingApi);
     feedSessionManager.getExistingSession(sessionId, modelProvider, uiContext);
     return modelProvider;
   }
@@ -88,7 +93,8 @@ public final class FeedModelProviderFactory implements ModelProviderFactory {
             taskQueue,
             mainThreadRunner,
             filterPredicate,
-            config);
+            config,
+            basicLoggingApi);
     feedSessionManager.getNewSession(
         modelProvider, modelProvider.getViewDepthProvider(viewDepthProvider), uiContext);
     return modelProvider;

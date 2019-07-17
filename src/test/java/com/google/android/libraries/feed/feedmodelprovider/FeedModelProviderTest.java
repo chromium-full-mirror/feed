@@ -27,6 +27,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.host.config.Configuration;
 import com.google.android.libraries.feed.api.host.config.Configuration.ConfigKey;
+import com.google.android.libraries.feed.api.host.logging.InternalFeedError;
 import com.google.android.libraries.feed.api.host.logging.RequestReason;
 import com.google.android.libraries.feed.api.internal.common.PayloadWithId;
 import com.google.android.libraries.feed.api.internal.common.ThreadUtils;
@@ -55,6 +56,7 @@ import com.google.android.libraries.feed.feedmodelprovider.FeedModelProvider.Tok
 import com.google.android.libraries.feed.feedmodelprovider.FeedModelProvider.TokenTracking;
 import com.google.android.libraries.feed.feedmodelprovider.internal.UpdatableModelChild;
 import com.google.android.libraries.feed.feedmodelprovider.internal.UpdatableModelToken;
+import com.google.android.libraries.feed.testing.host.logging.FakeBasicLoggingApi;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
@@ -83,6 +85,7 @@ public class FeedModelProviderTest {
 
   private final ContentIdGenerators idGenerators = new ContentIdGenerators();
   private final String rootContentId = idGenerators.createRootContentId(0);
+  private final FakeBasicLoggingApi fakeBasicLoggingApi = new FakeBasicLoggingApi();
 
   @Mock private TaskQueue taskQueue;
   @Mock private FeedSessionManager feedSessionManager;
@@ -631,6 +634,18 @@ public class FeedModelProviderTest {
   }
 
   @Test
+  public void testGetEmptyRoot() {
+    FeedModelProvider modelProvider = createFeedModelProviderWithConfig();
+    ModelMutation mutation = getRootedModelMutator(modelProvider);
+    childBindings.clear();
+    mutation.commit();
+
+    assertThat(modelProvider.getRootFeature()).isNull();
+    assertThat(fakeBasicLoggingApi.lastInternalError)
+        .isEqualTo(InternalFeedError.ROOT_NOT_BOUND_TO_FEATURE);
+  }
+
+  @Test
   public void testGetAllRootChildren() {
     FeedModelProvider modelProvider = createFeedModelProviderWithConfig();
     int featureCnt = 3;
@@ -703,7 +718,8 @@ public class FeedModelProviderTest {
         taskQueue,
         fakeMainThreadRunner,
         null,
-        config);
+        config,
+        fakeBasicLoggingApi);
   }
 
   private ModelMutation createTopLevelFeatures(ModelProvider modelProvider, int featureCount) {

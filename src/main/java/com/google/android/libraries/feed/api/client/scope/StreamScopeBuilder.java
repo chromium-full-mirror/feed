@@ -165,7 +165,13 @@ public final class StreamScopeBuilder {
     if (modelProviderFactory == null) {
       modelProviderFactory =
           new FeedModelProviderFactory(
-              feedSessionManager, threadUtils, timingUtils, taskQueue, mainThreadRunner, config);
+              feedSessionManager,
+              threadUtils,
+              timingUtils,
+              taskQueue,
+              mainThreadRunner,
+              config,
+              basicLoggingApi);
     }
     if (actionParserFactory == null) {
       actionParserFactory = new FeedActionParserFactory(protocolAdapter, basicLoggingApi);

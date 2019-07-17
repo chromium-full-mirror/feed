@@ -152,7 +152,8 @@ public class InfraIntegrationScope {
             timingUtils,
             taskQueue,
             fakeMainThreadRunner,
-            configuration);
+            configuration,
+            fakeBasicLoggingApi);
     requestManager = new RequestManagerImpl(fakeFeedRequestManager, feedSessionManager);
   }
 
