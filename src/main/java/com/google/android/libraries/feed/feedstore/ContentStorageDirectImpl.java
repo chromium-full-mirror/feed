@@ -21,6 +21,7 @@ import com.google.android.libraries.feed.api.host.storage.ContentStorageDirect;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.MainThreadCaller;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -43,6 +44,10 @@ public final class ContentStorageDirectImpl extends MainThreadCaller
 
   @Override
   public Result<Map<String, byte[]>> get(List<String> keys) {
+    if (keys.isEmpty()) {
+      return Result.success(Collections.emptyMap());
+    }
+
     return mainThreadCaller(
         LOCATION + "get", (consumer) -> contentStorage.get(keys, consumer), Result.failure());
   }
