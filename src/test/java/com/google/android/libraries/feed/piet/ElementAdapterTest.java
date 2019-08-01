@@ -856,7 +856,7 @@ public class ElementAdapterTest {
 
     adapter.bindModel(Element.getDefaultInstance(), frameContext);
 
-    assertThat(adapter.getView().getContentDescription().toString()).isEmpty();
+    assertThat(adapter.getView().getContentDescription()).isNull();
   }
 
   @Test

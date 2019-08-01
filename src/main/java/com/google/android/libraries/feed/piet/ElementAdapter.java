@@ -292,9 +292,13 @@ abstract class ElementAdapter<V extends View, M> {
       }
     }
 
-    getBaseView()
-        .setContentDescription(
-            getAccessibilityString(baseElement.getAccessibility(), frameContext));
+    CharSequence contentDescription =
+        getAccessibilityString(baseElement.getAccessibility(), frameContext);
+    if (contentDescription.length() > 0) {
+      getBaseView().setContentDescription(contentDescription);
+    } else {
+      getBaseView().setContentDescription(null);
+    }
     LogDataCallback callback = parameters.hostProviders.getLogDataCallback();
     if (callback != null) {
       switch (baseElement.getLogDataValueCase()) {
