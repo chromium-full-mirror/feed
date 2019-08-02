@@ -24,6 +24,7 @@ import com.google.android.libraries.feed.api.internal.common.PayloadWithId;
 import com.google.android.libraries.feed.api.internal.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.internal.modelprovider.ModelProvider.ViewDepthProvider;
 import com.google.android.libraries.feed.api.internal.store.Store;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeDirectExecutor;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeTaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.time.TimingUtils;
@@ -31,6 +32,7 @@ import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelProvider;
 import com.google.android.libraries.feed.testing.store.FakeStore;
 import com.google.search.now.feed.client.StreamDataProto.SessionMetadata;
+import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSessions;
@@ -98,6 +100,24 @@ public class SessionCacheTest {
     assertThat(sessionCache.getHead()).isNotNull();
     assertThat(sessionCache.getHead().isHeadEmpty()).isFalse();
     assertThat(sessionCache.getHead().getSchemaVersion()).isEqualTo(schemaVersion);
+  }
+
+  @Test
+  public void testInitialization_accessibleContentShouldBeDeterminedAtGcTime() {
+    FakeDirectExecutor fakeDirectExecutor = FakeDirectExecutor.queueAllTasks(fakeThreadUtils);
+    fakeTaskQueue = new FakeTaskQueue(fakeClock, fakeDirectExecutor);
+    fakeStore = new FakeStore(fakeThreadUtils, fakeTaskQueue, fakeClock);
+    fakeThreadUtils.enforceMainThread(false);
+    fakeTaskQueue.initialize(() -> {});
+    sessionCache = getSessionCache();
+
+    Session session = populateSession(1, 2, /* commitToStore= */ true);
+    sessionCache.initialize();
+    setSessions(session);
+    fakeDirectExecutor.runAllTasks(); // Run GC.
+
+    assertThat(fakeDirectExecutor.hasTasks()).isFalse();
+    assertPayloads(/* featureCnt= */ 2);
   }
 
   @Test
@@ -501,12 +521,20 @@ public class SessionCacheTest {
             .setContentId(rootId)
             .build());
     for (int i = 0; i < featureCnt; i++) {
+      String contentId = idGenerators.createFeatureContentId(i);
       head.add(
           StreamStructure.newBuilder()
               .setOperation(Operation.UPDATE_OR_APPEND)
-              .setContentId(idGenerators.createFeatureContentId(i))
+              .setContentId(contentId)
               .setParentContentId(rootId)
               .build());
+      if (commitToStore) {
+        fakeStore.setContent(
+            contentId,
+            StreamPayload.newBuilder()
+                .setStreamFeature(StreamFeature.getDefaultInstance())
+                .build());
+      }
     }
     session.setSessionId("stream:" + id);
     session.bindModelProvider(fakeModelProvider, mock(ViewDepthProvider.class));
@@ -532,6 +560,13 @@ public class SessionCacheTest {
     for (Session session : testSessions) {
       sessionCache.putAttached(
           session.getSessionId(), /* creationTimeMillis= */ 0L, SCHEMA_VERSION, session);
+    }
+  }
+
+  private void assertPayloads(int featureCnt) {
+    for (int i = 0; i < featureCnt; i++) {
+      String contentId = idGenerators.createFeatureContentId(i);
+      assertThat(fakeStore.getContentById(contentId)).hasSize(1);
     }
   }
 }

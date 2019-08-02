@@ -25,9 +25,13 @@ public final class FakeTaskQueue extends TaskQueue {
   private boolean completeResetWasCalled = false;
 
   public FakeTaskQueue(FakeClock fakeClock, FakeThreadUtils fakeThreadUtils) {
+    this(fakeClock, FakeDirectExecutor.runTasksImmediately(fakeThreadUtils));
+  }
+
+  public FakeTaskQueue(FakeClock fakeClock, FakeDirectExecutor fakeDirectExecutor) {
     super(
         new FakeBasicLoggingApi(),
-        FakeDirectExecutor.runTasksImmediately(fakeThreadUtils),
+        fakeDirectExecutor,
         FakeMainThreadRunner.create(fakeClock),
         fakeClock);
   }
