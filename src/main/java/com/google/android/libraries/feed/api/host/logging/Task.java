@@ -56,7 +56,6 @@ import android.support.annotation.IntDef;
   Task.SESSION_MANAGER_TRIGGER_REFRESH,
   Task.SESSION_MUTATION,
   Task.TASK_QUEUE_INITIALIZE,
-  Task.UPDATE_CONTENT_TRACKER,
   Task.UPLOAD_ALL_ACTIONS_FOR_URL,
   Task.NEXT_VALUE,
 })
@@ -95,7 +94,6 @@ public @interface Task {
   int SESSION_MANAGER_TRIGGER_REFRESH = 28;
   int SESSION_MUTATION = 29;
   int TASK_QUEUE_INITIALIZE = 30;
-  int UPDATE_CONTENT_TRACKER = 31;
   int UPLOAD_ALL_ACTIONS_FOR_URL = 32;
 
   // The next value that should be used when adding additional values to the IntDef.

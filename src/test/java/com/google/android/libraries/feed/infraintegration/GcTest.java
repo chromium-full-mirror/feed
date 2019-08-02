@@ -20,10 +20,12 @@ import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.host.config.Configuration;
 import com.google.android.libraries.feed.api.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.api.host.logging.RequestReason;
+import com.google.android.libraries.feed.api.host.scheduler.SchedulerApi.RequestBehavior;
 import com.google.android.libraries.feed.api.internal.common.PayloadWithId;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.testing.InfraIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ResponseBuilder;
-import com.google.android.libraries.feed.common.time.testing.FakeClock;
+import com.google.android.libraries.feed.testing.host.scheduler.FakeSchedulerApi;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
@@ -60,13 +62,15 @@ public final class GcTest {
         ResponseBuilder.createFeatureContentId(3), ResponseBuilder.createFeatureContentId(4)
       };
   private static final long LIFETIME_MS = Duration.ofHours(1).toMillis();
+  private static final long TIMEOUT_MS = Duration.ofSeconds(5).toMillis();
 
+  private final Configuration configuration =
+      new Configuration.Builder().put(ConfigKey.SESSION_LIFETIME_MS, LIFETIME_MS).build();
   private final InfraIntegrationScope scope =
       new InfraIntegrationScope.Builder()
-          .setConfiguration(
-              new Configuration.Builder().put(ConfigKey.SESSION_LIFETIME_MS, LIFETIME_MS).build())
+          .setConfiguration(configuration)
+          .withTimeoutSessionConfiguration(TIMEOUT_MS)
           .build();
-  private final FakeClock fakeClock = scope.getFakeClock();
 
   @Test
   public void testGc_contentInLiveSessionRetained() {
@@ -93,7 +97,7 @@ public final class GcTest {
             scope.getFeedSessionManager().getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
 
     // Advance the clock without expiring the first session.
-    fakeClock.advance(LIFETIME_MS / 2);
+    scope.getFakeClock().advance(LIFETIME_MS / 2);
     InfraIntegrationScope secondScope = scope.clone();
     assertPayloads(REQUEST_1, secondScope, /* shouldExist= */ true);
     assertSharedStates(new ContentId[] {PIET_SHARED_STATE_1}, secondScope, /* shouldExist= */ true);
@@ -127,13 +131,49 @@ public final class GcTest {
 
     // Advance the clock to expire the first session, create a new scope that will run
     // initialization and delete content from the expired session.
-    fakeClock.advance(LIFETIME_MS + 1L);
+    scope.getFakeClock().advance(LIFETIME_MS + 1L);
     InfraIntegrationScope secondScope = scope.clone();
     assertPayloads(REQUEST_1, secondScope, /* shouldExist= */ false);
     assertSharedStates(
         new ContentId[] {PIET_SHARED_STATE_1}, secondScope, /* shouldExist= */ false);
     assertPayloads(REQUEST_2, secondScope, /* shouldExist= */ true);
     assertSharedStates(new ContentId[] {PIET_SHARED_STATE_2}, secondScope, /* shouldExist= */ true);
+  }
+
+  @Test
+  public void testGc_contentBranchedMidInitializationRetained() {
+    InfraIntegrationScope scope =
+        new InfraIntegrationScope.Builder()
+            .setConfiguration(configuration)
+            .setSchedulerApi(
+                new FakeSchedulerApi(FakeThreadUtils.withoutThreadChecks())
+                    .setRequestBehavior(RequestBehavior.REQUEST_WITH_CONTENT))
+            .withQueuingTasks()
+            .withTimeoutSessionConfiguration(TIMEOUT_MS)
+            .build();
+
+    // Populate HEAD with REQUEST_1.
+    scope
+        .getFakeFeedRequestManager()
+        .queueResponse(createResponse(REQUEST_1, PIET_SHARED_STATE_1))
+        .triggerRefresh(
+            RequestReason.OPEN_WITHOUT_CONTENT,
+            scope.getFeedSessionManager().getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+    scope.getFakeDirectExecutor().runAllTasks();
+
+    // Make a new scope and enqueue a request to be sent on the next new session. GC should run
+    // after the new session is created and branched off a HEAD containing REQUEST_1.
+    InfraIntegrationScope secondScope = scope.clone();
+    secondScope
+        .getFakeFeedRequestManager()
+        .queueResponse(createResponse(REQUEST_2, PIET_SHARED_STATE_2));
+    secondScope
+        .getModelProviderFactory()
+        .createNew(/* viewDepthProvider= */ null, UiContext.getDefaultInstance());
+    secondScope.getFakeDirectExecutor().runAllTasks();
+    assertThat(secondScope.getFakeDirectExecutor().hasTasks()).isFalse();
+    assertPayloads(REQUEST_1, secondScope, /* shouldExist= */ true);
+    assertPayloads(REQUEST_2, secondScope, /* shouldExist= */ true);
   }
 
   private static void assertPayloads(

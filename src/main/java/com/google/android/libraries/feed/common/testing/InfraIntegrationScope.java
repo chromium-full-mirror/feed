@@ -51,7 +51,6 @@ import com.google.protobuf.GeneratedMessageLite.GeneratedExtension;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -69,8 +68,8 @@ public class InfraIntegrationScope {
 
   private final Configuration configuration;
   private final ContentStorageDirect contentStorage;
-  private final Executor executor;
   private final FakeClock fakeClock;
+  private final FakeDirectExecutor fakeDirectExecutor;
   private final FakeMainThreadRunner fakeMainThreadRunner;
   private final FakeFeedRequestManager fakeFeedRequestManager;
   private final FakeThreadUtils fakeThreadUtils;
@@ -86,7 +85,7 @@ public class InfraIntegrationScope {
 
   private InfraIntegrationScope(
       FakeThreadUtils fakeThreadUtils,
-      Executor executor,
+      FakeDirectExecutor fakeDirectExecutor,
       SchedulerApi schedulerApi,
       FakeClock fakeClock,
       Configuration configuration,
@@ -96,8 +95,8 @@ public class InfraIntegrationScope {
     this.fakeClock = fakeClock;
     this.configuration = configuration;
     this.contentStorage = contentStorage;
-    this.executor = executor;
     this.journalStorage = journalStorage;
+    this.fakeDirectExecutor = fakeDirectExecutor;
     this.fakeMainThreadRunner = fakeMainThreadRunner;
     this.schedulerApi = schedulerApi;
     this.fakeThreadUtils = fakeThreadUtils;
@@ -106,7 +105,8 @@ public class InfraIntegrationScope {
     FakeBasicLoggingApi fakeBasicLoggingApi = new FakeBasicLoggingApi();
 
     FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(new ExtensionProvider());
-    taskQueue = new TaskQueue(fakeBasicLoggingApi, executor, fakeMainThreadRunner, fakeClock);
+    taskQueue =
+        new TaskQueue(fakeBasicLoggingApi, fakeDirectExecutor, fakeMainThreadRunner, fakeClock);
     store =
         new FeedStore(
             timingUtils,
@@ -173,6 +173,10 @@ public class InfraIntegrationScope {
     return fakeClock;
   }
 
+  public FakeDirectExecutor getFakeDirectExecutor() {
+    return fakeDirectExecutor;
+  }
+
   public FakeMainThreadRunner getFakeMainThreadRunner() {
     return fakeMainThreadRunner;
   }
@@ -205,7 +209,7 @@ public class InfraIntegrationScope {
   public InfraIntegrationScope clone() {
     return new InfraIntegrationScope(
         fakeThreadUtils,
-        executor,
+        fakeDirectExecutor,
         schedulerApi,
         fakeClock,
         configuration,
@@ -229,6 +233,8 @@ public class InfraIntegrationScope {
     private final FakeThreadUtils fakeThreadUtils = FakeThreadUtils.withThreadChecks();
 
     private Configuration configuration = Configuration.getDefaultInstance();
+    private FakeDirectExecutor fakeDirectExecutor =
+        FakeDirectExecutor.runTasksImmediately(fakeThreadUtils);
     private SchedulerApi schedulerApi = new FakeSchedulerApi(fakeThreadUtils);
 
     public Builder() {}
@@ -243,9 +249,14 @@ public class InfraIntegrationScope {
       return this;
     }
 
+    public Builder withQueuingTasks() {
+      fakeDirectExecutor = FakeDirectExecutor.queueAllTasks(fakeThreadUtils);
+      return this;
+    }
+
     public Builder withTimeoutSessionConfiguration(long timeoutMs) {
-      this.configuration =
-          new Configuration.Builder()
+      configuration =
+          configuration.toBuilder()
               .put(ConfigKey.USE_TIMEOUT_SCHEDULER, USE_TIMEOUT_SCHEDULER)
               .put(ConfigKey.TIMEOUT_TIMEOUT_MS, timeoutMs)
               .build();
@@ -255,7 +266,7 @@ public class InfraIntegrationScope {
     public InfraIntegrationScope build() {
       return new InfraIntegrationScope(
           fakeThreadUtils,
-          new FakeDirectExecutor(fakeThreadUtils),
+          fakeDirectExecutor,
           schedulerApi,
           fakeClock,
           configuration,

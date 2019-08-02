@@ -27,7 +27,7 @@ public final class FakeTaskQueue extends TaskQueue {
   public FakeTaskQueue(FakeClock fakeClock, FakeThreadUtils fakeThreadUtils) {
     super(
         new FakeBasicLoggingApi(),
-        new FakeDirectExecutor(fakeThreadUtils),
+        FakeDirectExecutor.runTasksImmediately(fakeThreadUtils),
         FakeMainThreadRunner.create(fakeClock),
         fakeClock);
   }

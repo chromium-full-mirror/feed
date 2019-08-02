@@ -416,7 +416,6 @@ public final class SessionCache implements Dumpable {
 
     HeadSessionImpl headSession = Validators.checkNotNull(head);
     String headSessionId = headSession.getSessionId();
-    List<SessionContentTracker> sessionContentTrackers = new ArrayList<>();
     boolean cleanupSessions = false;
     for (StreamSession session : sessionList) {
       SessionMetadata metadata = getOrCreateSessionMetadata(session);
@@ -448,28 +447,6 @@ public final class SessionCache implements Dumpable {
         }
         sessionsMetadata.put(session.getSessionId(), metadata);
       }
-      SessionContentTracker sessionContentTracker =
-          new SessionContentTracker(/* supportsClearAll= */ false);
-      // Unbound sessions are able to be created through restore so we only create content trackers
-      // here and delay creation of unbound sessions until they are actually needed.
-      sessionContentTrackers.add(sessionContentTracker);
-
-      // Task which updates the newly created content tracker.
-      Runnable updateContentTracker =
-          () -> {
-            Logger.i(TAG, "Task: updateContentTracker %s", sessionId);
-            ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
-            Result<List<StreamStructure>> streamStructuresResult =
-                store.getStreamStructures(sessionId);
-            if (streamStructuresResult.isSuccessful()) {
-              sessionContentTracker.update(streamStructuresResult.getValue());
-            } else {
-              Logger.e(TAG, "Failed to read unbound session state, ignored");
-            }
-            timeTracker.stop("task", "updateContentTracker");
-            unboundSessionCount++;
-          };
-      taskQueue.execute(Task.UPDATE_CONTENT_TRACKER, TaskType.BACKGROUND, updateContentTracker);
     }
 
     if (cleanupSessions) {
@@ -484,9 +461,7 @@ public final class SessionCache implements Dumpable {
         Task.GARBAGE_COLLECT_CONTENT,
         TaskType.BACKGROUND,
         store.triggerContentGc(
-            reservedContentIds,
-            getAccessibleContentSupplier(sessionContentTrackers),
-            shouldKeepSharedStates()));
+            reservedContentIds, getAccessibleContentSupplier(), shouldKeepSharedStates()));
   }
 
   private boolean shouldKeepSharedStates() {
@@ -503,15 +478,31 @@ public final class SessionCache implements Dumpable {
     return false;
   }
 
-  private Supplier<Set<String>> getAccessibleContentSupplier(
-      List<SessionContentTracker> sessionContentTrackers) {
+  private Supplier<Set<String>> getAccessibleContentSupplier() {
     return () -> {
-      /*
-       * We add head separately to make sure it is not GC-ed, just in case it is not present
-       * in {@link #getPersistedSessions()}.
-       */
+      threadUtils.checkNotMainThread();
+      Logger.i(TAG, "Determining accessible content");
+
+      // SessionIds should be determined at the time GC runs.
+      Set<String> sessionIds;
+      synchronized (lock) {
+        sessionIds = sessionsMetadata.keySet();
+      }
+
       Set<String> accessibleContent = new HashSet<>(head.getContentInSession());
-      for (SessionContentTracker sessionContentTracker : sessionContentTrackers) {
+      for (String sessionId : sessionIds) {
+        if (sessionId.equals(head.getSessionId())) {
+          continue;
+        }
+
+        SessionContentTracker sessionContentTracker =
+            new SessionContentTracker(/* supportsClearAll= */ false);
+        Result<List<StreamStructure>> streamStructuresResult = store.getStreamStructures(sessionId);
+        if (streamStructuresResult.isSuccessful()) {
+          sessionContentTracker.update(streamStructuresResult.getValue());
+        } else {
+          Logger.e(TAG, "Failed to read unbound session state, ignored");
+        }
         accessibleContent.addAll(sessionContentTracker.getContentIds());
       }
       return accessibleContent;

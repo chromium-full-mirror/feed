@@ -191,6 +191,11 @@ public class Configuration {
     return values.containsKey(key);
   }
 
+  /** Returns a {@link Builder} for this {@link Configuration}. */
+  public Builder toBuilder() {
+    return new Builder(values);
+  }
+
   /** Returns a default {@link Configuration}. */
   public static Configuration getDefaultInstance() {
     return new Builder().build();
@@ -198,7 +203,15 @@ public class Configuration {
 
   /** Builder class used to create {@link Configuration} objects. */
   public static final class Builder {
-    private final HashMap<String, Object> values = new HashMap<>();
+    private final HashMap<String, Object> values;
+
+    private Builder(HashMap<String, Object> values) {
+      this.values = new HashMap<>(values);
+    }
+
+    public Builder() {
+      this(new HashMap<>());
+    }
 
     public Builder put(@ConfigKey String key, String value) {
       values.put(key, value);
