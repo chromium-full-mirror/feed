@@ -66,6 +66,8 @@ public class Configuration {
     ConfigKey.INITIAL_NON_CACHED_PAGE_SIZE,
     // Only update HEAD and the session making a page request
     ConfigKey.LIMIT_PAGE_UPDATES,
+    // Do not update HEAD when making a page request
+    ConfigKey.LIMIT_PAGE_UPDATES_IN_HEAD,
     // Time in ms that content should be rendered in order to be considered an immediate open
     ConfigKey.LOGGING_IMMEDIATE_CONTENT_THRESHOLD_MS,
     // Boolean which if true, will ask the server for an menu option to launch the interest
@@ -128,6 +130,7 @@ public class Configuration {
     String FEED_UI_ENABLED = "feed_ui_enabled";
     String INITIAL_NON_CACHED_PAGE_SIZE = "initial_non_cached_page_size";
     String LIMIT_PAGE_UPDATES = "limit_page_updates";
+    String LIMIT_PAGE_UPDATES_IN_HEAD = "limit_page_updates_in_head";
     String LOGGING_IMMEDIATE_CONTENT_THRESHOLD_MS = "logging_immediate_content_threshold_ms";
     String MANAGE_INTERESTS_ENABLED = "manage_interests_enabled";
     String MINIMUM_VALID_ACTION_RATIO = "minimum_valid_action_ratio";

@@ -32,6 +32,7 @@ public final class SessionFactory {
   private final ThreadUtils threadUtils;
   private final boolean useTimeScheduler;
   private final boolean limitPagingUpdates;
+  private final boolean limitPagingUpdatesInHead;
 
   public SessionFactory(
       Store store,
@@ -45,6 +46,8 @@ public final class SessionFactory {
     this.threadUtils = threadUtils;
     useTimeScheduler = config.getValueOrDefault(ConfigKey.USE_TIMEOUT_SCHEDULER, false);
     limitPagingUpdates = config.getValueOrDefault(ConfigKey.LIMIT_PAGE_UPDATES, true);
+    limitPagingUpdatesInHead =
+        config.getValueOrDefault(ConfigKey.LIMIT_PAGE_UPDATES_IN_HEAD, false);
   }
 
   public InitializableSession getSession() {
@@ -54,6 +57,6 @@ public final class SessionFactory {
   }
 
   public HeadSessionImpl getHeadSession() {
-    return new HeadSessionImpl(store, timingUtils);
+    return new HeadSessionImpl(store, timingUtils, limitPagingUpdatesInHead);
   }
 }

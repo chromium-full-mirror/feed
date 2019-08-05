@@ -40,6 +40,7 @@ public class HeadSessionImpl implements Session, Dumpable {
   private final TimingUtils timingUtils;
   private final SessionContentTracker sessionContentTracker =
       new SessionContentTracker(/* supportsClearAll= */ true);
+  private final boolean limitPageUpdatesInHead;
 
   private int schemaVersion = 0;
 
@@ -47,9 +48,10 @@ public class HeadSessionImpl implements Session, Dumpable {
   private int updateCount = 0;
   private int storeMutationFailures = 0;
 
-  HeadSessionImpl(Store store, TimingUtils timingUtils) {
+  HeadSessionImpl(Store store, TimingUtils timingUtils, boolean limitPageUpdatesInHead) {
     this.store = store;
     this.timingUtils = timingUtils;
+    this.limitPageUpdatesInHead = limitPageUpdatesInHead;
   }
 
   /** Initialize head from the stored stream structures. */
@@ -95,6 +97,10 @@ public class HeadSessionImpl implements Session, Dumpable {
         // the session.
         timeTracker.stop("updateSessionIgnored", getSessionId(), "Token Not Found", contentId);
         Logger.i(TAG, "Token %s not found in session, ignoring update", contentId);
+        return;
+      } else if (limitPageUpdatesInHead) {
+        timeTracker.stop("updateSessionIgnored", getSessionId());
+        Logger.i(TAG, "Limited paging updates in HEAD");
         return;
       }
     }

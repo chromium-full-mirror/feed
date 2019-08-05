@@ -45,7 +45,8 @@ public class HeadSessionImplTest {
   private final TimingUtils timingUtils = new TimingUtils();
   private final FakeStore fakeStore =
       new FakeStore(fakeThreadUtils, new FakeTaskQueue(fakeClock, fakeThreadUtils), fakeClock);
-  private final HeadSessionImpl headSession = new HeadSessionImpl(fakeStore, timingUtils);
+  private final HeadSessionImpl headSession =
+      new HeadSessionImpl(fakeStore, timingUtils, /* limitPageUpdatesInHead= */ false);
 
   @Test
   public void testMinimalSessionManager() {
@@ -127,6 +128,29 @@ public class HeadSessionImplTest {
     headSession.updateSession(false, streamStructures, SCHEMA_VERSION, context);
     // features 3, plus the token added above
     assertThat(headSession.getContentInSession()).hasSize(featureCnt + 1);
+  }
+
+  @Test
+  public void testUpdateFromToken_limitPageUpdatesInHead() {
+    HeadSessionImpl headSession =
+        new HeadSessionImpl(fakeStore, timingUtils, /* limitPageUpdatesInHead= */ true);
+
+    int featureCnt = 3;
+    InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder();
+    addFeatures(protocolBuilder, featureCnt, 1);
+    List<StreamStructure> streamStructures = protocolBuilder.buildAsStreamStructure();
+
+    StreamToken token =
+        StreamToken.newBuilder().setContentId(contentIdGenerators.createTokenContentId(2)).build();
+
+    // The token needs to be in the session so update its content IDs with the token.
+    List<StreamStructure> tokenStructures =
+        new InternalProtocolBuilder().addToken(token.getContentId()).buildAsStreamStructure();
+    headSession.updateSession(false, tokenStructures, SCHEMA_VERSION, null);
+
+    MutationContext context = new MutationContext.Builder().setContinuationToken(token).build();
+    headSession.updateSession(false, streamStructures, SCHEMA_VERSION, context);
+    assertThat(headSession.getContentInSession()).hasSize(1);
   }
 
   @Test
@@ -302,7 +326,8 @@ public class HeadSessionImplTest {
 
   /** Re-read the session from disk and return the set of content. */
   private Set<String> getContentInSession() {
-    HeadSessionImpl headSession = new HeadSessionImpl(fakeStore, timingUtils);
+    HeadSessionImpl headSession =
+        new HeadSessionImpl(fakeStore, timingUtils, /* limitPageUpdatesInHead= */ false);
     headSession.initializeSession(
         fakeStore.getStreamStructures(Store.HEAD_SESSION_ID).getValue(), /* schemaVersion= */ 0);
     return headSession.getContentInSession();
