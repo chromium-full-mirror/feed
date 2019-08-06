@@ -7,7 +7,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ContentCacheTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/internal/common/testing",
@@ -26,7 +25,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["HeadSessionImplTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/common",
@@ -51,7 +49,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["HeadAsStructureTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/internal/common/testing",
@@ -76,7 +73,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["SessionManagerMutationTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/client/knowncontent",
@@ -110,7 +106,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["SessionCacheTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/host/config",
@@ -138,7 +133,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["SessionImplTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/common",
@@ -164,7 +158,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["SessionContentTrackerTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/internal/common/testing",
@@ -182,7 +175,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["TimeoutSessionImplTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/common",

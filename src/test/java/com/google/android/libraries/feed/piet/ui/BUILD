@@ -7,7 +7,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["AspectRatioScalingImageViewTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/piet/ui",
@@ -23,7 +22,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["BitmapMaskingRoundedCornerDelegateTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/common/functional",
@@ -41,7 +39,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["BorderDrawableTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/common/ui",
@@ -59,7 +56,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["GradientDrawableTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/common/functional",
@@ -77,7 +73,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["GradientShaderTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/common/functional",
@@ -95,7 +90,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["GridRowViewTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/common/functional",
@@ -113,7 +107,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["RoundedCornerViewHelperTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/piet/ui",
@@ -130,7 +123,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["RoundedCornerMaskCacheTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/common/testing",
@@ -147,7 +139,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["RoundedCornerWrapperViewTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/common/functional",
