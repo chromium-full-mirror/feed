@@ -7,7 +7,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["BasicStreamScrollMonitorTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/scroll",
@@ -27,7 +26,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["BasicStreamScrollTrackerTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/host/logging",
@@ -48,7 +46,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ScrollRestorerTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/host/config",

@@ -7,7 +7,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ResettableOneShotVisibilityLoggingListenerTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/viewloggingupdater",
@@ -24,7 +23,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ViewLoggingUpdaterTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/viewloggingupdater",

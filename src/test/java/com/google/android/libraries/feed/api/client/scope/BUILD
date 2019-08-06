@@ -7,7 +7,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ProcessScopeBuilderTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/client/scope:processscope",
@@ -35,7 +34,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["StreamScopeBuilderTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/client/scope:streamscope",

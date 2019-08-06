@@ -7,7 +7,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["FeedModelProviderFactoryTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/host/config",
@@ -32,7 +31,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["FeedModelProviderTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/host/config",

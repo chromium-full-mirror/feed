@@ -7,7 +7,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["CardDriverTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/client/stream",
@@ -45,7 +44,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ClusterDriverTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/client/stream",
@@ -82,7 +80,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ContentDriverTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/client/knowncontent",
@@ -128,7 +125,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ContinuationDriverTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/host/config",
@@ -157,7 +153,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["HeaderDriverTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/client/stream",
@@ -176,7 +171,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["NoContentDriverTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/drivers",
@@ -194,7 +188,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["StreamDriverTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/client/stream",
@@ -240,7 +233,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ZeroStateDriverTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/client/stream",
