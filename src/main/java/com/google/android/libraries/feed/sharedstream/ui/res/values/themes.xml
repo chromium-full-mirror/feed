@@ -32,7 +32,7 @@
     <item name="feedMoreButtonRipple">@color/feed_alpha_10_modern_blue_300</item>
     <item name="feedTouchNonPressed">@color/feed_modern_grey_900_white_alpha_4</item>
     <item name="feedTextRippleDrawable">@drawable/feed_text_ripple_drawable_dark</item>
-    <item name="feedContextMenuTextColor">@color/feed_modern_grey_500</item>
+    <item name="feedContextMenuTextColor">@color/feed_default_text_color_dark</item>
     <item name="feedPrimaryTextColor">@color/feed_default_text_color_dark</item>
     <item name="feedSecondaryTextColor">@color/feed_default_text_color_secondary_dark</item>
     <item name="feedSpinnerColor">@color/feed_modern_blue_300</item>
