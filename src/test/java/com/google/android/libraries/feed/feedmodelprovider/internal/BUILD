@@ -7,7 +7,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["FeatureChangeImplTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/internal/common/testing",
@@ -27,7 +26,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ModelCursorImplTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/internal/common/testing",
@@ -46,7 +44,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ModelFeatureImplTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/internal/modelprovider",
@@ -65,7 +62,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ModelMutationImplTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/common",
@@ -85,7 +81,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ModelTokenImplTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/internal/modelprovider",

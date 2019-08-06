@@ -7,7 +7,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["PietEventLoggerTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/host/logging",
@@ -25,7 +24,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["PietImageLoaderTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/host/imageloader",
@@ -46,7 +44,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["PietHostBindingProviderTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/piet/host",
@@ -67,7 +64,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["PietCustomElementProviderTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/piet/host",
@@ -86,7 +82,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["PietRequiredContentAdapterTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/sharedstream/piet",

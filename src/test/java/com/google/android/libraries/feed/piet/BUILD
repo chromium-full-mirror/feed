@@ -7,7 +7,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ChunkedTextElementAdapterTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/host/imageloader",
@@ -31,7 +30,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["CustomElementAdapterTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/common/functional",
@@ -53,7 +51,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["DebugLoggerTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/common/ui",
@@ -72,7 +69,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ElementAdapterFactoryTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/common/testing",
@@ -91,7 +87,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ElementAdapterTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/common/functional",
@@ -115,7 +110,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ElementContainerAdapterTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/common/functional",
@@ -137,7 +131,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ElementListAdapterTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/common/functional",
@@ -160,7 +153,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ElementStackAdapterTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/common/functional",
@@ -181,7 +173,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["FrameAdapterImplTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/host/config",
@@ -205,7 +196,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["FrameContextTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/host/config",
@@ -228,7 +218,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["GridRowAdapterTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/host/config",
@@ -254,7 +243,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ImageElementAdapterTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/host/imageloader",
@@ -281,7 +269,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["KeyedRecyclerPoolTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/common/testing",
@@ -301,7 +288,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["LoadImageCallbackTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/common/time/testing",
@@ -320,7 +306,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["MediaQueryHelperTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/common/testing",
@@ -353,7 +338,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ParameterizedTextElementAdapterFactoryTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/common/time/testing",
@@ -374,7 +358,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ParameterizedTextElementAdapterTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/common/testing",
@@ -397,7 +380,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ParameterizedTextEvaluatorTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/common/time/testing",
@@ -417,7 +399,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["PietManagerImplTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/host/config",
@@ -442,7 +423,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["PietStylesHelperTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/common/testing",
@@ -463,7 +443,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["SingleKeyRecyclerPoolTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/common/testing",
@@ -482,7 +461,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["StyleProviderTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/common/functional",
@@ -504,7 +482,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["TemplateBinderTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/host/config",
@@ -527,7 +504,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["TextElementAdapterTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/common/functional",
@@ -552,7 +528,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ViewUtilsTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/piet",

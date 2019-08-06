@@ -7,7 +7,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ContinuationViewHolderTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/host/config",
@@ -28,7 +27,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["HeaderViewHolderTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/client/stream",
@@ -46,7 +44,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["NoContentViewHolderTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/host/stream",
@@ -64,7 +61,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["PietViewHolderTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/host/config",
@@ -100,7 +96,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ZeroStateViewHolderTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/host/stream",

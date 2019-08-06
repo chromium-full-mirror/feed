@@ -7,7 +7,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["PersistentContentStorageTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/internal/common",
@@ -27,7 +26,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["PersistentContentStorageDirectTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/internal/common",
@@ -47,7 +45,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["PersistentJournalStorageTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/internal/common",
@@ -68,7 +65,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["PersistentJournalStorageDirectTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/internal/common",

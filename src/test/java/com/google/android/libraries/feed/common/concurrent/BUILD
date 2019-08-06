@@ -7,7 +7,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["CancelableRunnableTaskTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/common/concurrent",
@@ -23,7 +22,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["SimpleSettableFutureTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/common/concurrent",
@@ -40,7 +38,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["TaskQueueTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/host/logging",

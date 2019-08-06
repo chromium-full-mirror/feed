@@ -7,7 +7,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["LocalActionGcTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/host/storage",
@@ -28,7 +27,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ContentGcTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/host/storage",
@@ -51,7 +49,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["EphemeralFeedStoreTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/internal/store",
@@ -70,7 +67,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["PersistentFeedStoreTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/host/logging",
@@ -100,7 +96,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["StreamPayloadInternerTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/common/intern",
@@ -118,7 +113,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["StreamStructureInternerTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/common/intern",

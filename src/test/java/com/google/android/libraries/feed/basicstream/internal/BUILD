@@ -7,7 +7,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["StreamItemAnimatorTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/client/stream",
@@ -26,7 +25,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["StreamItemTouchCallbacksTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal",
@@ -45,7 +43,6 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["StreamRecyclerViewAdapterTest.java"],
-    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/client/stream",
