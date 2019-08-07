@@ -64,7 +64,6 @@ import com.google.search.now.ui.piet.ImagesProto.Image;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
 import com.google.search.now.ui.piet.StylesProto.EdgeWidths;
-import com.google.search.now.ui.piet.StylesProto.GravityVertical;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import com.google.search.now.ui.piet.TextProto.ParameterizedText;
 import java.util.Collections;
@@ -185,7 +184,6 @@ public class GridRowAdapterTest {
     GridRow model =
         GridRow.newBuilder()
             .addCells(GridCell.newBuilder().setContent(DEFAULT_CONTENT))
-            .setStyleReferences(GRID_STYLES)
             .build();
 
     adapter.createAdapter(asElement(model), frameContext);
@@ -319,9 +317,9 @@ public class GridRowAdapterTest {
                         Content.newBuilder()
                             .setElement(
                                 Element.newBuilder()
+                                    .setStyleReferences(childStyles)
                                     .setImageElement(
                                         ImageElement.newBuilder()
-                                            .setStyleReferences(childStyles)
                                             .setImage(Image.getDefaultInstance())))))
             .build();
 
@@ -355,9 +353,9 @@ public class GridRowAdapterTest {
                         Content.newBuilder()
                             .setElement(
                                 Element.newBuilder()
+                                    .setStyleReferences(childStyles)
                                     .setImageElement(
                                         ImageElement.newBuilder()
-                                            .setStyleReferences(childStyles)
                                             .setImage(Image.getDefaultInstance())))))
             .build();
 
@@ -443,6 +441,11 @@ public class GridRowAdapterTest {
 
   @Test
   public void testOnBindModel_setsLayoutParamsOnCell_verticalGravityCenter() {
+    StyleIdsStack centerVertical =
+        StyleIdsStack.newBuilder().addStyleIds("center_vertical").build();
+    StyleProvider centerVerticalProvider = mock(StyleProvider.class);
+    when(frameContext.makeStyleFor(centerVertical)).thenReturn(centerVerticalProvider);
+    when(centerVerticalProvider.getGravityVertical(anyInt())).thenReturn(Gravity.CENTER_VERTICAL);
     GridRow gridRowTop =
         GridRow.newBuilder()
             .addCells(
@@ -450,9 +453,7 @@ public class GridRowAdapterTest {
                     .setContent(
                         Content.newBuilder()
                             .setElement(
-                                DEFAULT_ELEMENT
-                                    .toBuilder()
-                                    .setGravityVertical(GravityVertical.GRAVITY_MIDDLE))))
+                                DEFAULT_ELEMENT.toBuilder().setStyleReferences(centerVertical))))
             .build();
 
     adapter.createAdapter(asElement(gridRowTop), frameContext);
@@ -708,24 +709,16 @@ public class GridRowAdapterTest {
 
   @Test
   public void testOnBindModel_setsStylesOnlyIfBindingIsDefined() {
-    GridRow gridRowWithStyle =
-        GridRow.newBuilder()
-            .addCells(GridCell.newBuilder().setContent(DEFAULT_CONTENT))
-            .setStyleReferences(GRID_STYLES)
-            .build();
+    GridRow gridRow =
+        GridRow.newBuilder().addCells(GridCell.newBuilder().setContent(DEFAULT_CONTENT)).build();
 
-    adapter.createAdapter(asElement(gridRowWithStyle), frameContext);
+    adapter.createAdapter(asElement(gridRow, GRID_STYLES), frameContext);
     verify(frameContext).makeStyleFor(GRID_STYLES);
 
     // When we bind a new model, the style does not change.
     StyleIdsStack otherStyles = StyleIdsStack.newBuilder().addStyleIds("ignored").build();
-    GridRow gridRowWithOtherStyle =
-        GridRow.newBuilder()
-            .addCells(GridCell.newBuilder().setContent(DEFAULT_CONTENT))
-            .setStyleReferences(otherStyles)
-            .build();
 
-    adapter.bindModel(asElement(gridRowWithOtherStyle), frameContext);
+    adapter.bindModel(asElement(gridRow, otherStyles), frameContext);
     verify(frameContext, never()).makeStyleFor(otherStyles);
 
     // If we bind a model that has a style binding, then the style does get re-applied.
@@ -733,15 +726,10 @@ public class GridRowAdapterTest {
         StyleIdsStack.newBuilder()
             .setStyleBinding(StyleBindingRef.newBuilder().setBindingId("homewardbound"))
             .build();
-    GridRow gridRowWithBoundStyle =
-        GridRow.newBuilder()
-            .addCells(GridCell.newBuilder().setContent(DEFAULT_CONTENT))
-            .setStyleReferences(styleWithBinding)
-            .build();
     StyleProvider otherStyleProvider = mock(StyleProvider.class);
     when(frameContext.makeStyleFor(styleWithBinding)).thenReturn(otherStyleProvider);
 
-    adapter.bindModel(asElement(gridRowWithBoundStyle), frameContext);
+    adapter.bindModel(asElement(gridRow, styleWithBinding), frameContext);
     verify(frameContext).makeStyleFor(styleWithBinding);
     verify(otherStyleProvider).applyElementStyles(adapter);
   }
@@ -984,8 +972,7 @@ public class GridRowAdapterTest {
 
   @Test
   public void testGetStyleIdsStack() {
-    adapter.createAdapter(
-        asElement(GridRow.newBuilder().setStyleReferences(GRID_STYLES).build()), frameContext);
+    adapter.createAdapter(asElement(GridRow.getDefaultInstance(), GRID_STYLES), frameContext);
     assertThat(adapter.getElementStyleIdsStack()).isEqualTo(GRID_STYLES);
   }
 
@@ -999,12 +986,13 @@ public class GridRowAdapterTest {
 
   @Test
   public void testGetModelFromElement() {
-    GridRow model =
-        GridRow.newBuilder()
-            .setStyleReferences(StyleIdsStack.newBuilder().addStyleIds("spacer"))
-            .build();
+    GridRow model = GridRow.newBuilder().build();
 
-    Element elementWithModel = Element.newBuilder().setGridRow(model).build();
+    Element elementWithModel =
+        Element.newBuilder()
+            .setStyleReferences(StyleIdsStack.newBuilder().addStyleIds("spacer"))
+            .setGridRow(model)
+            .build();
     assertThat(adapter.getModelFromElement(elementWithModel)).isSameInstanceAs(model);
 
     Element elementWithWrongModel =
@@ -1023,7 +1011,11 @@ public class GridRowAdapterTest {
         .contains("Missing GridRow");
   }
 
+  private static Element asElement(GridRow gridRow, StyleIdsStack styles) {
+    return Element.newBuilder().setStyleReferences(styles).setGridRow(gridRow).build();
+  }
+
   private static Element asElement(GridRow gridRow) {
-    return Element.newBuilder().setGridRow(gridRow).build();
+    return Element.newBuilder().setStyleReferences(GRID_STYLES).setGridRow(gridRow).build();
   }
 }

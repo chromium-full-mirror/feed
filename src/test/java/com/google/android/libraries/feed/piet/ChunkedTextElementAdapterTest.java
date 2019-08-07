@@ -77,7 +77,6 @@ import com.google.search.now.ui.piet.LogDataProto.LogData;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.StylesProto.EdgeWidths;
 import com.google.search.now.ui.piet.StylesProto.Font;
-import com.google.search.now.ui.piet.StylesProto.Font.FontWeight;
 import com.google.search.now.ui.piet.StylesProto.Style;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import com.google.search.now.ui.piet.TextProto.Chunk;
@@ -532,7 +531,7 @@ public class ChunkedTextElementAdapterTest {
   public void testAddTextChunk_setsStyles() {
     int color = 314159;
     context.getResources().getDisplayMetrics().scaledDensity = 1.5f;
-    Font font = Font.newBuilder().setItalic(true).setWeight(FontWeight.BOLD).setSize(20).build();
+    Font font = Font.newBuilder().setItalic(true).setSize(20).build();
     // The text scales with accessibility settings: size (20) x scaledDensity (1.5) = final size 30
     int expectedTextSize = 30;
 
@@ -542,7 +541,7 @@ public class ChunkedTextElementAdapterTest {
 
     adapter.addTextChunk(frameContext, spannable, TEXT_CHUNK);
 
-    assertThat(spannable.getSpans(0, PROCESSED_TEXT.length(), Object.class)).hasLength(4);
+    assertThat(spannable.getSpans(0, PROCESSED_TEXT.length(), Object.class)).hasLength(3);
 
     ForegroundColorSpan[] colorSpans =
         spannable.getSpans(0, PROCESSED_TEXT.length(), ForegroundColorSpan.class);
@@ -554,7 +553,6 @@ public class ChunkedTextElementAdapterTest {
 
     StyleSpan[] styleSpans = spannable.getSpans(0, PROCESSED_TEXT.length(), StyleSpan.class);
     assertThat(styleSpans[0].getStyle()).isEqualTo(Typeface.ITALIC);
-    assertThat(styleSpans[1].getStyle()).isEqualTo(Typeface.BOLD);
   }
 
   @Test

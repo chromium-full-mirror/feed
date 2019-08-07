@@ -333,7 +333,7 @@ public class RoundedCornerWrapperView extends FrameLayout {
 
   /** Calculates the corner radius, clipping to width or height when necessary. */
   private int makeRadius(int width, int height) {
-    int radius = 0;
+    int radius;
     RadiusOptionsCase radiusOptions = roundedCorners.getRadiusOptionsCase();
 
     switch (radiusOptions) {
@@ -347,10 +347,7 @@ public class RoundedCornerWrapperView extends FrameLayout {
         radius = roundedCorners.getRadiusPercentageOfWidth() * width / 100;
         break;
       default:
-        // TODO Remove deprecated radius code.
-        if (roundedCorners.hasRadius()) {
-          radius = (int) LayoutUtils.dpToPx(roundedCorners.getRadius(), context);
-        }
+        radius = 0;
     }
 
     roundedCornerRadius =

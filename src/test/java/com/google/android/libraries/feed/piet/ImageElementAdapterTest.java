@@ -75,7 +75,7 @@ public class ImageElementAdapterTest {
   private static final EdgeWidths PADDING =
       EdgeWidths.newBuilder().setBottom(1).setTop(2).setStart(3).setEnd(4).build();
   private static final RoundedCorners CORNERS =
-      RoundedCorners.newBuilder().setBitmask(Corners.BOTTOM_START_VALUE).setRadius(34).build();
+      RoundedCorners.newBuilder().setBitmask(Corners.BOTTOM_START_VALUE).setRadiusDp(34).build();
   private static final Image DEFAULT_IMAGE =
       Image.newBuilder().addSources(ImageSource.newBuilder().setUrl("icanhas.chz")).build();
   private static final Element DEFAULT_MODEL =
@@ -224,8 +224,10 @@ public class ImageElementAdapterTest {
   public void testBindModel_image() {
     StyleIdsStack styles = StyleIdsStack.newBuilder().addStyleIds("stylecat").build();
     Element model =
-        asElement(
-            ImageElement.newBuilder().setImage(DEFAULT_IMAGE).setStyleReferences(styles).build());
+        Element.newBuilder()
+            .setStyleReferences(styles)
+            .setImageElement(ImageElement.newBuilder().setImage(DEFAULT_IMAGE))
+            .build();
 
     adapter.createAdapter(model, frameContext);
     adapter.bindModel(model, frameContext);
@@ -362,12 +364,7 @@ public class ImageElementAdapterTest {
 
     // Styles do not change when a different model is bound
     StyleIdsStack otherStyle = StyleIdsStack.newBuilder().addStyleIds("ignored").build();
-    Element imageWithOtherStyle =
-        asElement(
-            ImageElement.newBuilder()
-                .setStyleReferences(otherStyle)
-                .setImage(Image.getDefaultInstance())
-                .build());
+    Element imageWithOtherStyle = DEFAULT_MODEL.toBuilder().setStyleReferences(otherStyle).build();
     adapter.bindModel(imageWithOtherStyle, frameContext);
     adapter.unbindModel();
 
@@ -378,12 +375,7 @@ public class ImageElementAdapterTest {
         StyleIdsStack.newBuilder()
             .setStyleBinding(StyleBindingRef.newBuilder().setBindingId("tuna"))
             .build();
-    Element imageWithBoundStyle =
-        asElement(
-            ImageElement.newBuilder()
-                .setStyleReferences(boundStyle)
-                .setImage(Image.getDefaultInstance())
-                .build());
+    Element imageWithBoundStyle = DEFAULT_MODEL.toBuilder().setStyleReferences(boundStyle).build();
     adapter.bindModel(imageWithBoundStyle, frameContext);
 
     verify(frameContext).makeStyleFor(boundStyle);

@@ -59,6 +59,7 @@ import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import com.google.search.now.ui.piet.StylesProto.TextAlignmentHorizontal;
 import com.google.search.now.ui.piet.StylesProto.TextAlignmentVertical;
 import com.google.search.now.ui.piet.StylesProto.Typeface.CommonTypeface;
+import com.google.search.now.ui.piet.TextProto.ParameterizedText;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -338,33 +339,6 @@ public class TextElementAdapterTest {
         .isEqualTo(GoogleSansTypeface.UNDEFINED);
   }
 
-  // TODO Remove this test once transition to line height is complete.
-  @Test
-  public void testSetLineHeightRatio() {
-    float ratioToSet1 = 4.5f;
-    Style lineHeightStyle1 =
-        Style.newBuilder().setFont(Font.newBuilder().setLineHeightRatio(ratioToSet1)).build();
-    StyleProvider styleProvider1 = new StyleProvider(lineHeightStyle1, mockAssetProvider);
-    Element firstTextElement = getBaseTextElement(styleProvider1);
-
-    adapter.createAdapter(firstTextElement, frameContext);
-    float lineHeightRatio1 = adapter.getBaseView().getLineSpacingMultiplier();
-    assertThat(lineHeightRatio1).isEqualTo(ratioToSet1);
-
-    adapter.releaseAdapter();
-
-    // test that the line height ratio is updated when the adapter is created a second time
-    float ratioToSet2 = 2.1f;
-    Style lineHeightStyle2 =
-        Style.newBuilder().setFont(Font.newBuilder().setLineHeightRatio(ratioToSet2)).build();
-    StyleProvider styleProvider2 = new StyleProvider(lineHeightStyle2, mockAssetProvider);
-    Element secondTextElement = getBaseTextElement(styleProvider2);
-
-    adapter.createAdapter(secondTextElement, frameContext);
-    float lineHeightRatio2 = adapter.getBaseView().getLineSpacingMultiplier();
-    assertThat(lineHeightRatio2).isEqualTo(ratioToSet2);
-  }
-
   @Test
   public void testSetLineHeight() {
     int lineHeightToSetSp = 18;
@@ -478,102 +452,6 @@ public class TextElementAdapterTest {
     adapter.createAdapter(textElement, frameContext);
   }
 
-  // TODO Remove this test once transition to line height is complete.
-  @Test
-  public void testGetExtraLineHeight_lineHeightAndLineHeightRatioSet() {
-    // Even with line height ratio set, the code should use the line height code path, which means
-    // the line height should be line height (10) x scaledDensity (1.01) = 10.1.
-    context.getResources().getDisplayMetrics().scaledDensity = 1.01f;
-    Style lineHeightStyle1 =
-        Style.newBuilder()
-            .setFont(
-                Font.newBuilder()
-                    .setLineHeight(10 + emptyTextElementLineHeight)
-                    .setLineHeightRatio(2.0f))
-            .build();
-    StyleProvider styleProvider1 = new StyleProvider(lineHeightStyle1, mockAssetProvider);
-    Element textElement = getBaseTextElement(styleProvider1);
-    adapter.createAdapter(textElement, frameContext);
-
-    TextElementAdapter.ExtraLineHeight extraLineHeight = adapter.getExtraLineHeight();
-
-    assertThat(extraLineHeight.betweenLinesExtraPx()).isEqualTo(10);
-    assertThat(extraLineHeight.bottomPaddingPx()).isEqualTo(6);
-    assertThat(extraLineHeight.topPaddingPx()).isEqualTo(5);
-  }
-
-  // TODO Remove all these line height ratio tests when ratio is no longer used
-  @Test
-  public void testGetLineHeight_lineHeightRatio_currentVersion() {
-    // The line spacing is 150%. The extra 50% gets split between padding at the top and bottom of
-    // the view, so since the text size is 100, there is an extra 25 at top and bottom.
-    Style lineHeightStyle1 =
-        Style.newBuilder().setFont(Font.newBuilder().setSize(100).setLineHeightRatio(1.5f)).build();
-    StyleProvider styleProvider1 = new StyleProvider(lineHeightStyle1, mockAssetProvider);
-    Element textElement = getBaseTextElement(styleProvider1);
-    adapter.createAdapter(textElement, frameContext);
-
-    TextElementAdapter.ExtraLineHeight extraLineHeight = adapter.getExtraLineHeight();
-
-    assertThat(extraLineHeight.topPaddingPx()).isEqualTo(25);
-    assertThat(extraLineHeight.bottomPaddingPx()).isEqualTo(25);
-  }
-
-  @Config(sdk = VERSION_CODES.KITKAT)
-  @Test
-  public void testGetLineHeight_lineHeightRatio_kitkat() {
-    // The line spacing is 150%. The extra 50% gets split between padding at the top and bottom of
-    // the view, so since the text size is 100, there is an extra 25 at top and bottom. In KitKat
-    // and lower, extra line spacing equal to that extra 50% is already added to the bottom. That
-    // means padding needs to be taken away from the bottom, to make bottom padding the same as top.
-    Style lineHeightStyle1 =
-        Style.newBuilder().setFont(Font.newBuilder().setSize(100).setLineHeightRatio(1.5f)).build();
-    StyleProvider styleProvider1 = new StyleProvider(lineHeightStyle1, mockAssetProvider);
-    Element textElement = getBaseTextElement(styleProvider1);
-    adapter.createAdapter(textElement, frameContext);
-
-    TextElementAdapter.ExtraLineHeight extraLineHeight = adapter.getExtraLineHeight();
-
-    assertThat(extraLineHeight.topPaddingPx()).isEqualTo(25);
-    assertThat(extraLineHeight.bottomPaddingPx()).isEqualTo(-25);
-  }
-
-  @Test
-  public void testGetLineHeight_lineHeightRatio_lessThanOne() {
-    // The line spacing is 50%. The 50% deficit gets split between padding at the top and bottom of
-    // the view, so since the text size is 100, we take away an extra 25 at top and bottom, making
-    // top and bottom padding negative.
-    Style lineHeightStyle1 =
-        Style.newBuilder().setFont(Font.newBuilder().setSize(100).setLineHeightRatio(0.5f)).build();
-    StyleProvider styleProvider1 = new StyleProvider(lineHeightStyle1, mockAssetProvider);
-    Element textElement = getBaseTextElement(styleProvider1);
-    adapter.createAdapter(textElement, frameContext);
-
-    TextElementAdapter.ExtraLineHeight extraLineHeight = adapter.getExtraLineHeight();
-
-    assertThat(extraLineHeight.topPaddingPx()).isEqualTo(-25);
-    assertThat(extraLineHeight.bottomPaddingPx()).isEqualTo(-25);
-  }
-
-  @Config(sdk = VERSION_CODES.KITKAT)
-  @Test
-  public void testGetLineHeight_lineHeightRatio_lessThanOne_kitkat() {
-    // The line spacing is 50%. The 50% deficit gets split between padding at the top and bottom of
-    // the view, so since the text size is 100, there is a negative 25 at top and bottom. In KitKat
-    // and lower, line spacing equal to that 50% deficit is already taken away from the bottom. That
-    // means padding needs to be added to the bottom, to make bottom padding the same as top.
-    Style lineHeightStyle1 =
-        Style.newBuilder().setFont(Font.newBuilder().setSize(100).setLineHeightRatio(0.5f)).build();
-    StyleProvider styleProvider1 = new StyleProvider(lineHeightStyle1, mockAssetProvider);
-    Element textElement = getBaseTextElement(styleProvider1);
-    adapter.createAdapter(textElement, frameContext);
-
-    TextElementAdapter.ExtraLineHeight extraLineHeight = adapter.getExtraLineHeight();
-
-    assertThat(extraLineHeight.topPaddingPx()).isEqualTo(-25);
-    assertThat(extraLineHeight.bottomPaddingPx()).isEqualTo(25);
-  }
-
   @Test
   public void testBind_setsTextAlignment_horizontal() {
     Style style =
@@ -643,11 +521,7 @@ public class TextElementAdapterTest {
     // Styles should not change on a re-bind
     adapter.unbindModel();
     StyleIdsStack otherStyle = StyleIdsStack.newBuilder().addStyleIds("ignored").build();
-    textElement =
-        getBaseTextElement()
-            .toBuilder()
-            .setTextElement(TextElement.newBuilder().setStyleReferences(otherStyle))
-            .build();
+    textElement = getBaseTextElement().toBuilder().setStyleReferences(otherStyle).build();
     adapter.bindModel(textElement, frameContext);
 
     assertThat(adapter.getBaseView().getMaxLines()).isEqualTo(maxLines);
@@ -660,10 +534,7 @@ public class TextElementAdapterTest {
             .setStyleBinding(StyleBindingRef.newBuilder().setBindingId("prionailurus"))
             .build();
     textElement =
-        getBaseTextElement()
-            .toBuilder()
-            .setTextElement(TextElement.newBuilder().setStyleReferences(otherStyleWithBinding))
-            .build();
+        getBaseTextElement().toBuilder().setStyleReferences(otherStyleWithBinding).build();
     adapter.bindModel(textElement, frameContext);
 
     verify(frameContext).makeStyleFor(otherStyleWithBinding);
@@ -721,10 +592,7 @@ public class TextElementAdapterTest {
     StyleIdsStack elementStyles = StyleIdsStack.newBuilder().addStyleIds("hair").build();
     when(mockStyleProvider.getFont()).thenReturn(Font.getDefaultInstance());
     Element textElement =
-        getBaseTextElement(mockStyleProvider)
-            .toBuilder()
-            .setTextElement(TextElement.newBuilder().setStyleReferences(elementStyles))
-            .build();
+        getBaseTextElement(mockStyleProvider).toBuilder().setStyleReferences(elementStyles).build();
 
     adapter.createAdapter(textElement, frameContext);
 
@@ -735,11 +603,15 @@ public class TextElementAdapterTest {
   public void testGetModelFromElement() {
     TextElement model =
         TextElement.newBuilder()
-            .setStyleReferences(StyleIdsStack.newBuilder().addStyleIds("spacer"))
+            .setParameterizedText(ParameterizedText.newBuilder().setText("text"))
             .build();
 
-    Element elementWithModel = Element.newBuilder().setTextElement(model).build();
-    assertThat(adapter.getModelFromElement(elementWithModel)).isSameInstanceAs(model);
+    Element elementWithModel =
+        Element.newBuilder()
+            .setStyleReferences(StyleIdsStack.newBuilder().addStyleIds("spacer"))
+            .setTextElement(model)
+            .build();
+    assertThat(adapter.getModelFromElement(elementWithModel)).isSameInstanceAs(elementWithModel);
 
     Element elementWithWrongModel =
         Element.newBuilder().setCustomElement(CustomElement.getDefaultInstance()).build();

@@ -110,7 +110,7 @@ public class StyleProviderTest {
                     .setPreLoadFill(Fill.newBuilder().setColor(9))
                     .setFadeInImageOnLoad(true)
                     .build())
-            .setRoundedCorners(RoundedCorners.newBuilder().setRadius(3))
+            .setRoundedCorners(RoundedCorners.newBuilder().setRadiusDp(3))
             .setFont(Font.newBuilder().setSize(4))
             .setMaxLines(5)
             .setMinHeight(6)
@@ -448,7 +448,7 @@ public class StyleProviderTest {
   public void testElementStyles_backgroundAndCorners() {
     int color = 0xffffffff;
     Fill background = Fill.newBuilder().setColor(color).build();
-    RoundedCorners corners = RoundedCorners.newBuilder().setRadius(4).setBitmask(3).build();
+    RoundedCorners corners = RoundedCorners.newBuilder().setRadiusDp(4).setBitmask(3).build();
 
     Style style =
         Style.newBuilder()
@@ -690,7 +690,7 @@ public class StyleProviderTest {
   public void testCreateBackground() {
     int color = 12345;
     Fill fill = Fill.newBuilder().setColor(color).build();
-    RoundedCorners roundedCorners = RoundedCorners.newBuilder().setRadius(4321).build();
+    RoundedCorners roundedCorners = RoundedCorners.newBuilder().setRadiusDp(4321).build();
     StyleProvider styleProvider;
 
     styleProvider = new StyleProvider(Style.getDefaultInstance(), mockAssetProvider);
@@ -711,7 +711,7 @@ public class StyleProviderTest {
   public void testCreatePreLoadFill() {
     int color = 12345;
     Fill fill = Fill.newBuilder().setColor(color).build();
-    RoundedCorners roundedCorners = RoundedCorners.newBuilder().setRadius(4321).build();
+    RoundedCorners roundedCorners = RoundedCorners.newBuilder().setRadiusDp(4321).build();
     StyleProvider styleProvider;
 
     styleProvider = new StyleProvider(Style.getDefaultInstance(), mockAssetProvider);

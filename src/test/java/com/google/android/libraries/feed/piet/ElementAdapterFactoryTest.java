@@ -30,7 +30,6 @@ import android.view.View;
 import com.google.android.libraries.feed.piet.TemplateBinder.TemplateKey;
 import com.google.search.now.ui.piet.BindingRefsProto.ChunkedTextBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ParameterizedTextBindingRef;
-import com.google.search.now.ui.piet.ElementsProto.Content;
 import com.google.search.now.ui.piet.ElementsProto.CustomElement;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ElementList;
@@ -68,11 +67,10 @@ public class ElementAdapterFactoryTest {
 
   @Mock private AdapterFactory<CustomElementAdapter, CustomElement> customElementFactory;
 
-  @Mock private AdapterFactory<ChunkedTextElementAdapter, TextElement> chunkedTextElementFactory;
+  @Mock private AdapterFactory<ChunkedTextElementAdapter, Element> chunkedTextElementFactory;
 
   @Mock
-  private AdapterFactory<ParameterizedTextElementAdapter, TextElement>
-      parameterizedTextElementFactory;
+  private AdapterFactory<ParameterizedTextElementAdapter, Element> parameterizedTextElementFactory;
 
   @Mock private AdapterFactory<ImageElementAdapter, ImageElement> imageElementFactory;
 
@@ -105,9 +103,9 @@ public class ElementAdapterFactoryTest {
             templateRecyclerPool);
     when(customElementFactory.get(any(CustomElement.class), eq(frameContext)))
         .thenReturn(customElementAdapter);
-    when(chunkedTextElementFactory.get(any(TextElement.class), eq(frameContext)))
+    when(chunkedTextElementFactory.get(any(Element.class), eq(frameContext)))
         .thenReturn(chunkedTextElementAdapter);
-    when(parameterizedTextElementFactory.get(any(TextElement.class), eq(frameContext)))
+    when(parameterizedTextElementFactory.get(any(Element.class), eq(frameContext)))
         .thenReturn(parameterizedTextElementAdapter);
     when(imageElementFactory.get(any(ImageElement.class), eq(frameContext)))
         .thenReturn(imageElementAdapter);
@@ -141,7 +139,7 @@ public class ElementAdapterFactoryTest {
     Element element = Element.newBuilder().setTextElement(model).build();
     assertThat(adapterFactory.createAdapterForElement(element, frameContext))
         .isSameInstanceAs(chunkedTextElementAdapter);
-    verify(chunkedTextElementFactory).get(model, frameContext);
+    verify(chunkedTextElementFactory).get(element, frameContext);
   }
 
   @Test
@@ -153,7 +151,7 @@ public class ElementAdapterFactoryTest {
     Element element = Element.newBuilder().setTextElement(model).build();
     assertThat(adapterFactory.createAdapterForElement(element, frameContext))
         .isSameInstanceAs(chunkedTextElementAdapter);
-    verify(chunkedTextElementFactory).get(model, frameContext);
+    verify(chunkedTextElementFactory).get(element, frameContext);
   }
 
   @Test
@@ -165,7 +163,7 @@ public class ElementAdapterFactoryTest {
     Element element = Element.newBuilder().setTextElement(model).build();
     assertThat(adapterFactory.createAdapterForElement(element, frameContext))
         .isSameInstanceAs(parameterizedTextElementAdapter);
-    verify(parameterizedTextElementFactory).get(model, frameContext);
+    verify(parameterizedTextElementFactory).get(element, frameContext);
   }
 
   @Test
@@ -177,7 +175,7 @@ public class ElementAdapterFactoryTest {
     Element element = Element.newBuilder().setTextElement(model).build();
     assertThat(adapterFactory.createAdapterForElement(element, frameContext))
         .isSameInstanceAs(parameterizedTextElementAdapter);
-    verify(parameterizedTextElementFactory).get(model, frameContext);
+    verify(parameterizedTextElementFactory).get(element, frameContext);
   }
 
   @Test
@@ -290,15 +288,6 @@ public class ElementAdapterFactoryTest {
     adapterFactory.releaseAdapter(elementStackAdapter);
     verify(elementStackFactory).release(elementStackAdapter);
     testNoOtherFactoryInteractions();
-  }
-
-  @Test
-  public void testCreateOverlayAdapter() {
-    List<Content> overlays = Collections.emptyList();
-    ElementStackAdapter adapter = adapterFactory.createOverlayAdapter(overlays, frameContext);
-    verify(elementStackFactory)
-        .get(ElementStack.newBuilder().addAllContents(overlays).build(), frameContext);
-    assertThat(adapter).isSameInstanceAs(elementStackAdapter);
   }
 
   @Test

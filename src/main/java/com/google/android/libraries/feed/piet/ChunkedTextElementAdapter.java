@@ -55,7 +55,6 @@ import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
 import com.google.search.now.ui.piet.ImagesProto.Image;
 import com.google.search.now.ui.piet.LogDataProto.LogData;
 import com.google.search.now.ui.piet.PietProto.Frame;
-import com.google.search.now.ui.piet.StylesProto.Font.FontWeight;
 import com.google.search.now.ui.piet.TextProto.Chunk;
 import com.google.search.now.ui.piet.TextProto.ChunkedText;
 import com.google.search.now.ui.piet.TextProto.ParameterizedText;
@@ -234,13 +233,6 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
     if (chunkStyle.getFont().getItalic()) {
       spannable.setSpan(
           new StyleSpan(Typeface.ITALIC),
-          start,
-          spannable.length(),
-          Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-    }
-    if (chunkStyle.getFont().getWeight() == FontWeight.BOLD) {
-      spannable.setSpan(
-          new StyleSpan(Typeface.BOLD),
           start,
           spannable.length(),
           Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);

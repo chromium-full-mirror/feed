@@ -197,11 +197,7 @@ public class ParameterizedTextElementAdapterTest {
 
   @Test
   public void testStyles_padding() {
-    Element model =
-        asElement(
-            TextElement.newBuilder()
-                .setStyleReferences(StyleIdsStack.getDefaultInstance())
-                .build());
+    Element model = asElement(TextElement.getDefaultInstance());
 
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(mockStyleProvider);
 

@@ -215,7 +215,6 @@ public class CustomElementAdapterTest {
   public void testGetModelFromElement() {
     CustomElement model =
         CustomElement.newBuilder()
-            .setStyleReferences(StyleIdsStack.newBuilder().addStyleIds("custom"))
             .build();
 
     Element elementWithModel = Element.newBuilder().setCustomElement(model).build();

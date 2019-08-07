@@ -37,10 +37,6 @@ import java.util.Map;
 public class PietStylesHelper {
   private static final String TAG = "PietStylesHelper";
 
-  @Deprecated
-  private final Map<String, NoKeyOverwriteHashMap<String, Style>> stylesheetScopes =
-      new NoKeyOverwriteHashMap<>("Style", ErrorCode.ERR_DUPLICATE_STYLE);
-
   private final Map<Stylesheets, NoKeyOverwriteHashMap<String, Style>> multiStylesheetScopes =
       new NoKeyOverwriteHashMap<>("Style", ErrorCode.ERR_DUPLICATE_STYLESHEET);
   private final Map<String, Stylesheet> stylesheets =
@@ -109,34 +105,6 @@ public class PietStylesHelper {
 
     multiStylesheetScopes.put(stylesheetRefs, styleMap);
 
-    return styleMap;
-  }
-
-  /** Returns a Map of style_id to Style. This represents the Stylesheet. */
-  @Deprecated
-  NoKeyOverwriteHashMap<String, Style> getStylesheetMap(String stylesheetId) {
-    if (stylesheetScopes.containsKey(stylesheetId)) {
-      return stylesheetScopes.get(stylesheetId);
-    }
-    Stylesheet stylesheet = getStylesheet(stylesheetId);
-    if (stylesheet != null) {
-      NoKeyOverwriteHashMap<String, Style> styleMap = createMapFromStylesheet(stylesheet);
-      stylesheetScopes.put(stylesheet.getStylesheetId(), styleMap);
-      return styleMap;
-    }
-    Logger.w(TAG, "Stylesheet [%s] was not found in the Stylesheet", stylesheetId);
-    return createMapFromStylesheet(Stylesheet.getDefaultInstance());
-  }
-
-  @Deprecated
-  NoKeyOverwriteHashMap<String, Style> createMapFromStylesheet(Stylesheet stylesheet) {
-    NoKeyOverwriteHashMap<String, Style> styleMap =
-        new NoKeyOverwriteHashMap<>("Style", ErrorCode.ERR_DUPLICATE_STYLE);
-    for (Style style : stylesheet.getStylesList()) {
-      if (mediaQueryHelper.areMediaQueriesMet(style.getConditionsList())) {
-        styleMap.put(style.getStyleId(), style);
-      }
-    }
     return styleMap;
   }
 

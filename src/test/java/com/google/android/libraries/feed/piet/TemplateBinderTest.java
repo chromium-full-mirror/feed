@@ -52,6 +52,7 @@ import com.google.search.now.ui.piet.GradientsProto.Fill;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.ui.piet.PietProto.Stylesheet;
+import com.google.search.now.ui.piet.PietProto.Stylesheets;
 import com.google.search.now.ui.piet.PietProto.Template;
 import com.google.search.now.ui.piet.StylesProto.Style;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
@@ -85,9 +86,9 @@ public class TemplateBinderTest {
           .setTemplateId(TEMPLATE_ID)
           .setElement(
               Element.newBuilder()
+                  .setStyleReferences(StyleIdsStack.newBuilder().addStyleIds(TEXT_STYLE_ID))
                   .setTextElement(
                       TextElement.newBuilder()
-                          .setStyleReferences(StyleIdsStack.newBuilder().addStyleIds(TEXT_STYLE_ID))
                           .setParameterizedTextBinding(
                               ParameterizedTextBindingRef.newBuilder()
                                   .setBindingId(TEXT_BINDING_ID))))
@@ -100,10 +101,13 @@ public class TemplateBinderTest {
 
   private static final Frame DEFAULT_FRAME =
       Frame.newBuilder()
-          .setStylesheet(
-              Stylesheet.newBuilder()
-                  .setStylesheetId(FRAME_STYLESHEET_ID)
-                  .addStyles(Style.newBuilder().setStyleId(TEXT_STYLE_ID).setColor(FRAME_COLOR)))
+          .setStylesheets(
+              Stylesheets.newBuilder()
+                  .addStylesheets(
+                      Stylesheet.newBuilder()
+                          .setStylesheetId(FRAME_STYLESHEET_ID)
+                          .addStyles(
+                              Style.newBuilder().setStyleId(TEXT_STYLE_ID).setColor(FRAME_COLOR))))
           .addTemplates(MODEL_TEMPLATE)
           .addTemplates(OTHER_TEMPLATE)
           .build();
@@ -239,7 +243,9 @@ public class TemplateBinderTest {
     // respectively.
     Template template =
         Template.newBuilder()
-            .setStylesheet(Stylesheet.newBuilder().addStyles(templateStyle))
+            .setStylesheets(
+                Stylesheets.newBuilder()
+                    .addStylesheets(Stylesheet.newBuilder().addStyles(templateStyle)))
             .setElement(
                 Element.newBuilder()
                     .setElementList(
@@ -248,29 +254,26 @@ public class TemplateBinderTest {
                                 Content.newBuilder()
                                     .setElement(
                                         Element.newBuilder()
-                                            .setElementList(
-                                                ElementList.newBuilder()
-                                                    .setStyleReferences(
-                                                        StyleIdsStack.newBuilder()
-                                                            .addStyleIds(templateStyleId)))))
+                                            .setStyleReferences(
+                                                StyleIdsStack.newBuilder()
+                                                    .addStyleIds(templateStyleId))
+                                            .setElementList(ElementList.getDefaultInstance())))
                             .addContents(
                                 Content.newBuilder()
                                     .setElement(
                                         Element.newBuilder()
-                                            .setElementList(
-                                                ElementList.newBuilder()
-                                                    .setStyleReferences(
-                                                        StyleIdsStack.newBuilder()
-                                                            .addStyleIds(frameStyleId)))))
+                                            .setStyleReferences(
+                                                StyleIdsStack.newBuilder()
+                                                    .addStyleIds(frameStyleId))
+                                            .setElementList(ElementList.getDefaultInstance())))
                             .addContents(
                                 Content.newBuilder()
                                     .setElement(
                                         Element.newBuilder()
-                                            .setElementList(
-                                                ElementList.newBuilder()
-                                                    .setStyleReferences(
-                                                        StyleIdsStack.newBuilder()
-                                                            .addStyleIds(globalStyleId)))))))
+                                            .setStyleReferences(
+                                                StyleIdsStack.newBuilder()
+                                                    .addStyleIds(globalStyleId))
+                                            .setElementList(ElementList.getDefaultInstance())))))
             .build();
 
     PietSharedState pietSharedState =
@@ -282,8 +285,12 @@ public class TemplateBinderTest {
     // Frame defines style IDs that are also defined in the template
     Frame frame =
         Frame.newBuilder()
-            .setStylesheet(
-                Stylesheet.newBuilder().addStyles(frameStyle).addStyles(frameTemplateStyle))
+            .setStylesheets(
+                Stylesheets.newBuilder()
+                    .addStylesheets(
+                        Stylesheet.newBuilder()
+                            .addStyles(frameStyle)
+                            .addStyles(frameTemplateStyle)))
             .build();
 
     // Set up a "real" frameContext, adapterParameters, factory

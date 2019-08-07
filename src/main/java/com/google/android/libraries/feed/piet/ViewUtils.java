@@ -20,7 +20,6 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Build.VERSION_CODES;
 import android.support.v4.view.ViewCompat;
-import android.view.Gravity;
 import android.view.View;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.ActionHandler.ActionType;
@@ -28,58 +27,11 @@ import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.ActionsProto.VisibilityAction;
 import com.google.search.now.ui.piet.LogDataProto.LogData;
 import com.google.search.now.ui.piet.PietProto.Frame;
-import com.google.search.now.ui.piet.StylesProto.GravityHorizontal;
-import com.google.search.now.ui.piet.StylesProto.GravityVertical;
 import java.util.Set;
 
 /** Utility class, providing useful methods to interact with Views. */
 public class ViewUtils {
   private static final String TAG = "ViewUtils";
-
-  // TODO: Remove this method; it is only used by
-  // ElementAdapter.getDeprecatedElementGravity
-  @Deprecated
-  static int pietGravityToGravity(
-      GravityHorizontal gravityHorizontal, GravityVertical gravityVertical) {
-    return gravityHorizontalToGravity(gravityHorizontal)
-        | gravityVerticalToGravity(gravityVertical);
-  }
-
-  // TODO: Remove this method; it is only used by
-  // ElementAdapter.getDeprecatedElementGravity
-  @Deprecated
-  @SuppressWarnings("UnnecessaryDefaultInEnumSwitch")
-  static int gravityHorizontalToGravity(GravityHorizontal gravityHorizontal) {
-    switch (gravityHorizontal) {
-      case GRAVITY_START:
-        return Gravity.START;
-      case GRAVITY_CENTER:
-        return Gravity.CENTER_HORIZONTAL;
-      case GRAVITY_END:
-        return Gravity.END;
-      case GRAVITY_HORIZONTAL_UNSPECIFIED:
-      default:
-        return Gravity.START;
-    }
-  }
-
-  // TODO: Remove this method; it is only used by
-  // ElementAdapter.getDeprecatedElementGravity
-  @Deprecated
-  @SuppressWarnings("UnnecessaryDefaultInEnumSwitch")
-  static int gravityVerticalToGravity(GravityVertical gravityVertical) {
-    switch (gravityVertical) {
-      case GRAVITY_TOP:
-        return Gravity.TOP;
-      case GRAVITY_MIDDLE:
-        return Gravity.CENTER_VERTICAL;
-      case GRAVITY_BOTTOM:
-        return Gravity.BOTTOM;
-      case GRAVITY_VERTICAL_UNSPECIFIED:
-      default:
-        return Gravity.NO_GRAVITY;
-    }
-  }
 
   /**
    * Attaches the onClick action from actions to the view, executed by the handler. In Android M+, a

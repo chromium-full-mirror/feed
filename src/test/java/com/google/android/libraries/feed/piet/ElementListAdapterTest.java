@@ -51,7 +51,6 @@ import com.google.search.now.ui.piet.ElementsProto.Visibility;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
 import com.google.search.now.ui.piet.StylesProto.EdgeWidths;
-import com.google.search.now.ui.piet.StylesProto.GravityHorizontal;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import org.junit.Before;
 import org.junit.Test;
@@ -130,13 +129,12 @@ public class ElementListAdapterTest {
   public void testOnCreateAdapter_makesList() {
     ElementList listWithStyles =
         ElementList.newBuilder()
-            .setStyleReferences(LIST_STYLES)
             .addContents(DEFAULT_CONTENT)
             .addContents(DEFAULT_CONTENT)
             .addContents(DEFAULT_CONTENT)
             .build();
 
-    adapter.createAdapter(asElement(listWithStyles), frameContext);
+    adapter.createAdapter(asElementWithDefaultStyle(listWithStyles), frameContext);
 
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(3);
     assertThat(adapter.getBaseView().getOrientation()).isEqualTo(LinearLayout.VERTICAL);
@@ -146,11 +144,10 @@ public class ElementListAdapterTest {
   public void testOnCreateAdapter_setsStyles() {
     ElementList listWithStyles =
         ElementList.newBuilder()
-            .setStyleReferences(LIST_STYLES)
             .addContents(DEFAULT_CONTENT)
             .build();
 
-    adapter.createAdapter(asElement(listWithStyles), frameContext);
+    adapter.createAdapter(asElementWithDefaultStyle(listWithStyles), frameContext);
 
     verify(styleProvider).applyElementStyles(adapter);
   }
@@ -190,24 +187,15 @@ public class ElementListAdapterTest {
 
   @Test
   public void testOnBindModel_setsStylesOnlyIfBindingIsDefined() {
-    ElementList listWithStyles =
-        ElementList.newBuilder()
-            .setStyleReferences(LIST_STYLES)
-            .addContents(DEFAULT_CONTENT)
-            .build();
+    ElementList list = ElementList.newBuilder().addContents(DEFAULT_CONTENT).build();
 
-    adapter.createAdapter(asElement(listWithStyles), frameContext);
+    adapter.createAdapter(asElement(list, LIST_STYLES), frameContext);
     verify(frameContext).makeStyleFor(LIST_STYLES);
 
     // Binding an element with a different style will not apply the new style
     StyleIdsStack otherStyles = StyleIdsStack.newBuilder().addStyleIds("bobcat").build();
-    ElementList otherListWithStyles =
-        ElementList.newBuilder()
-            .setStyleReferences(otherStyles)
-            .addContents(DEFAULT_CONTENT)
-            .build();
 
-    adapter.bindModel(asElement(otherListWithStyles), frameContext);
+    adapter.bindModel(asElement(list, otherStyles), frameContext);
     verify(frameContext, never()).makeStyleFor(otherStyles);
 
     // But binding an element with a style binding will re-apply the style
@@ -216,14 +204,9 @@ public class ElementListAdapterTest {
             .addStyleIds("bobcat")
             .setStyleBinding(StyleBindingRef.newBuilder().setBindingId("lynx"))
             .build();
-    ElementList otherListWithStyleBindings =
-        ElementList.newBuilder()
-            .setStyleReferences(otherStylesWithBinding)
-            .addContents(DEFAULT_CONTENT)
-            .build();
     when(frameContext.makeStyleFor(otherStylesWithBinding)).thenReturn(styleProvider);
 
-    adapter.bindModel(asElement(otherListWithStyleBindings), frameContext);
+    adapter.bindModel(asElement(list, otherStylesWithBinding), frameContext);
     verify(frameContext).makeStyleFor(otherStylesWithBinding);
   }
 
@@ -231,24 +214,23 @@ public class ElementListAdapterTest {
   public void testOnBindModel_failsWithIncompatibleModel() {
     ElementList listWithThreeElements =
         ElementList.newBuilder()
-            .setStyleReferences(LIST_STYLES)
             .addContents(DEFAULT_CONTENT)
             .addContents(DEFAULT_CONTENT)
             .addContents(DEFAULT_CONTENT)
             .build();
 
-    adapter.createAdapter(asElement(listWithThreeElements), frameContext);
-    adapter.bindModel(asElement(listWithThreeElements), frameContext);
+    adapter.createAdapter(asElementWithDefaultStyle(listWithThreeElements), frameContext);
+    adapter.bindModel(asElementWithDefaultStyle(listWithThreeElements), frameContext);
     adapter.unbindModel();
 
     ElementList listWithTwoElements =
         ElementList.newBuilder()
-            .setStyleReferences(LIST_STYLES)
             .addContents(DEFAULT_CONTENT)
             .addContents(DEFAULT_CONTENT)
             .build();
 
-    assertThatRunnable(() -> adapter.bindModel(asElement(listWithTwoElements), frameContext))
+    assertThatRunnable(
+            () -> adapter.bindModel(asElementWithDefaultStyle(listWithTwoElements), frameContext))
         .throwsAnExceptionOfType(IllegalStateException.class)
         .that()
         .hasMessageThat()
@@ -356,24 +338,21 @@ public class ElementListAdapterTest {
   }
 
   @Test
-  public void testOnBindModel_setsLayoutParams() {
-    ElementList listWithStyles =
+  public void testOnBindModel_setsLayoutParamsOnChild() {
+    ElementList list =
         ElementList.newBuilder()
             .addContents(
                 Content.newBuilder()
-                    .setElement(
-                        DEFAULT_ELEMENT
-                            .toBuilder()
-                            .setStyleReferences(LIST_STYLES)
-                            .setGravityHorizontal(GravityHorizontal.GRAVITY_CENTER)))
+                    .setElement(DEFAULT_ELEMENT.toBuilder().setStyleReferences(LIST_STYLES)))
             .build();
+    when(styleProvider.getGravityHorizontal(anyInt())).thenReturn(Gravity.CENTER_HORIZONTAL);
 
-    adapter.createAdapter(asElement(listWithStyles), frameContext);
+    adapter.createAdapter(asElement(list), frameContext);
 
     adapter.childAdapters.get(0).widthPx = 123;
     adapter.childAdapters.get(0).heightPx = 456;
 
-    adapter.bindModel(asElement(listWithStyles), frameContext);
+    adapter.bindModel(asElement(list), frameContext);
 
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(1);
     assertThat(adapter.getBaseView().getChildAt(0).getLayoutParams())
@@ -395,14 +374,14 @@ public class ElementListAdapterTest {
             .setStyleReferences(marginsStyles)
             .setElementStack(ElementStack.getDefaultInstance())
             .build();
-    ElementList listWithStyles =
+    ElementList list =
         ElementList.newBuilder()
             .addContents(Content.newBuilder().setElement(elementWithMargins))
             .build();
     when(frameContext.makeStyleFor(marginsStyles)).thenReturn(styleProvider);
 
-    adapter.createAdapter(asElement(listWithStyles), frameContext);
-    adapter.bindModel(asElement(listWithStyles), frameContext);
+    adapter.createAdapter(asElement(list), frameContext);
+    adapter.bindModel(asElement(list), frameContext);
 
     // Assert that applyMargins is called on the child's layout params
     ArgumentCaptor<MarginLayoutParams> capturedLayoutParams =
@@ -420,14 +399,13 @@ public class ElementListAdapterTest {
   public void testReleaseAdapter() {
     ElementList listWithStyles =
         ElementList.newBuilder()
-            .setStyleReferences(LIST_STYLES)
             .addContents(DEFAULT_CONTENT)
             .addContents(DEFAULT_CONTENT)
             .addContents(DEFAULT_CONTENT)
             .build();
 
-    adapter.createAdapter(asElement(listWithStyles), frameContext);
-    adapter.bindModel(asElement(listWithStyles), frameContext);
+    adapter.createAdapter(asElementWithDefaultStyle(listWithStyles), frameContext);
+    adapter.bindModel(asElementWithDefaultStyle(listWithStyles), frameContext);
 
     adapter.releaseAdapter();
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(0);
@@ -443,21 +421,17 @@ public class ElementListAdapterTest {
   public void testGetStyleIdsStack() {
     ElementList listWithStyles =
         ElementList.newBuilder()
-            .setStyleReferences(LIST_STYLES)
             .addContents(DEFAULT_CONTENT)
             .build();
 
-    adapter.createAdapter(asElement(listWithStyles), frameContext);
+    adapter.createAdapter(asElement(listWithStyles, LIST_STYLES), frameContext);
 
     assertThat(adapter.getElementStyleIdsStack()).isEqualTo(LIST_STYLES);
   }
 
   @Test
   public void testGetModelFromElement() {
-    ElementList model =
-        ElementList.newBuilder()
-            .setStyleReferences(StyleIdsStack.newBuilder().addStyleIds("spacer"))
-            .build();
+    ElementList model = ElementList.newBuilder().addContents(DEFAULT_CONTENT).build();
 
     Element elementWithModel = Element.newBuilder().setElementList(model).build();
     assertThat(adapter.getModelFromElement(elementWithModel)).isSameInstanceAs(model);
@@ -479,21 +453,18 @@ public class ElementListAdapterTest {
   }
 
   @Test
-  public void testSetLayoutParams() {
-    ElementList listWithStyles =
+  public void testSetLayoutParamsOnChild() {
+    ElementList list =
         ElementList.newBuilder()
             .addContents(
                 Content.newBuilder()
-                    .setElement(
-                        DEFAULT_ELEMENT
-                            .toBuilder()
-                            .setStyleReferences(LIST_STYLES)
-                            .setGravityHorizontal(GravityHorizontal.GRAVITY_CENTER)))
+                    .setElement(DEFAULT_ELEMENT.toBuilder().setStyleReferences(LIST_STYLES)))
             .build();
     when(styleProvider.getWidthSpecPx(context)).thenReturn(123);
     when(styleProvider.getHeightSpecPx(context)).thenReturn(456);
+    when(styleProvider.getGravityHorizontal(anyInt())).thenReturn(Gravity.CENTER_HORIZONTAL);
 
-    adapter.createAdapter(asElement(listWithStyles), frameContext);
+    adapter.createAdapter(asElement(list), frameContext);
 
     LayoutParams layoutParams =
         new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -511,12 +482,12 @@ public class ElementListAdapterTest {
   public void testSetLayoutParams_childWidthSet() {
     int childWidth = 5;
 
-    ElementList listWithStyles =
+    ElementList list =
         ElementList.newBuilder()
             .addContents(Content.newBuilder().setElement(IMAGE_ELEMENT))
             .build();
 
-    adapter.createAdapter(asElement(listWithStyles), frameContext);
+    adapter.createAdapter(asElement(list), frameContext);
     StyleProvider childStyleProvider = mock(StyleProvider.class);
     ImageElementAdapter mockChildAdapter = mock(ImageElementAdapter.class);
     when(mockChildAdapter.getComputedWidthPx()).thenReturn(childWidth);
@@ -543,12 +514,12 @@ public class ElementListAdapterTest {
 
   @Test
   public void testSetLayoutParams_widthSetOnList() {
-    ElementList listWithStyles =
+    ElementList list =
         ElementList.newBuilder()
             .addContents(Content.newBuilder().setElement(IMAGE_ELEMENT))
             .build();
 
-    adapter.createAdapter(asElement(listWithStyles), frameContext);
+    adapter.createAdapter(asElement(list), frameContext);
 
     LinearLayout.LayoutParams params =
         new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -566,5 +537,13 @@ public class ElementListAdapterTest {
 
   private static Element asElement(ElementList elementList) {
     return Element.newBuilder().setElementList(elementList).build();
+  }
+
+  private static Element asElement(ElementList elementList, StyleIdsStack styles) {
+    return Element.newBuilder().setStyleReferences(styles).setElementList(elementList).build();
+  }
+
+  private static Element asElementWithDefaultStyle(ElementList elementList) {
+    return Element.newBuilder().setStyleReferences(LIST_STYLES).setElementList(elementList).build();
   }
 }

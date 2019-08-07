@@ -30,7 +30,6 @@ import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
 import com.google.search.now.ui.piet.StylesProto.Font;
-import com.google.search.now.ui.piet.StylesProto.Font.FontWeight;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import com.google.search.now.ui.piet.TextProto.ParameterizedText;
 import org.junit.Before;
@@ -53,8 +52,6 @@ public class ParameterizedTextElementAdapterFactoryTest {
   private AdapterParameters adapterParameters;
   private Context context;
 
-  private AdapterFactory<ParameterizedTextElementAdapter, TextElement> textElementFactory;
-
   @Before
   public void setUp() throws Exception {
     initMocks(this);
@@ -76,8 +73,12 @@ public class ParameterizedTextElementAdapterFactoryTest {
   public void testKeySupplier() {
     String styleId = "text";
     StyleIdsStack style = StyleIdsStack.newBuilder().addStyleIds(styleId).build();
-    Font font = Font.newBuilder().setSize(123).setItalic(true).setWeight(FontWeight.BLACK).build();
-    TextElement model = TextElement.newBuilder().setStyleReferences(style).build();
+    Font font = Font.newBuilder().setSize(123).setItalic(true).build();
+    Element model =
+        Element.newBuilder()
+            .setStyleReferences(style)
+            .setTextElement(TextElement.getDefaultInstance())
+            .build();
     StyleProvider styleProvider = mock(StyleProvider.class);
     when(frameContext.makeStyleFor(style)).thenReturn(styleProvider);
     when(styleProvider.getFont()).thenReturn(font);
@@ -94,8 +95,9 @@ public class ParameterizedTextElementAdapterFactoryTest {
 
   @Test
   public void testGetAdapterFromFactory() {
-    textElementFactory = new AdapterFactory<>(context, adapterParameters, keySupplier);
-    TextElement textElement = getBaseTextElement(null);
+    AdapterFactory<ParameterizedTextElementAdapter, Element> textElementFactory =
+        new AdapterFactory<>(context, adapterParameters, keySupplier);
+    Element textElement = getBaseTextElementModel(null);
 
     ParameterizedTextElementAdapter textElementAdapter =
         textElementFactory.get(textElement, frameContext);
@@ -108,8 +110,9 @@ public class ParameterizedTextElementAdapterFactoryTest {
 
   @Test
   public void testReleaseAndRecycling() {
-    textElementFactory = new AdapterFactory<>(context, adapterParameters, keySupplier);
-    TextElement textElement = getBaseTextElement(null);
+    AdapterFactory<ParameterizedTextElementAdapter, Element> textElementFactory =
+        new AdapterFactory<>(context, adapterParameters, keySupplier);
+    Element textElement = getBaseTextElementModel(null);
     TextElementKey adapterKey =
         new TextElementKey(adapterParameters.defaultStyleProvider.getFont());
     when(adapter.getKey()).thenReturn(adapterKey);
@@ -118,8 +121,7 @@ public class ParameterizedTextElementAdapterFactoryTest {
     ParameterizedTextElementAdapter textElementAdapter =
         textElementFactory.get(textElement, frameContext);
     assertThat(textElementAdapter).isSameInstanceAs(adapter);
-    textElementAdapter.createAdapter(
-        Element.newBuilder().setTextElement(textElement).build(), frameContext);
+    textElementAdapter.createAdapter(textElement, frameContext);
 
     // Ensure that releasing in the factory releases the adapter.
     textElementFactory.release(textElementAdapter);
@@ -136,6 +138,10 @@ public class ParameterizedTextElementAdapterFactoryTest {
     TextElementAdapter textElementAdapter3 = textElementFactory.get(textElement, frameContext);
     assertThat(textElementAdapter3).isSameInstanceAs(adapter2);
     assertThat(textElementAdapter3).isNotSameInstanceAs(textElementAdapter);
+  }
+
+  private Element getBaseTextElementModel(/*@Nullable*/ StyleProvider styleProvider) {
+    return Element.newBuilder().setTextElement(getBaseTextElement(styleProvider)).build();
   }
 
   private TextElement getBaseTextElement(/*@Nullable*/ StyleProvider styleProvider) {

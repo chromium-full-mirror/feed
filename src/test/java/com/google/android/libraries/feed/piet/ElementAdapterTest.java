@@ -14,14 +14,12 @@
 
 package com.google.android.libraries.feed.piet;
 
-import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.android.libraries.feed.piet.StyleProvider.DIMENSION_NOT_SET;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.same;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
@@ -34,12 +32,10 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
-import android.view.ViewGroup.MarginLayoutParams;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.FrameLayout;
 import com.google.android.libraries.feed.common.functional.Suppliers;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
-import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.ActionHandler.ActionType;
 import com.google.android.libraries.feed.piet.host.LogDataCallback;
@@ -52,29 +48,22 @@ import com.google.search.now.ui.piet.ActionsProto.Action;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.ActionsProto.VisibilityAction;
 import com.google.search.now.ui.piet.BindingRefsProto.ActionsBindingRef;
-import com.google.search.now.ui.piet.BindingRefsProto.ElementBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.LogDataBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ParameterizedTextBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.VisibilityBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
-import com.google.search.now.ui.piet.ElementsProto.Content;
 import com.google.search.now.ui.piet.ElementsProto.Element;
-import com.google.search.now.ui.piet.ElementsProto.ElementList;
-import com.google.search.now.ui.piet.ElementsProto.ElementStack;
 import com.google.search.now.ui.piet.ElementsProto.Visibility;
 import com.google.search.now.ui.piet.ElementsProto.VisibilityState;
 import com.google.search.now.ui.piet.LogDataProto.LogData;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
 import com.google.search.now.ui.piet.StylesProto.Borders;
-import com.google.search.now.ui.piet.StylesProto.GravityHorizontal;
-import com.google.search.now.ui.piet.StylesProto.GravityVertical;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import com.google.search.now.ui.piet.TextProto.ParameterizedText;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
@@ -147,14 +136,26 @@ public class ElementAdapterTest {
 
   @Test
   public void testGetters() {
+    // Pre-creation
+    assertThat(adapter.getHorizontalGravity(Gravity.CLIP_HORIZONTAL))
+        .isEqualTo(Gravity.CLIP_HORIZONTAL);
+    assertThat(adapter.getVerticalGravity(Gravity.CLIP_VERTICAL)).isEqualTo(Gravity.CLIP_VERTICAL);
+    assertThat(adapter.getGravity(Gravity.AXIS_Y_SHIFT)).isEqualTo(Gravity.AXIS_Y_SHIFT);
+
     Element defaultElement =
         Element.newBuilder()
-            .setGravityHorizontal(GravityHorizontal.GRAVITY_CENTER)
             .build();
     Frame frame = Frame.newBuilder().setTag("FRAME").build();
     when(frameContext.getFrame()).thenReturn(frame);
     when(styleProvider.getGravityHorizontal(Gravity.CLIP_HORIZONTAL))
         .thenReturn(Gravity.CENTER_HORIZONTAL);
+    when(styleProvider.hasGravityHorizontal()).thenReturn(true);
+    when(styleProvider.hasGravityVertical()).thenReturn(true);
+    when(styleProvider.getGravityHorizontal(anyInt())).thenReturn(Gravity.CENTER_HORIZONTAL);
+    when(styleProvider.getGravityVertical(anyInt())).thenReturn(Gravity.CENTER_VERTICAL);
+    // This should typically be CENTER_HORIZONTAL | CENTER_VERTICAL but I want to make sure that
+    // ElementAdapter is calling this method instead of OR'ing the H/V gravities itself.
+    when(styleProvider.getGravity(anyInt())).thenReturn(Gravity.FILL);
 
     adapter.createAdapter(defaultElement, defaultElement, frameContext);
 
@@ -167,33 +168,7 @@ public class ElementAdapterTest {
     assertThat(adapter.getTemplatedStringEvaluator())
         .isSameInstanceAs(parameters.templatedStringEvaluator);
     assertThat(adapter.getElementStyle()).isSameInstanceAs(styleProvider);
-    assertThat(adapter.getElementStyleIdsStack()).isEqualTo(TestElementAdapter.SUB_ELEMENT_STYLE);
-  }
-
-  // TODO: remove Element gravity and roll this test into the above testGetters
-  @Test
-  public void getGravity() {
-    // Pre-creation
-    assertThat(adapter.getHorizontalGravity(Gravity.CLIP_HORIZONTAL))
-        .isEqualTo(Gravity.CLIP_HORIZONTAL);
-    assertThat(adapter.getVerticalGravity(Gravity.CLIP_VERTICAL)).isEqualTo(Gravity.CLIP_VERTICAL);
-    assertThat(adapter.getGravity(Gravity.AXIS_Y_SHIFT)).isEqualTo(Gravity.AXIS_Y_SHIFT);
-
-    when(styleProvider.hasGravityHorizontal()).thenReturn(true);
-    when(styleProvider.hasGravityVertical()).thenReturn(true);
-    when(styleProvider.getGravityHorizontal(anyInt())).thenReturn(Gravity.CENTER_HORIZONTAL);
-    when(styleProvider.getGravityVertical(anyInt())).thenReturn(Gravity.CENTER_VERTICAL);
-    // This should typically be CENTER_HORIZONTAL | CENTER_VERTICAL but I want to make sure that
-    // ElementAdapter is calling this method instead of OR'ing the H/V gravities itself.
-    when(styleProvider.getGravity(anyInt())).thenReturn(Gravity.FILL);
-
-    Element defaultElement =
-        Element.newBuilder()
-            .setGravityHorizontal(GravityHorizontal.GRAVITY_CENTER)
-            .setGravityVertical(GravityVertical.GRAVITY_MIDDLE)
-            .build();
-
-    adapter.createAdapter(defaultElement, defaultElement, frameContext);
+    assertThat(adapter.getElementStyleIdsStack()).isEqualTo(StyleIdsStack.getDefaultInstance());
 
     assertThat(adapter.getHorizontalGravity(Gravity.CLIP_VERTICAL))
         .isEqualTo(Gravity.CENTER_HORIZONTAL);
@@ -211,64 +186,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void setLayoutParams_overlay() {
-    Element elementWithOverlays =
-        Element.newBuilder()
-            .addOverlays(
-                Content.newBuilder()
-                    .setElement(
-                        Element.newBuilder().setElementList(ElementList.getDefaultInstance())))
-            .build();
-
-    adapter.createAdapter(elementWithOverlays, elementWithOverlays, frameContext);
-
-    adapter.setLayoutParams(new LayoutParams(WIDTH, HEIGHT));
-
-    assertThat(adapter.getBaseView()).isNotEqualTo(adapter.getView());
-    assertThat(adapter.getView().getLayoutParams().width).isEqualTo(WIDTH);
-    assertThat(adapter.getView().getLayoutParams().height).isEqualTo(HEIGHT);
-    assertThat(adapter.getBaseView().getLayoutParams().width).isEqualTo(LayoutParams.MATCH_PARENT);
-    assertThat(adapter.getBaseView().getLayoutParams().height).isEqualTo(LayoutParams.MATCH_PARENT);
-
-    adapter.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
-
-    assertThat(adapter.getBaseView()).isNotEqualTo(adapter.getView());
-    assertThat(adapter.getView().getLayoutParams().width).isEqualTo(LayoutParams.WRAP_CONTENT);
-    assertThat(adapter.getView().getLayoutParams().height).isEqualTo(LayoutParams.WRAP_CONTENT);
-    assertThat(adapter.getBaseView().getLayoutParams().width).isEqualTo(LayoutParams.WRAP_CONTENT);
-    assertThat(adapter.getBaseView().getLayoutParams().height).isEqualTo(LayoutParams.WRAP_CONTENT);
-  }
-
-  @Test
-  public void setLayoutParams_resetsMarginsWithOverlay() {
-    Element elementWithOverlays =
-        Element.newBuilder()
-            .addOverlays(
-                Content.newBuilder()
-                    .setElement(
-                        Element.newBuilder().setElementList(ElementList.getDefaultInstance())))
-            .build();
-
-    adapter.createAdapter(elementWithOverlays, elementWithOverlays, frameContext);
-
-    MarginLayoutParams paramsWithMargins = new MarginLayoutParams(123, 456);
-    paramsWithMargins.setMargins(1, 2, 3, 4);
-    adapter.getBaseView().setLayoutParams(paramsWithMargins);
-
-    adapter.setLayoutParams(new LayoutParams(WIDTH, HEIGHT));
-
-    assertThat(((MarginLayoutParams) adapter.getBaseView().getLayoutParams()).leftMargin)
-        .isEqualTo(0);
-    assertThat(((MarginLayoutParams) adapter.getBaseView().getLayoutParams()).rightMargin)
-        .isEqualTo(0);
-    assertThat(((MarginLayoutParams) adapter.getBaseView().getLayoutParams()).topMargin)
-        .isEqualTo(0);
-    assertThat(((MarginLayoutParams) adapter.getBaseView().getLayoutParams()).bottomMargin)
-        .isEqualTo(0);
-  }
-
-  @Test
-  public void getComputedDimensions_defaults() {
+  public void testGetComputedDimensions_defaults() {
     assertThat(adapter.getComputedWidthPx()).isEqualTo(DIMENSION_NOT_SET);
     assertThat(adapter.getComputedHeightPx()).isEqualTo(DIMENSION_NOT_SET);
   }
@@ -300,83 +218,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void createAdapter_createsOverlays() {
-    Element elementWithOverlays =
-        Element.newBuilder()
-            .addOverlays(
-                Content.newBuilder()
-                    .setElement(
-                        Element.newBuilder().setElementList(ElementList.getDefaultInstance())))
-            .build();
-
-    adapter.createAdapter(elementWithOverlays, elementWithOverlays, frameContext);
-
-    assertThat(adapter.getView()).isNotEqualTo(adapter.getBaseView());
-    assertThat(adapter.getView()).isInstanceOf(FrameLayout.class);
-    assertThat(adapter.overlayAdapter.childAdapters).isNotEmpty();
-  }
-
-  @Test
-  public void createAdapter_setsOverlayLayoutParams() {
-    Content overlayContent =
-        Content.newBuilder()
-            .setElement(Element.newBuilder().setElementList(ElementList.getDefaultInstance()))
-            .build();
-    Element elementWithOverlays = Element.newBuilder().addOverlays(overlayContent).build();
-
-    ElementAdapterFactory mockFactory = mock(ElementAdapterFactory.class);
-    ElementStackAdapter mockOverlayAdapter = mock(ElementStackAdapter.class);
-    View overlayView = new View(context);
-    when(mockFactory.createOverlayAdapter(elementWithOverlays.getOverlaysList(), frameContext))
-        .thenReturn(mockOverlayAdapter);
-    when(mockOverlayAdapter.getView()).thenReturn(overlayView);
-    when(mockOverlayAdapter.getElementStyle()).thenReturn(styleProvider);
-
-    parameters =
-        new AdapterParameters(
-            context,
-            Suppliers.of((ViewGroup) null),
-            hostProviders,
-            new ParameterizedTextEvaluator(new FakeClock()),
-            mockFactory,
-            mock(TemplateBinder.class),
-            new FakeClock());
-    when(styleProvider.createWrapperView(
-            context,
-            parameters.roundedCornerMaskCache,
-            parameters.allowLegacyRoundedCornerImpl,
-            parameters.allowOutlineRoundedCornerImpl))
-        .thenReturn(new FrameLayout(context));
-    adapter = new TestElementAdapter(context, parameters, view);
-
-    adapter.createAdapter(elementWithOverlays, elementWithOverlays, frameContext);
-
-    assertThat(((FrameLayout) adapter.getView()).getChildAt(1)).isSameInstanceAs(overlayView);
-    ArgumentCaptor<LayoutParams> layoutParamsCaptor = ArgumentCaptor.forClass(LayoutParams.class);
-    verify(mockOverlayAdapter).setLayoutParams(layoutParamsCaptor.capture());
-    assertThat(layoutParamsCaptor.getValue().width).isEqualTo(LayoutParams.MATCH_PARENT);
-    assertThat(layoutParamsCaptor.getValue().height).isEqualTo(LayoutParams.MATCH_PARENT);
-  }
-
-  @Test
-  public void createAdapter_doesNothingForBoundOverlays() {
-    ElementBindingRef bindingRef = ElementBindingRef.newBuilder().setBindingId("overlay").build();
-    BindingValue bindingValue =
-        BindingValue.newBuilder()
-            .setElement(Element.newBuilder().setElementList(ElementList.getDefaultInstance()))
-            .build();
-    Content overlayContent = Content.newBuilder().setBoundElement(bindingRef).build();
-    when(frameContext.getElementBindingValue(bindingRef)).thenReturn(bindingValue);
-    Element elementWithOverlays = Element.newBuilder().addOverlays(overlayContent).build();
-
-    adapter.createAdapter(elementWithOverlays, elementWithOverlays, frameContext);
-
-    // No overlays have been created yet, but adapter exists
-    assertThat(adapter.overlayAdapter.childAdapters).isEmpty();
-  }
-
-  @Test
-  public void createAdapter_addsBorders() {
+  public void testCreateAdapter_addsBorders() {
     when(styleProvider.hasBorders()).thenReturn(true);
 
     adapter.createAdapter(Element.getDefaultInstance(), Element.getDefaultInstance(), frameContext);
@@ -540,51 +382,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void bindModel_bindsOverlays() {
-    Content overlayContent =
-        Content.newBuilder()
-            .setElement(
-                Element.newBuilder()
-                    .setGravityVertical(GravityVertical.GRAVITY_MIDDLE)
-                    .setElementList(ElementList.getDefaultInstance()))
-            .build();
-    Element elementWithOverlays = Element.newBuilder().addOverlays(overlayContent).build();
-
-    adapter.createAdapter(elementWithOverlays, elementWithOverlays, frameContext);
-    assertThat(adapter.overlayAdapter).isNotNull();
-
-    ElementStackAdapter mockOverlayAdapter = mock(ElementStackAdapter.class);
-    adapter.overlayAdapter = mockOverlayAdapter;
-
-    adapter.bindModel(elementWithOverlays, elementWithOverlays, frameContext);
-    verify(mockOverlayAdapter)
-        .bindModel(
-            Element.newBuilder()
-                .setElementStack(
-                    ElementStack.newBuilder().addAllContents(elementWithOverlays.getOverlaysList()))
-                .build(),
-            frameContext);
-  }
-
-  @Test
-  public void bindModel_bindsBoundOverlays() {
-    ElementBindingRef bindingRef = ElementBindingRef.newBuilder().setBindingId("overlay").build();
-    BindingValue bindingValue =
-        BindingValue.newBuilder()
-            .setElement(Element.newBuilder().setElementList(ElementList.getDefaultInstance()))
-            .build();
-    Content overlayContent = Content.newBuilder().setBoundElement(bindingRef).build();
-    when(frameContext.getElementBindingValue(bindingRef)).thenReturn(bindingValue);
-    Element elementWithOverlays = Element.newBuilder().addOverlays(overlayContent).build();
-    adapter.createAdapter(elementWithOverlays, elementWithOverlays, frameContext);
-
-    adapter.bindModel(elementWithOverlays, elementWithOverlays, frameContext);
-
-    assertThat(adapter.overlayAdapter.childAdapters.get(0)).isInstanceOf(ElementListAdapter.class);
-  }
-
-  @Test
-  public void bindModel_setsActions() {
+  public void testBindModel_setsActions() {
     Actions actions = Actions.newBuilder().setOnClickAction(Action.getDefaultInstance()).build();
     Element elementWithActions = Element.newBuilder().setActions(actions).build();
 
@@ -599,11 +397,8 @@ public class ElementAdapterTest {
     Element elementWithActions =
         Element.newBuilder()
             .setActions(actions)
-            .addOverlays(
-                Content.newBuilder()
-                    .setElement(
-                        Element.newBuilder().setElementList(ElementList.getDefaultInstance())))
             .build();
+    when(styleProvider.hasBorders()).thenReturn(true);
 
     adapter.createAdapter(elementWithActions, elementWithActions, frameContext);
     adapter.bindModel(elementWithActions, elementWithActions, frameContext);
@@ -646,13 +441,10 @@ public class ElementAdapterTest {
     Element elementWithActions =
         Element.newBuilder()
             .setActions(actions)
-            .addOverlays(
-                Content.newBuilder()
-                    .setElement(
-                        Element.newBuilder().setElementList(ElementList.getDefaultInstance())))
             .build();
     Element elementWithoutActions = elementWithActions.toBuilder().clearActions().build();
 
+    when(styleProvider.hasBorders()).thenReturn(true);
     adapter.createAdapter(elementWithActions, elementWithActions, frameContext);
     adapter.bindModel(elementWithActions, elementWithActions, frameContext);
     assertThat(adapter.getView().hasOnClickListeners()).isFalse();
@@ -660,6 +452,8 @@ public class ElementAdapterTest {
     assertThat(adapter.actions).isSameInstanceAs(actions);
 
     adapter.unbindModel();
+
+    when(styleProvider.hasBorders()).thenReturn(false);
     adapter.bindModel(elementWithoutActions, elementWithoutActions, frameContext);
     assertThat(adapter.getView().hasOnClickListeners()).isFalse();
     assertThat(adapter.getBaseView().hasOnClickListeners()).isFalse();
@@ -667,31 +461,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void bindModel_failsWithIncompatibleOverlays() {
-    Content overlayContent =
-        Content.newBuilder()
-            .setElement(
-                Element.newBuilder()
-                    .setGravityVertical(GravityVertical.GRAVITY_MIDDLE)
-                    .setElementList(ElementList.getDefaultInstance()))
-            .build();
-    Element elementWithOverlays =
-        Element.newBuilder().addOverlays(overlayContent).addOverlays(overlayContent).build();
-    adapter.createAdapter(elementWithOverlays, elementWithOverlays, frameContext);
-
-    Element elementWithFewerOverlays = Element.newBuilder().addOverlays(overlayContent).build();
-
-    assertThatRunnable(
-            () ->
-                adapter.bindModel(elementWithFewerOverlays, elementWithFewerOverlays, frameContext))
-        .throwsAnExceptionOfType(IllegalStateException.class)
-        .that()
-        .hasMessageThat()
-        .contains("Internal error in adapters per content");
-  }
-
-  @Test
-  public void bindModel_setsVisibility() {
+  public void testBindModel_setsVisibility() {
     Element visibleElement =
         Element.newBuilder()
             .setVisibilityState(
@@ -929,82 +699,26 @@ public class ElementAdapterTest {
 
   @Test
   public void unbindModel_unsetsActions() {
-    Element elementWithOverlaysAndActions =
+    Element elementWithWrapperAndActions =
         Element.newBuilder()
-            .addOverlays(
-                Content.newBuilder()
-                    .setElement(
-                        Element.newBuilder()
-                            .setActions(
-                                Actions.newBuilder().setOnClickAction(Action.getDefaultInstance()))
-                            .setElementList(ElementList.getDefaultInstance())))
             .setActions(Actions.newBuilder().setOnClickAction(Action.getDefaultInstance()))
             .build();
 
-    adapter.createAdapter(
-        elementWithOverlaysAndActions, elementWithOverlaysAndActions, frameContext);
-    adapter.bindModel(elementWithOverlaysAndActions, elementWithOverlaysAndActions, frameContext);
+    when(styleProvider.hasBorders()).thenReturn(true);
+
+    adapter.createAdapter(elementWithWrapperAndActions, elementWithWrapperAndActions, frameContext);
+    adapter.bindModel(elementWithWrapperAndActions, elementWithWrapperAndActions, frameContext);
     View adapterView = adapter.getBaseView();
-    View overlayView = adapter.getView();
+    View wrapperView = adapter.getView();
 
     adapter.unbindModel();
 
     assertThat(adapterView.hasOnClickListeners()).isFalse();
-    assertThat(overlayView.hasOnClickListeners()).isFalse();
+    assertThat(wrapperView.hasOnClickListeners()).isFalse();
   }
 
   @Test
-  public void unbindModel_unbindsOverlayAdapters() {
-    Content overlayContent =
-        Content.newBuilder()
-            .setElement(
-                Element.newBuilder()
-                    .setGravityVertical(GravityVertical.GRAVITY_MIDDLE)
-                    .setElementList(ElementList.getDefaultInstance()))
-            .build();
-    Element elementWithOverlays = Element.newBuilder().addOverlays(overlayContent).build();
-    adapter.createAdapter(elementWithOverlays, elementWithOverlays, frameContext);
-    adapter.bindModel(elementWithOverlays, elementWithOverlays, frameContext);
-    assertThat(adapter.overlayAdapter.getRawModel()).isNotNull();
-
-    adapter.unbindModel();
-    assertThat(adapter.overlayAdapter.getRawModel()).isNull();
-  }
-
-  @Test
-  public void unbindModel_releasesBoundOverlays() {
-    Element overlayElement =
-        Element.newBuilder()
-            .setGravityVertical(GravityVertical.GRAVITY_MIDDLE)
-            .setElementList(ElementList.getDefaultInstance())
-            .build();
-    String overlayBindingId = "overlay";
-    ElementBindingRef overlayBindingRef =
-        ElementBindingRef.newBuilder().setBindingId(overlayBindingId).build();
-    BindingValue overlayBindingValue =
-        BindingValue.newBuilder().setBindingId(overlayBindingId).setElement(overlayElement).build();
-    when(frameContext.getElementBindingValue(overlayBindingRef)).thenReturn(overlayBindingValue);
-    Content overlayContent = Content.newBuilder().setBoundElement(overlayBindingRef).build();
-    Element elementWithOverlays = Element.newBuilder().addOverlays(overlayContent).build();
-    adapter.createAdapter(elementWithOverlays, elementWithOverlays, frameContext);
-    assertThat(adapter.overlayAdapter).isNotNull();
-
-    adapter.bindModel(elementWithOverlays, elementWithOverlays, frameContext);
-    assertThat(adapter.overlayAdapter).isNotNull();
-    ElementStackAdapter overlayAdapter = adapter.overlayAdapter;
-    assertThat(overlayAdapter.childAdapters).hasSize(1);
-    assertThat(overlayAdapter.childAdapters.get(0)).isInstanceOf(ElementListAdapter.class);
-    ElementListAdapter mockOverlayAdapter = mock(ElementListAdapter.class);
-    overlayAdapter.childAdapters.set(0, mockOverlayAdapter);
-
-    adapter.unbindModel();
-    assertThat(adapter.overlayAdapter).isNotNull();
-    assertThat(overlayAdapter.childAdapters).isEmpty();
-    verify(mockOverlayAdapter).releaseAdapter();
-  }
-
-  @Test
-  public void unbindModel_affectsVisibilityCalculations() {
+  public void testUnbindModel_affectsVisibilityCalculations() {
     VisibilityBindingRef visibilityBinding =
         VisibilityBindingRef.newBuilder().setBindingId("vis").build();
     Element element =
@@ -1041,35 +755,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void releaseAdapter_removesOverlays() {
-    Element elementWithOverlays =
-        Element.newBuilder()
-            .addOverlays(
-                Content.newBuilder()
-                    .setElement(
-                        Element.newBuilder().setElementList(ElementList.getDefaultInstance())))
-            .build();
-
-    adapter.createAdapter(elementWithOverlays, elementWithOverlays, frameContext);
-    adapter.bindModel(elementWithOverlays, elementWithOverlays, frameContext);
-    View adapterView = adapter.getBaseView();
-    FrameLayout overlayView = (FrameLayout) adapter.getView();
-
-    ElementStackAdapter mockOverlayAdapter = mock(ElementStackAdapter.class);
-    when(mockOverlayAdapter.getKey()).thenReturn(SingletonKeySupplier.SINGLETON_KEY);
-    adapter.overlayAdapter = mockOverlayAdapter;
-
-    adapter.releaseAdapter();
-
-    assertThat(adapter.getView()).isSameInstanceAs(adapterView);
-    assertThat(adapter.getView()).isSameInstanceAs(adapter.getBaseView());
-    assertThat(overlayView.getChildCount()).isEqualTo(0);
-    verify(mockOverlayAdapter).releaseAdapter();
-    assertThat(adapter.overlayAdapter).isNull();
-  }
-
-  @Test
-  public void releaseAdapter_resetsVisibility() {
+  public void testReleaseAdapter_resetsVisibility() {
     Element defaultElement = Element.getDefaultInstance();
 
     adapter.createAdapter(defaultElement, defaultElement, frameContext);
@@ -1437,14 +1123,12 @@ public class ElementAdapterTest {
 
     adapter.createAdapter(elementWithNoStyle, frameContext);
 
-    assertThat(adapter.getElementStyleIdsStack()).isEqualTo(TestElementAdapter.SUB_ELEMENT_STYLE);
+    assertThat(adapter.getElementStyleIdsStack()).isEqualTo(StyleIdsStack.getDefaultInstance());
   }
 
   // Dummy implementation
   static class TestElementAdapter extends ElementAdapter<View, Object> {
     static final String DEFAULT_MODEL = "MODEL";
-    static final StyleIdsStack SUB_ELEMENT_STYLE =
-        StyleIdsStack.newBuilder().addStyleIds("deprecated").build();
 
     boolean testAdapterCreated = false;
     boolean testAdapterBound = false;
@@ -1469,11 +1153,6 @@ public class ElementAdapterTest {
     @Override
     protected void onBindModel(Object model, Element baseElement, FrameContext frameContext) {
       testAdapterBound = true;
-    }
-
-    @Override
-    StyleIdsStack getSubElementStyleIdsStack() {
-      return SUB_ELEMENT_STYLE;
     }
 
     @Override

@@ -34,7 +34,6 @@ import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.ActionsProto.VisibilityAction;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.Element;
-import com.google.search.now.ui.piet.ElementsProto.ElementStack;
 import com.google.search.now.ui.piet.ElementsProto.Visibility;
 import com.google.search.now.ui.piet.ElementsProto.VisibilityState;
 import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
@@ -76,9 +75,6 @@ abstract class ElementAdapter<V extends View, M> {
   private boolean checkBoundVisibility = false;
 
   /*@Nullable*/ private FrameLayout wrapperView = null;
-
-  // TODO: Remove support for overlays on Element
-  @Deprecated @VisibleForTesting /*@Nullable*/ ElementStackAdapter overlayAdapter = null;
 
   Actions actions = Actions.getDefaultInstance();
   /** Set of actions that are currently active / triggered so they only get called once. */
@@ -147,7 +143,7 @@ abstract class ElementAdapter<V extends View, M> {
     // Initialize the wrapper view before checking visibility - we need to have it in place before
     // the parent adds our outermost view to the hierarchy.
     elementStyle = frameContext.makeStyleFor(getElementStyleIdsStack());
-    initializeWrapperViewDependentFeatures(baseElement, frameContext);
+    initializeWrapperViewDependentFeatures();
 
     Visibility visibility = getVisibilityForElement(baseElement, frameContext);
     setVisibilityOnView(visibility);
@@ -165,14 +161,12 @@ abstract class ElementAdapter<V extends View, M> {
     created = true;
   }
 
-  private void initializeWrapperViewDependentFeatures(
-      Element baseElement, FrameContext frameContext) {
+  private void initializeWrapperViewDependentFeatures() {
     if (wrapperView != null) {
       // We have already initialized the wrapper view.
       return;
     }
     if (!elementStyle.hasRoundedCorners()
-        && baseElement.getOverlaysCount() == 0
         && !elementStyle.hasBorders()) {
       // We do not need a wrapper view.
       return;
@@ -185,16 +179,6 @@ abstract class ElementAdapter<V extends View, M> {
             parameters.allowLegacyRoundedCornerImpl,
             parameters.allowOutlineRoundedCornerImpl);
     wrapper.addView(getBaseView());
-
-    if (baseElement.getOverlaysCount() > 0) {
-      overlayAdapter =
-          getParameters()
-              .elementAdapterFactory
-              .createOverlayAdapter(baseElement.getOverlaysList(), frameContext);
-      overlayAdapter.setLayoutParams(
-          new FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
-      wrapper.addView(overlayAdapter.getView());
-    }
 
     if (!(wrapper instanceof RoundedCornerWrapperView)) {
       elementStyle.addBordersWithoutRoundedCorners(wrapper, getContext());
@@ -246,8 +230,6 @@ abstract class ElementAdapter<V extends View, M> {
     if (getView().getVisibility() == View.GONE) {
       return;
     }
-
-    bindOverlays(frameContext);
 
     bindActions(frameContext);
 
@@ -344,19 +326,6 @@ abstract class ElementAdapter<V extends View, M> {
   /** Performs child-adapter-specific binding logic; to be overridden. */
   void onBindModel(M model, Element baseElement, FrameContext frameContext) {}
 
-  // TODO: Remove this hacky method when overlays are transitioned to ElementStack.
-  private void bindOverlays(FrameContext frameContext) {
-    if (baseElement.getOverlaysCount() > 0) {
-      checkNotNull(overlayAdapter, "Overlays not initialized")
-          .bindModel(
-              Element.newBuilder()
-                  .setElementStack(
-                      ElementStack.newBuilder().addAllContents(baseElement.getOverlaysList()))
-                  .build(),
-              frameContext);
-    }
-  }
-
   void bindActions(FrameContext frameContext) {
     // Set up actions. On the server, they are defined either as the actual action, or an
     // "actions_binding". That actions_binding is defined in a template, and the binding value is
@@ -411,24 +380,8 @@ abstract class ElementAdapter<V extends View, M> {
 
   /** Returns any styles associated with the bound Element. */
   StyleIdsStack getElementStyleIdsStack() {
-    if (baseElement.hasStyleReferences()) {
-      return baseElement.getStyleReferences();
-    } else {
-      // TODO: Remove this branch.
-      return getSubElementStyleIdsStack();
-    }
+    return baseElement.getStyleReferences();
   }
-
-  /**
-   * Returns any styles associated with the bound sub-Element.
-   *
-   * <p>To be overridden by sub-Elements.
-   *
-   * @deprecated We are removing the sub-Element style.
-   */
-  // TODO: Remove this method.
-  @Deprecated
-  abstract StyleIdsStack getSubElementStyleIdsStack();
 
   /**
    * Unbinds the current Model from the Adapter. The Adapter will unbind all contained Adapters
@@ -451,10 +404,6 @@ abstract class ElementAdapter<V extends View, M> {
     // Unset actions
     ViewUtils.clearOnLongClickActions(getBaseView());
     ViewUtils.clearOnClickActions(getBaseView());
-
-    if (overlayAdapter != null) {
-      overlayAdapter.unbindModel();
-    }
   }
 
   /** Performs child-adapter-specific unbind logic; to be overridden. */
@@ -475,11 +424,6 @@ abstract class ElementAdapter<V extends View, M> {
     if (wrapperView != null) {
       wrapperView.removeAllViews();
       wrapperView = null;
-    }
-    ElementAdapterFactory factory = getParameters().elementAdapterFactory;
-    if (overlayAdapter != null) {
-      factory.releaseAdapter(overlayAdapter);
-      overlayAdapter = null;
     }
 
     setVisibilityOnView(Visibility.VISIBLE);
@@ -575,12 +519,7 @@ abstract class ElementAdapter<V extends View, M> {
     if (model == null) {
       return defaultGravity;
     }
-    int gravity = getElementStyle().getGravityVertical(defaultGravity);
-    // TODO: Remove this fallback to legacy behavior
-    if (!getElementStyle().hasGravityVertical() && baseElement.hasGravityVertical()) {
-      gravity = ViewUtils.gravityVerticalToGravity(baseElement.getGravityVertical());
-    }
-    return gravity;
+    return getElementStyle().getGravityVertical(defaultGravity);
   }
 
   /** Return the Element's desired horizontal placement within its container. */
@@ -588,12 +527,7 @@ abstract class ElementAdapter<V extends View, M> {
     if (model == null) {
       return defaultGravity;
     }
-    int gravity = getElementStyle().getGravityHorizontal(defaultGravity);
-    // TODO: Remove this fallback to legacy behavior
-    if (!getElementStyle().hasGravityHorizontal() && baseElement.hasGravityHorizontal()) {
-      gravity = ViewUtils.gravityHorizontalToGravity(baseElement.getGravityHorizontal());
-    }
-    return gravity;
+    return getElementStyle().getGravityHorizontal(defaultGravity);
   }
 
   /** Return the Element's desired horizontal and vertical placement within its container. */
@@ -601,35 +535,7 @@ abstract class ElementAdapter<V extends View, M> {
     if (model == null) {
       return defaultGravity;
     }
-    int gravity = getElementStyle().getGravity(defaultGravity);
-    // TODO: Remove this fallback to legacy behavior
-    if (!getElementStyle().hasGravityHorizontal() && !getElementStyle().hasGravityVertical()) {
-      Integer deprecatedGravity = getDeprecatedElementGravity();
-      if (deprecatedGravity != null) {
-        gravity = deprecatedGravity;
-      }
-    }
-    return gravity;
-  }
-
-  /**
-   * In a previous implementation, TextElement used the Element gravity for text alignment; this was
-   * messy as Element gravity was used for both text positioning and Element positioning. The
-   * Element gravity is now deprecated, but we're going to use it for backwards-compatibility on
-   * text to avoid breaking teams that currently rely on the old behavior. Going forward, no one
-   * will look at Element gravity - this is replaced by gravity on Style and text alignment on
-   * Style.
-   */
-  // TODO: Remove this method
-  @Deprecated
-  /*@Nullable*/
-  Integer getDeprecatedElementGravity() {
-    // Only return something if there's actually gravity on the Element.
-    if (!baseElement.hasGravityHorizontal() && !baseElement.hasGravityVertical()) {
-      return null;
-    }
-    return ViewUtils.pietGravityToGravity(
-        baseElement.getGravityHorizontal(), baseElement.getGravityVertical());
+    return getElementStyle().getGravity(defaultGravity);
   }
 
   ParameterizedTextEvaluator getTemplatedStringEvaluator() {

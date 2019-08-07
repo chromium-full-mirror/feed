@@ -30,7 +30,6 @@ import com.google.search.now.ui.piet.ElementsProto.Visibility;
 import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
 import com.google.search.now.ui.piet.ImagesProto.Image;
 import com.google.search.now.ui.piet.ImagesProto.ImageSource;
-import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 
 /** An {@link ElementAdapter} for {@code ImageElement} elements. */
 class ImageElementAdapter extends ElementAdapter<AspectRatioScalingImageView, ImageElement> {
@@ -144,11 +143,6 @@ class ImageElementAdapter extends ElementAdapter<AspectRatioScalingImageView, Im
     if (imageView != null) {
       imageView.setImageDrawable(null);
     }
-  }
-
-  @Override
-  StyleIdsStack getSubElementStyleIdsStack() {
-    return getModel().getStyleReferences();
   }
 
   @VisibleForTesting

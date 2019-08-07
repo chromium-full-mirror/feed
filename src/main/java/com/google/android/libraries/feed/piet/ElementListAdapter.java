@@ -29,7 +29,6 @@ import com.google.search.now.ui.piet.ElementsProto.Content;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ElementList;
 import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
-import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import java.util.List;
 
 /** An {@link ElementContainerAdapter} which manages vertical lists of elements. */
@@ -72,11 +71,6 @@ class ElementListAdapter extends ElementContainerAdapter<LinearLayout, ElementLi
   @Override
   List<Content> getContentsFromModel(ElementList model) {
     return model.getContentsList();
-  }
-
-  @Override
-  StyleIdsStack getSubElementStyleIdsStack() {
-    return getModel().getStyleReferences();
   }
 
   @Override

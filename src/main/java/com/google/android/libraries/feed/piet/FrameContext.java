@@ -19,7 +19,6 @@ import static com.google.search.now.ui.piet.ErrorsProto.ErrorCode.ERR_DUPLICATE_
 import static com.google.search.now.ui.piet.ErrorsProto.ErrorCode.ERR_DUPLICATE_STYLE;
 import static com.google.search.now.ui.piet.ErrorsProto.ErrorCode.ERR_DUPLICATE_TEMPLATE;
 import static com.google.search.now.ui.piet.ErrorsProto.ErrorCode.ERR_MISSING_BINDING_VALUE;
-import static com.google.search.now.ui.piet.ErrorsProto.ErrorCode.ERR_MISSING_STYLESHEET;
 import static com.google.search.now.ui.piet.ErrorsProto.ErrorCode.ERR_MISSING_TEMPLATE;
 
 import android.support.annotation.VisibleForTesting;
@@ -176,31 +175,21 @@ class FrameContext {
     NoKeyOverwriteHashMap<String, Style> styleMap = null;
     if (frame.hasStylesheets()) {
       styleMap = pietStylesHelper.getStylesheetMap(frame.getStylesheets(), debugLogger);
-    } else if (frame.hasStylesheetId()) {
-      // TODO: Remove this deprecated branch
-      styleMap = pietStylesHelper.getStylesheetMap(frame.getStylesheetId());
-    } else if (frame.hasStylesheet()) {
-      // TODO: Remove this deprecated branch
-      styleMap = pietStylesHelper.createMapFromStylesheet(frame.getStylesheet());
     }
 
     if (styleMap == null) {
       styleMap = new NoKeyOverwriteHashMap<>("Style", ERR_DUPLICATE_STYLE);
     }
-    FrameContext frameContext =
-        new FrameContext(
-            frame,
-            styleMap,
-            pietSharedStates,
-            pietStylesHelper,
-            debugBehavior,
-            debugLogger,
-            actionHandler,
-            hostProviders,
-            frameView);
-    frameContext.computeErrors();
-
-    return frameContext;
+    return new FrameContext(
+        frame,
+        styleMap,
+        pietSharedStates,
+        pietStylesHelper,
+        debugBehavior,
+        debugLogger,
+        actionHandler,
+        hostProviders,
+        frameView);
   }
 
   /** Return any of the template's stylesheets that could be affected by a MediaQuery. */
@@ -211,28 +200,15 @@ class FrameContext {
 
     ArrayList<Stylesheet> mediaQueryStylesheets = new ArrayList<>();
 
-    // TODO: remove this deprecated branch.
-    if (template.getStylesheets().getStylesheetIdsList().isEmpty()) {
-      if (template.getStylesheet().getConditionsCount() > 0) {
-        mediaQueryStylesheets.add(template.getStylesheet());
+    for (Stylesheet stylesheet : template.getStylesheets().getStylesheetsList()) {
+      if (stylesheet.getConditionsCount() > 0) {
+        mediaQueryStylesheets.add(stylesheet);
       }
-      if (template.hasStylesheetId()) {
-        Stylesheet stylesheet = stylesHelper.getStylesheet(template.getStylesheetId());
-        if (stylesheet != null && stylesheet.getConditionsCount() > 0) {
-          mediaQueryStylesheets.add(stylesheet);
-        }
-      }
-    } else {
-      for (Stylesheet stylesheet : template.getStylesheets().getStylesheetsList()) {
-        if (stylesheet.getConditionsCount() > 0) {
-          mediaQueryStylesheets.add(stylesheet);
-        }
-      }
-      for (String stylesheetId : template.getStylesheets().getStylesheetIdsList()) {
-        Stylesheet stylesheet = stylesHelper.getStylesheet(stylesheetId);
-        if (stylesheet != null && stylesheet.getConditionsCount() > 0) {
-          mediaQueryStylesheets.add(stylesheet);
-        }
+    }
+    for (String stylesheetId : template.getStylesheets().getStylesheetIdsList()) {
+      Stylesheet stylesheet = stylesHelper.getStylesheet(stylesheetId);
+      if (stylesheet != null && stylesheet.getConditionsCount() > 0) {
+        mediaQueryStylesheets.add(stylesheet);
       }
     }
 
@@ -252,23 +228,8 @@ class FrameContext {
    */
   FrameContext createTemplateContext(Template template, BindingContext bindingContext) {
     Map<String, BindingValue> bindingValues = createBindingValueMap(bindingContext);
-    Map<String, Style> localStylesheet;
-
-    if (template.hasStylesheets()) {
-      localStylesheet = stylesHelper.getStylesheetMap(template.getStylesheets(), getDebugLogger());
-    } else {
-      // TODO: Remove this deprecated branch
-      switch (template.getTemplateStylesheetCase()) {
-        case STYLESHEET:
-          localStylesheet = stylesHelper.createMapFromStylesheet(template.getStylesheet());
-          break;
-        case STYLESHEET_ID:
-          localStylesheet = stylesHelper.getStylesheetMap(template.getStylesheetId());
-          break;
-        default:
-          localStylesheet = new HashMap<>();
-      }
-    }
+    Map<String, Style> localStylesheet =
+        stylesHelper.getStylesheetMap(template.getStylesheets(), getDebugLogger());
 
     return new FrameContext(
         currentFrame,
@@ -610,15 +571,6 @@ class FrameContext {
     String e = String.format("[%s] %s", currentFrame.getTag(), message);
     debugLogger.recordMessage(messageType, errorCode, e);
     return e;
-  }
-
-  private void computeErrors() {
-    if (currentFrame.hasStylesheetId() && stylesheet.isEmpty()) {
-      String error =
-          String.format(
-              "Stylesheet [%s] not found, no stylesheet used", currentFrame.getStylesheetId());
-      Logger.w(TAG, reportMessage(MessageType.ERROR, ERR_MISSING_STYLESHEET, error));
-    }
   }
 
   private Map<String, BindingValue> createBindingValueMap(BindingContext bindingContext) {

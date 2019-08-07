@@ -19,14 +19,12 @@ import android.support.annotation.VisibleForTesting;
 import android.view.View;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.android.libraries.feed.piet.TemplateBinder.TemplateKey;
-import com.google.search.now.ui.piet.ElementsProto.Content;
 import com.google.search.now.ui.piet.ElementsProto.CustomElement;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ElementList;
 import com.google.search.now.ui.piet.ElementsProto.ElementStack;
 import com.google.search.now.ui.piet.ElementsProto.GridRow;
 import com.google.search.now.ui.piet.ElementsProto.ImageElement;
-import com.google.search.now.ui.piet.ElementsProto.TextElement;
 import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
 import java.util.Arrays;
 import java.util.Collections;
@@ -35,8 +33,8 @@ import java.util.List;
 /** Provides methods to create various adapter types based on bindings. */
 class ElementAdapterFactory {
   private final AdapterFactory<CustomElementAdapter, CustomElement> customElementFactory;
-  private final AdapterFactory<ChunkedTextElementAdapter, TextElement> chunkedTextElementFactory;
-  private final AdapterFactory<ParameterizedTextElementAdapter, TextElement>
+  private final AdapterFactory<ChunkedTextElementAdapter, Element> chunkedTextElementFactory;
+  private final AdapterFactory<ParameterizedTextElementAdapter, Element>
       parameterizedTextElementFactory;
   private final AdapterFactory<ImageElementAdapter, ImageElement> imageElementFactory;
   private final AdapterFactory<GridRowAdapter, GridRow> gridRowFactory;
@@ -66,8 +64,8 @@ class ElementAdapterFactory {
   @VisibleForTesting
   ElementAdapterFactory(
       AdapterFactory<CustomElementAdapter, CustomElement> customElementFactory,
-      AdapterFactory<ChunkedTextElementAdapter, TextElement> chunkedTextElementFactory,
-      AdapterFactory<ParameterizedTextElementAdapter, TextElement> parameterizedTextElementFactory,
+      AdapterFactory<ChunkedTextElementAdapter, Element> chunkedTextElementFactory,
+      AdapterFactory<ParameterizedTextElementAdapter, Element> parameterizedTextElementFactory,
       AdapterFactory<ImageElementAdapter, ImageElement> imageElementFactory,
       AdapterFactory<GridRowAdapter, GridRow> gridRowFactory,
       AdapterFactory<ElementListAdapter, ElementList> elementListFactory,
@@ -104,12 +102,11 @@ class ElementAdapterFactory {
         switch (element.getTextElement().getContentCase()) {
           case CHUNKED_TEXT:
           case CHUNKED_TEXT_BINDING:
-            returnAdapter = chunkedTextElementFactory.get(element.getTextElement(), frameContext);
+            returnAdapter = chunkedTextElementFactory.get(element, frameContext);
             break;
           case PARAMETERIZED_TEXT:
           case PARAMETERIZED_TEXT_BINDING:
-            returnAdapter =
-                parameterizedTextElementFactory.get(element.getTextElement(), frameContext);
+            returnAdapter = parameterizedTextElementFactory.get(element, frameContext);
             break;
           default:
             throw new PietFatalException(
@@ -144,15 +141,6 @@ class ElementAdapterFactory {
                 String.format("Unsupported Element type: %s", element.getElementsCase())));
     }
     returnAdapter.createAdapter(element, frameContext);
-    return returnAdapter;
-  }
-
-  // TODO: Remove this hacky method when overlays are transitioned to ElementStack.
-  @Deprecated
-  ElementStackAdapter createOverlayAdapter(List<Content> overlays, FrameContext frameContext) {
-    ElementStack model = ElementStack.newBuilder().addAllContents(overlays).build();
-    ElementStackAdapter returnAdapter = elementStackFactory.get(model, frameContext);
-    returnAdapter.createAdapter(Element.newBuilder().setElementStack(model).build(), frameContext);
     return returnAdapter;
   }
 

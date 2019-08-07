@@ -23,7 +23,6 @@ import android.support.annotation.VisibleForTesting;
 import android.support.v4.widget.TextViewCompat;
 import android.text.Layout;
 import android.text.TextUtils;
-import android.view.Gravity;
 import android.view.View;
 import android.widget.TextView;
 import com.google.android.libraries.feed.common.functional.Consumer;
@@ -36,7 +35,6 @@ import com.google.search.now.ui.piet.ElementsProto.TextElement;
 import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
 import com.google.search.now.ui.piet.StylesProto;
 import com.google.search.now.ui.piet.StylesProto.Font;
-import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import com.google.search.now.ui.piet.StylesProto.Typeface.CommonTypeface;
 import java.util.List;
 
@@ -44,7 +42,7 @@ import java.util.List;
  * Base {@link ElementAdapter} to extend to manage {@code ChunkedText} and {@code ParameterizedText}
  * elements.
  */
-abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> {
+abstract class TextElementAdapter extends ElementAdapter<TextView, Element> {
   private ExtraLineHeight extraLineHeight = ExtraLineHeight.builder().build();
 
   TextElementAdapter(Context context, AdapterParameters parameters) {
@@ -52,17 +50,17 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
   }
 
   @Override
-  protected TextElement getModelFromElement(Element baseElement) {
+  protected Element getModelFromElement(Element baseElement) {
     if (!baseElement.hasTextElement()) {
       throw new PietFatalException(
           ErrorCode.ERR_MISSING_ELEMENT_CONTENTS,
           String.format("Missing TextElement; has %s", baseElement.getElementsCase()));
     }
-    return baseElement.getTextElement();
+    return baseElement;
   }
 
   @Override
-  void onCreateAdapter(TextElement textLine, Element baseElement, FrameContext frameContext) {
+  void onCreateAdapter(Element textLine, Element baseElement, FrameContext frameContext) {
     if (getKey() == null) {
       TextElementKey key = createKey(getElementStyle().getFont());
       setKey(key);
@@ -82,10 +80,6 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
       textView.setIncludeFontPadding(false);
       ExtraLineHeight extraLineHeight = getExtraLineHeight();
       textView.setLineSpacing(/* add= */ extraLineHeight.betweenLinesExtraPx(), /* mult= */ 1.0f);
-    } else if (textStyle.getFont().hasLineHeightRatio()) {
-      // TODO Remove this code once transition to line height is complete.
-      textView.setIncludeFontPadding(false);
-      textView.setLineSpacing(/* add= */ 0, textStyle.getFont().getLineHeightRatio());
     }
     setLetterSpacing(textView, textStyle);
     if (textStyle.getMaxLines() > 0) {
@@ -96,18 +90,7 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
       textView.setMaxLines(Integer.MAX_VALUE);
     }
 
-    // TODO: Remove this if statement and always call this first method.
-    if (textStyle.getTextAlignment() != (Gravity.START | Gravity.TOP)) {
-      getBaseView().setGravity(textStyle.getTextAlignment());
-    } else {
-      // TODO: Remove this branch
-      Integer legacyGravity = getDeprecatedElementGravity();
-      if (legacyGravity != null) {
-        getBaseView().setGravity(legacyGravity);
-      } else {
-        getBaseView().setGravity(textStyle.getTextAlignment());
-      }
-    }
+    getBaseView().setGravity(textStyle.getTextAlignment());
   }
 
   private void setLetterSpacing(TextView textView, StyleProvider textStyle) {
@@ -137,22 +120,17 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
   }
 
   @Override
-  void onBindModel(TextElement textLine, Element baseElement, FrameContext frameContext) {
+  void onBindModel(Element textLine, Element baseElement, FrameContext frameContext) {
     // Set the initial state for the TextView
     // No bindings found, so use the inlined value (or empty if not set)
-    setTextOnView(frameContext, textLine);
+    setTextOnView(frameContext, textLine.getTextElement());
 
-    if (textLine.getStyleReferences().hasStyleBinding()) {
+    if (getElementStyleIdsStack().hasStyleBinding()) {
       updateTextStyle();
     } else if (baseFontHeightChanged()) {
       updateTextStyle();
       getElementStyle().applyElementStyles(this);
     }
-  }
-
-  @Override
-  StyleIdsStack getSubElementStyleIdsStack() {
-    return getModel().getStyleReferences();
   }
 
   abstract void setTextOnView(FrameContext frameContext, TextElement textElement);
@@ -186,7 +164,7 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
   ExtraLineHeight getExtraLineHeight() {
     Font font = getElementStyle().getFont();
 
-    if (!font.hasLineHeight() && !font.hasLineHeightRatio()) {
+    if (!font.hasLineHeight()) {
       return extraLineHeight;
     }
 
@@ -205,11 +183,6 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
       // Adjust the rounding for the extra top and bottom padding, to make the total height of the
       // text element a little more exact.
       totalExtraPadding = adjustRounding(extraLineHeightBetweenLinesFloat);
-    } else if (font.hasLineHeightRatio()) {
-      // TODO Remove this code once transition to line height is complete.
-      float textSize = getBaseView().getTextSize();
-      float extraLineHeightRatio = (font.getLineHeightRatio() - 1.0f);
-      totalExtraPadding = (int) (textSize * extraLineHeightRatio);
     }
     int extraPaddingForLineHeightTop = totalExtraPadding / 2;
     int extraPaddingForLineHeightBottom = totalExtraPadding - extraPaddingForLineHeightTop;
@@ -218,13 +191,8 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
     // padding (so that only half the padding is on the bottom). That means
     // extraPaddingForLineHeightBottom needs to be negative.
     if (VERSION.SDK_INT < VERSION_CODES.LOLLIPOP) {
-      if (font.hasLineHeight()) {
         extraPaddingForLineHeightBottom =
             -(extraLineHeightBetweenLines - extraPaddingForLineHeightBottom);
-      } else if (font.hasLineHeightRatio()) {
-        // TODO Remove this code once transition to line height is complete.
-        extraPaddingForLineHeightBottom = -extraPaddingForLineHeightBottom;
-      }
     }
 
     extraLineHeight =
@@ -382,9 +350,9 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
   }
 
   abstract static class TextElementKeySupplier<A extends TextElementAdapter>
-      implements AdapterKeySupplier<A, TextElement> {
+      implements AdapterKeySupplier<A, Element> {
     @Override
-    public TextElementKey getKey(FrameContext frameContext, TextElement model) {
+    public TextElementKey getKey(FrameContext frameContext, Element model) {
       StyleProvider styleProvider = frameContext.makeStyleFor(model.getStyleReferences());
       return new TextElementKey(styleProvider.getFont());
     }

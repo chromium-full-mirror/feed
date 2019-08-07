@@ -34,10 +34,10 @@ import com.google.search.now.ui.piet.MediaQueriesProto.DarkLightCondition.DarkLi
 import com.google.search.now.ui.piet.MediaQueriesProto.MediaQueryCondition;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.ui.piet.PietProto.Stylesheet;
+import com.google.search.now.ui.piet.PietProto.Stylesheets;
 import com.google.search.now.ui.piet.PietProto.Template;
 import com.google.search.now.ui.piet.StylesProto.BoundStyle;
 import com.google.search.now.ui.piet.StylesProto.Font;
-import com.google.search.now.ui.piet.StylesProto.Font.FontWeight;
 import com.google.search.now.ui.piet.StylesProto.Style;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import java.util.ArrayList;
@@ -162,16 +162,34 @@ public class PietStylesHelperTest {
     when(assetProvider.isDarkTheme()).thenReturn(true);
     helper = helperFactory.get(Collections.singletonList(sharedState), newMediaQueryHelper());
 
-    assertThat(helper.getStylesheetMap("DARK")).containsExactly(STYLE_ID_1, STYLE_1);
-    assertThat(helper.getStylesheetMap("LIGHT")).isEmpty();
-    assertThat(helper.getStylesheetMap("SWITCH")).containsExactly("dark", darkStyle);
+    assertThat(
+            helper.getStylesheetMap(
+                Stylesheets.newBuilder().addStylesheetIds("DARK").build(), debugLogger))
+        .containsExactly(STYLE_ID_1, STYLE_1);
+    assertThat(
+            helper.getStylesheetMap(
+                Stylesheets.newBuilder().addStylesheetIds("LIGHT").build(), debugLogger))
+        .isEmpty();
+    assertThat(
+            helper.getStylesheetMap(
+                Stylesheets.newBuilder().addStylesheetIds("SWITCH").build(), debugLogger))
+        .containsExactly("dark", darkStyle);
 
     when(assetProvider.isDarkTheme()).thenReturn(false);
     helper = helperFactory.get(Collections.singletonList(sharedState), newMediaQueryHelper());
 
-    assertThat(helper.getStylesheetMap("DARK")).isEmpty();
-    assertThat(helper.getStylesheetMap("LIGHT")).containsExactly(STYLE_ID_2, STYLE_2);
-    assertThat(helper.getStylesheetMap("SWITCH")).containsExactly("light", lightStyle);
+    assertThat(
+            helper.getStylesheetMap(
+                Stylesheets.newBuilder().addStylesheetIds("DARK").build(), debugLogger))
+        .isEmpty();
+    assertThat(
+            helper.getStylesheetMap(
+                Stylesheets.newBuilder().addStylesheetIds("LIGHT").build(), debugLogger))
+        .containsExactly(STYLE_ID_2, STYLE_2);
+    assertThat(
+            helper.getStylesheetMap(
+                Stylesheets.newBuilder().addStylesheetIds("SWITCH").build(), debugLogger))
+        .containsExactly("light", lightStyle);
   }
 
   @Test
@@ -210,15 +228,25 @@ public class PietStylesHelperTest {
 
   @Test
   public void testGetStylesheet() {
-    Map<String, Style> resultMap1 = helper.getStylesheetMap(STYLESHEET_ID_1);
+    Map<String, Style> resultMap1 =
+        helper.getStylesheetMap(
+            Stylesheets.newBuilder().addStylesheetIds(STYLESHEET_ID_1).build(), debugLogger);
     assertThat(resultMap1).containsExactly(STYLE_ID_1, STYLE_1);
 
     // Retrieve map again to test caching
-    assertThat(helper.getStylesheetMap(STYLESHEET_ID_1)).isSameInstanceAs(resultMap1);
+    assertThat(
+            helper.getStylesheetMap(
+                Stylesheets.newBuilder().addStylesheetIds(STYLESHEET_ID_1).build(), debugLogger))
+        .isSameInstanceAs(resultMap1);
 
-    Map<String, Style> resultMap2 = helper.getStylesheetMap(STYLESHEET_ID_2);
+    Map<String, Style> resultMap2 =
+        helper.getStylesheetMap(
+            Stylesheets.newBuilder().addStylesheetIds(STYLESHEET_ID_2).build(), debugLogger);
     assertThat(resultMap2).containsExactly(STYLE_ID_2, STYLE_2);
-    assertThat(helper.getStylesheetMap(STYLESHEET_ID_2)).isSameInstanceAs(resultMap2);
+    assertThat(
+            helper.getStylesheetMap(
+                Stylesheets.newBuilder().addStylesheetIds(STYLESHEET_ID_2).build(), debugLogger))
+        .isSameInstanceAs(resultMap2);
   }
 
   @Test
@@ -243,7 +271,10 @@ public class PietStylesHelperTest {
 
   @Test
   public void testGetStylesheet_notExist() {
-    assertThat(helper.getStylesheetMap("NOT EXIST")).isEmpty();
+    assertThat(
+            helper.getStylesheetMap(
+                Stylesheets.newBuilder().addStylesheetIds("NOT EXIST").build(), debugLogger))
+        .isEmpty();
   }
 
   @Test
@@ -254,7 +285,9 @@ public class PietStylesHelperTest {
     Style eighties = Style.newBuilder().setStyleId("80s").build();
     myStyles.addStyles(eighties);
 
-    assertThat(helper.createMapFromStylesheet(myStyles.build()))
+    assertThat(
+            helper.getStylesheetMap(
+                Stylesheets.newBuilder().addStylesheets(myStyles.build()).build(), debugLogger))
         .containsExactly("60s", sixties, "80s", eighties);
   }
 
@@ -266,7 +299,10 @@ public class PietStylesHelperTest {
     Style sixtiesAgain = Style.newBuilder().setStyleId("60s").build();
     myStyles.addStyles(sixtiesAgain);
 
-    assertThatRunnable(() -> helper.createMapFromStylesheet(myStyles.build()))
+    assertThatRunnable(
+            () ->
+                helper.getStylesheetMap(
+                    Stylesheets.newBuilder().addStylesheets(myStyles.build()).build(), debugLogger))
         .throwsAnExceptionOfType(PietFatalException.class)
         .that()
         .hasMessageThat()
@@ -295,12 +331,16 @@ public class PietStylesHelperTest {
 
     when(assetProvider.isDarkTheme()).thenReturn(true);
     helper = helperFactory.get(sharedStates, newMediaQueryHelper());
-    assertThat(helper.createMapFromStylesheet(myStyles.build()))
+    assertThat(
+            helper.getStylesheetMap(
+                Stylesheets.newBuilder().addStylesheets(myStyles.build()).build(), debugLogger))
         .containsExactly("theme", darkStyle);
 
     when(assetProvider.isDarkTheme()).thenReturn(false);
     helper = helperFactory.get(sharedStates, newMediaQueryHelper());
-    assertThat(helper.createMapFromStylesheet(myStyles.build()))
+    assertThat(
+            helper.getStylesheetMap(
+                Stylesheets.newBuilder().addStylesheets(myStyles.build()).build(), debugLogger))
         .containsExactly("theme", lightStyle);
   }
 
@@ -320,9 +360,9 @@ public class PietStylesHelperTest {
     // These constants are in the final output and are not overridden
     int baseWidth = 999;
     int style1Color = 12345;
+    boolean style1Italic = true;
     int style2MaxLines = 22222;
     int style2MinHeight = 33333;
-    FontWeight style1FontWeight = FontWeight.MEDIUM;
     int style2FontSize = 13;
     int style1GradientColor = 1234;
     int style2GradientDirection = 321;
@@ -342,7 +382,7 @@ public class PietStylesHelperTest {
         Style.newBuilder()
             .setColor(style1Color) // Not overridden
             .setMaxLines(54321) // Overridden
-            .setFont(Font.newBuilder().setSize(11).setWeight(style1FontWeight))
+            .setFont(Font.newBuilder().setSize(11).setItalic(style1Italic))
             .setBackground(
                 Fill.newBuilder()
                     .setLinearGradient(
@@ -378,7 +418,7 @@ public class PietStylesHelperTest {
                 .setColor(style1Color)
                 .setMaxLines(style2MaxLines)
                 .setMinHeight(style2MinHeight)
-                .setFont(Font.newBuilder().setSize(style2FontSize).setWeight(style1FontWeight))
+                .setFont(Font.newBuilder().setSize(style2FontSize).setItalic(style1Italic))
                 .setBackground(
                     Fill.newBuilder()
                         .setLinearGradient(
@@ -415,7 +455,7 @@ public class PietStylesHelperTest {
                 .setColor(boundStyleColor)
                 .setMaxLines(style2MaxLines)
                 .setMinHeight(style2MinHeight)
-                .setFont(Font.newBuilder().setSize(style2FontSize).setWeight(style1FontWeight))
+                .setFont(Font.newBuilder().setSize(style2FontSize).setItalic(style1Italic))
                 .setBackground(
                     Fill.newBuilder()
                         .setLinearGradient(

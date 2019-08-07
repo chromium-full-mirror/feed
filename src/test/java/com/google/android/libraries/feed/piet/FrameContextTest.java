@@ -72,8 +72,6 @@ import com.google.search.now.ui.piet.PietProto.Stylesheets;
 import com.google.search.now.ui.piet.PietProto.Template;
 import com.google.search.now.ui.piet.StylesProto.BoundStyle;
 import com.google.search.now.ui.piet.StylesProto.Font;
-import com.google.search.now.ui.piet.StylesProto.Font.FontWeight;
-import com.google.search.now.ui.piet.StylesProto.GravityVertical;
 import com.google.search.now.ui.piet.StylesProto.Style;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import com.google.search.now.ui.piet.TextProto.Chunk;
@@ -542,7 +540,9 @@ public class FrameContextTest {
   @Test
   public void testGetElement() {
     Element element =
-        Element.newBuilder().setGravityVertical(GravityVertical.GRAVITY_MIDDLE).build();
+        Element.newBuilder()
+            .setStyleReferences(StyleIdsStack.newBuilder().addStyleIds("el"))
+            .build();
     BindingValue elementBindingValue = defaultBinding().setElement(element).build();
     ElementBindingRef elementBindingRef =
         ElementBindingRef.newBuilder().setBindingId(BINDING_ID).build();
@@ -589,7 +589,9 @@ public class FrameContextTest {
   @Test
   public void testGetElement_hostBinding() {
     Element element =
-        Element.newBuilder().setGravityVertical(GravityVertical.GRAVITY_MIDDLE).build();
+        Element.newBuilder()
+            .setStyleReferences(StyleIdsStack.newBuilder().addStyleIds("el"))
+            .build();
     BindingValue elementBindingValue = defaultBinding().setElement(element).build();
     BindingValue hostListBindingValue =
         defaultBinding()
@@ -983,20 +985,6 @@ public class FrameContextTest {
     assertThat(frameContext.getChunkedTextBindingValue(textBindingRef)).isEqualTo(textBindingValue);
   }
 
-  // TODO: Remove; this is now reported by PietStylesHelper.
-  @Deprecated
-  @Test
-  public void testError_stylesheetNotFound() {
-    Frame frame =
-        Frame.newBuilder()
-            .setStylesheetId(STYLESHEET_ID)
-            .setStyleReferences(SAMPLE_STYLE_IDS)
-            .build();
-    FrameContext frameContext = makeFrameContextFromFrame(frame);
-    assertThat(frameContext).isNotNull();
-    assertThat(frameContext.getDebugLogger().getMessages(MessageType.ERROR)).hasSize(1);
-  }
-
   @Test
   public void testCreateWithoutError() {
     Frame frame = getWorkingFrame();
@@ -1139,7 +1127,7 @@ public class FrameContextTest {
         Style.newBuilder()
             .setColor(12345) // Not overridden
             .setMaxLines(54321) // Overridden
-            .setFont(Font.newBuilder().setSize(11).setWeight(FontWeight.MEDIUM))
+            .setFont(Font.newBuilder().setSize(11).setItalic(true))
             .setBackground(
                 Fill.newBuilder()
                     .setLinearGradient(
@@ -1182,7 +1170,7 @@ public class FrameContextTest {
     assertThat(defaultFrameStyle.getMaxLines()).isEqualTo(22222);
     assertThat(defaultFrameStyle.getMinHeight()).isEqualTo(33333);
     assertThat(defaultFrameStyle.getFont())
-        .isEqualTo(Font.newBuilder().setSize(13).setWeight(FontWeight.MEDIUM).build());
+        .isEqualTo(Font.newBuilder().setSize(13).setItalic(true).build());
     assertThat(defaultFrameStyle.getBackground())
         .isEqualTo(
             Fill.newBuilder()
@@ -1233,7 +1221,10 @@ public class FrameContextTest {
             .build();
     assertThat(frameContext.getMediaQueryStylesheets(inlineStylesheetTemplate)).isEmpty();
 
-    Template notFoundStylesheetTemplate = Template.newBuilder().setStylesheetId("NotFound").build();
+    Template notFoundStylesheetTemplate =
+        Template.newBuilder()
+            .setStylesheets(Stylesheets.newBuilder().addStylesheetIds("NotFound"))
+            .build();
     assertThat(frameContext.getMediaQueryStylesheets(notFoundStylesheetTemplate)).isEmpty();
 
     Template noConditionsTemplate =

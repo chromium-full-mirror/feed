@@ -92,13 +92,11 @@ public class RoundedCornerViewHelper {
    * is greater than zero.
    */
   public static boolean hasValidRoundedCorners(RoundedCorners roundedCorners, int radiusOverride) {
-    // TODO Remove deprecated radius code.
     return ((roundedCorners.hasRadiusPercentageOfWidth()
             && (roundedCorners.getRadiusPercentageOfWidth() > 0))
         || (roundedCorners.hasRadiusPercentageOfHeight()
             && (roundedCorners.getRadiusPercentageOfHeight() > 0))
         || (roundedCorners.hasRadiusDp() && (roundedCorners.getRadiusDp() > 0))
-        || (roundedCorners.hasRadius() && (roundedCorners.getRadius() > 0))
         || (radiusOverride > 0));
   }
 

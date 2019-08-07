@@ -70,6 +70,7 @@ import com.google.search.now.ui.piet.PietAndroidSupport.ShardingControl;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.ui.piet.PietProto.Stylesheet;
+import com.google.search.now.ui.piet.PietProto.Stylesheets;
 import com.google.search.now.ui.piet.PietProto.Template;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
 import com.google.search.now.ui.piet.ShadowsProto.ElevationShadow;
@@ -314,7 +315,7 @@ public class FrameAdapterImplTest {
         adapterParameters.pietStylesHelperFactory.get(pietSharedStates, mediaQueryHelper);
     FrameContext frameContext =
         FrameContext.createFrameContext(
-            Frame.newBuilder().setStylesheet(Stylesheet.getDefaultInstance()).build(),
+            Frame.newBuilder().setStylesheets(Stylesheets.getDefaultInstance()).build(),
             pietSharedStates,
             stylesHelper,
             debugBehavior,
@@ -386,7 +387,9 @@ public class FrameAdapterImplTest {
                                 Shadow.newBuilder()
                                     .setElevationShadow(
                                         ElevationShadow.newBuilder().setElevation(1)))
-                            .setOpacity(0.5f))
+                            .setOpacity(0.5f)
+                            .setGravityHorizontal(GravityHorizontal.GRAVITY_START)
+                            .setGravityVertical(GravityVertical.GRAVITY_BOTTOM))
                     .addStyles(
                         Style.newBuilder()
                             .setStyleId("style2")
@@ -403,7 +406,8 @@ public class FrameAdapterImplTest {
                             .setOpacity(0.25f)
                             // Rounded corners will introduce an overlay.
                             .setRoundedCorners(
-                                RoundedCorners.newBuilder().setRadius(2).setBitmask(2))))
+                                RoundedCorners.newBuilder().setRadiusDp(2).setBitmask(2))
+                            .setGravityHorizontal(GravityHorizontal.GRAVITY_END)))
             .build();
     pietSharedStates.add(pietSharedState);
 
@@ -422,13 +426,9 @@ public class FrameAdapterImplTest {
                                 Content.newBuilder()
                                     .setElement(
                                         Element.newBuilder()
-                                            .setGravityHorizontal(GravityHorizontal.GRAVITY_START)
-                                            .setGravityVertical(GravityVertical.GRAVITY_BOTTOM)
-                                            .setImageElement(
-                                                defaultImage.toBuilder()
-                                                    .setStyleReferences(
-                                                        StyleIdsStack.newBuilder()
-                                                            .addStyleIds("style1")))))))
+                                            .setStyleReferences(
+                                                StyleIdsStack.newBuilder().addStyleIds("style1"))
+                                            .setImageElement(defaultImage)))))
             .build();
     Content content2 =
         Content.newBuilder()
@@ -440,17 +440,17 @@ public class FrameAdapterImplTest {
                                 Content.newBuilder()
                                     .setElement(
                                         Element.newBuilder()
-                                            .setGravityHorizontal(GravityHorizontal.GRAVITY_END)
-                                            .setImageElement(
-                                                defaultImage.toBuilder()
-                                                    .setStyleReferences(
-                                                        StyleIdsStack.newBuilder()
-                                                            .addStyleIds("style2")))))))
+                                            .setStyleReferences(
+                                                StyleIdsStack.newBuilder().addStyleIds("style2"))
+                                            .setImageElement(defaultImage)))))
             .build();
 
     // Bind to a Frame with no wrapper view
     frameAdapter.bindModel(
-        Frame.newBuilder().setStylesheetId("stylesheet").addContents(content1).build(),
+        Frame.newBuilder()
+            .setStylesheets(Stylesheets.newBuilder().addStylesheetIds("stylesheet"))
+            .addContents(content1)
+            .build(),
         0,
         null,
         pietSharedStates);
@@ -478,7 +478,10 @@ public class FrameAdapterImplTest {
     // This will recycle the ImageView, but it will be within a wrapper view.
     // Ensure that the properties on the ImageView get unset correctly.
     frameAdapter.bindModel(
-        Frame.newBuilder().setStylesheetId("stylesheet").addContents(content2).build(),
+        Frame.newBuilder()
+            .setStylesheets(Stylesheets.newBuilder().addStylesheetIds("stylesheet"))
+            .addContents(content2)
+            .build(),
         0,
         null,
         Collections.singletonList(pietSharedState));
@@ -701,7 +704,6 @@ public class FrameAdapterImplTest {
   public void testRecycling_inlineSlice() {
     Element element =
         Element.newBuilder()
-            .setGravityVertical(GravityVertical.GRAVITY_MIDDLE)
             .setElementList(ElementList.getDefaultInstance())
             .build();
     Frame inlineSliceFrame =

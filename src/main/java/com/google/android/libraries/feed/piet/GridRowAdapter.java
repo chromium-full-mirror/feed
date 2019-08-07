@@ -38,7 +38,6 @@ import com.google.search.now.ui.piet.ElementsProto.GridCell;
 import com.google.search.now.ui.piet.ElementsProto.GridCellWidth;
 import com.google.search.now.ui.piet.ElementsProto.GridCellWidth.WidthSpecCase;
 import com.google.search.now.ui.piet.ElementsProto.GridRow;
-import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -94,11 +93,6 @@ class GridRowAdapter extends ElementContainerAdapter<GridRowView, GridRow> {
         adapterIndex++;
       }
     }
-  }
-
-  @Override
-  StyleIdsStack getSubElementStyleIdsStack() {
-    return getModel().getStyleReferences();
   }
 
   @SuppressWarnings("UnnecessaryDefaultInEnumSwitch")

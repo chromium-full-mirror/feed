@@ -22,7 +22,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.view.View;
 import com.google.search.now.ui.piet.ElementsProto.Element;
-import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -193,11 +192,6 @@ public class KeyedRecyclerPoolTest {
     @Override
     protected Object getModelFromElement(Element baseElement) {
       return null;
-    }
-
-    @Override
-    StyleIdsStack getSubElementStyleIdsStack() {
-      return StyleIdsStack.getDefaultInstance();
     }
   }
 }
