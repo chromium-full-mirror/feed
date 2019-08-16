@@ -378,6 +378,8 @@ public class FeedSessionManagerImplTest {
     ModelProvider modelProvider = getModelProvider(sessionManager);
     assertThat(modelProvider).isNotNull();
     assertThat(fakeStore.isEphemeralMode()).isFalse();
+    assertThat(fakeBasicLoggingApi.lastInternalError)
+        .isEqualTo(InternalFeedError.CONTENT_STORAGE_MISSING_ITEM);
   }
 
   @Test

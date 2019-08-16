@@ -434,8 +434,6 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
         getStore(mainThreadRunner).getPayloads(ImmutableList.of("foo"));
     assertThat(result.isSuccessful()).isTrue();
     assertThat(result.getValue()).isEmpty();
-    assertThat(basicLoggingApi.lastInternalError)
-        .isEqualTo(InternalFeedError.CONTENT_STORAGE_MISSING_ITEM);
   }
 
   @Test

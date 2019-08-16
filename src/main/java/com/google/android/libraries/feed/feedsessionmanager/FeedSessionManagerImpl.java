@@ -657,6 +657,14 @@ public final class FeedSessionManagerImpl
             "getStreamFeatures; requestedItems(%d), result(%d)",
             cacheMisses.size(),
             contentResult.getValue().size());
+        if (contentResult.getValue().size() < cacheMisses.size()) {
+          Logger.e(TAG, "ContentStorage is missing content");
+          mainThreadRunner.execute(
+              "CONTENT_STORAGE_MISSING_ITEM",
+              () -> {
+                basicLoggingApi.onInternalError(InternalFeedError.CONTENT_STORAGE_MISSING_ITEM);
+              });
+        }
         results.addAll(contentResult.getValue());
       } else {
         if (contentResult.isSuccessful()) {

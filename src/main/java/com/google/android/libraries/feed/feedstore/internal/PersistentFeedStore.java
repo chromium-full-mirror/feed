@@ -128,15 +128,6 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
       return Result.failure();
     }
 
-    if (contentResult.getValue().entrySet().size() != contentIds.size()) {
-      Logger.e(TAG, "ContentStorage is missing content");
-      mainThreadRunner.execute(
-          "CONTENT_STORAGE_MISSING_ITEM",
-          () -> {
-            basicLoggingApi.onInternalError(InternalFeedError.CONTENT_STORAGE_MISSING_ITEM);
-          });
-    }
-
     for (Map.Entry<String, byte[]> entry : contentResult.getValue().entrySet()) {
       try {
         StreamPayload streamPayload =
