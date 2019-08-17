@@ -18,6 +18,7 @@ import static com.google.android.libraries.feed.api.internal.common.testing.Cont
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.google.android.libraries.feed.api.host.config.Configuration;
 import com.google.android.libraries.feed.api.internal.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.internal.common.testing.InternalProtocolBuilder;
 import com.google.android.libraries.feed.api.internal.store.Store;
@@ -52,7 +53,11 @@ public class HeadAsStructureTest {
   public void setUp() {
     initMocks(this);
     fakeStore =
-        new FakeStore(fakeThreadUtils, new FakeTaskQueue(fakeClock, fakeThreadUtils), fakeClock);
+        new FakeStore(
+            Configuration.getDefaultInstance(),
+            fakeThreadUtils,
+            new FakeTaskQueue(fakeClock, fakeThreadUtils),
+            fakeClock);
     fakeThreadUtils.enforceMainThread(false);
   }
 

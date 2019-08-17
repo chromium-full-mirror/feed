@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.testing.store;
 
+import com.google.android.libraries.feed.api.host.config.Configuration;
 import com.google.android.libraries.feed.api.host.storage.CommitResult;
 import com.google.android.libraries.feed.api.internal.common.PayloadWithId;
 import com.google.android.libraries.feed.api.internal.store.ContentMutation;
@@ -48,8 +49,13 @@ public final class FakeStore extends FeedStore {
   private boolean allowGetSharedStates = true;
   private boolean clearHeadCalled = false;
 
-  public FakeStore(FakeThreadUtils fakeThreadUtils, TaskQueue taskQueue, Clock clock) {
+  public FakeStore(
+      Configuration configuration,
+      FakeThreadUtils fakeThreadUtils,
+      TaskQueue taskQueue,
+      Clock clock) {
     super(
+        configuration,
         new TimingUtils(),
         new FeedExtensionRegistry(ArrayList::new),
         new InMemoryContentStorage(),

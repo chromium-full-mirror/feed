@@ -70,7 +70,7 @@ public class SessionCacheTest {
   public void setUp() {
     initMocks(this);
     fakeTaskQueue = new FakeTaskQueue(fakeClock, fakeThreadUtils);
-    fakeStore = new FakeStore(fakeThreadUtils, fakeTaskQueue, fakeClock);
+    fakeStore = new FakeStore(configuration, fakeThreadUtils, fakeTaskQueue, fakeClock);
     fakeThreadUtils.enforceMainThread(false);
     fakeTaskQueue.initialize(() -> {});
     sessionCache = getSessionCache();
@@ -106,7 +106,7 @@ public class SessionCacheTest {
   public void testInitialization_accessibleContentShouldBeDeterminedAtGcTime() {
     FakeDirectExecutor fakeDirectExecutor = FakeDirectExecutor.queueAllTasks(fakeThreadUtils);
     fakeTaskQueue = new FakeTaskQueue(fakeClock, fakeDirectExecutor);
-    fakeStore = new FakeStore(fakeThreadUtils, fakeTaskQueue, fakeClock);
+    fakeStore = new FakeStore(configuration, fakeThreadUtils, fakeTaskQueue, fakeClock);
     fakeThreadUtils.enforceMainThread(false);
     fakeTaskQueue.initialize(() -> {});
     sessionCache = getSessionCache();

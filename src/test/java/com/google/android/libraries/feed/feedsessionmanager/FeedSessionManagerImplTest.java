@@ -147,7 +147,7 @@ public class FeedSessionManagerImplTest {
     fakeTaskQueue = new FakeTaskQueue(fakeClock, fakeThreadUtils);
     appLifecycleListener = new FeedAppLifecycleListener(fakeThreadUtils);
     fakeActionUploadRequestManager = new FakeActionUploadRequestManager(fakeThreadUtils);
-    fakeStore = new FakeStore(fakeThreadUtils, fakeTaskQueue, fakeClock);
+    fakeStore = new FakeStore(configuration, fakeThreadUtils, fakeTaskQueue, fakeClock);
     fakeProtocolAdapter = new FakeProtocolAdapter();
     fakeRequestManager =
         new FakeFeedRequestManager(

@@ -18,10 +18,15 @@ import static com.google.android.libraries.feed.feedstore.internal.FeedStoreCons
 import static com.google.android.libraries.feed.feedstore.internal.FeedStoreConstants.SHARED_STATE_PREFIX;
 import static com.google.android.libraries.feed.feedstore.internal.FeedStoreConstants.UPLOADABLE_ACTION_PREFIX;
 
+import com.google.android.libraries.feed.api.host.config.Configuration;
+import com.google.android.libraries.feed.api.host.config.Configuration.ConfigKey;
+import com.google.android.libraries.feed.api.host.logging.Task;
 import com.google.android.libraries.feed.api.host.storage.CommitResult;
 import com.google.android.libraries.feed.api.host.storage.ContentMutation;
 import com.google.android.libraries.feed.api.host.storage.ContentStorageDirect;
 import com.google.android.libraries.feed.common.Result;
+import com.google.android.libraries.feed.common.concurrent.TaskQueue;
+import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.TimingUtils;
@@ -41,24 +46,39 @@ public final class ContentGc {
   private final Supplier<Set<StreamLocalAction>> actionsSupplier;
   private final ContentStorageDirect contentStorageDirect;
   private final TimingUtils timingUtils;
+  private final TaskQueue taskQueue;
   private final boolean keepSharedStates;
+  private final long maxAllowedGcAttempts;
+
+  private int contentGcAttempts = 0;
 
   ContentGc(
+      Configuration configuration,
       Supplier<Set<String>> accessibleContentSupplier,
       Set<String> reservedContentIds,
       Supplier<Set<StreamLocalAction>> actionsSupplier,
       ContentStorageDirect contentStorageDirect,
+      TaskQueue taskQueue,
       TimingUtils timingUtils,
       boolean keepSharedStates) {
     this.accessibleContentSupplier = accessibleContentSupplier;
     this.reservedContentIds = reservedContentIds;
     this.actionsSupplier = actionsSupplier;
     this.contentStorageDirect = contentStorageDirect;
+    this.taskQueue = taskQueue;
     this.timingUtils = timingUtils;
     this.keepSharedStates = keepSharedStates;
+    maxAllowedGcAttempts = configuration.getValueOrDefault(ConfigKey.MAXIMUM_GC_ATTEMPTS, 10L);
   }
 
   void gc() {
+    if (taskQueue.hasBacklog() && contentGcAttempts < maxAllowedGcAttempts) {
+      Logger.i(TAG, "Re-enqueuing triggerContentGc; attempts(%d)", contentGcAttempts);
+      contentGcAttempts++;
+      taskQueue.execute(Task.GARBAGE_COLLECT_CONTENT, TaskType.BACKGROUND, this::gc);
+      return;
+    }
+
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
     Set<String> population = getPopulation();
     // remove the items in the population that are accessible, reserved, or semantic properties

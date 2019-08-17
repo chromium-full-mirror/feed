@@ -96,7 +96,7 @@ public class SessionManagerMutationTest {
     fakeTaskQueue = new FakeTaskQueue(fakeClock, fakeThreadUtils);
     fakeTaskQueue.initialize(() -> {});
     fakeThreadUtils.enforceMainThread(false);
-    fakeStore = new FakeStore(fakeThreadUtils, fakeTaskQueue, fakeClock);
+    fakeStore = new FakeStore(configuration, fakeThreadUtils, fakeTaskQueue, fakeClock);
     SessionFactory sessionFactory =
         new SessionFactory(fakeStore, fakeTaskQueue, timingUtils, fakeThreadUtils, configuration);
     sessionCache =

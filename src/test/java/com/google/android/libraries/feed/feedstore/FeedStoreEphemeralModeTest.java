@@ -58,6 +58,7 @@ public class FeedStoreEphemeralModeTest extends AbstractFeedStoreTest {
     fakeTaskQueue.initialize(() -> {});
     FeedStore feedStore =
         new FeedStore(
+            configuration,
             timingUtils,
             extensionRegistry,
             contentStorage,

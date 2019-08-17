@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.feedstore;
 
+import com.google.android.libraries.feed.api.host.config.Configuration;
 import com.google.android.libraries.feed.api.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.api.host.logging.InternalFeedError;
 import com.google.android.libraries.feed.api.host.logging.Task;
@@ -91,6 +92,7 @@ public class FeedStore extends FeedObservable<StoreListener>
   protected final JournalStorageDirect journalStorage;
 
   public FeedStore(
+      Configuration configuration,
       TimingUtils timingUtils,
       FeedExtensionRegistry extensionRegistry,
       ContentStorageDirect contentStorage,
@@ -111,10 +113,12 @@ public class FeedStore extends FeedObservable<StoreListener>
 
     this.persistentStore =
         new PersistentFeedStore(
+            configuration,
             this.timingUtils,
             extensionRegistry,
             contentStorage,
             journalStorage,
+            this.taskQueue,
             threadUtils,
             this.clock,
             this.storeHelper,

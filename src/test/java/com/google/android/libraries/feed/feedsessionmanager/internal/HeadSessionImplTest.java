@@ -17,6 +17,7 @@ package com.google.android.libraries.feed.feedsessionmanager.internal;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.android.libraries.feed.api.common.MutationContext;
+import com.google.android.libraries.feed.api.host.config.Configuration;
 import com.google.android.libraries.feed.api.internal.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.internal.common.testing.InternalProtocolBuilder;
 import com.google.android.libraries.feed.api.internal.store.Store;
@@ -44,7 +45,11 @@ public class HeadSessionImplTest {
   private final FakeThreadUtils fakeThreadUtils = FakeThreadUtils.withoutThreadChecks();
   private final TimingUtils timingUtils = new TimingUtils();
   private final FakeStore fakeStore =
-      new FakeStore(fakeThreadUtils, new FakeTaskQueue(fakeClock, fakeThreadUtils), fakeClock);
+      new FakeStore(
+          Configuration.getDefaultInstance(),
+          fakeThreadUtils,
+          new FakeTaskQueue(fakeClock, fakeThreadUtils),
+          fakeClock);
   private final HeadSessionImpl headSession =
       new HeadSessionImpl(fakeStore, timingUtils, /* limitPageUpdatesInHead= */ false);
 

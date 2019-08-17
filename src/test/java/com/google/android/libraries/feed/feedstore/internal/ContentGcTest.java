@@ -18,10 +18,14 @@ import static com.google.android.libraries.feed.feedstore.internal.FeedStoreCons
 import static com.google.android.libraries.feed.feedstore.internal.FeedStoreConstants.UPLOADABLE_ACTION_PREFIX;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.google.android.libraries.feed.api.host.config.Configuration;
+import com.google.android.libraries.feed.api.host.config.Configuration.ConfigKey;
+import com.google.android.libraries.feed.api.host.logging.Task;
 import com.google.android.libraries.feed.api.host.storage.CommitResult;
 import com.google.android.libraries.feed.api.host.storage.ContentMutation;
 import com.google.android.libraries.feed.api.host.storage.ContentMutation.Builder;
@@ -29,7 +33,13 @@ import com.google.android.libraries.feed.api.host.storage.ContentOperation;
 import com.google.android.libraries.feed.api.host.storage.ContentStorageDirect;
 import com.google.android.libraries.feed.api.internal.store.LocalActionMutation.ActionType;
 import com.google.android.libraries.feed.common.Result;
+import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeDirectExecutor;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeTaskQueue;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.time.TimingUtils;
+import com.google.android.libraries.feed.common.time.testing.FakeClock;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.search.now.feed.client.StreamDataProto.StreamLocalAction;
 import java.util.ArrayList;
@@ -38,6 +48,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
 
@@ -45,6 +56,7 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class ContentGcTest {
 
+  @Captor private ArgumentCaptor<ContentMutation> contentMutationCaptor;
   @Mock private ContentStorageDirect contentStorage;
 
   private static final String CONTENT_ID_1 = "contentId1";
@@ -52,12 +64,23 @@ public class ContentGcTest {
   private static final String SEMANTIC_PROPERTIES_1 = SEMANTIC_PROPERTIES_PREFIX + CONTENT_ID_1;
   private static final String SEMANTIC_PROPERTIES_2 = SEMANTIC_PROPERTIES_PREFIX + CONTENT_ID_2;
   private static final String ACTION_1 = UPLOADABLE_ACTION_PREFIX + CONTENT_ID_1;
+  private static final long MAXIMUM_GC_ATTEMPTS = 3L;
 
+  private final Configuration configuration =
+      new Configuration.Builder().put(ConfigKey.MAXIMUM_GC_ATTEMPTS, MAXIMUM_GC_ATTEMPTS).build();
+  private final FakeClock fakeClock = new FakeClock();
+  private final FakeThreadUtils fakeThreadUtils = FakeThreadUtils.withThreadChecks();
+  private final FakeDirectExecutor fakeDirectExecutor =
+      FakeDirectExecutor.queueAllTasks(fakeThreadUtils);
   private final TimingUtils timingUtils = new TimingUtils();
+
+  private FakeTaskQueue fakeTaskQueue;
 
   @Before
   public void setUp() throws Exception {
     initMocks(this);
+    fakeTaskQueue = new FakeTaskQueue(fakeClock, fakeDirectExecutor);
+    fakeTaskQueue.initialize(() -> {});
   }
 
   @Test
@@ -68,15 +91,15 @@ public class ContentGcTest {
     mockContentStorageWithContents(contentKeys);
     ContentGc contentGc =
         new ContentGc(
+            configuration,
             ImmutableSet::of,
             ImmutableSet.of(),
             ImmutableSet::of,
             contentStorage,
+            fakeTaskQueue,
             timingUtils,
             /* keepSharedStates= */ true);
     contentGc.gc();
-    ArgumentCaptor<ContentMutation> contentMutationCaptor =
-        ArgumentCaptor.forClass(ContentMutation.class);
     verify(contentStorage).commit(contentMutationCaptor.capture());
     List<ContentOperation> expectedOperations =
         new Builder().delete(CONTENT_ID_1).delete(CONTENT_ID_2).build().getOperations();
@@ -92,15 +115,15 @@ public class ContentGcTest {
     mockContentStorageWithContents(contentKeys);
     ContentGc contentGc =
         new ContentGc(
+            configuration,
             () -> ImmutableSet.of(CONTENT_ID_1),
             ImmutableSet.of(),
             ImmutableSet::of,
             contentStorage,
+            fakeTaskQueue,
             timingUtils,
             /* keepSharedStates= */ true);
     contentGc.gc();
-    ArgumentCaptor<ContentMutation> contentMutationCaptor =
-        ArgumentCaptor.forClass(ContentMutation.class);
     verify(contentStorage).commit(contentMutationCaptor.capture());
     List<ContentOperation> expectedOperations =
         new Builder().delete(CONTENT_ID_2).build().getOperations();
@@ -116,15 +139,15 @@ public class ContentGcTest {
     mockContentStorageWithContents(contentKeys);
     ContentGc contentGc =
         new ContentGc(
+            configuration,
             ImmutableSet::of,
             ImmutableSet.of(CONTENT_ID_1),
             ImmutableSet::of,
             contentStorage,
+            fakeTaskQueue,
             timingUtils,
             /* keepSharedStates= */ true);
     contentGc.gc();
-    ArgumentCaptor<ContentMutation> contentMutationCaptor =
-        ArgumentCaptor.forClass(ContentMutation.class);
     verify(contentStorage).commit(contentMutationCaptor.capture());
     List<ContentOperation> expectedOperations =
         new Builder().delete(CONTENT_ID_2).build().getOperations();
@@ -139,15 +162,15 @@ public class ContentGcTest {
     mockContentStorageWithContents(contentKeys);
     ContentGc contentGc =
         new ContentGc(
+            configuration,
             ImmutableSet::of,
             ImmutableSet.of(),
             ImmutableSet::of,
             contentStorage,
+            fakeTaskQueue,
             timingUtils,
             /* keepSharedStates= */ true);
     contentGc.gc();
-    ArgumentCaptor<ContentMutation> contentMutationCaptor =
-        ArgumentCaptor.forClass(ContentMutation.class);
     verify(contentStorage).commit(contentMutationCaptor.capture());
     List<ContentOperation> expectedOperations = new Builder().build().getOperations();
     List<ContentOperation> resultOperations = contentMutationCaptor.getValue().getOperations();
@@ -164,15 +187,15 @@ public class ContentGcTest {
     mockContentStorageWithContents(contentKeys);
     ContentGc contentGc =
         new ContentGc(
+            configuration,
             ImmutableSet::of,
             ImmutableSet.of(),
             ImmutableSet::of,
             contentStorage,
+            fakeTaskQueue,
             timingUtils,
             /* keepSharedStates= */ true);
     contentGc.gc();
-    ArgumentCaptor<ContentMutation> contentMutationCaptor =
-        ArgumentCaptor.forClass(ContentMutation.class);
     verify(contentStorage).commit(contentMutationCaptor.capture());
     List<ContentOperation> expectedOperations =
         new Builder()
@@ -192,6 +215,7 @@ public class ContentGcTest {
     mockContentStorageWithContents(contentKeys);
     ContentGc contentGc =
         new ContentGc(
+            configuration,
             ImmutableSet::of,
             ImmutableSet.of(),
             () ->
@@ -201,11 +225,10 @@ public class ContentGcTest {
                         .setFeatureContentId(CONTENT_ID_1)
                         .build()),
             contentStorage,
+            fakeTaskQueue,
             timingUtils,
             /* keepSharedStates= */ true);
     contentGc.gc();
-    ArgumentCaptor<ContentMutation> contentMutationCaptor =
-        ArgumentCaptor.forClass(ContentMutation.class);
     verify(contentStorage).commit(contentMutationCaptor.capture());
     List<ContentOperation> expectedOperations =
         new Builder().delete(SEMANTIC_PROPERTIES_2).build().getOperations();
@@ -222,15 +245,15 @@ public class ContentGcTest {
     mockContentStorageWithContents(contentKeys);
     ContentGc contentGc =
         new ContentGc(
+            configuration,
             () -> ImmutableSet.of(CONTENT_ID_1),
             ImmutableSet.of(),
             ImmutableSet::of,
             contentStorage,
+            fakeTaskQueue,
             timingUtils,
             /* keepSharedStates= */ true);
     contentGc.gc();
-    ArgumentCaptor<ContentMutation> contentMutationCaptor =
-        ArgumentCaptor.forClass(ContentMutation.class);
     verify(contentStorage).commit(contentMutationCaptor.capture());
     List<ContentOperation> expectedOperations =
         new Builder().delete(SEMANTIC_PROPERTIES_2).build().getOperations();
@@ -246,15 +269,15 @@ public class ContentGcTest {
     mockContentStorageWithContents(contentKeys);
     ContentGc contentGc =
         new ContentGc(
+            configuration,
             ImmutableSet::of,
             ImmutableSet.of(),
             ImmutableSet::of,
             contentStorage,
+            fakeTaskQueue,
             timingUtils,
             /* keepSharedStates= */ true);
     contentGc.gc();
-    ArgumentCaptor<ContentMutation> contentMutationCaptor =
-        ArgumentCaptor.forClass(ContentMutation.class);
     verify(contentStorage).commit(contentMutationCaptor.capture());
     List<ContentOperation> expectedOperations =
         new Builder().delete(CONTENT_ID_2).build().getOperations();
@@ -270,15 +293,15 @@ public class ContentGcTest {
     mockContentStorageWithContents(contentKeys);
     ContentGc contentGc =
         new ContentGc(
+            configuration,
             ImmutableSet::of,
             ImmutableSet.of(),
             ImmutableSet::of,
             contentStorage,
+            fakeTaskQueue,
             timingUtils,
             /* keepSharedStates= */ false);
     contentGc.gc();
-    ArgumentCaptor<ContentMutation> contentMutationCaptor =
-        ArgumentCaptor.forClass(ContentMutation.class);
     verify(contentStorage).commit(contentMutationCaptor.capture());
     List<ContentOperation> expectedOperations =
         new Builder()
@@ -298,20 +321,86 @@ public class ContentGcTest {
     mockContentStorageWithContents(contentKeys);
     ContentGc contentGc =
         new ContentGc(
+            configuration,
             () -> ImmutableSet.of(CONTENT_ID_1),
             ImmutableSet.of(),
             ImmutableSet::of,
             contentStorage,
+            fakeTaskQueue,
             timingUtils,
             /* keepSharedStates= */ false);
     contentGc.gc();
-    ArgumentCaptor<ContentMutation> contentMutationCaptor =
-        ArgumentCaptor.forClass(ContentMutation.class);
     verify(contentStorage).commit(contentMutationCaptor.capture());
     List<ContentOperation> expectedOperations =
         new Builder().delete(CONTENT_ID_2).build().getOperations();
     List<ContentOperation> resultOperations = contentMutationCaptor.getValue().getOperations();
     assertListsContainSameElements(expectedOperations, resultOperations);
+  }
+
+  @Test
+  public void gc_delayWhileTaskEnqueued() {
+    fakeTaskQueue.execute(Task.UNKNOWN, TaskType.BACKGROUND, () -> {});
+    List<String> contentKeys = ImmutableList.of(CONTENT_ID_1, CONTENT_ID_2);
+    mockContentStorageWithContents(contentKeys);
+    ContentGc contentGc =
+        new ContentGc(
+            configuration,
+            ImmutableSet::of,
+            ImmutableSet.of(),
+            ImmutableSet::of,
+            contentStorage,
+            fakeTaskQueue,
+            timingUtils,
+            /* keepSharedStates= */ false);
+    contentGc.gc();
+
+    assertThat(fakeTaskQueue.getBackgroundTaskCount()).isEqualTo(2);
+    verify(contentStorage, never()).commit(contentMutationCaptor.capture());
+  }
+
+  @Test
+  public void gc_runWhenMaximumAttemptsReached() {
+    fakeTaskQueue.execute(Task.UNKNOWN, TaskType.BACKGROUND, () -> {});
+    List<String> contentKeys = ImmutableList.of(CONTENT_ID_1, CONTENT_ID_2);
+    mockContentStorageWithContents(contentKeys);
+    ContentGc contentGc =
+        new ContentGc(
+            configuration,
+            ImmutableSet::of,
+            ImmutableSet.of(),
+            ImmutableSet::of,
+            contentStorage,
+            fakeTaskQueue,
+            timingUtils,
+            /* keepSharedStates= */ false);
+    for (int i = 0; i < MAXIMUM_GC_ATTEMPTS; i++) {
+      contentGc.gc();
+      assertThat(fakeTaskQueue.getBackgroundTaskCount()).isEqualTo(2 + i);
+      verify(contentStorage, never()).commit(contentMutationCaptor.capture());
+    }
+
+    contentGc.gc();
+    verify(contentStorage).commit(contentMutationCaptor.capture());
+  }
+
+  @Test
+  public void gc_runWhenMaximumIsZero() {
+    fakeTaskQueue.execute(Task.UNKNOWN, TaskType.BACKGROUND, () -> {});
+    List<String> contentKeys = ImmutableList.of(CONTENT_ID_1, CONTENT_ID_2);
+    mockContentStorageWithContents(contentKeys);
+    ContentGc contentGc =
+        new ContentGc(
+            new Configuration.Builder().put(ConfigKey.MAXIMUM_GC_ATTEMPTS, 0L).build(),
+            ImmutableSet::of,
+            ImmutableSet.of(),
+            ImmutableSet::of,
+            contentStorage,
+            fakeTaskQueue,
+            timingUtils,
+            /* keepSharedStates= */ false);
+    contentGc.gc();
+
+    verify(contentStorage).commit(contentMutationCaptor.capture());
   }
 
   private void mockContentStorageWithContents(List<String> contentKeys) {

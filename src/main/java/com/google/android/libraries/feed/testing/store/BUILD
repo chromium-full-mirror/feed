@@ -7,6 +7,7 @@ android_library(
     testonly = True,
     srcs = glob(["*.java"]),
     deps = [
+        "//src/main/java/com/google/android/libraries/feed/api/host/config",
         "//src/main/java/com/google/android/libraries/feed/api/host/storage",
         "//src/main/java/com/google/android/libraries/feed/api/internal/common",
         "//src/main/java/com/google/android/libraries/feed/api/internal/store",

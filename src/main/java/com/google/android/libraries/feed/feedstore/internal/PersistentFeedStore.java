@@ -20,6 +20,7 @@ import static com.google.android.libraries.feed.feedstore.internal.FeedStoreCons
 import static com.google.android.libraries.feed.feedstore.internal.FeedStoreConstants.UPLOADABLE_ACTION_PREFIX;
 
 import android.util.Base64;
+import com.google.android.libraries.feed.api.host.config.Configuration;
 import com.google.android.libraries.feed.api.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.api.host.logging.InternalFeedError;
 import com.google.android.libraries.feed.api.host.storage.CommitResult;
@@ -41,6 +42,7 @@ import com.google.android.libraries.feed.api.internal.store.StoreListener;
 import com.google.android.libraries.feed.api.internal.store.UploadableActionMutation;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.intern.Interner;
 import com.google.android.libraries.feed.common.intern.InternerWithStats;
@@ -76,10 +78,12 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
 
   private static final String TAG = "PersistentFeedStore";
 
+  private final Configuration configuration;
   private final TimingUtils timingUtils;
   private final FeedExtensionRegistry extensionRegistry;
   private final ContentStorageDirect contentStorageDirect;
   private final JournalStorageDirect journalStorageDirect;
+  private final TaskQueue taskQueue;
   private final ThreadUtils threadUtils;
   private final Clock clock;
   private final FeedStoreHelper storeHelper;
@@ -96,19 +100,23 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
       new StreamPayloadInterner(contentIdStringInterner);
 
   public PersistentFeedStore(
+      Configuration configuration,
       TimingUtils timingUtils,
       FeedExtensionRegistry extensionRegistry,
       ContentStorageDirect contentStorageDirect,
       JournalStorageDirect journalStorageDirect,
+      TaskQueue taskQueue,
       ThreadUtils threadUtils,
       Clock clock,
       FeedStoreHelper storeHelper,
       BasicLoggingApi basicLoggingApi,
       MainThreadRunner mainThreadRunner) {
+    this.configuration = configuration;
     this.timingUtils = timingUtils;
     this.extensionRegistry = extensionRegistry;
     this.contentStorageDirect = contentStorageDirect;
     this.journalStorageDirect = journalStorageDirect;
+    this.taskQueue = taskQueue;
     this.threadUtils = threadUtils;
     this.clock = clock;
     this.storeHelper = storeHelper;
@@ -395,10 +403,12 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
         };
 
     return new ContentGc(
+            configuration,
             accessibleContent,
             reservedContentIds,
             dismissActionSupplier,
             contentStorageDirect,
+            taskQueue,
             timingUtils,
             keepSharedStates)
         ::gc;

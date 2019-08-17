@@ -18,10 +18,10 @@ import static com.google.android.libraries.feed.feedstore.internal.FeedStoreCons
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.google.android.libraries.feed.api.host.config.Configuration;
 import com.google.android.libraries.feed.api.host.logging.InternalFeedError;
 import com.google.android.libraries.feed.api.host.storage.CommitResult;
 import com.google.android.libraries.feed.api.host.storage.ContentMutation;
@@ -30,12 +30,13 @@ import com.google.android.libraries.feed.api.host.storage.JournalMutation;
 import com.google.android.libraries.feed.api.host.storage.JournalStorageDirect;
 import com.google.android.libraries.feed.api.internal.common.PayloadWithId;
 import com.google.android.libraries.feed.api.internal.common.SemanticPropertiesWithId;
-import com.google.android.libraries.feed.api.internal.common.ThreadUtils;
 import com.google.android.libraries.feed.api.internal.store.LocalActionMutation.ActionType;
 import com.google.android.libraries.feed.api.internal.store.Store;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeTaskQueue;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeThreadUtils;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.feedstore.testing.AbstractClearableFeedStoreTest;
 import com.google.android.libraries.feed.feedstore.testing.DelegatingContentStorage;
@@ -68,26 +69,33 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
 
-  private ThreadUtils threadUtils = mock(ThreadUtils.class);
+  private final FakeThreadUtils fakeThreadUtils = FakeThreadUtils.withThreadChecks();
   private final FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(ArrayList::new);
   private final ContentStorageDirect contentStorage = new InMemoryContentStorage();
   private final JournalStorageDirect journalStorage = new InMemoryJournalStorage();
   private final FakeBasicLoggingApi basicLoggingApi = new FakeBasicLoggingApi();
   private final FakeMainThreadRunner mainThreadRunner = FakeMainThreadRunner.runTasksImmediately();
 
+  private FakeTaskQueue fakeTaskQueue;
+
   @Before
   public void setUp() throws Exception {
     initMocks(this);
+    fakeTaskQueue = new FakeTaskQueue(fakeClock, fakeThreadUtils);
+    fakeTaskQueue.initialize(() -> {});
+    fakeThreadUtils.enforceMainThread(false);
   }
 
   @Override
   protected Store getStore(MainThreadRunner mainThreadRunner) {
     return new PersistentFeedStore(
+        Configuration.getDefaultInstance(),
         timingUtils,
         extensionRegistry,
         contentStorage,
         journalStorage,
-        threadUtils,
+        fakeTaskQueue,
+        fakeThreadUtils,
         fakeClock,
         new FeedStoreHelper(),
         basicLoggingApi,
@@ -99,11 +107,13 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
     ContentStorageDirect contentStorageSpy = spy(new DelegatingContentStorage(contentStorage));
     PersistentFeedStore store =
         new PersistentFeedStore(
+            Configuration.getDefaultInstance(),
             timingUtils,
             extensionRegistry,
             contentStorageSpy,
             journalStorage,
-            threadUtils,
+            fakeTaskQueue,
+            fakeThreadUtils,
             fakeClock,
             new FeedStoreHelper(),
             basicLoggingApi,
@@ -119,11 +129,13 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
     ContentStorageDirect contentStorageSpy = spy(new DelegatingContentStorage(contentStorage));
     PersistentFeedStore store =
         new PersistentFeedStore(
+            Configuration.getDefaultInstance(),
             timingUtils,
             extensionRegistry,
             contentStorageSpy,
             journalStorage,
-            threadUtils,
+            fakeTaskQueue,
+            fakeThreadUtils,
             fakeClock,
             new FeedStoreHelper(),
             basicLoggingApi,
@@ -151,11 +163,13 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
     JournalStorageDirect journalStorageSpy = spy(new DelegatingJournalStorage(journalStorage));
     PersistentFeedStore store =
         new PersistentFeedStore(
+            Configuration.getDefaultInstance(),
             timingUtils,
             extensionRegistry,
             contentStorage,
             journalStorageSpy,
-            threadUtils,
+            fakeTaskQueue,
+            fakeThreadUtils,
             fakeClock,
             new FeedStoreHelper(),
             basicLoggingApi,
@@ -186,11 +200,13 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
     JournalStorageDirect journalStorageSpy = spy(new DelegatingJournalStorage(journalStorage));
     PersistentFeedStore store =
         new PersistentFeedStore(
+            Configuration.getDefaultInstance(),
             timingUtils,
             extensionRegistry,
             contentStorage,
             journalStorageSpy,
-            threadUtils,
+            fakeTaskQueue,
+            fakeThreadUtils,
             fakeClock,
             new FeedStoreHelper(),
             basicLoggingApi,

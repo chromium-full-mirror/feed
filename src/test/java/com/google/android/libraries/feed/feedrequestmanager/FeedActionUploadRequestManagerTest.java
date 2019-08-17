@@ -102,7 +102,7 @@ public class FeedActionUploadRequestManagerTest {
     fakeNetworkClient = new FakeNetworkClient(fakeThreadUtils);
     fakeTaskQueue = new FakeTaskQueue(fakeClock, fakeThreadUtils);
     fakeProtocolAdapter = new FakeProtocolAdapter();
-    fakeStore = new FakeStore(fakeThreadUtils, fakeTaskQueue, fakeClock);
+    fakeStore = new FakeStore(configuration, fakeThreadUtils, fakeTaskQueue, fakeClock);
     consumer =
         new RequiredConsumer<>(
             input -> {

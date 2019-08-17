@@ -73,6 +73,8 @@ public class Configuration {
     // Boolean which if true, will ask the server for an menu option to launch the interest
     // management customize page.
     ConfigKey.MANAGE_INTERESTS_ENABLED,
+    // The maximum number of times that the GC task can re-enqueue itself.
+    ConfigKey.MAXIMUM_GC_ATTEMPTS,
     ConfigKey.MINIMUM_VALID_ACTION_RATIO,
     ConfigKey.NON_CACHED_MIN_PAGE_SIZE,
     ConfigKey.NON_CACHED_PAGE_SIZE,
@@ -133,6 +135,7 @@ public class Configuration {
     String LIMIT_PAGE_UPDATES_IN_HEAD = "limit_page_updates_in_head";
     String LOGGING_IMMEDIATE_CONTENT_THRESHOLD_MS = "logging_immediate_content_threshold_ms";
     String MANAGE_INTERESTS_ENABLED = "manage_interests_enabled";
+    String MAXIMUM_GC_ATTEMPTS = "maximum_gc_attempts";
     String MINIMUM_VALID_ACTION_RATIO = "minimum_valid_action_ratio";
     String NON_CACHED_MIN_PAGE_SIZE = "non_cached_min_page_size";
     String NON_CACHED_PAGE_SIZE = "non_cached_page_size";

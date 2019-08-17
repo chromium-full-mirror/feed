@@ -104,6 +104,7 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
   @Override
   protected Store getStore(MainThreadRunner mainThreadRunner) {
     return new FeedStore(
+        configuration,
         timingUtils,
         extensionRegistry,
         contentStorage,
@@ -143,6 +144,7 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
     ContentStorageDirect contentStorageSpy = spy(new DelegatingContentStorage(this.contentStorage));
     FeedStore store =
         new FeedStore(
+            configuration,
             timingUtils,
             extensionRegistry,
             contentStorageSpy,
@@ -163,6 +165,7 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
     ContentStorageDirect contentStorageSpy = spy(new DelegatingContentStorage(this.contentStorage));
     FeedStore store =
         new FeedStore(
+            configuration,
             timingUtils,
             extensionRegistry,
             contentStorageSpy,

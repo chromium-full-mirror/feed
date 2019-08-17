@@ -29,10 +29,15 @@ android_local_test(
     srcs = ["ContentGcTest.java"],
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
+        "//src/main/java/com/google/android/libraries/feed/api/host/config",
+        "//src/main/java/com/google/android/libraries/feed/api/host/logging",
         "//src/main/java/com/google/android/libraries/feed/api/host/storage",
         "//src/main/java/com/google/android/libraries/feed/api/internal/store",
         "//src/main/java/com/google/android/libraries/feed/common",
+        "//src/main/java/com/google/android/libraries/feed/common/concurrent",
+        "//src/main/java/com/google/android/libraries/feed/common/concurrent/testing",
         "//src/main/java/com/google/android/libraries/feed/common/time",
+        "//src/main/java/com/google/android/libraries/feed/common/time/testing",
         "//src/main/java/com/google/android/libraries/feed/feedstore/internal",
         "//src/main/proto/com/google/android/libraries/feed/api/internal/proto:client_feed_java_proto_lite",
         "//third_party:robolectric",
@@ -69,6 +74,7 @@ android_local_test(
     srcs = ["PersistentFeedStoreTest.java"],
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
+        "//src/main/java/com/google/android/libraries/feed/api/host/config",
         "//src/main/java/com/google/android/libraries/feed/api/host/logging",
         "//src/main/java/com/google/android/libraries/feed/api/host/storage",
         "//src/main/java/com/google/android/libraries/feed/api/internal/common",

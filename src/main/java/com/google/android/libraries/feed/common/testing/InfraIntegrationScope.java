@@ -109,6 +109,7 @@ public class InfraIntegrationScope {
         new TaskQueue(fakeBasicLoggingApi, fakeDirectExecutor, fakeMainThreadRunner, fakeClock);
     store =
         new FeedStore(
+            configuration,
             timingUtils,
             extensionRegistry,
             contentStorage,

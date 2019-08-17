@@ -212,6 +212,7 @@ public final class ProcessScopeBuilder {
         new TaskQueue(basicLoggingApi, singleThreadExecutor, mainThreadRunner, clock);
     FeedStore store =
         new FeedStore(
+            configuration,
             timingUtils,
             extensionRegistry,
             contentStorage,
