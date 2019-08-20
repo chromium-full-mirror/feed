@@ -70,7 +70,7 @@ import java.util.concurrent.Executor;
 public final class ProcessScopeBuilder {
   // Required fields.
   private final Configuration configuration;
-  private final Executor singleThreadExecutor;
+  private final Executor sequencedExecutor;
   private final BasicLoggingApi basicLoggingApi;
   private final TooltipSupportedApi tooltipSupportedApi;
   private final NetworkClient unwrappedNetworkClient;
@@ -94,7 +94,7 @@ public final class ProcessScopeBuilder {
   /** The APIs are all required to construct the scope. */
   public ProcessScopeBuilder(
       Configuration configuration,
-      Executor singleThreadExecutor,
+      Executor sequencedExecutor,
       BasicLoggingApi basicLoggingApi,
       NetworkClient networkClient,
       SchedulerApi schedulerApi,
@@ -103,7 +103,7 @@ public final class ProcessScopeBuilder {
       ApplicationInfo applicationInfo,
       TooltipSupportedApi tooltipSupportedApi) {
     this.configuration = configuration;
-    this.singleThreadExecutor = singleThreadExecutor;
+    this.sequencedExecutor = sequencedExecutor;
     this.basicLoggingApi = basicLoggingApi;
     this.debugBehavior = debugBehavior;
     this.context = context;
@@ -209,7 +209,7 @@ public final class ProcessScopeBuilder {
     }
     TimingUtils timingUtils = new TimingUtils();
     TaskQueue taskQueue =
-        new TaskQueue(basicLoggingApi, singleThreadExecutor, mainThreadRunner, clock);
+        new TaskQueue(basicLoggingApi, sequencedExecutor, mainThreadRunner, clock);
     FeedStore store =
         new FeedStore(
             configuration,
