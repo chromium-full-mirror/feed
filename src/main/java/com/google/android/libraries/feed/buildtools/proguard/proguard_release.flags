@@ -16,8 +16,18 @@
 
   private static boolean shouldWtfCrash();
 }
+
+# The options that control replacing function invocation with constant
+# expression differ between proguard and R8 (crbug.com/992568). In proguard
+# function should be specified in assumevalues and assumenosideeffects. In R8
+# function should be listed in assumenosideeffects with "return <value>" clause.
+# This file specifies proguard options. Corresponding configuration for R8 is in
+# r8_release.flags. When modifying below entries make sure to make corresponding
+# changes in r8_release.flags.
+# LINT.IfChange
 -assumevalues class com.google.android.libraries.feed.common.logging.Logger {
   public static boolean isDebugEnabled(java.lang.String) return false;
   public static boolean isVerboseEnabled(java.lang.String) return false;
   private static boolean shouldWtfCrash() return false;
 }
+# LINT.ThenChange
