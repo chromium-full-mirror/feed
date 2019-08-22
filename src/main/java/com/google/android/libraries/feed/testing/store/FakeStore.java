@@ -18,6 +18,7 @@ import com.google.android.libraries.feed.api.host.config.Configuration;
 import com.google.android.libraries.feed.api.host.storage.CommitResult;
 import com.google.android.libraries.feed.api.internal.common.PayloadWithId;
 import com.google.android.libraries.feed.api.internal.store.ContentMutation;
+import com.google.android.libraries.feed.api.internal.store.SemanticPropertiesMutation;
 import com.google.android.libraries.feed.api.internal.store.SessionMutation;
 import com.google.android.libraries.feed.api.internal.store.UploadableActionMutation;
 import com.google.android.libraries.feed.common.Result;
@@ -35,6 +36,7 @@ import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
+import com.google.search.now.wire.feed.SemanticPropertiesProto.SemanticProperties;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -231,6 +233,16 @@ public final class FakeStore extends FeedStore {
     for (StreamUploadableAction action : actions) {
       mutation.upsert(action, action.getFeatureContentId());
     }
+    mutation.commit();
+    fakeThreadUtils.enforceMainThread(policy);
+    return this;
+  }
+
+  /** Adds the {@code actions} to the store. */
+  public FakeStore addSemanticProperties(String contentId, SemanticProperties properties) {
+    boolean policy = fakeThreadUtils.enforceMainThread(false);
+    SemanticPropertiesMutation mutation = editSemanticProperties();
+    mutation.add(contentId, properties.getSemanticPropertiesData());
     mutation.commit();
     fakeThreadUtils.enforceMainThread(policy);
     return this;

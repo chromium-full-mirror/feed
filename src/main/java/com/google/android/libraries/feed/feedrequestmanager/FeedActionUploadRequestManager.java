@@ -21,6 +21,7 @@ import com.google.android.libraries.feed.api.host.network.HttpRequest;
 import com.google.android.libraries.feed.api.host.network.HttpRequest.HttpMethod;
 import com.google.android.libraries.feed.api.host.network.NetworkClient;
 import com.google.android.libraries.feed.api.host.storage.CommitResult;
+import com.google.android.libraries.feed.api.internal.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.api.internal.common.ThreadUtils;
 import com.google.android.libraries.feed.api.internal.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.internal.requestmanager.ActionUploadRequestManager;
@@ -39,7 +40,9 @@ import com.google.search.now.wire.feed.FeedActionResponseProto.FeedActionRespons
 import com.google.search.now.wire.feed.ResponseProto.Response;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -117,15 +120,25 @@ public final class FeedActionUploadRequestManager implements ActionUploadRequest
         new UploadableActionsRequestBuilder(protocolAdapter);
     int actionPayloadBytes = 0;
     Set<StreamUploadableAction> actionsToUpload = new HashSet<>();
+    ArrayList<String> contentIds = new ArrayList<>();
     for (StreamUploadableAction action : actions) {
       int actionBytes = action.toByteArray().length;
       if (maxBytesPerRequest > actionPayloadBytes + actionBytes) {
         actionsToUpload.add(action);
+        contentIds.add(action.getFeatureContentId());
         actionPayloadBytes += actionBytes;
       } else {
         break;
       }
     }
+
+    Result<List<SemanticPropertiesWithId>> semanticPropertiesResult =
+        store.getSemanticProperties(contentIds);
+    List<SemanticPropertiesWithId> semanticPropertiesList = new ArrayList<>();
+    if (semanticPropertiesResult.isSuccessful() && !semanticPropertiesResult.getValue().isEmpty()) {
+      semanticPropertiesList = semanticPropertiesResult.getValue();
+    }
+
     Consumer<Result<ConsistencyToken>> tokenConsumer =
         result -> {
           threadUtils.checkNotMainThread();
@@ -141,7 +154,10 @@ public final class FeedActionUploadRequestManager implements ActionUploadRequest
             consumer.accept(uploadCount == 0 ? Result.failure() : Result.success(token));
           }
         };
-    requestBuilder.setConsistencyToken(token).setActions(actionsToUpload);
+    requestBuilder
+        .setConsistencyToken(token)
+        .setActions(actionsToUpload)
+        .setSemanticProperties(semanticPropertiesList);
     executeUploadActionRequest(actionsToUpload, requestBuilder, tokenConsumer);
   }
 

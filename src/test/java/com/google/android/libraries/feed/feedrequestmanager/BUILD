@@ -97,6 +97,7 @@ android_local_test(
     srcs = ["UploadableActionsRequestBuilderTest.java"],
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
+        "//src/main/java/com/google/android/libraries/feed/api/internal/common",
         "//src/main/java/com/google/android/libraries/feed/feedrequestmanager",
         "//src/main/java/com/google/android/libraries/feed/testing/protocoladapter",
         "//src/main/proto/com/google/android/libraries/feed/api/internal/proto:client_feed_java_proto_lite",

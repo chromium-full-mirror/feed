@@ -14,8 +14,10 @@
 
 package com.google.android.libraries.feed.feedrequestmanager;
 
+import com.google.android.libraries.feed.api.internal.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.api.internal.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.common.Result;
+import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
 import com.google.search.now.wire.feed.ActionPayloadProto.ActionPayload;
 import com.google.search.now.wire.feed.ActionRequestProto.ActionRequest;
@@ -23,6 +25,9 @@ import com.google.search.now.wire.feed.ConsistencyTokenProto.ConsistencyToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.FeedActionProto.FeedAction;
 import com.google.search.now.wire.feed.FeedActionRequestProto.FeedActionRequest;
+import com.google.search.now.wire.feed.SemanticPropertiesProto.SemanticProperties;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 
 // A class that creates an ActionsRequest for uploading actions
@@ -30,6 +35,7 @@ final class UploadableActionsRequestBuilder {
   private Set<StreamUploadableAction> uploadableActions;
   private ConsistencyToken token;
   private final ProtocolAdapter protocolAdapter;
+  private final HashMap<String, byte[]> semanticPropertiesMap = new HashMap<>();
 
   UploadableActionsRequestBuilder(ProtocolAdapter protocolAdapter) {
     this.protocolAdapter = protocolAdapter;
@@ -49,6 +55,14 @@ final class UploadableActionsRequestBuilder {
     return this;
   }
 
+  UploadableActionsRequestBuilder setSemanticProperties(
+      List<SemanticPropertiesWithId> semanticPropertiesList) {
+    for (SemanticPropertiesWithId semanticProperties : semanticPropertiesList) {
+      semanticPropertiesMap.put(semanticProperties.contentId, semanticProperties.semanticData);
+    }
+    return this;
+  }
+
   public ActionRequest build() {
     ActionRequest.Builder requestBuilder =
         ActionRequest.newBuilder()
@@ -65,6 +79,12 @@ final class UploadableActionsRequestBuilder {
                     FeedAction.ClientData.newBuilder()
                         .setTimestampSeconds(action.getTimestampSeconds())
                         .build());
+        if (semanticPropertiesMap.containsKey(contentId)) {
+          feedAction.setSemanticProperties(
+              SemanticProperties.newBuilder()
+                  .setSemanticPropertiesData(
+                      ByteString.copyFrom(semanticPropertiesMap.get(contentId))));
+        }
         Result<ContentId> contentIdResult = protocolAdapter.getWireContentId(contentId);
         if (contentIdResult.isSuccessful()) {
           feedAction.setContentId(contentIdResult.getValue());

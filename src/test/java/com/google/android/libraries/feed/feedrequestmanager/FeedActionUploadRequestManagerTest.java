@@ -40,9 +40,11 @@ import com.google.protobuf.ExtensionRegistryLite;
 import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
 import com.google.search.now.wire.feed.ActionRequestProto.ActionRequest;
 import com.google.search.now.wire.feed.ConsistencyTokenProto.ConsistencyToken;
+import com.google.search.now.wire.feed.FeedActionRequestProto.FeedActionRequest;
 import com.google.search.now.wire.feed.FeedActionResponseProto.FeedActionResponse;
 import com.google.search.now.wire.feed.FeedRequestProto.FeedRequest;
 import com.google.search.now.wire.feed.ResponseProto.Response;
+import com.google.search.now.wire.feed.SemanticPropertiesProto.SemanticProperties;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -68,6 +70,11 @@ public class FeedActionUploadRequestManagerTest {
       ConsistencyToken.newBuilder().setToken(ByteString.copyFrom(new byte[] {0x2, 0xa})).build();
   private static final String CONTENT_ID = "contentId";
   private static final String CONTENT_ID_2 = "contentId2";
+  private static final byte[] SEMANTIC_PROPERTIES_BYTES = new byte[] {0x1, 0xa};
+  private static final SemanticProperties SEMANTIC_PROPERTIES =
+      SemanticProperties.newBuilder()
+          .setSemanticPropertiesData(ByteString.copyFrom(SEMANTIC_PROPERTIES_BYTES))
+          .build();
   private static final Response RESPONSE_1 =
       Response.newBuilder()
           .setExtension(
@@ -98,6 +105,7 @@ public class FeedActionUploadRequestManagerTest {
     initMocks(this);
     registry = ExtensionRegistryLite.newInstance();
     registry.add(FeedRequest.feedRequest);
+    registry.add(FeedActionRequest.feedActionRequest);
     fakeThreadUtils = FakeThreadUtils.withThreadChecks();
     fakeNetworkClient = new FakeNetworkClient(fakeThreadUtils);
     fakeTaskQueue = new FakeTaskQueue(fakeClock, fakeThreadUtils);
@@ -341,6 +349,28 @@ public class FeedActionUploadRequestManagerTest {
     assertThat(request.toByteArray()).isEqualTo(expectedRequest.toByteArray());
 
     assertThat(consumer.isCalled()).isTrue();
+  }
+
+  @Test
+  public void testTriggerUploadActions_withSemanticProperties() throws Exception {
+    fakeStore.addSemanticProperties(CONTENT_ID, SEMANTIC_PROPERTIES);
+    Set<StreamUploadableAction> actionSet =
+        setOf(StreamUploadableAction.newBuilder().setFeatureContentId(CONTENT_ID).build());
+    fakeNetworkClient.addResponse(
+        createHttpResponse(/* responseCode= */ 200, Response.getDefaultInstance()));
+    requestManager.triggerUploadActions(actionSet, ConsistencyToken.getDefaultInstance(), consumer);
+
+    HttpRequest httpRequest = fakeNetworkClient.getLatestRequest();
+
+    ActionRequest request = getActionRequestFromHttpRequestBody(httpRequest);
+    assertThat(
+            request
+                .getExtension(FeedActionRequest.feedActionRequest)
+                .getFeedActionList()
+                .get(0)
+                .getSemanticProperties()
+                .getSemanticPropertiesData())
+        .isEqualTo(SEMANTIC_PROPERTIES.getSemanticPropertiesData());
   }
 
   private static void assertHttpRequestFormattedCorrectly(HttpRequest httpRequest) {

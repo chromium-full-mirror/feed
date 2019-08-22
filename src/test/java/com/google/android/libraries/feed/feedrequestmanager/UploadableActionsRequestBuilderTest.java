@@ -17,6 +17,7 @@ package com.google.android.libraries.feed.feedrequestmanager;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.google.android.libraries.feed.api.internal.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.testing.protocoladapter.FakeProtocolAdapter;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
@@ -27,6 +28,8 @@ import com.google.search.now.wire.feed.ConsistencyTokenProto.ConsistencyToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.FeedActionProto.FeedAction;
 import com.google.search.now.wire.feed.FeedActionRequestProto.FeedActionRequest;
+import com.google.search.now.wire.feed.SemanticPropertiesProto.SemanticProperties;
+import java.util.Arrays;
 import java.util.HashSet;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,6 +41,13 @@ import org.robolectric.RobolectricTestRunner;
 public class UploadableActionsRequestBuilderTest {
   private static final String CONTENT_ID = "contentId";
   private static final int TIME = 100;
+  private static final byte[] SEMANTIC_PROPERTIES_BYTES = new byte[] {0x1, 0xf};
+  private static final SemanticProperties SEMANTIC_PROPERTIES =
+      SemanticProperties.newBuilder()
+          .setSemanticPropertiesData(ByteString.copyFrom(SEMANTIC_PROPERTIES_BYTES))
+          .build();
+  private static final SemanticPropertiesWithId SEMANTIC_PROPERTIES_WITH_ID =
+      new SemanticPropertiesWithId(CONTENT_ID, SEMANTIC_PROPERTIES_BYTES);
   private final ActionPayload payload =
       ActionPayload.newBuilder()
           .setExtension(
@@ -104,6 +114,7 @@ public class UploadableActionsRequestBuilderTest {
     FeedAction feedAction =
         FeedAction.newBuilder()
             .setContentId(ContentId.getDefaultInstance())
+            .setSemanticProperties(SEMANTIC_PROPERTIES)
             .setActionPayload(payload)
             .setClientData(FeedAction.ClientData.newBuilder().setTimestampSeconds(TIME).build())
             .build();
@@ -113,7 +124,12 @@ public class UploadableActionsRequestBuilderTest {
         FeedActionRequest.feedActionRequest, feedActionRequestBuilder.build());
 
     ActionRequest expectedResult = requestBuilder.build();
-    ActionRequest result = builder.setActions(actionSet).setConsistencyToken(token).build();
+    ActionRequest result =
+        builder
+            .setActions(actionSet)
+            .setConsistencyToken(token)
+            .setSemanticProperties(Arrays.asList(SEMANTIC_PROPERTIES_WITH_ID))
+            .build();
     assertThat(result).isEqualTo(expectedResult);
   }
 }
