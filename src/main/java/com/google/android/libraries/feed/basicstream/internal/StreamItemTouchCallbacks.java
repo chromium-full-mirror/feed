@@ -27,8 +27,6 @@ public final class StreamItemTouchCallbacks extends ItemTouchHelper.Callback {
 
   private static final Interpolator DISMISS_INTERPOLATOR = new FastOutLinearInInterpolator();
 
-  private boolean isHorizontallySwiped;
-
   @Override
   public int getMovementFlags(RecyclerView recyclerView, ViewHolder viewHolder) {
     int swipeFlags = 0;
@@ -66,10 +64,5 @@ public final class StreamItemTouchCallbacks extends ItemTouchHelper.Callback {
 
     viewHolder.itemView.setTranslationX(dX);
     viewHolder.itemView.setAlpha(alpha);
-    isHorizontallySwiped = isCurrentlyActive && dX != 0.f;
-  }
-
-  public boolean isHorizontallySwiped() {
-    return isHorizontallySwiped;
   }
 }

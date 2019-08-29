@@ -134,7 +134,6 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
   private RecyclerView recyclerView;
   private ContextMenuManager contextMenuManager;
   private List<Header> headers;
-  private StreamItemTouchCallbacks itemTouchCallbacks;
   private StreamRecyclerViewAdapter adapter;
   private ScrollListenerNotifier scrollListenerNotifier;
   private ScrollRestorer scrollRestorer;
@@ -536,8 +535,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
     recyclerView.setId(R.id.feed_stream_recycler_view);
     recyclerView.setLayoutManager(createRecyclerViewLayoutManager(context));
     contextMenuManager = createContextMenuManager(recyclerView, new MenuMeasurer(context));
-    itemTouchCallbacks = new StreamItemTouchCallbacks();
-    new ItemTouchHelper(itemTouchCallbacks).attachToRecyclerView(recyclerView);
+    new ItemTouchHelper(new StreamItemTouchCallbacks()).attachToRecyclerView(recyclerView);
     recyclerView.setAdapter(adapter);
     recyclerView.setClipToPadding(false);
     if (VERSION.SDK_INT > VERSION_CODES.JELLY_BEAN) {
@@ -559,11 +557,6 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
 
     recyclerView.setItemAnimator(itemAnimator);
     recyclerView.addOnLayoutChangeListener(this);
-  }
-
-  @Override
-  public boolean willHandleHorizontalSwipe() {
-    return itemTouchCallbacks.isHorizontallySwiped();
   }
 
   private void updateAdapterAfterSessionStart(ModelProvider modelProvider) {
