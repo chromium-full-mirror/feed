@@ -60,7 +60,12 @@ public class ZeroStateDriver extends LeafFeatureDriver implements OnClickListene
   @Override
   public void bind(FeedViewHolder viewHolder) {
     if (isBound()) {
-      Logger.wtf(TAG, "Rebinding.");
+      Logger.w(TAG, "Rebinding.");
+      if (viewHolder == zeroStateViewHolder) {
+        Logger.e(TAG, "Being rebound to the previously bound viewholder");
+        return;
+      }
+      unbind();
     }
     checkState(viewHolder instanceof ZeroStateViewHolder);
 
