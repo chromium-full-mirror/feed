@@ -184,15 +184,6 @@ message StreamLegacyPayload {
   optional bytes data = 2;
 }
 
-// This message allows a Cursor to be serialized.
-message StreamCursor {
-  // The Parent of the cursor.
-  optional string parent_content_id = 1;
-
-  // This is the ContentId of the last accessed Child in the cursor.
-  optional string last_accessed_content = 2;
-}
-
 // List of all the sessions.
 message StreamSessions {
   // Represents the current sessions
