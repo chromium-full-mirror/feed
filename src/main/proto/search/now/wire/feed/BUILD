@@ -12,6 +12,11 @@ proto_library(
     ],
 )
 
+cc_proto_library(
+    name = "feed_cc_proto",
+    deps = [":feed_proto"],
+)
+
 java_proto_library(
     name = "feed_java_proto",
     deps = [":feed_proto"],
