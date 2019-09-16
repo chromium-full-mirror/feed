@@ -48,7 +48,7 @@ import java.util.concurrent.TimeUnit;
 
 /** Default implementation of ActionUploadRequestManager. */
 public final class FeedActionUploadRequestManager implements ActionUploadRequestManager {
-  private static final String TAG = "FeedActionUploadRequestManager";
+  private static final String TAG = "ActionUploadRequest";
 
   private final Configuration configuration;
   private final NetworkClient networkClient;

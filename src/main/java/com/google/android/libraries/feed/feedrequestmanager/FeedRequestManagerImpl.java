@@ -200,7 +200,9 @@ public final class FeedRequestManagerImpl implements FeedRequestManager {
         actionReader.getDismissActionsWithSemanticProperties();
     if (dismissActionsResult.isSuccessful()) {
       requestBuilder.setActions(dismissActionsResult.getValue());
-      Logger.i(TAG, "Dismiss actions in request: %s", dismissActionsResult.getValue());
+      for (DismissActionWithSemanticProperties dismiss : dismissActionsResult.getValue()) {
+        Logger.i(TAG, "Dismiss action: %s", dismiss.getContentId());
+      }
     } else {
       Logger.e(TAG, "Error fetching dismiss actions");
     }
@@ -366,6 +368,7 @@ public final class FeedRequestManagerImpl implements FeedRequestManager {
       Builder feedRequestBuilder = FeedRequest.newBuilder().setFeedQuery(feedQuery);
       if (consistencyToken != null) {
         feedRequestBuilder.setConsistencyToken(consistencyToken);
+        Logger.i(TAG, "Consistency Token: %s", consistencyToken);
       }
       if (dismissActionsWithSemanticProperties != null
           && !dismissActionsWithSemanticProperties.isEmpty()) {
@@ -398,7 +401,10 @@ public final class FeedRequestManagerImpl implements FeedRequestManager {
           ConfigKey.USE_SECONDARY_PAGE_REQUEST,
           Capability.USE_SECONDARY_PAGE_REQUEST);
       feedRequestBuilder.addClientCapability(Capability.BASE_UI);
-      Logger.i(TAG, "Capability List: %s", feedRequestBuilder.getClientCapabilityList());
+
+      for (Capability capability : feedRequestBuilder.getClientCapabilityList()) {
+        Logger.i(TAG, "Capability: %s", capability.name());
+      }
     }
 
     private void addCapabilityIfConfigEnabled(
