@@ -1108,6 +1108,14 @@ public class ElementAdapterTest {
     adapter.bindModel(element, frameContext);
 
     assertThat(adapter.getView()).isSameInstanceAs(roundedCornerWrapperView);
+    assertThat(adapter.getView().getVisibility()).isEqualTo(View.VISIBLE);
+
+    // Try setting visibility back to GONE and ensure that RCWV is GONE
+    when(frameContext.getVisibilityFromBinding(visibilityBinding)).thenReturn(Visibility.GONE);
+    adapter.unbindModel();
+    adapter.bindModel(element, frameContext);
+    assertThat(adapter.getView()).isSameInstanceAs(roundedCornerWrapperView);
+    assertThat(adapter.getView().getVisibility()).isEqualTo(View.GONE);
   }
 
   @Test

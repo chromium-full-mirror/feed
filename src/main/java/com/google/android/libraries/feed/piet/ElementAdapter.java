@@ -355,7 +355,7 @@ abstract class ElementAdapter<V extends View, M> {
     activeVisibilityActions.addAll(actions.getOnHideActionsList());
   }
 
-  private void initializeOverflow(Element baseElement) {
+  private static void initializeOverflow(Element baseElement) {
     switch (baseElement.getHorizontalOverflow()) {
       case OVERFLOW_HIDDEN:
       case OVERFLOW_UNSPECIFIED:
@@ -557,6 +557,13 @@ abstract class ElementAdapter<V extends View, M> {
   }
 
   void setVisibilityOnView(Visibility visibility) {
+    setVisibilityOnView(visibility, getView());
+    if (getView() != getBaseView()) {
+      setVisibilityOnView(visibility, getBaseView());
+    }
+  }
+
+  private static void setVisibilityOnView(Visibility visibility, View view) {
     switch (visibility) {
       case INVISIBLE:
         view.setVisibility(View.INVISIBLE);
@@ -568,10 +575,6 @@ abstract class ElementAdapter<V extends View, M> {
       case VISIBLE:
         view.setVisibility(View.VISIBLE);
         break;
-      default:
-        throw new PietFatalException(
-            ErrorCode.ERR_MISSING_OR_UNHANDLED_CONTENT,
-            String.format("Unhandled visibility: %s", visibility));
     }
   }
 
