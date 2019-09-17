@@ -33,7 +33,9 @@ public class MaterialSpinnerViewTest {
 
   @Before
   public void setUp() {
-    materialSpinnerView = new MaterialSpinnerView(Robolectric.buildActivity(Activity.class).get());
+    Activity context = Robolectric.buildActivity(Activity.class).get();
+    context.setTheme(R.style.Light);
+    materialSpinnerView = new MaterialSpinnerView(context);
   }
 
   @Test
