@@ -580,14 +580,7 @@ class FrameContext {
       if (bindingValue.hasBindingIdFromTranscludingTemplate()) {
         BindingValue parentBindingValue =
             bindingValues.get(bindingValue.getBindingIdFromTranscludingTemplate());
-        if (parentBindingValue == null) {
-          reportMessage(
-              MessageType.ERROR,
-              ERR_MISSING_BINDING_VALUE,
-              String.format(
-                  "Parent binding value '%s' not found",
-                  bindingValue.getBindingIdFromTranscludingTemplate()));
-        } else {
+        if (parentBindingValue != null) {
           BindingValue bindingValueForChild =
               parentBindingValue.toBuilder().setBindingId(bindingValue.getBindingId()).build();
           bindingValueMap.put(bindingValue.getBindingId(), bindingValueForChild);

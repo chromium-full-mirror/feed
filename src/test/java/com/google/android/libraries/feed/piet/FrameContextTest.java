@@ -25,7 +25,6 @@ import android.content.Context;
 import android.widget.FrameLayout;
 import com.google.android.libraries.feed.api.host.config.DebugBehavior;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
-import com.google.android.libraries.feed.piet.DebugLogger.ErrorCodeAndMessage;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.android.libraries.feed.piet.PietStylesHelper.PietStylesHelperFactory;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
@@ -53,7 +52,6 @@ import com.google.search.now.ui.piet.ElementsProto.HostBindingData;
 import com.google.search.now.ui.piet.ElementsProto.TemplateInvocation;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
 import com.google.search.now.ui.piet.ElementsProto.Visibility;
-import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
 import com.google.search.now.ui.piet.GradientsProto.ColorStop;
 import com.google.search.now.ui.piet.GradientsProto.Fill;
 import com.google.search.now.ui.piet.GradientsProto.LinearGradient;
@@ -375,16 +373,43 @@ public class FrameContextTest {
                         .setBindingIdFromTranscludingTemplate(invalidParentBindingId))
                 .build());
 
-    assertThat(debugLogger.getMessages(MessageType.ERROR))
-        .containsExactly(
-            new ErrorCodeAndMessage(
-                ErrorCode.ERR_MISSING_BINDING_VALUE,
-                "[] Parent binding value 'NOT_FOUND' not found"));
+    assertThat(debugLogger.getMessages(MessageType.ERROR)).isEmpty();
     assertThatRunnable(() -> childContext.getParameterizedTextBindingValue(childTextBindingRef))
         .throwsAnExceptionOfType(PietFatalException.class)
         .that()
         .hasMessageThat()
         .contains("Parameterized text binding not found for CHILD");
+  }
+
+  @Test
+  public void testCreateTemplateContext_optionalTranscludingBindingNotFound() {
+    String invalidParentBindingId = "NOT_FOUND";
+    String childBindingId = "CHILD";
+    ParameterizedTextBindingRef childTextBindingRef =
+        ParameterizedTextBindingRef.newBuilder()
+            .setBindingId(childBindingId)
+            .setIsOptional(true)
+            .build();
+    frameContext = makeFrameContextWithNoBindings();
+    FrameContext childContext =
+        frameContext.createTemplateContext(
+            Template.newBuilder()
+                .setElement(
+                    Element.newBuilder()
+                        .setTextElement(
+                            TextElement.newBuilder()
+                                .setParameterizedTextBinding(childTextBindingRef)))
+                .build(),
+            BindingContext.newBuilder()
+                .addBindingValues(
+                    BindingValue.newBuilder()
+                        .setBindingId(childBindingId)
+                        .setBindingIdFromTranscludingTemplate(invalidParentBindingId))
+                .build());
+
+    assertThat(debugLogger.getMessages(MessageType.ERROR)).isEmpty();
+    assertThat(childContext.getParameterizedTextBindingValue(childTextBindingRef))
+        .isEqualTo(BindingValue.getDefaultInstance());
   }
 
   @Test
