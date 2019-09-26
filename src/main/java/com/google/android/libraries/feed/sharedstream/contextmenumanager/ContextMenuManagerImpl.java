@@ -175,7 +175,17 @@ public class ContextMenuManagerImpl implements ContextMenuManager {
     } else {
       // The menu will fit neither above, nor below the content. Center it in the middle of the
       // screen.
-      return -(menuHeight + anchorViewYInWindow - windowHeight / 2);
+
+      // First, get an offset so that the top of the menu will be at the top of the screen.
+      int offset = -(anchorViewHeight + anchorViewYInWindow);
+
+      // Then, shift so that the middle of the menu is at the top of the screen.
+      offset -= menuHeight / 2;
+
+      // Then, shift so that the center of the menu is at the center of the screen.
+      offset += windowHeight / 2;
+
+      return offset;
     }
   }
 
