@@ -22,7 +22,7 @@ option java_package = "com.google.search.now.wire.feed";
 option java_outer_classname = "CapabilityProto";
 
 // Feature capability of either the client or the server.
-// Next ID: 11.
+// Next ID: 12.
 enum Capability {
   UNKNOWN_CAPABILITY = 0;
   BASE_UI = 1;
@@ -34,6 +34,7 @@ enum Capability {
   ARTICLE_SNIPPETS = 8;
   CAROUSELS = 9;
   ELEMENTS = 10;
+  CONTENT_ID_UNIFICATION = 11;
 
   reserved 3;
 }
