@@ -1,4 +1,7 @@
-package(default_visibility = ["//visibility:public"])
+package(
+    default_visibility = ["//visibility:public"],
+    features = ["-android_resources_strict_deps"],
+)
 
 licenses(["notice"])  # Apache 2
 
