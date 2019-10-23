@@ -18,7 +18,6 @@ import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
-import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.LayoutParams;
 import android.view.View;
 import android.view.ViewGroup;
@@ -39,7 +38,7 @@ import com.google.android.libraries.feed.sharedstream.logging.LoggingListener;
 import com.google.android.libraries.feed.sharedstream.logging.VisibilityMonitor;
 import com.google.android.libraries.feed.sharedstream.piet.PietEventLogger;
 import com.google.android.libraries.feed.sharedstream.publicapi.scroll.ScrollObservable;
-import com.google.android.libraries.feed.sharedstream.publicapi.scroll.ScrollObserver;
+import com.google.android.libraries.feed.sharedstream.scroll.PietScrollObserver;
 import com.google.android.libraries.feed.sharedstream.scroll.ScrollListenerNotifier;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
 import com.google.search.now.ui.piet.PietProto.Frame;
@@ -123,7 +122,8 @@ public class PietViewHolder extends FeedViewHolder implements SwipeableViewHolde
     this.streamActionApi = streamActionApi;
     this.swipeAction = swipeAction;
     this.actionParser = actionParser;
-    scrollObserver = new PietViewActionScrollObserver(frameAdapter, viewport, loggingListener);
+    scrollObserver =
+        new PietViewActionScrollObserver(frameAdapter, viewport, scrollObservable, loggingListener);
     // Need to reset padding here.  Setting a background can affect padding so if we switch from
     // a background which has padding to one that does not, then the padding needs to be removed.
     cardView.setPadding(0, 0, 0, 0);
@@ -171,6 +171,7 @@ public class PietViewHolder extends FeedViewHolder implements SwipeableViewHolde
     visibilityMonitor.setListener(null);
     if (scrollObserver != null) {
       scrollObservable.removeScrollObserver(scrollObserver);
+      scrollObserver.uninstallFirstDrawTrigger();
     }
     bound = false;
   }
@@ -217,33 +218,23 @@ public class PietViewHolder extends FeedViewHolder implements SwipeableViewHolde
         actionParser, "Action parser can only be retrieved once view holder has been bound");
   }
 
-  static class PietViewActionScrollObserver implements ScrollObserver {
-    private final FrameAdapter frameAdapter;
-    private final View viewport;
+  static class PietViewActionScrollObserver extends PietScrollObserver {
     private final LoggingListener loggingListener;
 
     PietViewActionScrollObserver(
-        FrameAdapter frameAdapter, View viewport, LoggingListener loggingListener) {
-      this.frameAdapter = frameAdapter;
-      this.viewport = viewport;
+        FrameAdapter frameAdapter,
+        View viewport,
+        ScrollObservable scrollObservable,
+        LoggingListener loggingListener) {
+      super(frameAdapter, viewport, scrollObservable);
       this.loggingListener = loggingListener;
     }
 
     @Override
     public void onScrollStateChanged(View view, String featureId, int newState, long timestamp) {
-      // There was logic in here previously ensuring that the state had changed; however, you can
-      // have a case where the feed is idle and you fling the feed, and it goes to idle again
-      // without triggering the observer during scrolling. Just triggering this every time the feed
-      // comes to rest appears to have the desired behavior. We can think about also triggering
-      // while the feed is scrolling; not sure how frequently the observer triggers during scroll.
-      if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-        frameAdapter.triggerViewActions(viewport);
-      }
+      super.onScrollStateChanged(view, featureId, newState, timestamp);
       loggingListener.onScrollStateChanged(
           ScrollListenerNotifier.convertRecyclerViewScrollStateToListenerState(newState));
     }
-
-    @Override
-    public void onScroll(View view, String featureId, int dx, int dy) {}
   }
 }
