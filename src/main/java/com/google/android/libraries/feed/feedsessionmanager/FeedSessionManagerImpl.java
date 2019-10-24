@@ -472,10 +472,7 @@ public final class FeedSessionManagerImpl
             sessionCache.putAttachedAndRetainMetadata(sessionId, session);
             existingSessionCount++;
           } else {
-            Logger.e(
-                TAG,
-                "unable to get stream structure for existing session %s",
-                session.getSessionId());
+            Logger.e(TAG, "unable to get stream structure for existing session %s", sessionId);
             switchToEphemeralMode("unable to get stream structure for existing session");
           }
         });
