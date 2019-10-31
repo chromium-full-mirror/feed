@@ -493,6 +493,7 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
           wrapper.setDrawableByLayerId(SINGLE_LAYER_ID, finalDrawable),
           "Failed to set drawable on chunked text");
       setBounds(finalDrawable, imageStyle, textView);
+      setBounds(wrapper, imageStyle, textView);
       textView.invalidate();
       loadingImages.remove(this);
     }

@@ -624,6 +624,58 @@ public class ChunkedTextElementAdapterTest {
 
     assertThat(imageDrawable.getBounds())
         .isEqualTo(new Rect(0, 0, STYLE_WIDTH_PX, STYLE_HEIGHT_PX));
+    assertThat(containerDrawable.getBounds())
+        .isEqualTo(new Rect(0, 0, STYLE_WIDTH_PX, STYLE_HEIGHT_PX));
+  }
+
+  @Test
+  public void testAddImageChunk_setsImageAndDimsWidthNotSpecified() {
+    when(mockStyleProvider.hasWidth()).thenReturn(true);
+    when(mockStyleProvider.getWidthSpecPx(context)).thenReturn(-1);
+    when(mockStyleProvider.hasHeight()).thenReturn(true);
+    when(mockStyleProvider.getHeightSpecPx(context)).thenReturn(STYLE_HEIGHT_PX);
+    when(mockStyleProvider.hasPreLoadFill()).thenReturn(true);
+    Drawable preLoadFill = new ColorDrawable(Color.CYAN);
+    when(mockStyleProvider.createPreLoadFill()).thenReturn(preLoadFill);
+
+    // Required to set up the local frameContext member var.
+    adapter.createAdapter(asElement(TextElement.getDefaultInstance()), frameContext);
+
+    adapter.addImageChunk(frameContext, textView, spannable, IMAGE_CHUNK);
+
+    ImageSpan[] imageSpans = spannable.getSpans(0, 1, ImageSpan.class);
+    LayerDrawable containerDrawable = (LayerDrawable) imageSpans[0].getDrawable();
+
+    ArgumentCaptor<ImageSpanDrawableCallback> imageCallbackCaptor =
+        ArgumentCaptor.forClass(ImageSpanDrawableCallback.class);
+    verify(mockAssetProvider)
+        .getImage(
+            eq(IMAGE_CHUNK_IMAGE), eq(-1), eq(STYLE_HEIGHT_PX), imageCallbackCaptor.capture());
+
+    int aspectRatio = 4;
+    Drawable imageDrawable =
+        new ColorDrawable(123) {
+          @Override
+          public int getIntrinsicWidth() {
+            return 11 * aspectRatio;
+          }
+
+          @Override
+          public int getIntrinsicHeight() {
+            return 11;
+          }
+        };
+
+    // Activate the image loading callback
+    imageCallbackCaptor.getValue().accept(imageDrawable);
+
+    // Assert that we set the image on the span
+    assertThat(containerDrawable.getDrawable(0)).isSameInstanceAs(imageDrawable);
+
+    assertThat(imageDrawable.getBounds())
+        .isEqualTo(new Rect(0, 0, STYLE_HEIGHT_PX * 4, STYLE_HEIGHT_PX));
+    assertThat(containerDrawable.getBounds())
+        .isEqualTo(new Rect(0, 0, STYLE_HEIGHT_PX * 4, STYLE_HEIGHT_PX));
   }
 
   @Test
