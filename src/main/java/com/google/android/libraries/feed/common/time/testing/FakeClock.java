@@ -16,13 +16,11 @@ package com.google.android.libraries.feed.common.time.testing;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.google.android.libraries.feed.common.feedobservable.ObservableNotifier;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.Clock;
-import com.google.android.libraries.feed.common.time.testing.FakeClock.ClockUpdateListener;
 
 /** Fake implementation of {@link Clock} for testing. */
-public class FakeClock extends ObservableNotifier<ClockUpdateListener> implements Clock {
+public class FakeClock implements Clock {
   private static final String TAG = "FakeClock";
 
   private long currentTime;
@@ -51,7 +49,6 @@ public class FakeClock extends ObservableNotifier<ClockUpdateListener> implement
   public FakeClock set(long currentTime, long elapsedRealtime) {
     this.currentTime = currentTime;
     elapsedRealtimeMs = elapsedRealtime;
-    onClockUpdated(currentTime, elapsedRealtime);
     return this;
   }
 
@@ -65,7 +62,6 @@ public class FakeClock extends ObservableNotifier<ClockUpdateListener> implement
     elapsedRealtimeMs += millis;
 
     Logger.i(TAG, "Advancing clock to %d", currentTime);
-    onClockUpdated(currentTime, elapsedRealtimeMs);
   }
 
   /**
@@ -89,14 +85,5 @@ public class FakeClock extends ObservableNotifier<ClockUpdateListener> implement
   @Override
   public long uptimeMillis() {
     return elapsedRealtimeMs;
-  }
-
-  private void onClockUpdated(long currentTime, long elapsedRealtime) {
-    notifyListeners(listener -> listener.onClockUpdated(currentTime, elapsedRealtime));
-  }
-
-  /** Listener for when the clock time is updated. */
-  public interface ClockUpdateListener {
-    void onClockUpdated(long newCurrentTime, long newElapsedRealtime);
   }
 }
