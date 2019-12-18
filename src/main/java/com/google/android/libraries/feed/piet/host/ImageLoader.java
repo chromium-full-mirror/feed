@@ -20,6 +20,8 @@ import com.google.search.now.ui.piet.ImagesProto.Image;
 
 /** Class that allows Piet to ask the host to load an image. */
 public interface ImageLoader {
+  /** Constant used to notify host that an image's height or width is not known. */
+  int DIMENSION_UNKNOWN = -1;
 
   /**
    * Given an {@link Image}, asynchronously load the {@link Drawable} and return via a {@link

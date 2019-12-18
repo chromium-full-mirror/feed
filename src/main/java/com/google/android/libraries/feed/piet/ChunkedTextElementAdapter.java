@@ -14,8 +14,8 @@
 
 package com.google.android.libraries.feed.piet;
 
-import static com.google.android.libraries.feed.api.host.imageloader.ImageLoaderApi.DIMENSION_UNKNOWN;
 import static com.google.android.libraries.feed.common.Validators.checkState;
+import static com.google.android.libraries.feed.piet.host.ImageLoader.DIMENSION_UNKNOWN;
 import static com.google.search.now.ui.piet.ErrorsProto.ErrorCode.ERR_MISSING_BINDING_VALUE;
 import static com.google.search.now.ui.piet.ErrorsProto.ErrorCode.ERR_MISSING_OR_UNHANDLED_CONTENT;
 

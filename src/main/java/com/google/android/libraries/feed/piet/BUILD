@@ -9,7 +9,6 @@ android_library(
     resource_files = glob(["res/**/*"]),
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/host/config",
-        "//src/main/java/com/google/android/libraries/feed/api/host/imageloader",
         "//src/main/java/com/google/android/libraries/feed/common",
         "//src/main/java/com/google/android/libraries/feed/common/functional",
         "//src/main/java/com/google/android/libraries/feed/common/logging",

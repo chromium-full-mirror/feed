@@ -14,9 +14,9 @@
 
 package com.google.android.libraries.feed.piet;
 
-import static com.google.android.libraries.feed.api.host.imageloader.ImageLoaderApi.DIMENSION_UNKNOWN;
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.android.libraries.feed.piet.StyleProvider.DIMENSION_NOT_SET;
+import static com.google.android.libraries.feed.piet.host.ImageLoader.DIMENSION_UNKNOWN;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;

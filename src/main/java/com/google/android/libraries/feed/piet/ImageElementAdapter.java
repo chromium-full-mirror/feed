@@ -14,8 +14,8 @@
 
 package com.google.android.libraries.feed.piet;
 
-import static com.google.android.libraries.feed.api.host.imageloader.ImageLoaderApi.DIMENSION_UNKNOWN;
 import static com.google.android.libraries.feed.common.Validators.checkState;
+import static com.google.android.libraries.feed.piet.host.ImageLoader.DIMENSION_UNKNOWN;
 
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;

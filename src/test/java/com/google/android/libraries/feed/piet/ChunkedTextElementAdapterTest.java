@@ -14,9 +14,9 @@
 
 package com.google.android.libraries.feed.piet;
 
-import static com.google.android.libraries.feed.api.host.imageloader.ImageLoaderApi.DIMENSION_UNKNOWN;
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.android.libraries.feed.piet.ChunkedTextElementAdapter.SINGLE_LAYER_ID;
+import static com.google.android.libraries.feed.piet.host.ImageLoader.DIMENSION_UNKNOWN;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.search.now.ui.piet.ErrorsProto.ErrorCode.ERR_MISSING_BINDING_VALUE;
 import static com.google.search.now.ui.piet.ErrorsProto.ErrorCode.ERR_MISSING_OR_UNHANDLED_CONTENT;

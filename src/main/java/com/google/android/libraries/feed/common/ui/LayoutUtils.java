@@ -17,25 +17,14 @@ package com.google.android.libraries.feed.common.ui;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
-import android.os.Build.VERSION_CODES;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.View;
-import android.view.ViewGroup.MarginLayoutParams;
 import java.util.Locale;
 
 /** General utilities to help with UI layout. */
 public class LayoutUtils {
-  @TargetApi(VERSION_CODES.JELLY_BEAN_MR1)
-  public static void setMarginsRelative(
-      MarginLayoutParams params, int start, int top, int end, int bottom) {
-    params.setMargins(start, top, end, bottom);
-    if (Build.VERSION.SDK_INT >= VERSION_CODES.JELLY_BEAN_MR1) {
-      params.setMarginStart(start);
-      params.setMarginEnd(end);
-    }
-  }
 
   /**
    * Converts DP to PX, where PX represents the actual number of pixels displayed, based on the
