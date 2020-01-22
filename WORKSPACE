@@ -47,7 +47,7 @@ maven_install(
         get_robolectric_dependency("shadows-framework"),
     ],
     repositories = [
-        "http://central.maven.org/maven2/",
+        "https://repo1.maven.org/maven2/",
         "https://maven.google.com",
     ],
 )
