@@ -1,0 +1,59 @@
+// Copyright 2020 The Feed Authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto2";
+
+package feedwire;
+
+option optimize_for=LITE_RUNTIME;
+
+import "src/trellis/proto/capability.proto";
+import "src/trellis/proto/data_operation.proto";
+import "src/trellis/proto/feed_id.proto";
+import "src/trellis/proto/response.proto";
+import "src/trellis/proto/response_status_code.proto";
+
+// A feed response is  a series of directives to manipulate backend storage,
+// similar to database commands.  Individual data operations contain all the
+// necessary information to manipulate the client state.
+message FeedResponse {
+  extend Response {
+    optional FeedResponse feed_response = 1000;
+  }
+  // DataOperations are applied on the client in order in which they are
+  // received.
+  repeated DataOperation data_operation = 1;
+  // Metadata for the entire FeedResponse.
+  optional FeedResponseMetadata feed_response_metadata = 2;
+
+  // The list of server-response supported capabilities.
+  repeated Capability server_capabilities = 3;
+
+  // The status code for this response.
+  optional ResponseStatusCode response_status_code = 4;
+}
+
+// Data which is relevant for the whole response made by the server.
+message FeedResponseMetadata {
+  // Time at which the server fulfilled this response. This is needed as client
+  // cannot be the source of truth.
+  optional int64 response_time_ms = 1;
+
+  // Created on the server and used by the client to identify the feed when
+  // clients will store multiple infinite feeds.
+  // See [INTERNAL LINK]
+  optional FeedId feed_id = 3;
+
+  reserved 2;
+}

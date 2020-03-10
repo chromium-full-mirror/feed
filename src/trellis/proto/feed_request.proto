@@ -1,0 +1,51 @@
+// Copyright 2020 The Feed Authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto2";
+
+package feedwire;
+
+option optimize_for=LITE_RUNTIME;
+
+import "src/trellis/proto/capability.proto";
+import "src/trellis/proto/client_info.proto";
+import "src/trellis/proto/consistency_token.proto";
+import "src/trellis/proto/feed_id.proto";
+import "src/trellis/proto/feed_query.proto";
+import "src/trellis/proto/request.proto";
+
+// Request to fetch new data for the feed
+message FeedRequest {
+  extend Request {
+    optional FeedRequest feed_request = 1000;
+  }
+  // Information about the client making the request.
+  optional ClientInfo client_info = 1;
+
+  // Query parameters to fetch feed data.
+  optional FeedQuery feed_query = 2;
+
+  // The list of client supported capabilities.
+  repeated Capability client_capability = 4;
+
+  // Token used to read from/write to the same storage.
+  optional ConsistencyToken consistency_token = 5;
+
+  // Created on the server and used by the client to identify the feed when
+  // clients will store multiple infinite feeds.
+  // See [INTERNAL LINK]
+  repeated FeedId feed_ids_to_preserve = 12;
+
+  reserved 3, 13;
+}
