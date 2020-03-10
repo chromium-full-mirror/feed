@@ -5,17 +5,17 @@ android_sdk_repository(
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 # Google Maven Repository
-GMAVEN_RULES_JVM_EXTERNAL_TAG = "1.0"
-GMAVEN_RULES_JVM_EXTERNAL_SHA = "48e0f1aab74fabba98feb8825459ef08dcc75618d381dff63ec9d4dd9860deaa"
+RULES_JVM_EXTERNAL_TAG = "3.0"
+RULES_JVM_EXTERNAL_SHA = "62133c125bf4109dfd9d2af64830208356ce4ef8b165a6ef15bbff7460b35c3a"
 
 # Current version of Android support library which Android code depends on
 ANDROID_SUPPORT_LIBRARY_VERSION = "28.0.0"
 
 http_archive(
     name = "rules_jvm_external",
-    strip_prefix = "rules_jvm_external-%s" % GMAVEN_RULES_JVM_EXTERNAL_TAG,
-    sha256 = GMAVEN_RULES_JVM_EXTERNAL_SHA,
-    url = "https://github.com/bazelbuild/rules_jvm_external/archive/%s.zip" % GMAVEN_RULES_JVM_EXTERNAL_TAG,
+    strip_prefix = "rules_jvm_external-%s" % RULES_JVM_EXTERNAL_TAG,
+    sha256 = RULES_JVM_EXTERNAL_SHA,
+    url = "https://github.com/bazelbuild/rules_jvm_external/archive/%s.zip" % RULES_JVM_EXTERNAL_TAG,
 )
 
 load("@rules_jvm_external//:defs.bzl", "maven_install")
@@ -33,12 +33,20 @@ maven_install(
         "com.android.support:support-compat:" + ANDROID_SUPPORT_LIBRARY_VERSION,
         "com.android.support:support-core-ui:" + ANDROID_SUPPORT_LIBRARY_VERSION,
         "com.android.support:swiperefreshlayout:" + ANDROID_SUPPORT_LIBRARY_VERSION,
+        "com.google.android:android:4.1.1.4",
+        "com.google.code.findbugs:jsr305:3.0.2",
         "com.google.dagger:dagger:2.17",
         "com.google.dagger:dagger-compiler:2.17",
         "com.google.dagger:dagger-producers:2.17",
         "com.google.guava:guava:27.0.1-android",
         "com.google.guava:guava-testlib:27.0.1-android",
+        "com.google.inject:guice:4.2.2",
+        "com.google.testing.compile:compile-testing:0.15",
         "com.google.truth:truth:0.45",
+        "com.google.truth.extensions:truth-liteproto-extension:0.45",
+        "com.squareup:javapoet:1.8.0",
+        "javax.annotation:jsr250-api:1.0",
+        "javax.inject:javax.inject:1",
         "junit:junit:4.12",
         "org.mockito:mockito-core:2.24.0",
         get_robolectric_dependency("annotations"),
@@ -61,17 +69,43 @@ http_archive(
 )
 
 http_archive(
-    name = "com_google_protobuf",
-    sha256 = "73fdad358857e120fd0fa19e071a96e15c0f23bb25f85d3f7009abfd4f264a2a",
-    strip_prefix = "protobuf-3.6.1.3",
-    urls = ["https://github.com/protocolbuffers/protobuf/archive/v3.6.1.3.tar.gz"],
+    name = "com_google_protobuf_javalite",
+    sha256 = "e60211a40473f6be95b53f64559f82a3b2971672b11710db2fc9081708e25699",
+    strip_prefix = "protobuf-0425fa932ce95a32bb9f88b2c09b995e9ff8207b",
+    urls = ["https://github.com/google/protobuf/archive/0425fa932ce95a32bb9f88b2c09b995e9ff8207b.zip"],
 )
 
+# rules_cc defines rules for generating C++ code from Protocol Buffers.
 http_archive(
-    name = "com_google_protobuf_javalite",
-    sha256 = "79d102c61e2a479a0b7e5fc167bcfaa4832a0c6aad4a75fa7da0480564931bcc",
-    strip_prefix = "protobuf-384989534b2246d413dbcd750744faab2607b516",
-    urls = ["https://github.com/google/protobuf/archive/384989534b2246d413dbcd750744faab2607b516.zip"],
+    name = "rules_cc",
+    sha256 = "35f2fb4ea0b3e61ad64a369de284e4fbbdcdba71836a5555abb5e194cf119509",
+    strip_prefix = "rules_cc-624b5d59dfb45672d4239422fa1e3de1822ee110",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_cc/archive/624b5d59dfb45672d4239422fa1e3de1822ee110.tar.gz",
+        "https://github.com/bazelbuild/rules_cc/archive/624b5d59dfb45672d4239422fa1e3de1822ee110.tar.gz",
+    ],
+)
+
+# rules_java defines rules for generating Java code from Protocol Buffers.
+http_archive(
+    name = "rules_java",
+    sha256 = "ccf00372878d141f7d5568cedc4c42ad4811ba367ea3e26bc7c43445bbc52895",
+    strip_prefix = "rules_java-d7bf804c8731edd232cb061cb2a9fe003a85d8ee",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_java/archive/d7bf804c8731edd232cb061cb2a9fe003a85d8ee.tar.gz",
+        "https://github.com/bazelbuild/rules_java/archive/d7bf804c8731edd232cb061cb2a9fe003a85d8ee.tar.gz",
+    ],
+)
+
+# rules_proto defines abstract rules for building Protocol Buffers.
+http_archive(
+    name = "rules_proto",
+    sha256 = "2490dca4f249b8a9a3ab07bd1ba6eca085aaf8e45a734af92aad0c42d9dc7aaf",
+    strip_prefix = "rules_proto-218ffa7dfa5408492dc86c01ee637614f8695c45",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_proto/archive/218ffa7dfa5408492dc86c01ee637614f8695c45.tar.gz",
+        "https://github.com/bazelbuild/rules_proto/archive/218ffa7dfa5408492dc86c01ee637614f8695c45.tar.gz",
+    ],
 )
 
 http_archive(
@@ -81,50 +115,16 @@ http_archive(
     strip_prefix = "robolectric-bazel-4.1",
 )
 
+load("@rules_cc//cc:repositories.bzl", "rules_cc_dependencies")
+rules_cc_dependencies()
+
+load("@rules_java//java:repositories.bzl", "rules_java_dependencies", "rules_java_toolchains")
+rules_java_dependencies()
+rules_java_toolchains()
+
+load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies", "rules_proto_toolchains")
+rules_proto_dependencies()
+rules_proto_toolchains()
+
 load("@robolectric//bazel:robolectric.bzl", "robolectric_repositories")
 robolectric_repositories()
-
-maven_jar(
-    name = "com_google_android_android",
-    artifact = "com.google.android:android:4.1.1.4",
-)
-
-maven_jar(
-    name = "com_google_code_findbugs_jsr305",
-    artifact = "com.google.code.findbugs:jsr305:3.0.2",
-)
-
-maven_jar(
-    name = "com_google_dagger_dagger",
-    artifact = "com.google.dagger:dagger:2.17",
-)
-
-maven_jar(
-    name = "com_google_inject_guice",
-    artifact = "com.google.inject:guice:4.2.2",
-)
-
-maven_jar(
-    name = "com_google_testing_compile_compile_testing",
-    artifact = "com.google.testing.compile:compile-testing:0.15",
-)
-
-maven_jar(
-    name = "com_google_truth_liteproto_extension",
-    artifact = "com.google.truth.extensions:truth-liteproto-extension:0.45"
-)
-
-maven_jar(
-    name = "com_squareup_javapoet",
-    artifact = "com.squareup:javapoet:1.8.0",
-)
-
-maven_jar(
-    name = "javax_annotation_jsr250_api",
-    artifact = "javax.annotation:jsr250-api:1.0",
-)
-
-maven_jar(
-    name = "javax_inject_javax_inject",
-    artifact = "javax.inject:javax.inject:1",
-)

@@ -11,7 +11,7 @@ android_local_test(
     deps = [
         "//src/main/java/com/google/android/libraries/feed/common/ui",
         "//third_party:robolectric",
-        "@com_google_protobuf_javalite//:protobuf_java_lite",
+        "@com_google_protobuf_javalite//:protobuf_javalite",
         "@maven//:androidx_test_core",
         "@maven//:com_google_truth_truth",
         "@robolectric//bazel:android-all",

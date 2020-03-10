@@ -11,8 +11,8 @@ android_local_test(
     deps = [
         "//src/main/java/com/google/android/libraries/feed/common/logging",
         "//third_party:robolectric",
-        "@com_google_code_findbugs_jsr305//jar",
-        "@com_google_protobuf_javalite//:protobuf_java_lite",
+        "@com_google_protobuf_javalite//:protobuf_javalite",
+        "@maven//:com_google_code_findbugs_jsr305",
         "@maven//:com_google_truth_truth",
         "@robolectric//bazel:android-all",
     ],
