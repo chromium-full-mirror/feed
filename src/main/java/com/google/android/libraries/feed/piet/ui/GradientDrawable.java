@@ -23,7 +23,7 @@ import com.google.search.now.ui.piet.GradientsProto.LinearGradient;
 public class GradientDrawable extends ShapeDrawable {
 
   // Doesn't like the call to setShape and setShaderFactory
-  @SuppressWarnings("initialization")
+  @SuppressWarnings("nullness")
   public GradientDrawable(LinearGradient gradient, Supplier<Boolean> rtlSupplier) {
     super();
 

@@ -49,7 +49,7 @@ class AdapterParameters {
 
   // Doesn't like passing "this" to the new ElementAdapterFactory; however, nothing in the factory's
   // construction will reference the elementAdapterFactory member of this, so should be safe.
-  @SuppressWarnings("initialization")
+  @SuppressWarnings("nullness")
   public AdapterParameters(
       Context context,
       Supplier</*@Nullable*/ ViewGroup> parentViewSupplier,
