@@ -72,6 +72,7 @@ message FeedActionMetadata {
     SEND_FEEDBACK = 17;
     MANAGE_INTERESTS = 18;
     REPORT_VIEW = 19;
+    BLOCK_CONTENT = 20;
     reserved 9, 10;  // Deprecated
   }
   optional Type type = 1;
@@ -95,6 +96,9 @@ message FeedActionMetadata {
 
     // The data needed by the Stream to report a view action.
     ViewReportData view_report_data = 10;
+
+    // The data needed by the stream to block content.
+    BlockContentData block_content_data = 11;
   }
   // The type of element this action is bounded on.
   // Next Id: 5
@@ -175,6 +179,15 @@ message NotInterestedInData {
   optional int32 interest_type_value = 5;
 
   reserved 4;
+}
+
+// Data needed by the client to handle the block content action.
+message BlockContentData {
+  // The data needed by Stream to (locally) dismiss the content.
+  repeated search.now.wire.feed.DataOperation data_operations = 1;
+  // Roundtripped server data on a per-action level.
+  // Identifies to the server the content that must be blocked.
+  optional search.now.wire.feed.ActionPayload payload = 2;
 }
 
 // Data used by the client to show a confirmation message with an action to
