@@ -44,7 +44,7 @@ message FeedAction {
 message FeedActionMetadata {
   // The type of action, used by the host to perform any custom logic needed for
   // a specific type of action.
-  // Next Id: 20
+  // Next Id: 21
   enum Type {
     UNKNOWN = 0;
     OPEN_URL = 1;
