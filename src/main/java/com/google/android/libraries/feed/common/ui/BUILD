@@ -5,6 +5,4 @@ licenses(["notice"])  # Apache 2
 android_library(
     name = "ui",
     srcs = glob(["*.java"]),
-    deps = [
-    ],
 )
