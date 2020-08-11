@@ -44,7 +44,6 @@ import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.android.libraries.feed.piet.TextElementAdapter.TextElementKey;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
-import com.google.android.libraries.feed.piet.host.TypefaceProvider;
 import com.google.android.libraries.feed.piet.host.TypefaceProvider.GoogleSansTypeface;
 import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.CustomElement;
@@ -77,7 +76,6 @@ public class TextElementAdapterTest {
   @Mock private StyleProvider mockStyleProvider;
   @Mock private HostProviders mockHostProviders;
   @Mock private AssetProvider mockAssetProvider;
-  @Mock private TypefaceProvider mockTypefaceProvider;
 
   private AdapterParameters adapterParameters;
 
