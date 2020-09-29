@@ -2,8 +2,6 @@ package(default_visibility = ["//visibility:public"])
 
 licenses(["notice"])  # Apache 2
 
-exports_files(["LICENSE"])
-
 proto_library(
     name = "feed_proto",
     srcs = glob(["*.proto"]),

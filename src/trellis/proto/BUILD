@@ -1,7 +1,5 @@
 licenses(["notice"])
 
-exports_files(["LICENSE"])
-
 proto_library(
     name = "proto",
     srcs = glob(["*.proto"]),

@@ -8,8 +8,6 @@ package(
 
 licenses(["notice"])  # Apache 2
 
-exports_files(["LICENSE"])
-
 proto_library(
     name = "feed_test_proto",
     srcs = glob(["*.proto"]),
