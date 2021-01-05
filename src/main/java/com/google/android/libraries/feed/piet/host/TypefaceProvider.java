@@ -15,7 +15,7 @@
 package com.google.android.libraries.feed.piet.host;
 
 import android.graphics.Typeface;
-import android.support.annotation.StringDef;
+import androidx.annotation.StringDef;
 import com.google.android.libraries.feed.common.functional.Consumer;
 
 /** Allows the host to provide Typefaces to Piet. */

@@ -15,9 +15,9 @@
 package com.google.android.libraries.feed.piet;
 
 import android.content.Context;
-import android.support.annotation.VisibleForTesting;
 import android.view.View;
 import android.view.ViewGroup;
+import androidx.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.piet.PietStylesHelper.PietStylesHelperFactory;

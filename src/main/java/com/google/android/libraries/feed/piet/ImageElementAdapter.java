@@ -18,9 +18,9 @@ import static com.google.android.libraries.feed.common.Validators.checkState;
 import static com.google.android.libraries.feed.piet.host.ImageLoader.DIMENSION_UNKNOWN;
 
 import android.content.Context;
-import android.support.annotation.VisibleForTesting;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
+import androidx.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
 import com.google.android.libraries.feed.piet.ui.AspectRatioScalingImageView;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;

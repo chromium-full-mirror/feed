@@ -16,7 +16,7 @@ package com.google.android.libraries.feed.piet;
 
 import android.content.Context;
 import android.content.res.Configuration;
-import android.support.annotation.VisibleForTesting;
+import androidx.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.host.AssetProvider;

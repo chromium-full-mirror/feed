@@ -15,8 +15,8 @@
 package com.google.android.libraries.feed.piet;
 
 import android.content.Context;
-import android.support.annotation.VisibleForTesting;
 import android.view.ViewGroup;
+import androidx.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.host.config.DebugBehavior;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.time.Clock;

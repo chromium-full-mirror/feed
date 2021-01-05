@@ -21,8 +21,8 @@ import static com.google.search.now.ui.piet.ErrorsProto.ErrorCode.ERR_DUPLICATE_
 import static com.google.search.now.ui.piet.ErrorsProto.ErrorCode.ERR_MISSING_BINDING_VALUE;
 import static com.google.search.now.ui.piet.ErrorsProto.ErrorCode.ERR_MISSING_TEMPLATE;
 
-import android.support.annotation.VisibleForTesting;
 import android.view.View;
+import androidx.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.host.config.DebugBehavior;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;

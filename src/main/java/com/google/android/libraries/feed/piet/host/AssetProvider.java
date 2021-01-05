@@ -16,7 +16,7 @@ package com.google.android.libraries.feed.piet.host;
 
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
-import android.support.annotation.VisibleForTesting;
+import androidx.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.piet.host.TypefaceProvider.GoogleSansTypeface;

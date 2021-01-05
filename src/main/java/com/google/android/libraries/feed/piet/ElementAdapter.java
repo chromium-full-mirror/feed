@@ -19,11 +19,11 @@ import static com.google.android.libraries.feed.piet.StyleProvider.DIMENSION_NOT
 
 import android.content.Context;
 import android.os.Build;
-import android.support.annotation.VisibleForTesting;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.FrameLayout;
+import androidx.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.android.libraries.feed.piet.host.LogDataCallback;
@@ -166,8 +166,7 @@ abstract class ElementAdapter<V extends View, M> {
       // We have already initialized the wrapper view.
       return;
     }
-    if (!elementStyle.hasRoundedCorners()
-        && !elementStyle.hasBorders()) {
+    if (!elementStyle.hasRoundedCorners() && !elementStyle.hasBorders()) {
       // We do not need a wrapper view.
       return;
     }

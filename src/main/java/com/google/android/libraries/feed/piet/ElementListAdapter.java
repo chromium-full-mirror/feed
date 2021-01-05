@@ -17,12 +17,12 @@ package com.google.android.libraries.feed.piet;
 import static com.google.android.libraries.feed.piet.StyleProvider.DIMENSION_NOT_SET;
 
 import android.content.Context;
-import android.support.annotation.VisibleForTesting;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
+import androidx.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.search.now.ui.piet.ElementsProto.Content;

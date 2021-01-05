@@ -21,10 +21,10 @@ import static com.google.search.now.ui.piet.ErrorsProto.ErrorCode.ERR_MISSING_EL
 import static com.google.search.now.ui.piet.ErrorsProto.ErrorCode.ERR_UNSUPPORTED_FEATURE;
 
 import android.content.Context;
-import android.support.annotation.VisibleForTesting;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.LinearLayout;
+import androidx.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.AdapterFactory.AdapterKeySupplier;
@@ -64,7 +64,6 @@ class GridRowAdapter extends ElementContainerAdapter<GridRowView, GridRow> {
     }
     return baseElement.getGridRow();
   }
-
 
   @Override
   List<Content> getContentsFromModel(GridRow model) {

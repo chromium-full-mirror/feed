@@ -25,6 +25,7 @@ maven_install(
     artifacts = [
         "androidx.test:core:1.1.0",
         "androidx.test:monitor:1.1.0",
+        "androidx.annotation:annotation:1.1.0",
         "com.android.support:appcompat-v7:" + ANDROID_SUPPORT_LIBRARY_VERSION,
         "com.android.support:collections:" + ANDROID_SUPPORT_LIBRARY_VERSION,
         "com.android.support:interpolator:" + ANDROID_SUPPORT_LIBRARY_VERSION,

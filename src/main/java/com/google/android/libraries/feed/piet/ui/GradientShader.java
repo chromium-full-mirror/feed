@@ -20,7 +20,7 @@ import android.graphics.RectF;
 import android.graphics.Shader;
 import android.graphics.Shader.TileMode;
 import android.graphics.drawable.ShapeDrawable;
-import android.support.annotation.VisibleForTesting;
+import androidx.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.common.functional.Supplier;
 
 /** Generates a linear gradient according to CSS behavior */

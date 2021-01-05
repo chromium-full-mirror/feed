@@ -16,8 +16,8 @@ package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 
-import android.support.annotation.VisibleForTesting;
 import android.util.LruCache;
+import androidx.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
@@ -173,9 +173,7 @@ public class PietStylesHelper {
       }
       if (boundStyle.hasImageLoadingSettings()) {
         mergedStyle.setImageLoadingSettings(
-            mergedStyle
-                .getImageLoadingSettings()
-                .toBuilder()
+            mergedStyle.getImageLoadingSettings().toBuilder()
                 .mergeFrom(boundStyle.getImageLoadingSettings()));
       }
       if (boundStyle.hasScaleType()) {

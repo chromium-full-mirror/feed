@@ -19,12 +19,12 @@ import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
-import android.support.annotation.VisibleForTesting;
 import android.support.v4.widget.TextViewCompat;
 import android.text.Layout;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.TextView;
+import androidx.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.AdapterFactory.AdapterKeySupplier;
@@ -191,8 +191,8 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, Element> {
     // padding (so that only half the padding is on the bottom). That means
     // extraPaddingForLineHeightBottom needs to be negative.
     if (VERSION.SDK_INT < VERSION_CODES.LOLLIPOP) {
-        extraPaddingForLineHeightBottom =
-            -(extraLineHeightBetweenLines - extraPaddingForLineHeightBottom);
+      extraPaddingForLineHeightBottom =
+          -(extraLineHeightBetweenLines - extraPaddingForLineHeightBottom);
     }
 
     extraLineHeight =

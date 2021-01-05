@@ -15,8 +15,8 @@
 package com.google.android.libraries.feed.piet;
 
 import android.content.Context;
-import android.support.annotation.VisibleForTesting;
 import android.view.View;
+import androidx.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.android.libraries.feed.piet.TemplateBinder.TemplateKey;
 import com.google.search.now.ui.piet.ElementsProto.CustomElement;

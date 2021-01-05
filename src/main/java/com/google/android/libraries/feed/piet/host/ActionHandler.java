@@ -14,8 +14,8 @@
 
 package com.google.android.libraries.feed.piet.host;
 
-import android.support.annotation.IntDef;
 import android.view.View;
+import androidx.annotation.IntDef;
 import com.google.search.now.ui.piet.ActionsProto.Action;
 import com.google.search.now.ui.piet.LogDataProto.LogData;
 import com.google.search.now.ui.piet.PietProto.Frame;
