@@ -32,7 +32,7 @@ def get_robolectric_dependency(artifact):
     return maven.artifact(
         group = "org.robolectric",
         artifact = artifact,
-        version = "4.1",
+        version = "4.4",
         exclusions = [
             # The protobuf-java artifact is excluded in order to prevent the
             # full java proto runtime from being pulled in.

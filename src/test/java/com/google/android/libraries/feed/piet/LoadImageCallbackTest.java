@@ -41,8 +41,10 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.LooperMode;
 import org.robolectric.shadows.ShadowLooper;
 
+@LooperMode(LooperMode.Mode.LEGACY)
 /** Tests of the {@link LoadImageCallback}. */
 @RunWith(RobolectricTestRunner.class)
 public class LoadImageCallbackTest {

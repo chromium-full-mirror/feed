@@ -4,18 +4,13 @@ android_sdk_repository(
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-# Google Maven Repository
-RULES_JVM_EXTERNAL_TAG = "3.0"
-RULES_JVM_EXTERNAL_SHA = "62133c125bf4109dfd9d2af64830208356ce4ef8b165a6ef15bbff7460b35c3a"
-
 # Current version of Android support library which Android code depends on
 ANDROID_SUPPORT_LIBRARY_VERSION = "28.0.0"
 
 http_archive(
     name = "rules_jvm_external",
-    strip_prefix = "rules_jvm_external-%s" % RULES_JVM_EXTERNAL_TAG,
-    sha256 = RULES_JVM_EXTERNAL_SHA,
-    url = "https://github.com/bazelbuild/rules_jvm_external/archive/%s.zip" % RULES_JVM_EXTERNAL_TAG,
+    strip_prefix = "rules_jvm_external-3.1",
+    url = "https://github.com/bazelbuild/rules_jvm_external/archive/3.1.zip",
 )
 
 load("@rules_jvm_external//:defs.bzl", "maven_install")
@@ -111,9 +106,8 @@ http_archive(
 
 http_archive(
     name = "robolectric",
-    urls = ["https://github.com/robolectric/robolectric-bazel/archive/4.1.tar.gz"],
-    sha256 = "2ee850ca521288db72b0dedb9ecbda55b64d11c470435a882f8daf615091253d",
-    strip_prefix = "robolectric-bazel-4.1",
+    urls = ["https://github.com/robolectric/robolectric-bazel/archive/4.4.tar.gz"],
+    strip_prefix = "robolectric-bazel-4.4",
 )
 
 load("@rules_cc//cc:repositories.bzl", "rules_cc_dependencies")
