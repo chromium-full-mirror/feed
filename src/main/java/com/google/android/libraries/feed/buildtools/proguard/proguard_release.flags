@@ -11,9 +11,6 @@
   public static void d(...);
   public static void dWithStackTrace(...);
 
-  # Protocol buffers are large. Only allow spamming a developer's device.
-  public static void debugLogRawProto(...);
-
   private static boolean shouldWtfCrash();
 }
 

@@ -22,9 +22,7 @@ import static android.util.Log.VERBOSE;
 import static android.util.Log.WARN;
 
 import android.os.Build;
-import android.util.Base64;
 import android.util.Log;
-import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.IllegalFormatException;
 import java.util.Locale;
@@ -756,57 +754,6 @@ public final class Logger {
     } catch (IllegalFormatException ex) {
       return message + Arrays.toString(args);
     }
-  }
-
-  /**
-   * Print the raw protobuffer with the indicated data using the TAG and the fake html tags marked
-   * by &lt;name&gt; and &lt;end-name&gt;
-   *
-   * <p>A utility called parse-request-response.sh can then be used to pick up the log lines,
-   * extract lines called request and response and write them out to a developer's workstation.
-   *
-   * <p>This should only be done during development or during a limited Alpha. Protocol buffers are
-   * large. The ring-buffer in logcat is small, and a shared resource with other apps. Your misuse
-   * of logging Protocol buffers limits the utility of logcat to other teams like Maps, Youtube,
-   * Play Store. Please do not enable logging of large protocol buffers in production, and please do
-   * not remove the IS_DEV_BUILD check.
-   *
-   * <p>If you find yourself requiring protocol buffers, a much more sensible solution is to write
-   * them to disk in /sdcard/, and allow developers to pull this out of dogfood devices. This avoids
-   * spamming the log ringbuffer, and also persists beyond a reboot.
-   */
-  public static void debugLogRawProto(String tag, byte[] rawProto, String name) {
-    // Create a string representation of the raw data.
-    String request;
-    try {
-      // A lot is happening in this line.  We are encoding the raw data into Base64: we
-      // skip wrapping because the default wrapping is at 76 chars which leads to too many
-      // calls into Log.i.  Instead, we chunk up later in logLongString(...) where we
-      // break at 2000 chars.  Also, the encoded bytes are then encoded into UTF-8 by the
-      // String class which maintains the encoding since the entire charset of Base64
-      // encoding fits without modification in utf-8.
-      request = new String(Base64.encode(rawProto, Base64.NO_WRAP), "UTF-8");
-    } catch (UnsupportedEncodingException e) {
-      // Ceaseless wonder!  We failed to do UTF-8 encoding.  Give up with a message
-      // that is easy to trace in the source code.
-      request = "<Exception: UTF-8 encoding failed in VelvetNetworkClient>";
-    }
-    // Indicate how to view this data.
-    Logger.d(tag, "Use tools/mnc_assist/parse-request-response.sh\n<%s>", name);
-    // Log.d truncates long lines.  This is a workaround to print long lines by chunking
-    // into 2000 chars per line.  The line limit here is arbitrary but cannot be pushed past
-    // 4000 chars.  Keeping it at 3500 or lower should be safe.
-    int LENGTH_MAX = 2000;
-    int total = request.length();
-    for (int start = 0; start < total; start += LENGTH_MAX) {
-      // String.substring(...) expects the end to be the string length, never more.
-      int end = Math.min(start + LENGTH_MAX, total);
-      Logger.d(tag, "%s", request.substring(start, end));
-    }
-    // End-tag is not a standard HTML </end> because the utility
-    // used to parse these treats the backlash characters / in a
-    // special way.  Instead we use a marker called end-name instead.
-    Logger.d(tag, "\n<end-%s>", name);
   }
 
   /**
