@@ -149,7 +149,7 @@ public class PietStylesHelper {
     Style.Builder mergedStyle = baseStyle.toBuilder();
     for (String style : stack.getStyleIdsList()) {
       if (styleMap.containsKey(style)) {
-        mergedStyle.mergeFrom(styleMap.get(style)).build();
+        mergedStyle.mergeFrom(styleMap.get(style));
       } else {
         String error =
             String.format("Unable to bind style [%s], style not found in Stylesheet", style);
