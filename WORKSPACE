@@ -3,6 +3,7 @@ android_sdk_repository(
     api_level = 28,
 )
 
+
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 # Current version of Android support library which Android code depends on
