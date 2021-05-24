@@ -64,13 +64,6 @@ http_archive(
     strip_prefix = "rules_android-0.1.1",
 )
 
-http_archive(
-    name = "com_google_protobuf_javalite",
-    sha256 = "e60211a40473f6be95b53f64559f82a3b2971672b11710db2fc9081708e25699",
-    strip_prefix = "protobuf-0425fa932ce95a32bb9f88b2c09b995e9ff8207b",
-    urls = ["https://github.com/google/protobuf/archive/0425fa932ce95a32bb9f88b2c09b995e9ff8207b.zip"],
-)
-
 # rules_cc defines rules for generating C++ code from Protocol Buffers.
 http_archive(
     name = "rules_cc",
@@ -96,13 +89,22 @@ http_archive(
 # rules_proto defines abstract rules for building Protocol Buffers.
 http_archive(
     name = "rules_proto",
-    sha256 = "2490dca4f249b8a9a3ab07bd1ba6eca085aaf8e45a734af92aad0c42d9dc7aaf",
-    strip_prefix = "rules_proto-218ffa7dfa5408492dc86c01ee637614f8695c45",
+    sha256 = "d8992e6eeec276d49f1d4e63cfa05bbed6d4a26cfe6ca63c972827a0d141ea3b",
+    strip_prefix = "rules_proto-cfdc2fa31879c0aebe31ce7702b1a9c8a4be02d2",
     urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/rules_proto/archive/218ffa7dfa5408492dc86c01ee637614f8695c45.tar.gz",
-        "https://github.com/bazelbuild/rules_proto/archive/218ffa7dfa5408492dc86c01ee637614f8695c45.tar.gz",
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_proto/archive/cfdc2fa31879c0aebe31ce7702b1a9c8a4be02d2.tar.gz",
+        "https://github.com/bazelbuild/rules_proto/archive/cfdc2fa31879c0aebe31ce7702b1a9c8a4be02d2.tar.gz",
     ],
 )
+
+http_archive(
+    name = "com_google_protobuf",
+    strip_prefix = "protobuf-3.13.0",
+    urls = ["https://github.com/protocolbuffers/protobuf/archive/v3.13.0.tar.gz"],
+)
+
+load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+protobuf_deps()
 
 http_archive(
     name = "robolectric",
