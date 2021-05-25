@@ -15,7 +15,6 @@
 syntax = "proto2";
 
 import "src/main/proto/search/now/wire/feed/action_type.proto";
-import "src/main/proto/search/now/wire/feed/semantic_properties.proto";
 
 package search.now.wire.feed;
 
@@ -43,14 +42,12 @@ message FeedActionQueryData {
   // A unique set of tables associated with the content.
   repeated string unique_table = 4;
 
-  // A unique set of SemanticProperties associated with the content that the
-  // action was performed on. This data is not altered by the client.
-  repeated SemanticProperties unique_semantic_properties = 5;
-
   // The content that the action was performed on. The identity of the content
   // can be created by combining unique_id, unique_content_domain, and
   // unique_table.
   repeated FeedActionQueryDataItem feed_action_query_data_item = 6;
+
+  reserved 5;
 }
 
 // Data describing the individual content that was acted upon.
